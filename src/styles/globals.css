@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+:root {
+  --soft-blue: #97c1ff;
+  --deep-sky-blue: #4da6ff;
+  --deep-navy-1: #1e293b;
+  --deep-navy-2: #0f172a;
+  --mint-cream: #bff2d4;
+  --sage-green: #a2d7c7;
+  --pistachio-milk: #e1f4c5;
+  --soft-greenery: #cde9b1;
+  --pale-lime-greenery: #dce999;
+  --baby-powder-pink: #ffcce1;
+  --soft-lavender: #d6c7ff;
+  --soft-lemon: #ffeaa7;
+  --warm-oatmeal: #f5ebe6;
+
+  --background: #ffffff;
+  --foreground: var(--deep-navy-2);
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --border: #e5e7eb;
+  --primary: var(--soft-blue);
+  --primary-strong: var(--deep-sky-blue);
+  --muted: #64748b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-soft-blue: var(--soft-blue);
+  --color-deep-sky-blue: var(--deep-sky-blue);
+  --color-deep-navy-1: var(--deep-navy-1);
+  --color-deep-navy-2: var(--deep-navy-2);
+  --color-mint-cream: var(--mint-cream);
+  --color-sage-green: var(--sage-green);
+  --color-pistachio-milk: var(--pistachio-milk);
+  --color-soft-greenery: var(--soft-greenery);
+  --color-pale-lime-greenery: var(--pale-lime-greenery);
+  --color-baby-powder-pink: var(--baby-powder-pink);
+  --color-soft-lavender: var(--soft-lavender);
+  --color-soft-lemon: var(--soft-lemon);
+  --color-warm-oatmeal: var(--warm-oatmeal);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-muted: var(--muted);
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
