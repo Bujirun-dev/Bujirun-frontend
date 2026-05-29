@@ -5,11 +5,11 @@ export const navigationItems = [
   },
   {
     label: "일정",
-    href: "/schedule",
+    href: "/itinerary",
   },
   {
     label: "도감",
-    href: "/dogam",
+    href: "/collection",
   },
   {
     label: "마이페이지",
