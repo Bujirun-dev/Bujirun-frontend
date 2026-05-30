@@ -1,60 +1,148 @@
 @import "tailwindcss";
 
-:root {
-  --soft-blue: #97c1ff;
-  --deep-sky-blue: #4da6ff;
-  --deep-navy-1: #1e293b;
-  --deep-navy-2: #0f172a;
-  --mint-cream: #bff2d4;
-  --sage-green: #a2d7c7;
-  --pistachio-milk: #e1f4c5;
-  --soft-greenery: #cde9b1;
-  --pale-lime-greenery: #dce999;
-  --baby-powder-pink: #ffcce1;
-  --soft-lavender: #d6c7ff;
-  --soft-lemon: #ffeaa7;
-  --warm-oatmeal: #f5ebe6;
+@font-face {
+  font-family: "GiantsInline";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2307-1@1.1/Giants-Inline.woff2")
+    format("woff2");
+  font-weight: normal;
+  font-display: swap;
+}
 
-  --background: #ffffff;
-  --foreground: var(--deep-navy-2);
-  --surface: #ffffff;
-  --surface-raised: #ffffff;
-  --border: #e5e7eb;
-  --primary: var(--soft-blue);
-  --primary-strong: var(--deep-sky-blue);
-  --muted: #64748b;
+/* Paperlogy - Thin */
+@font-face {
+  font-family: "Paperlogy";
+  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-1Thin.woff2")
+    format("woff2");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Paperlogy - ExtraLight */
+@font-face {
+  font-family: "Paperlogy";
+  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-2ExtraLight.woff2")
+    format("woff2");
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Paperlogy - Light */
+@font-face {
+  font-family: "Paperlogy";
+  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-3Light.woff2")
+    format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Paperlogy - Regular */
+@font-face {
+  font-family: "Paperlogy";
+  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-4Regular.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Paperlogy-  Medium */
+@font-face {
+  font-family: "Paperlogy";
+  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-5Medium.woff2")
+    format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Paperlogy - SemiBold */
+@font-face {
+  font-family: "Paperlogy";
+  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-6SemiBold.woff2")
+    format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Paperlogy - Bold */
+@font-face {
+  font-family: "Paperlogy";
+  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-7Bold.woff2")
+    format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Paperlogy - ExtraBold */
+@font-face {
+  font-family: "Paperlogy";
+  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-8ExtraBold.woff2")
+    format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Paperlogy - Black */
+@font-face {
+  font-family: "Paperlogy";
+  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-9Black.woff2")
+    format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cafe24Ssurround";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/Cafe24Ssurround.woff")
+    format("woff");
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cafe24ProUp";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2507-1@1.0/Cafe24PROUP.woff2") format("woff2");
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DXMovie";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2102@1.0/DXMoviePoster.woff")
+    format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-soft-blue: var(--soft-blue);
-  --color-deep-sky-blue: var(--deep-sky-blue);
-  --color-deep-navy-1: var(--deep-navy-1);
-  --color-deep-navy-2: var(--deep-navy-2);
-  --color-mint-cream: var(--mint-cream);
-  --color-sage-green: var(--sage-green);
-  --color-pistachio-milk: var(--pistachio-milk);
-  --color-soft-greenery: var(--soft-greenery);
-  --color-pale-lime-greenery: var(--pale-lime-greenery);
-  --color-baby-powder-pink: var(--baby-powder-pink);
-  --color-soft-lavender: var(--soft-lavender);
-  --color-soft-lemon: var(--soft-lemon);
-  --color-warm-oatmeal: var(--warm-oatmeal);
-  --color-surface: var(--surface);
-  --color-surface-raised: var(--surface-raised);
-  --color-border: var(--border);
-  --color-primary: var(--primary);
-  --color-primary-strong: var(--primary-strong);
-  --color-muted: var(--muted);
-  --font-sans: Arial, Helvetica, sans-serif;
-  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --color-main-blue: #97c1ff;
+  --color-main-white: #ffffff;
+  --color-sub-deepblue: #4da6ff;
+  --color-sub-pink: #ffb3c7;
+  --color-sub-green: #cde9b1;
+  --color-sub-coral: #ff7f50;
+  --color-sub-gray: #999999;
+  --color-text-primary: #1e293b;
+  --color-text-heading: #0f172a;
+  --font-giants: "GiantsInline", sans-serif;
+  --font-paperlogy: "Paperlogy", sans-serif;
+  --font-ssurround: "Cafe24Ssurround", sans-serif;
+  --font-proup: "Cafe24ProUp", sans-serif;
+  --font-dxmovie: "DXMovie", sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-main-white);
+  color: var(--color-text-primary);
+  font-family: "Paperlogy", sans-serif;
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
