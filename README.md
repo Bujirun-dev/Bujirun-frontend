@@ -72,8 +72,8 @@ src/
 │   ├── layout.tsx               # 루트 레이아웃
 │   ├── page.tsx                 # 홈 탭
 │   ├── providers.tsx            # 전역 Provider
-│   ├── schedule/page.tsx        # 일정 탭
-│   ├── dogam/page.tsx           # 도감 탭
+│   ├── itinerary/page.tsx       # 일정 탭
+│   ├── collection/page.tsx      # 도감 탭
 │   └── mypage/page.tsx          # 마이페이지 탭
 ├── components/                  # 공통 컴포넌트
 │   ├── FeaturePlaceholder.tsx
@@ -84,8 +84,8 @@ src/
 │       └── ScrollToTop.tsx      # 라우트 이동 시 최상단 이동
 ├── features/                    # 기능 단위 모듈
 │   ├── home/                    # 홈 기능
-│   ├── schedule/                # 일정 기능
-│   ├── dogam/                   # 도감 기능
+│   ├── itinerary/               # 일정 기능
+│   ├── collection/              # 도감 기능
 │   └── mypage/                  # 마이페이지 기능
 ├── shared/
 │   ├── api/                     # Axios API 클라이언트
@@ -99,12 +99,12 @@ src/
 
 ## Routing
 
-| Path        | Page          | Layout   |
-| ----------- | ------------- | -------- |
-| `/`         | 홈 탭         | AppShell |
-| `/schedule` | 일정 탭       | AppShell |
-| `/dogam`    | 도감 탭       | AppShell |
-| `/mypage`   | 마이페이지 탭 | AppShell |
+| Path           | Page          | Layout   |
+| -------------- | ------------- | -------- |
+| `/`            | 홈 탭          | AppShell |
+| `/itinerary`   | 일정 탭         | AppShell |
+| `/collection`  | 도감 탭         | AppShell |
+| `/mypage`      | 마이페이지 탭     | AppShell |
 
 ## Layout Policy
 
