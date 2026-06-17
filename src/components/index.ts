@@ -1,4 +1,12 @@
 export { FeaturePlaceholder } from "./FeaturePlaceholder";
+export { Card } from "./ui/Card";
+export { Button } from "./ui/Button";
+export { Modal } from "./ui/Modal";
+export { StatusBadge } from "./ui/StatusBadge";
+export { SearchBar } from "./ui/SearchBar";
+export { TimePicker } from "./ui/TimePicker";
+export { CategoryChip } from "./ui/CategoryChip";
+export type { Category } from "./ui/CategoryChip";
 export { AppHeader } from "./layout/AppHeader";
 export { AppShell } from "./layout/AppShell";
 export { BottomNavigation } from "./layout/BottomNavigation";

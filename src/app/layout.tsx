@@ -21,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className="h-full antialiased">
-      <body className="min-h-full bg-background text-foreground">
+    <html lang="ko" className="h-full overflow-hidden overscroll-none antialiased">
+      <body className="h-full overflow-hidden overscroll-none bg-background text-foreground">
         <Providers>
           <AppShell>{children}</AppShell>
         </Providers>
