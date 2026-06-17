@@ -9,7 +9,7 @@ export { TextInput } from "./ui/TextInput";
 export { Counter } from "./ui/Counter";
 export { PermissionModal } from "./ui/PermissionModal";
 export { KakaoLoginButton } from "./ui/KakaoLoginButton";
-export { SectionHeader } from "./ui/SectionHeader";
+export { SpeechBubble } from "./ui/SpeechBubble";
 export { CategoryChip } from "./ui/CategoryChip";
 export type { Category } from "./ui/CategoryChip";
 export { AppHeader } from "./layout/AppHeader";

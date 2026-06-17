@@ -57,7 +57,7 @@ export function Modal({
     >
       <div
         className={cn(
-          "w-full max-w-[320px] bg-white rounded-[30px] px-7 py-8 flex flex-col items-center gap-5",
+          "w-full max-w-[343px] bg-white rounded-[30px] px-7 py-8 flex flex-col items-center gap-5",
           className
         )}
         onClick={(e) => e.stopPropagation()}

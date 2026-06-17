@@ -60,8 +60,8 @@ function ScrollColumn({
             className={cn(
               "flex items-center justify-center cursor-pointer font-paperlogy transition-all select-none",
               v === selected
-                ? "text-[22px] font-bold text-text-heading"
-                : "text-[15px] text-sub-gray"
+                ? "text-[20px] font-bold text-text-heading"
+                : "text-[16px] font-semibold text-sub-gray"
             )}
           >
             {String(v).padStart(2, "0")}
@@ -92,13 +92,13 @@ export function TimePicker({
         className="bg-white rounded-[24px] px-8 py-6 flex flex-col items-center gap-4 w-[260px]"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="font-paperlogy font-bold text-[16px] text-text-heading">시간 변경</h3>
+        <h3 className="font-paperlogy font-bold text-[20px] text-text-heading">시간 변경</h3>
 
         {/* 스크롤 영역 + 하이라이트 */}
         <div className="relative flex items-center gap-2" style={{ height: ITEM_H * VISIBLE }}>
           {/* 선택된 행 하이라이트 (두 컬럼 전체 너비) */}
           <div
-            className="absolute left-0 right-0 rounded-[14px] z-0"
+            className="absolute -left-4 -right-4 rounded-[14px] z-0"
             style={{
               top: ITEM_H * 2,
               height: ITEM_H,

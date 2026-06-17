@@ -4,23 +4,38 @@ import { useState } from "react";
 import {
   Button, Card, CategoryChip, StatusBadge,
   SearchBar, TimePicker, TextInput, Counter,
-  PermissionModal, KakaoLoginButton, SectionHeader, Modal,
+  PermissionModal, KakaoLoginButton, Modal, SpeechBubble,
 } from "@/components";
 import {
   PlaceCard, TransportCard, LogCard, DayHeader,
   PlaceDetailSheet, ArrivalVerifyModal,
   MemberAvatar, VotePlaceCard, FriendAvatarGrid, InviteCard,
+  PlaceInfoRow, PlaceSearchItem, SortTabBar,
 } from "@/features/itinerary";
 import {
   ProfileCard, MenuItem, NicknameModal, AvatarSelectModal,
 } from "@/features/mypage";
 import { CollectionProgressCard, CategoryStatCard } from "@/features/collection";
-import { HomeDogamCard, HomeItineraryItem } from "@/features/home";
+import { HomeItineraryItem, DogamProgressBar } from "@/features/home";
 
 const IMG = "https://picsum.photos/400/300";
 const IMG2 = "https://picsum.photos/401/300";
 const MOCK_FRIENDS = [{ imageUrl: IMG }, { imageUrl: IMG2 }, { imageUrl: IMG }, { imageUrl: IMG2 }];
 const MOCK_AVATARS = [IMG, IMG2, IMG, IMG2, IMG, IMG2, IMG, IMG2, IMG];
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="sticky top-0 bg-system-navbg py-2 z-10">
+      <h2 className="font-paperlogy font-bold text-[18px] text-main-blue border-b-2 border-main-blue pb-1">
+        {children}
+      </h2>
+    </div>
+  );
+}
+
+function ComponentLabel({ children }: { children: React.ReactNode }) {
+  return <h3 className="font-paperlogy text-[12px] text-sub-gray font-semibold">{children}</h3>;
+}
 
 export default function TestPage() {
   const [search, setSearch] = useState("");
@@ -29,6 +44,7 @@ export default function TestPage() {
   const [hour, setHour] = useState(12);
   const [minute, setMinute] = useState(0);
 
+  const [showBaseModal, setShowBaseModal] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
@@ -40,184 +56,235 @@ export default function TestPage() {
   const [showPermission, setShowPermission] = useState(false);
 
   return (
-    <div className="bg-system-navbg px-5 py-8 flex flex-col gap-10 overflow-y-auto">
-      <h1 className="font-paperlogy font-bold text-[20px] text-text-heading">컴포넌트 테스트</h1>
+    <div className="bg-system-navbg px-5 py-6 flex flex-col gap-8 overflow-y-auto">
+      <h1 className="font-paperlogy font-bold text-[22px] text-text-heading">컴포넌트 테스트</h1>
 
-      {/* ── 공통 UI ── */}
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">Button</h2>
+      {/* ════════════════════════════════ 공통 UI ════════════════════════════════ */}
+      <SectionTitle>공통 UI</SectionTitle>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>Button</ComponentLabel>
         <Button variant="primary">primary</Button>
         <Button variant="secondary">secondary</Button>
         <Button variant="warning">warning</Button>
-      </section>
+      </div>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">KakaoLoginButton</h2>
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>KakaoLoginButton</ComponentLabel>
         <KakaoLoginButton onClick={() => {}} />
-      </section>
+      </div>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">Card</h2>
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>Card</ComponentLabel>
         <Card variant="glass-lg" className="p-4"><p className="font-paperlogy text-[13px]">glass-lg</p></Card>
         <Card variant="glass-sm" className="p-4"><p className="font-paperlogy text-[13px]">glass-sm</p></Card>
         <Card variant="white" className="p-4"><p className="font-paperlogy text-[13px]">white</p></Card>
-      </section>
+      </div>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">SectionHeader</h2>
-        <SectionHeader title="오늘의 일정" subtitle="2026.05.18 (월)" />
-        <SectionHeader title="여기는 어때요?" actionLabel="더보기" onAction={() => {}} />
-      </section>
-
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">CategoryChip</h2>
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>CategoryChip</ComponentLabel>
         <div className="flex gap-2 flex-wrap">
-          <CategoryChip category="sea" /><CategoryChip category="nature" />
-          <CategoryChip category="culture" /><CategoryChip category="experience" />
+          <CategoryChip category="sea" />
+          <CategoryChip category="nature" />
+          <CategoryChip category="culture" />
+          <CategoryChip category="experience" />
         </div>
-        <div className="flex gap-2">
-          <CategoryChip category="sea" /><CategoryChip category="nature" />
-        </div>
-      </section>
+      </div>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">StatusBadge</h2>
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>StatusBadge</ComponentLabel>
         <div className="flex gap-2">
-          <StatusBadge status="completed" /><StatusBadge status="verify" /><StatusBadge status="pending" />
+          <StatusBadge status="completed" />
+          <StatusBadge status="verify" />
+          <StatusBadge status="pending" />
         </div>
-      </section>
+      </div>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">SearchBar</h2>
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>SearchBar</ComponentLabel>
         <SearchBar value={search} onChange={setSearch} />
-      </section>
+      </div>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">TextInput</h2>
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>TextInput</ComponentLabel>
         <TextInput value={inputVal} onChange={(e) => setInputVal(e.target.value)} placeholder="2-10자 이내" maxLength={10} />
-      </section>
+      </div>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">Counter</h2>
-        <div className="flex items-center gap-2">
-          <span className="font-paperlogy text-[13px]">👥 친구 수</span>
-          <Counter value={count} onChange={setCount} min={2} max={6} />
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>Counter</ComponentLabel>
+        <Counter value={count} onChange={setCount} min={2} max={6} />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>SpeechBubble</ComponentLabel>
+        <SpeechBubble>
+          <p className="font-paperlogy text-[13px] text-text-primary">말풍선 내용이 들어와요.</p>
+        </SpeechBubble>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>Modal (기본)</ComponentLabel>
+        <Button variant="secondary" onClick={() => setShowBaseModal(true)}>Modal 열기</Button>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>Modal / TimePicker / PermissionModal</ComponentLabel>
+        <Button variant="secondary" onClick={() => setShowTimePicker(true)}>TimePicker</Button>
+        <Button variant="secondary" onClick={() => setShowDeleteModal(true)}>Modal — 삭제</Button>
+        <Button variant="secondary" onClick={() => setShowAIModal(true)}>Modal — AI 최적화</Button>
+        <Button variant="secondary" onClick={() => setShowLogout(true)}>Modal — 로그아웃</Button>
+        <Button variant="secondary" onClick={() => setShowPermission(true)}>PermissionModal</Button>
+      </div>
+
+      {/* ════════════════════════════════ 홈 탭 ════════════════════════════════ */}
+      <SectionTitle>홈 탭</SectionTitle>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>DogamProgressBar</ComponentLabel>
+        <DogamProgressBar collectedCount={24} totalCount={34} />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>HomeItineraryItem</ComponentLabel>
+        <HomeItineraryItem placeName="송도 해수욕장" status="completed" transport={{ type: "버스", routeName: "2012", durationMin: 20, nextStop: "5분 후" }} />
+        <HomeItineraryItem placeName="영도 해안선" status="verify" transport={{ type: "버스", routeName: "2012", durationMin: 20, nextStop: "5분 후" }} />
+        <HomeItineraryItem placeName="광안대교" status="pending" isLast />
+      </div>
+
+      {/* ════════════════════════════════ 일정 탭 ════════════════════════════════ */}
+      <SectionTitle>일정 탭</SectionTitle>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>DayHeader</ComponentLabel>
+        <Card variant="white">
+          <DayHeader day={1} date="2026.05.18" onMapPress={() => {}} onAIPress={() => setShowAIModal(true)} onListPress={() => {}} />
+        </Card>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>MemberAvatar</ComponentLabel>
+        <div className="flex gap-2">
+          <MemberAvatar label="A" index={0} />
+          <MemberAvatar label="B" index={1} />
+          <MemberAvatar label="C" index={2} />
+          <MemberAvatar label="D" index={3} />
         </div>
-      </section>
+      </div>
 
-      {/* ── Mypage ── */}
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">ProfileCard</h2>
-        <ProfileCard nickname="은지미" isVerified categories={["sea", "culture"]} collectedCount={24} totalCount={34} />
-      </section>
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>PlaceCard</ComponentLabel>
+        <PlaceCard imageUrl={IMG} name="송도 해수욕장" category="sea" status="completed" onDelete={() => setShowDeleteModal(true)} onClick={() => setShowDetailSheet(true)} />
+        <PlaceCard imageUrl={IMG} name="해운대 해수욕장" category="culture" status="verify" onDelete={() => setShowDeleteModal(true)} />
+        <PlaceCard imageUrl={IMG} name="광안리 해수욕장" category="nature" status="pending" />
+      </div>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">MenuItem</h2>
-        <MenuItem icon="🔖" label="북마크 목록" onClick={() => {}} />
-        <MenuItem icon="🚪" label="로그아웃" onClick={() => setShowLogout(true)} />
-        <MenuItem icon="🚫" label="회원 탈퇴" onClick={() => {}} />
-      </section>
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>TransportCard</ComponentLabel>
+        <TransportCard type="버스" routeName="2012" from="송도 해수욕장" to="해운대" durationMin={20} cost={1500} />
+      </div>
 
-      {/* ── Collection ── */}
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">CollectionProgressCard</h2>
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>SortTabBar</ComponentLabel>
+        <SortTabBar />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>PlaceSearchItem (추천순 — 이미지 있음)</ComponentLabel>
+        <PlaceSearchItem imageUrl={IMG} name="감천 문화마을" category="culture" status="completed" />
+        <PlaceSearchItem imageUrl={IMG} name="광안리 해수욕장" category="sea" status="pending" />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>PlaceSearchItem (이름순 — 이미지 없음)</ComponentLabel>
+        <PlaceSearchItem name="감천 문화마을" category="experience" />
+        <PlaceSearchItem name="광안리 해수욕장" category="sea" />
+        <PlaceSearchItem name="금정산성" category="nature" />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>PlaceInfoRow</ComponentLabel>
+        <div className="bg-white rounded-[14px] px-4">
+          <PlaceInfoRow icon="🕐" label="운영시간" value="09:00 - 18:00" />
+          <PlaceInfoRow icon="💰" label="입장료" value="무료" />
+          <PlaceInfoRow icon="🅿️" label="주차" value="공영 주차장" />
+          <PlaceInfoRow icon="📞" label="문의" value="051-240-4000" />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>VotePlaceCard</ComponentLabel>
+        <div className="flex gap-3">
+          <VotePlaceCard imageUrl={IMG} name="송도 해수욕장" isSelected />
+          <VotePlaceCard imageUrl={IMG2} name="광안리 해수욕장" />
+          <VotePlaceCard imageUrl={IMG} name="해운대" />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>LogCard</ComponentLabel>
+        <LogCard imageUrl={IMG} placeName="송도 해수욕장" extraCount={3} author="은지미" tripType="당일치기" date="2026.05.18" dDay={90} />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>FriendAvatarGrid</ComponentLabel>
+        <FriendAvatarGrid friends={MOCK_FRIENDS} total={6} />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>InviteCard</ComponentLabel>
+        <InviteCard friends={MOCK_FRIENDS} total={6} onInvite={() => {}} />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>ArrivalVerifyModal / PlaceDetailSheet</ComponentLabel>
+        <Button variant="secondary" onClick={() => setShowArrivalModal(true)}>ArrivalVerifyModal</Button>
+        <Button variant="secondary" onClick={() => setShowDetailSheet(true)}>PlaceDetailSheet</Button>
+      </div>
+
+      {/* ════════════════════════════════ 도감 탭 ════════════════════════════════ */}
+      <SectionTitle>도감 탭</SectionTitle>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>CollectionProgressCard</ComponentLabel>
         <CollectionProgressCard collectedCount={24} totalCount={34} description="부산에서 내가 남긴 나의 여행 발자국 🐾" onViewMore={() => {}} />
-      </section>
+      </div>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">CategoryStatCard</h2>
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>CategoryStatCard</ComponentLabel>
         <div className="grid grid-cols-4 gap-2">
           <CategoryStatCard category="sea" collectedCount={4} totalCount={34} />
           <CategoryStatCard category="nature" collectedCount={4} totalCount={34} />
           <CategoryStatCard category="culture" collectedCount={4} totalCount={34} />
           <CategoryStatCard category="experience" collectedCount={4} totalCount={34} />
         </div>
-      </section>
+      </div>
 
-      {/* ── Home ── */}
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">HomeDogamCard</h2>
-        <HomeDogamCard mapImageUrl={IMG} collectedCount={24} totalCount={34} progressMessage="영자영자, 현재 33% 수집했어요!" onClick={() => {}} />
-      </section>
+      {/* ════════════════════════════════ 마이페이지 탭 ════════════════════════════════ */}
+      <SectionTitle>마이페이지 탭</SectionTitle>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">HomeItineraryItem</h2>
-        <HomeItineraryItem placeName="송도 해수욕장" status="completed" transport={{ type: "버스", routeName: "2012", durationMin: 20, nextStop: "5분 후" }} />
-        <HomeItineraryItem placeName="영도 해안선" status="verify" transport={{ type: "버스", routeName: "2012", durationMin: 20, nextStop: "5분 후" }} />
-        <HomeItineraryItem placeName="광안대교" status="pending" isLast />
-      </section>
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>ProfileCard</ComponentLabel>
+        <ProfileCard nickname="은지미" isVerified categories={["sea", "culture"]} collectedCount={24} totalCount={34} />
+      </div>
 
-      {/* ── Itinerary ── */}
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">DayHeader</h2>
-        <Card variant="white">
-          <DayHeader day={1} date="2026.05.18" onMapPress={() => {}} onAIPress={() => setShowAIModal(true)} onListPress={() => {}} />
-        </Card>
-      </section>
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>MenuItem</ComponentLabel>
+        <MenuItem icon="🔖" label="북마크 목록" onClick={() => {}} />
+        <MenuItem icon="🚪" label="로그아웃" onClick={() => setShowLogout(true)} />
+        <MenuItem icon="🚫" label="회원 탈퇴" onClick={() => {}} />
+      </div>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">MemberAvatar</h2>
-        <div className="flex gap-2">
-          <MemberAvatar label="A" index={0} /><MemberAvatar label="B" index={1} />
-          <MemberAvatar label="C" index={2} /><MemberAvatar label="D" index={3} />
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">PlaceCard</h2>
-        <PlaceCard imageUrl={IMG} name="송도 해수욕장" category="sea" status="completed" onDelete={() => setShowDeleteModal(true)} onClick={() => setShowDetailSheet(true)} />
-        <PlaceCard imageUrl={IMG} name="해운대 해수욕장" category="culture" status="verify" onDelete={() => setShowDeleteModal(true)} />
-        <PlaceCard imageUrl={IMG} name="광안리 해수욕장" category="nature" status="pending" />
-      </section>
-
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">TransportCard</h2>
-        <TransportCard type="버스" routeName="2012" from="송도 해수욕장" to="해운대" durationMin={20} cost={1500} />
-      </section>
-
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">VotePlaceCard</h2>
-        <div className="flex gap-3">
-          <VotePlaceCard imageUrl={IMG} name="송도 해수욕장" isSelected />
-          <VotePlaceCard imageUrl={IMG2} name="광안리 해수욕장" />
-          <VotePlaceCard imageUrl={IMG} name="해운대" />
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">LogCard</h2>
-        <LogCard imageUrl={IMG} placeName="송도 해수욕장" extraCount={3} author="은지미" tripType="당일치기" date="2026.05.18" dDay={90} />
-      </section>
-
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">FriendAvatarGrid</h2>
-        <FriendAvatarGrid friends={MOCK_FRIENDS} total={6} />
-      </section>
-
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">InviteCard</h2>
-        <InviteCard friends={MOCK_FRIENDS} total={6} onInvite={() => {}} />
-      </section>
-
-      {/* ── 팝업 트리거 ── */}
-      <section className="flex flex-col gap-2">
-        <h2 className="font-paperlogy font-bold text-[14px] text-sub-gray">팝업 / 시트</h2>
-        <Button variant="secondary" onClick={() => setShowTimePicker(true)}>TimePicker</Button>
-        <Button variant="secondary" onClick={() => setShowDeleteModal(true)}>삭제 Modal (base)</Button>
-        <Button variant="secondary" onClick={() => setShowAIModal(true)}>AI최적화 Modal (base)</Button>
-        <Button variant="secondary" onClick={() => setShowLogout(true)}>로그아웃 Modal (base)</Button>
-        <Button variant="secondary" onClick={() => setShowArrivalModal(true)}>ArrivalVerifyModal</Button>
-        <Button variant="secondary" onClick={() => setShowDetailSheet(true)}>PlaceDetailSheet</Button>
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>NicknameModal / AvatarSelectModal</ComponentLabel>
         <Button variant="secondary" onClick={() => setShowNickname(true)}>NicknameModal</Button>
         <Button variant="secondary" onClick={() => setShowAvatarSelect(true)}>AvatarSelectModal</Button>
-        <Button variant="secondary" onClick={() => setShowPermission(true)}>PermissionModal</Button>
-      </section>
+      </div>
 
       <div className="h-10" />
 
+      {/* ── 오버레이 ── */}
+      <Modal isOpen={showBaseModal} onClose={() => setShowBaseModal(false)} icon="✦" title="모달 제목" description={"모달 설명이 들어오는 자리입니다.\n두 줄까지 가능해요."} confirmText="확인" cancelText="취소" onConfirm={() => setShowBaseModal(false)} />
       <TimePicker isOpen={showTimePicker} onClose={() => setShowTimePicker(false)} hour={hour} minute={minute} onChange={(h, m) => { setHour(h); setMinute(m); }} onConfirm={() => setShowTimePicker(false)} />
-
-      {/* base Modal 재사용 예시 */}
       <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} icon="🗑" title="일정 삭제" description={"'송도 해수욕장'을(를)\n일정에서 삭제하시겠어요?"} confirmText="삭제하기" cancelText="취소" confirmVariant="warning" onConfirm={() => setShowDeleteModal(false)}>
         <span className="font-paperlogy text-[12px] text-sub-gray text-center">* 삭제한 일정은 복구할 수 없어요.</span>
       </Modal>
@@ -227,7 +294,6 @@ export default function TestPage() {
       <Modal isOpen={showLogout} onClose={() => setShowLogout(false)} icon="🚪" title="로그아웃" description={"정말 로그아웃 하시겠어요?\n다음 여행도 함께 해요!"} confirmText="로그아웃" cancelText="취소" onConfirm={() => setShowLogout(false)}>
         <span className="font-paperlogy text-[12px] text-sub-gray text-center">* 언제든 다시 로그인할 수 있어요.</span>
       </Modal>
-
       <ArrivalVerifyModal isOpen={showArrivalModal} onClose={() => setShowArrivalModal(false)} placeName="송도 해수욕장" onVerify={() => {}} onLater={() => {}} />
       <PlaceDetailSheet isOpen={showDetailSheet} onClose={() => setShowDetailSheet(false)} imageUrl={IMG} name="송도 해수욕장" category="sea" status="pending" description="부산의 대표적인 해수욕장입니다." address="서울 서구 송도해변로 100" info="운영시간: 09:00 ~ 18:00" />
       <NicknameModal isOpen={showNickname} onClose={() => setShowNickname(false)} currentNickname="은지미" onConfirm={() => {}} />

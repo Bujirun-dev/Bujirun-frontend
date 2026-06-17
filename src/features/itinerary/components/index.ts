@@ -8,3 +8,7 @@ export { MemberAvatar } from "./MemberAvatar";
 export { VotePlaceCard } from "./VotePlaceCard";
 export { FriendAvatarGrid } from "./FriendAvatarGrid";
 export { InviteCard } from "./InviteCard";
+export { PlaceInfoRow } from "./PlaceInfoRow";
+export { PlaceSearchItem } from "./PlaceSearchItem";
+export { SortTabBar } from "./SortTabBar";
+export type { SortType, CategoryFilter } from "./SortTabBar";

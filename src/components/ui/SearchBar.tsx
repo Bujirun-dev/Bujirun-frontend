@@ -19,7 +19,7 @@ export function SearchBar({
     <div
       className={cn(
         "flex items-center gap-2",
-        "h-[44px] px-4 rounded-[22px]",
+        "h-[30px] px-4 rounded-[10px]",
         "bg-system-searchbg",
         className
       )}
@@ -41,7 +41,7 @@ export function SearchBar({
         placeholder={placeholder}
         className={cn(
           "flex-1 bg-transparent outline-none",
-          "font-paperlogy text-[13px] text-text-primary",
+          "font-paperlogy font-normal text-[11px] text-text-primary",
           "placeholder:text-sub-gray"
         )}
       />
