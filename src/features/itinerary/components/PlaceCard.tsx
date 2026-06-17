@@ -59,7 +59,7 @@ export function PlaceCard({
             </svg>
             <span className="font-paperlogy font-bold text-[13px] text-text-heading">{name}</span>
           </div>
-          <CategoryChip category={category} size="sm" />
+          <CategoryChip category={category} className="self-start" />
         </div>
 
         {status && (

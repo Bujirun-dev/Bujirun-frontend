@@ -13,7 +13,7 @@ interface ModalProps {
   children?: React.ReactNode;
   confirmText?: string;
   cancelText?: string;
-  confirmVariant?: "primary" | "danger";
+  confirmVariant?: "primary" | "warning";
   onConfirm?: () => void;
   onCancel?: () => void;
   className?: string;

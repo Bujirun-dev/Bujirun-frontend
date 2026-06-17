@@ -65,7 +65,7 @@ export function PlaceDetailSheet({
               <circle cx="7" cy="5" r="1.5" fill="white" />
             </svg>
             <span className="font-paperlogy font-bold text-[16px] text-text-heading">{name}</span>
-            <CategoryChip category={category} size="sm" />
+            <CategoryChip category={category} />
           </div>
           <button onClick={onBookmark}>
             <span className={cn("text-[20px]", isBookmarked ? "text-sub-coral" : "text-sub-lightgray")}>

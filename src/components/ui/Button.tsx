@@ -1,6 +1,6 @@
 import { cn } from "@/shared/utils";
 
-type ButtonVariant = "primary" | "secondary" | "danger";
+type ButtonVariant = "primary" | "secondary" | "warning";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
@@ -31,7 +31,7 @@ const buttonVariants: Record<ButtonVariant, string> = {
     "transition-opacity active:opacity-80",
   ].join(" "),
 
-  danger: [
+  warning: [
     "w-full h-[40px]",
     "bg-sub-coral",
     "rounded-[10px]",
