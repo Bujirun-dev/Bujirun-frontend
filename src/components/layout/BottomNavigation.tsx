@@ -106,7 +106,7 @@ export function BottomNavigation() {
               key={item.href}
               href={item.href}
               aria-current={isActive ? "page" : undefined}
-              className="relative flex min-w-0 flex-col items-center justify-center text-[11px] font-semibold transition-colors"
+              className="relative flex min-w-0 flex-col items-center justify-center text-xs font-semibold transition-colors"
             >
               {/* 활성화 시 */}
               {/* 배경 - 활성화 상태일 때만 표시 */}

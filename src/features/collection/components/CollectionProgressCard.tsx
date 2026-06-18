@@ -45,11 +45,11 @@ export function CollectionProgressCard({
           {collectedCount} / {totalCount} 수집 정보
         </span>
         {description && (
-          <p className="font-paperlogy text-[12px] text-sub-gray leading-relaxed">{description}</p>
+          <p className="font-paperlogy text-sm text-sub-gray leading-relaxed">{description}</p>
         )}
         {onViewMore && (
           <button onClick={onViewMore}>
-            <span className="font-paperlogy text-[12px] text-sub-deepblue">이제 기록을 보기 ›</span>
+            <span className="font-paperlogy text-sm text-sub-deepblue">이제 기록을 보기 ›</span>
           </button>
         )}
       </div>

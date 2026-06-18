@@ -32,17 +32,17 @@ export function LogCard({
       <div className="relative w-full h-[180px]">
         <Image src={imageUrl} alt={placeName} fill className="object-cover" />
         <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 rounded-[10px] px-2 py-1">
-          <span className="text-[11px]">🗓</span>
-          <span className="font-paperlogy font-bold text-[12px] text-text-heading">{dDay}</span>
+          <span className="text-xs">🗓</span>
+          <span className="font-paperlogy font-bold text-sm text-text-heading">{dDay}</span>
         </div>
       </div>
 
       <div className="px-4 py-3 flex flex-col gap-1.5">
-        <p className="font-paperlogy font-semibold text-[13px] text-text-heading">
+        <p className="font-paperlogy font-semibold text-md text-text-heading">
           📍 {placeName}{extraCount ? ` 외 ${extraCount}곳` : ""}
         </p>
-        <p className="font-paperlogy text-[12px] text-text-primary">🎫 {author}</p>
-        <p className="font-paperlogy text-[12px] text-sub-gray">
+        <p className="font-paperlogy text-sm text-text-primary">🎫 {author}</p>
+        <p className="font-paperlogy text-sm text-sub-gray">
           📅 {tripType} · {date}
         </p>
       </div>

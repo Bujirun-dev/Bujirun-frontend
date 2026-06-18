@@ -27,12 +27,12 @@ export function PlaceCard({
   return (
     <div
       className={cn(
-        "flex bg-white rounded-[20px] overflow-hidden shadow-sm cursor-pointer",
+        "w-[285px] h-[98px] flex bg-white rounded-[20px] overflow-hidden shadow-sm cursor-pointer",
         className
       )}
       onClick={onClick}
     >
-      <div className="relative w-[110px] shrink-0">
+      <div className="relative w-[120px] h-[80px] shrink-0 self-center ml-[9px] rounded-[14px] overflow-hidden">
         <Image src={imageUrl} alt={name} fill className="object-cover" />
       </div>
 
@@ -57,7 +57,7 @@ export function PlaceCard({
               <path d="M6 1C4.07 1 2.5 2.57 2.5 4.5C2.5 7.25 6 11 6 11C6 11 9.5 7.25 9.5 4.5C9.5 2.57 7.93 1 6 1Z" fill="#FF7F50" />
               <circle cx="6" cy="4.5" r="1.2" fill="white" />
             </svg>
-            <span className="font-paperlogy font-bold text-[13px] text-text-heading">{name}</span>
+            <span className="font-paperlogy font-bold text-md text-text-heading">{name}</span>
           </div>
           <CategoryChip category={category} className="self-start" />
         </div>

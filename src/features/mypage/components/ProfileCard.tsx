@@ -30,9 +30,9 @@ export function ProfileCard({
 
       <div className="flex flex-col gap-1.5 flex-1">
         <div className="flex items-center gap-1.5">
-          <span className="font-paperlogy font-bold text-[16px] text-text-heading">{nickname}</span>
+          <span className="font-paperlogy font-bold text-lg text-text-heading">{nickname}</span>
           {isVerified && (
-            <span className="w-[16px] h-[16px] rounded-full bg-sub-deepblue flex items-center justify-center text-[9px] text-white font-bold">
+            <span className="w-[16px] h-[16px] rounded-full bg-sub-deepblue flex items-center justify-center text-xs text-white font-bold">
               ✓
             </span>
           )}
@@ -46,7 +46,7 @@ export function ProfileCard({
           </div>
         )}
 
-        <span className="font-paperlogy text-[12px] text-sub-gray">
+        <span className="font-paperlogy text-sm text-sub-gray">
           {collectedCount} / {totalCount} 수집 정보
         </span>
       </div>

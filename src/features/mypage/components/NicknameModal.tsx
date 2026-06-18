@@ -32,11 +32,11 @@ export function NicknameModal({ isOpen, onClose, currentNickname, onConfirm }: N
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h3 className="font-paperlogy font-bold text-[16px] text-text-heading">닉네임 변경</h3>
-          <button onClick={onClose} className="text-sub-gray text-[18px] leading-none">✕</button>
+          <h3 className="font-paperlogy font-bold text-lg text-text-heading">닉네임 변경</h3>
+          <button onClick={onClose} className="text-sub-gray text-xl leading-none">✕</button>
         </div>
 
-        <p className="font-paperlogy text-[13px] text-sub-gray">{currentNickname}</p>
+        <p className="font-paperlogy text-md text-sub-gray">{currentNickname}</p>
 
         <div className="flex flex-col gap-1">
           <div className="relative">
@@ -46,13 +46,13 @@ export function NicknameModal({ isOpen, onClose, currentNickname, onConfirm }: N
               placeholder="닉네임을 입력해주세요"
             />
             <span className={cn(
-              "absolute right-3 top-1/2 -translate-y-1/2 font-paperlogy text-[11px]",
+              "absolute right-3 top-1/2 -translate-y-1/2 font-paperlogy text-xs",
               isValid ? "text-sub-deepblue" : "text-sub-gray"
             )}>
               {value.length}/{MAX_LENGTH}
             </span>
           </div>
-          <p className="font-paperlogy text-[11px] text-sub-gray">
+          <p className="font-paperlogy text-xs text-sub-gray">
             * 닉네임은 {MIN_LENGTH}~{MAX_LENGTH}자 이내로 입력해주세요
           </p>
         </div>

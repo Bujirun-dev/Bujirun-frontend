@@ -28,7 +28,7 @@ export function CategoryStatCard({
     <div className={cn("bg-white rounded-[16px] flex flex-col items-center gap-2 px-3 py-3", className)}>
       <span className="text-[24px]">{icon ?? CATEGORY_ICON[category]}</span>
       <CategoryChip category={category} />
-      <span className="font-paperlogy font-bold text-[13px] text-text-heading">
+      <span className="font-paperlogy font-bold text-md text-text-heading">
         {collectedCount}/{totalCount}
       </span>
     </div>

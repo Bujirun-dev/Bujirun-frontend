@@ -10,15 +10,15 @@ interface StatusBadgeProps {
 const STATUS_CONFIG: Record<StatusType, { label: string; style: string }> = {
   completed: {
     label: "수집 완료",
-    style: "bg-sub-darkgray text-main-white",
+    style: "bg-main-blue text-white",
   },
   verify: {
     label: "인증하기",
-    style: "bg-sub-pink text-text-primary",
+    style: "bg-sub-pink text-white",
   },
   pending: {
-    label: "미수집",
-    style: "bg-sub-pink text-text-primary",
+    label: "인증하기",
+    style: "bg-sub-pink text-white",
   },
 };
 
@@ -28,8 +28,8 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     <span
       className={cn(
         "inline-flex items-center justify-center",
-        "h-[26px] px-3 rounded-[10px]",
-        "font-paperlogy text-[11px] font-semibold",
+        "rounded-[10px] px-[6px] py-[6px]",
+        "font-paperlogy text-xs font-semibold",
         style,
         className
       )}

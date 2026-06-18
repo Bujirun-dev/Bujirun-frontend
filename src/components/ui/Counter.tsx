@@ -19,7 +19,7 @@ export function Counter({ value, onChange, min = 1, max = 99, className }: Count
         className={cn(
           "w-[24px] h-[24px] rounded-full bg-sub-lightblue",
           "flex items-center justify-center",
-          "font-paperlogy font-bold text-[16px] text-sub-deepblue",
+          "font-paperlogy font-bold text-lg text-sub-deepblue",
           "transition-opacity disabled:opacity-30"
         )}
       >
@@ -34,7 +34,7 @@ export function Counter({ value, onChange, min = 1, max = 99, className }: Count
         className={cn(
           "w-[24px] h-[24px] rounded-full bg-sub-lightblue",
           "flex items-center justify-center",
-          "font-paperlogy font-bold text-[16px] text-sub-deepblue",
+          "font-paperlogy font-bold text-lg text-sub-deepblue",
           "transition-opacity disabled:opacity-30"
         )}
       >

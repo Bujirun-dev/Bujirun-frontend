@@ -30,21 +30,21 @@ export function TransportCard({
       )}
     >
       <div className="flex items-center gap-3">
-        <span className="font-paperlogy text-[11px] font-semibold text-text-primary bg-white/60 rounded-[8px] px-2 py-1">
+        <span className="font-paperlogy text-xs font-semibold text-text-primary bg-white/60 rounded-[8px] px-2 py-1">
           {type}
         </span>
         <div className="flex flex-col gap-0.5">
-          <span className="font-paperlogy font-bold text-[14px] text-text-heading">{routeName}</span>
-          <span className="font-paperlogy text-[11px] text-text-primary">
+          <span className="font-paperlogy font-bold text-md text-text-heading">{routeName}</span>
+          <span className="font-paperlogy text-xs text-text-primary">
             {from} → {to}
           </span>
         </div>
       </div>
 
       <div className="flex flex-col items-end gap-0.5">
-        <span className="font-paperlogy text-[12px] text-text-primary">⏱ {durationMin}min</span>
+        <span className="font-paperlogy text-sm text-text-primary">⏱ {durationMin}min</span>
         {cost !== undefined && (
-          <span className="font-paperlogy text-[12px] text-text-primary">
+          <span className="font-paperlogy text-sm text-text-primary">
             ₩{cost.toLocaleString()}
           </span>
         )}

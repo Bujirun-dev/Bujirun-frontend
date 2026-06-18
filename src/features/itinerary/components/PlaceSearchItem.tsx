@@ -39,7 +39,7 @@ export function PlaceSearchItem({
             <path d="M5 1C3.34 1 2 2.34 2 4C2 6.5 5 9 5 9C5 9 8 6.5 8 4C8 2.34 6.66 1 5 1Z" fill="#FF7F50" />
             <circle cx="5" cy="4" r="1" fill="white" />
           </svg>
-          <span className="font-paperlogy font-semibold text-[13px] text-text-heading truncate">{name}</span>
+          <span className="font-paperlogy font-semibold text-md text-text-heading truncate">{name}</span>
         </div>
         <CategoryChip category={category} className="self-start" />
       </div>

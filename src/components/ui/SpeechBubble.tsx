@@ -16,7 +16,7 @@ export function SpeechBubble({ children, className }: SpeechBubbleProps) {
           borderBottom: "6px solid white",
         }}
       />
-      <div className="bg-white rounded-[14px] px-4 py-3">
+      <div className="bg-white rounded-[14px] px-[10px] py-[7px] h-[27px] w-fit flex items-center">
         {children}
       </div>
     </div>

@@ -19,15 +19,15 @@ const buttonVariants: Record<ButtonVariant, string> = {
     "w-full h-[40px]",
     "bg-main-blue",
     "rounded-[10px]",
-    "font-ssurround text-[14px] text-main-white font-bold",
+    "font-ssurround text-md text-main-white font-bold",
     "transition-opacity active:opacity-80",
   ].join(" "),
 
   secondary: [
     "w-full h-[40px]",
-    "bg-main-white border-2 border-main-blue",
+    "bg-main-white border border-main-blue",
     "rounded-[10px]",
-    "font-ssurround text-[14px] text-sub-deepblue font-bold",
+    "font-ssurround text-md text-sub-deepblue font-bold",
     "transition-opacity active:opacity-80",
   ].join(" "),
 
@@ -35,7 +35,7 @@ const buttonVariants: Record<ButtonVariant, string> = {
     "w-full h-[40px]",
     "bg-sub-coral",
     "rounded-[10px]",
-    "font-ssurround text-[14px] text-main-white font-bold",
+    "font-ssurround text-md text-main-white font-bold",
     "transition-opacity active:opacity-80",
   ].join(" "),
 };

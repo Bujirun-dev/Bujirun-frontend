@@ -34,7 +34,7 @@ export function AvatarSelectModal({
         className="w-full max-w-[320px] bg-white rounded-[30px] px-6 py-7 flex flex-col gap-5"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="font-paperlogy font-bold text-[16px] text-text-heading text-center">
+        <h3 className="font-paperlogy font-bold text-lg text-text-heading text-center">
           프로필 사진 선택
         </h3>
 

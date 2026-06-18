@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { cn } from "@/shared/utils";
 
 interface PermissionOption {
@@ -13,7 +12,6 @@ interface PermissionModalProps {
   appName?: string;
   message: string;
   subMessage?: string;
-  characterImageUrl?: string;
   options: PermissionOption[];
   className?: string;
 }
@@ -24,7 +22,6 @@ export function PermissionModal({
   appName = "BUJIRUN",
   message,
   subMessage,
-  characterImageUrl,
   options,
   className,
 }: PermissionModalProps) {
@@ -38,23 +35,18 @@ export function PermissionModal({
     >
       <div
         className={cn(
-          "w-full max-w-[320px] bg-white rounded-[30px] px-6 py-7 flex flex-col items-center gap-4",
+          "w-full max-w-[320px] bg-white rounded-[30px] px-6 py-7 flex flex-col items-center gap-5",
           className
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex flex-col items-center gap-1 text-center">
-          <p className="font-paperlogy font-bold text-[15px] text-text-heading">
-            "{appName}"이 {message}
-          </p>
-          {subMessage && (
-            <p className="font-paperlogy text-[12px] text-sub-gray">{subMessage}</p>
-          )}
-        </div>
+        <h2 className="font-paperlogy font-bold text-2xl text-text-heading text-center leading-snug">
+          "{appName}"이 {message}
+        </h2>
 
-        {characterImageUrl && (
-          <div className="relative w-[100px] h-[100px]">
-            <Image src={characterImageUrl} alt="character" fill className="object-contain" />
+        {subMessage && (
+          <div className="w-full backdrop-blur-[15px] bg-gradient-to-b from-[rgba(255,255,255,0.52)] to-[rgba(234,244,255,0.39)] border border-[rgba(151,193,255,0.2)] rounded-[10px] px-4 py-3 text-center">
+            <p className="font-paperlogy text-sm text-sub-gray">{subMessage}</p>
           </div>
         )}
 
@@ -63,12 +55,7 @@ export function PermissionModal({
             <button
               key={i}
               onClick={() => { opt.onClick(); onClose(); }}
-              className={cn(
-                "w-full h-[44px] rounded-[12px] font-paperlogy font-semibold text-[13px] transition-opacity active:opacity-80",
-                opt.variant === "primary"
-                  ? "bg-main-blue text-white"
-                  : "bg-system-searchbg text-text-primary"
-              )}
+              className="w-full h-[50px] rounded-[14px] font-paperlogy font-semibold text-md transition-opacity active:opacity-80 bg-main-blue text-white"
             >
               {opt.label}
             </button>

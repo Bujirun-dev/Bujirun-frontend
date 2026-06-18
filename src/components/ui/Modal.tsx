@@ -57,35 +57,35 @@ export function Modal({
     >
       <div
         className={cn(
-          "w-full max-w-[343px] bg-white rounded-[30px] px-7 py-8 flex flex-col items-center gap-5",
+          "w-full max-w-[343px] bg-white rounded-[30px] px-[34px] py-[42px] flex flex-col items-center gap-5",
           className
         )}
         onClick={(e) => e.stopPropagation()}
       >
         {icon && (
-          <div className="w-[60px] h-[60px] rounded-full bg-[#f0f4ff] flex items-center justify-center text-[28px]">
+          <div className="w-[48px] h-[48px] rounded-full bg-system-navbg flex items-center justify-center text-[28px]">
             {icon}
           </div>
         )}
 
-        <div className="flex flex-col items-center gap-2 text-center">
-          <h2 className="font-paperlogy font-bold text-[18px] text-text-heading tracking-tight">
+        <div className="flex flex-col items-center gap-[20px] text-center">
+          <h2 className="font-ssurround text-xl text-text-primary">
             {title}
           </h2>
           {description && (
-            <p className="font-paperlogy text-[13px] text-text-primary leading-relaxed">
+            <p className="font-paperlogy text-lg font-semibold text-text-primary leading-relaxed whitespace-pre-line">
               {description}
             </p>
           )}
         </div>
 
         {children && (
-          <div className="w-full bg-[#edf5ff] rounded-[15px] px-5 py-4 flex flex-col gap-2">
+          <div className="w-[275px] h-[82px] mx-auto backdrop-blur-[15px] bg-gradient-to-b from-[rgba(255,255,255,0.52)] to-[rgba(234,244,255,0.39)] border border-[rgba(151,193,255,0.2)] rounded-[10px] px-5 flex flex-col gap-2 justify-center">
             {children}
           </div>
         )}
 
-        <div className="w-full flex gap-3 mt-1">
+        <div className="w-full flex gap-[25px] mt-1">
           <Button variant="secondary" className="flex-1" onClick={handleCancel}>
             {cancelText}
           </Button>

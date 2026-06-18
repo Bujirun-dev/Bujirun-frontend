@@ -5,12 +5,13 @@ import {
   Button, Card, CategoryChip, StatusBadge,
   SearchBar, TimePicker, TextInput, Counter,
   PermissionModal, KakaoLoginButton, Modal, SpeechBubble,
+  PlaceCard, PlaceDetailSheet, PlaceInfoRow,
 } from "@/components";
 import {
-  PlaceCard, TransportCard, LogCard, DayHeader,
-  PlaceDetailSheet, ArrivalVerifyModal,
-  MemberAvatar, VotePlaceCard, FriendAvatarGrid, InviteCard,
-  PlaceInfoRow, PlaceSearchItem, SortTabBar,
+  TransportCard, LogCard,
+  ArrivalVerifyModal,
+  VotePlaceCard, InviteCard,
+  PlaceSearchItem,
 } from "@/features/itinerary";
 import {
   ProfileCard, MenuItem, NicknameModal, AvatarSelectModal,
@@ -26,7 +27,7 @@ const MOCK_AVATARS = [IMG, IMG2, IMG, IMG2, IMG, IMG2, IMG, IMG2, IMG];
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="sticky top-0 bg-system-navbg py-2 z-10">
-      <h2 className="font-paperlogy font-bold text-[18px] text-main-blue border-b-2 border-main-blue pb-1">
+      <h2 className="font-paperlogy font-bold text-xl text-main-blue border-b-2 border-main-blue pb-1">
         {children}
       </h2>
     </div>
@@ -34,7 +35,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 function ComponentLabel({ children }: { children: React.ReactNode }) {
-  return <h3 className="font-paperlogy text-[12px] text-sub-gray font-semibold">{children}</h3>;
+  return <h3 className="font-paperlogy text-sm text-sub-gray font-semibold">{children}</h3>;
 }
 
 export default function TestPage() {
@@ -57,7 +58,7 @@ export default function TestPage() {
 
   return (
     <div className="bg-system-navbg px-5 py-6 flex flex-col gap-8 overflow-y-auto">
-      <h1 className="font-paperlogy font-bold text-[22px] text-text-heading">컴포넌트 테스트</h1>
+      <h1 className="font-paperlogy font-bold text-2xl text-text-heading">컴포넌트 테스트</h1>
 
       {/* ════════════════════════════════ 공통 UI ════════════════════════════════ */}
       <SectionTitle>공통 UI</SectionTitle>
@@ -76,9 +77,9 @@ export default function TestPage() {
 
       <div className="flex flex-col gap-2">
         <ComponentLabel>Card</ComponentLabel>
-        <Card variant="glass-lg" className="p-4"><p className="font-paperlogy text-[13px]">glass-lg</p></Card>
-        <Card variant="glass-sm" className="p-4"><p className="font-paperlogy text-[13px]">glass-sm</p></Card>
-        <Card variant="white" className="p-4"><p className="font-paperlogy text-[13px]">white</p></Card>
+        <Card variant="glass-lg" className="p-4"><p className="font-paperlogy text-md">glass-lg</p></Card>
+        <Card variant="glass-sm" className="p-4"><p className="font-paperlogy text-md">glass-sm</p></Card>
+        <Card variant="white" className="p-4"><p className="font-paperlogy text-md">white</p></Card>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -117,9 +118,7 @@ export default function TestPage() {
 
       <div className="flex flex-col gap-2">
         <ComponentLabel>SpeechBubble</ComponentLabel>
-        <SpeechBubble>
-          <p className="font-paperlogy text-[13px] text-text-primary">말풍선 내용이 들어와요.</p>
-        </SpeechBubble>
+        <SpeechBubble />
       </div>
 
       <div className="flex flex-col gap-2">
@@ -136,69 +135,11 @@ export default function TestPage() {
         <Button variant="secondary" onClick={() => setShowPermission(true)}>PermissionModal</Button>
       </div>
 
-      {/* ════════════════════════════════ 홈 탭 ════════════════════════════════ */}
-      <SectionTitle>홈 탭</SectionTitle>
-
-      <div className="flex flex-col gap-2">
-        <ComponentLabel>DogamProgressBar</ComponentLabel>
-        <DogamProgressBar collectedCount={24} totalCount={34} />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <ComponentLabel>HomeItineraryItem</ComponentLabel>
-        <HomeItineraryItem placeName="송도 해수욕장" status="completed" transport={{ type: "버스", routeName: "2012", durationMin: 20, nextStop: "5분 후" }} />
-        <HomeItineraryItem placeName="영도 해안선" status="verify" transport={{ type: "버스", routeName: "2012", durationMin: 20, nextStop: "5분 후" }} />
-        <HomeItineraryItem placeName="광안대교" status="pending" isLast />
-      </div>
-
-      {/* ════════════════════════════════ 일정 탭 ════════════════════════════════ */}
-      <SectionTitle>일정 탭</SectionTitle>
-
-      <div className="flex flex-col gap-2">
-        <ComponentLabel>DayHeader</ComponentLabel>
-        <Card variant="white">
-          <DayHeader day={1} date="2026.05.18" onMapPress={() => {}} onAIPress={() => setShowAIModal(true)} onListPress={() => {}} />
-        </Card>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <ComponentLabel>MemberAvatar</ComponentLabel>
-        <div className="flex gap-2">
-          <MemberAvatar label="A" index={0} />
-          <MemberAvatar label="B" index={1} />
-          <MemberAvatar label="C" index={2} />
-          <MemberAvatar label="D" index={3} />
-        </div>
-      </div>
-
       <div className="flex flex-col gap-2">
         <ComponentLabel>PlaceCard</ComponentLabel>
         <PlaceCard imageUrl={IMG} name="송도 해수욕장" category="sea" status="completed" onDelete={() => setShowDeleteModal(true)} onClick={() => setShowDetailSheet(true)} />
         <PlaceCard imageUrl={IMG} name="해운대 해수욕장" category="culture" status="verify" onDelete={() => setShowDeleteModal(true)} />
         <PlaceCard imageUrl={IMG} name="광안리 해수욕장" category="nature" status="pending" />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <ComponentLabel>TransportCard</ComponentLabel>
-        <TransportCard type="버스" routeName="2012" from="송도 해수욕장" to="해운대" durationMin={20} cost={1500} />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <ComponentLabel>SortTabBar</ComponentLabel>
-        <SortTabBar />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <ComponentLabel>PlaceSearchItem (추천순 — 이미지 있음)</ComponentLabel>
-        <PlaceSearchItem imageUrl={IMG} name="감천 문화마을" category="culture" status="completed" />
-        <PlaceSearchItem imageUrl={IMG} name="광안리 해수욕장" category="sea" status="pending" />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <ComponentLabel>PlaceSearchItem (이름순 — 이미지 없음)</ComponentLabel>
-        <PlaceSearchItem name="감천 문화마을" category="experience" />
-        <PlaceSearchItem name="광안리 해수욕장" category="sea" />
-        <PlaceSearchItem name="금정산성" category="nature" />
       </div>
 
       <div className="flex flex-col gap-2">
@@ -209,6 +150,50 @@ export default function TestPage() {
           <PlaceInfoRow icon="🅿️" label="주차" value="공영 주차장" />
           <PlaceInfoRow icon="📞" label="문의" value="051-240-4000" />
         </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>PlaceDetailSheet</ComponentLabel>
+        <Button variant="secondary" onClick={() => setShowDetailSheet(true)}>PlaceDetailSheet 열기</Button>
+      </div>
+
+      {/* ════════════════════════════════ 홈 탭 ════════════════════════════════ */}
+      <SectionTitle>홈 탭</SectionTitle>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>DogamProgressBar</ComponentLabel>
+        <DogamProgressBar collectedCount={24} totalCount={34} />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>HomeItineraryItem</ComponentLabel>
+        <div className="flex flex-col">
+          <HomeItineraryItem placeName="송도 해수욕장" status="completed" transport={{ type: "버스", routeName: "2012", durationMin: 20, nextStop: "5분 후" }} />
+          <HomeItineraryItem placeName="영도 해안선" status="verify" transport={{ type: "버스", routeName: "2012", durationMin: 20, nextStop: "5분 후" }} />
+          <HomeItineraryItem placeName="광안대교" status="pending" isLast />
+        </div>
+      </div>
+
+      {/* ════════════════════════════════ 일정 탭 ════════════════════════════════ */}
+      <SectionTitle>일정 탭</SectionTitle>
+
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>TransportCard</ComponentLabel>
+        <TransportCard type="버스" routeName="2012" from="송도 해수욕장" to="해운대" durationMin={20} cost={1500} />
+      </div>
+
+<div className="flex flex-col gap-2">
+        <ComponentLabel>PlaceSearchItem (추천순 — 이미지 있음)</ComponentLabel>
+        <PlaceSearchItem imageUrl={IMG} name="감천 문화마을" category="culture" status="completed" />
+        <PlaceSearchItem imageUrl={IMG} name="광안리 해수욕장" category="sea" status="pending" />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>PlaceSearchItem (이름순 — 이미지 없음)</ComponentLabel>
+        <PlaceSearchItem name="감천 문화마을" category="experience" />
+        <PlaceSearchItem name="광안리 해수욕장" category="sea" />
+        <PlaceSearchItem name="금정산성" category="nature" />
       </div>
 
       <div className="flex flex-col gap-2">
@@ -225,20 +210,14 @@ export default function TestPage() {
         <LogCard imageUrl={IMG} placeName="송도 해수욕장" extraCount={3} author="은지미" tripType="당일치기" date="2026.05.18" dDay={90} />
       </div>
 
-      <div className="flex flex-col gap-2">
-        <ComponentLabel>FriendAvatarGrid</ComponentLabel>
-        <FriendAvatarGrid friends={MOCK_FRIENDS} total={6} />
-      </div>
-
-      <div className="flex flex-col gap-2">
+<div className="flex flex-col gap-2">
         <ComponentLabel>InviteCard</ComponentLabel>
         <InviteCard friends={MOCK_FRIENDS} total={6} onInvite={() => {}} />
       </div>
 
       <div className="flex flex-col gap-2">
-        <ComponentLabel>ArrivalVerifyModal / PlaceDetailSheet</ComponentLabel>
+        <ComponentLabel>ArrivalVerifyModal</ComponentLabel>
         <Button variant="secondary" onClick={() => setShowArrivalModal(true)}>ArrivalVerifyModal</Button>
-        <Button variant="secondary" onClick={() => setShowDetailSheet(true)}>PlaceDetailSheet</Button>
       </div>
 
       {/* ════════════════════════════════ 도감 탭 ════════════════════════════════ */}
@@ -286,13 +265,13 @@ export default function TestPage() {
       <Modal isOpen={showBaseModal} onClose={() => setShowBaseModal(false)} icon="✦" title="모달 제목" description={"모달 설명이 들어오는 자리입니다.\n두 줄까지 가능해요."} confirmText="확인" cancelText="취소" onConfirm={() => setShowBaseModal(false)} />
       <TimePicker isOpen={showTimePicker} onClose={() => setShowTimePicker(false)} hour={hour} minute={minute} onChange={(h, m) => { setHour(h); setMinute(m); }} onConfirm={() => setShowTimePicker(false)} />
       <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} icon="🗑" title="일정 삭제" description={"'송도 해수욕장'을(를)\n일정에서 삭제하시겠어요?"} confirmText="삭제하기" cancelText="취소" confirmVariant="warning" onConfirm={() => setShowDeleteModal(false)}>
-        <span className="font-paperlogy text-[12px] text-sub-gray text-center">* 삭제한 일정은 복구할 수 없어요.</span>
+        <span className="font-paperlogy text-sm text-sub-gray text-center">* 삭제한 일정은 복구할 수 없어요.</span>
       </Modal>
       <Modal isOpen={showAIModal} onClose={() => setShowAIModal(false)} icon="✨" title="AI 일정 최적화" description={"관광지의 위치와 이동 경로를 분석해\n더 효율적인 여행 코스를 추천해드릴게요."} confirmText="최적화 시작" cancelText="취소" onConfirm={() => setShowAIModal(false)}>
-        <div className="flex flex-col gap-2 font-paperlogy text-[13px] text-text-primary"><span>✨ 이동 동선 최적화</span><span>⏰ 이동 시간 단축</span><span>🚌 교통비 절약</span></div>
+        <div className="flex flex-col gap-1 font-paperlogy text-md text-text-primary"><span>✨ 이동 동선 최적화</span><span>⏰ 이동 시간 단축</span><span>🚌 교통비 절약</span></div>
       </Modal>
       <Modal isOpen={showLogout} onClose={() => setShowLogout(false)} icon="🚪" title="로그아웃" description={"정말 로그아웃 하시겠어요?\n다음 여행도 함께 해요!"} confirmText="로그아웃" cancelText="취소" onConfirm={() => setShowLogout(false)}>
-        <span className="font-paperlogy text-[12px] text-sub-gray text-center">* 언제든 다시 로그인할 수 있어요.</span>
+        <span className="font-paperlogy text-sm text-sub-gray text-center">* 언제든 다시 로그인할 수 있어요.</span>
       </Modal>
       <ArrivalVerifyModal isOpen={showArrivalModal} onClose={() => setShowArrivalModal(false)} placeName="송도 해수욕장" onVerify={() => {}} onLater={() => {}} />
       <PlaceDetailSheet isOpen={showDetailSheet} onClose={() => setShowDetailSheet(false)} imageUrl={IMG} name="송도 해수욕장" category="sea" status="pending" description="부산의 대표적인 해수욕장입니다." address="서울 서구 송도해변로 100" info="운영시간: 09:00 ~ 18:00" />

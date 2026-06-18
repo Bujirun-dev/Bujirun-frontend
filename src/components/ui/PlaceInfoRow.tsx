@@ -12,9 +12,9 @@ export function PlaceInfoRow({ icon, label, value, className }: PlaceInfoRowProp
     <div className={cn("flex items-center justify-between py-2.5 border-b border-sub-lightblue last:border-b-0", className)}>
       <div className="flex items-center gap-2">
         <span className="text-[15px]">{icon}</span>
-        <span className="font-paperlogy text-[12px] text-text-primary">{label}</span>
+        <span className="font-paperlogy text-sm text-text-primary">{label}</span>
       </div>
-      <span className="font-paperlogy text-[12px] text-text-primary">{value}</span>
+      <span className="font-paperlogy text-sm text-text-primary">{value}</span>
     </div>
   );
 }

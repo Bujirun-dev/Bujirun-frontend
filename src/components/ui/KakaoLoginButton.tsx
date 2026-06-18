@@ -18,7 +18,7 @@ export function KakaoLoginButton({ onClick, className }: KakaoLoginButtonProps) 
       style={{ backgroundColor: "#FEE500" }}
       onClick={onClick}
     >
-      <span className="text-[20px]">💬</span>
+      <span className="text-2xl">💬</span>
       카카오 로그인
     </button>
   );

@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { Button } from "@/components";
-import { cn } from "@/shared/utils";
 
 interface ArrivalVerifyModalProps {
   isOpen: boolean;
@@ -49,20 +48,18 @@ export function ArrivalVerifyModal({
 
         <div className="flex flex-col items-center gap-2 text-center">
           <div className="flex items-center gap-1 bg-sub-lightblue px-3 py-1 rounded-full">
-            <span className="text-[12px]">📍</span>
-            <span className="font-paperlogy font-semibold text-[13px] text-sub-deepblue">
+            <span className="text-sm">📍</span>
+            <span className="font-paperlogy font-semibold text-md text-sub-deepblue">
               {placeName}
             </span>
           </div>
-          <h2 className="font-paperlogy font-bold text-[18px] text-text-heading">
+          <h2 className="font-paperlogy font-bold text-xl text-text-heading">
             이곳에 도착하셨나요?
           </h2>
         </div>
 
-        <div className={cn(
-          "w-full bg-system-searchbg rounded-[12px] px-4 py-3 text-center",
-        )}>
-          <span className="font-paperlogy text-[12px] text-sub-gray">
+        <div className="w-full backdrop-blur-[15px] bg-gradient-to-b from-[rgba(255,255,255,0.52)] to-[rgba(234,244,255,0.39)] border border-[rgba(151,193,255,0.2)] rounded-[10px] px-4 py-3 text-center">
+          <span className="font-paperlogy text-sm text-sub-gray">
             * GPS 위치 확인 후 관광지를 수집해주세요.
           </span>
         </div>
