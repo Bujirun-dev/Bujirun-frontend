@@ -1,0 +1,41 @@
+import { cn } from "@/shared/utils";
+
+type ButtonVariant = "primary" | "secondary" | "warning";
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant;
+}
+
+export function Button({ variant = "primary", className, children, ...props }: ButtonProps) {
+  return (
+    <button className={cn(buttonVariants[variant], className)} {...props}>
+      {children}
+    </button>
+  );
+}
+
+const buttonVariants: Record<ButtonVariant, string> = {
+  primary: [
+    "w-full h-[40px]",
+    "bg-main-blue",
+    "rounded-[10px]",
+    "font-ssurround text-md text-main-white font-bold",
+    "transition-opacity active:opacity-80",
+  ].join(" "),
+
+  secondary: [
+    "w-full h-[40px]",
+    "bg-main-white border-2 border-main-blue",
+    "rounded-[10px]",
+    "font-ssurround text-md text-sub-deepblue font-bold",
+    "transition-opacity active:opacity-80",
+  ].join(" "),
+
+  warning: [
+    "w-full h-[40px]",
+    "bg-sub-coral",
+    "rounded-[10px]",
+    "font-ssurround text-md text-main-white font-bold",
+    "transition-opacity active:opacity-80",
+  ].join(" "),
+};

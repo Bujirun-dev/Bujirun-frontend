@@ -123,20 +123,61 @@
 }
 
 @theme inline {
+  /* Main */
   --color-main-blue: #97c1ff;
   --color-main-white: #ffffff;
+
+  /* Sub */
   --color-sub-deepblue: #4da6ff;
+  --color-sub-lightblue: #c6ddff;
   --color-sub-pink: #ffb3c7;
   --color-sub-green: #cde9b1;
+  --color-sub-violet: #cab6ff;
   --color-sub-coral: #ff7f50;
   --color-sub-gray: #999999;
+  --color-sub-darkgray: #888888;
+  --color-sub-lightgray: #d9d9d9;
+
+  /* Text */
   --color-text-primary: #1e293b;
   --color-text-heading: #0f172a;
+
+  /* System */
+  --color-system-whitebg: rgba(255, 255, 255, 0.4);
+  --color-system-blackbg: rgba(0, 0, 0, 0.4);
+  --color-system-navbg: #ecf5ff;
+  --color-system-scroll: #d5e6ff;
+  --color-system-searchbg: #f2f5fa;
+
+  /* Category */
+  --color-category-sea: rgba(151, 193, 255, 0.5);
+  --color-category-nature: rgba(205, 233, 177, 0.65);
+  --color-category-culture: rgba(255, 179, 199, 0.5);
+  --color-category-experience: rgba(202, 182, 255, 0.5);
+
+  /* Font Size */
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 20px;
+
+  /* Spacing */
+  --spacing-screen-x: 24px;
+  --spacing-card-inner: 18px;
   --font-giants: "GiantsInline", sans-serif;
   --font-paperlogy: "Paperlogy", sans-serif;
   --font-ssurround: "Cafe24Ssurround", sans-serif;
   --font-proup: "Cafe24ProUp", sans-serif;
   --font-dxmovie: "DXMovie", sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
@@ -163,3 +204,4 @@ button,
 a {
   -webkit-tap-highlight-color: transparent;
 }
+
