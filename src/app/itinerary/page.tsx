@@ -22,7 +22,7 @@ export default function ItineraryPage() {
         </div>
 
         <div className="flex-1 overflow-y-auto pl-[12px] pr-[24px] pb-6">
-          <FeaturePlaceholder />
+          <FeaturePlaceholder title="일정" />
         </div>
 
         <div className="flex items-center justify-center gap-2 py-3">

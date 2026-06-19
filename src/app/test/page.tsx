@@ -14,7 +14,7 @@ import {
   PlaceSearchItem,
 } from "@/features/itinerary";
 import {
-  ProfileCard, MenuItem, NicknameModal, AvatarSelectModal,
+  ProfileCard, MenuItem, AvatarSelectModal,
 } from "@/features/mypage";
 import { HomeItineraryItem, DogamProgressBar } from "@/features/home";
 
