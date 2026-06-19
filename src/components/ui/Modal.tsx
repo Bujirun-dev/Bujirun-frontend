@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { cn } from "@/shared/utils";
 import { Button } from "./Button";
+import { Card } from "./Card";
 
 interface ModalProps {
   isOpen: boolean;
@@ -79,11 +80,9 @@ export function Modal({
           )}
         </div>
 
-        {children && (
-          <div className="w-[275px] h-[82px] mx-auto backdrop-blur-[15px] bg-gradient-to-b from-[rgba(255,255,255,0.52)] to-[rgba(234,244,255,0.39)] border border-[rgba(151,193,255,0.2)] rounded-[10px] px-5 flex flex-col gap-2 justify-center">
-            {children}
-          </div>
-        )}
+        <Card variant="glass-sm" className="w-full px-5 py-3 flex flex-col gap-2 justify-center">
+          {children}
+        </Card>
 
         <div className="w-full flex gap-[25px] mt-1">
           <Button variant="secondary" className="flex-1" onClick={handleCancel}>

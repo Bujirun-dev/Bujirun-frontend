@@ -46,9 +46,6 @@ export function ProfileCard({
           </div>
         )}
 
-        <span className="font-paperlogy text-sm text-sub-gray">
-          {collectedCount} / {totalCount} 수집 정보
-        </span>
       </div>
     </div>
   );

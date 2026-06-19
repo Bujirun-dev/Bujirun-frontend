@@ -25,7 +25,7 @@ const buttonVariants: Record<ButtonVariant, string> = {
 
   secondary: [
     "w-full h-[40px]",
-    "bg-main-white border border-main-blue",
+    "bg-main-white border-2 border-main-blue",
     "rounded-[10px]",
     "font-ssurround text-md text-sub-deepblue font-bold",
     "transition-opacity active:opacity-80",

@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
   Button, Card, CategoryChip, StatusBadge,
   SearchBar, TimePicker, TextInput, Counter,
-  PermissionModal, KakaoLoginButton, Modal, SpeechBubble,
+  KakaoLoginButton, Modal, SpeechBubble,
   PlaceCard, PlaceDetailSheet, PlaceInfoRow,
 } from "@/components";
 import {
@@ -16,7 +16,6 @@ import {
 import {
   ProfileCard, MenuItem, NicknameModal, AvatarSelectModal,
 } from "@/features/mypage";
-import { CollectionProgressCard, CategoryStatCard } from "@/features/collection";
 import { HomeItineraryItem, DogamProgressBar } from "@/features/home";
 
 const IMG = "https://picsum.photos/400/300";
@@ -52,9 +51,7 @@ export default function TestPage() {
   const [showArrivalModal, setShowArrivalModal] = useState(false);
   const [showDetailSheet, setShowDetailSheet] = useState(false);
   const [showLogout, setShowLogout] = useState(false);
-  const [showNickname, setShowNickname] = useState(false);
   const [showAvatarSelect, setShowAvatarSelect] = useState(false);
-  const [showPermission, setShowPermission] = useState(false);
 
   return (
     <div className="bg-system-navbg px-5 py-6 flex flex-col gap-8 overflow-y-auto">
@@ -94,10 +91,11 @@ export default function TestPage() {
 
       <div className="flex flex-col gap-2">
         <ComponentLabel>StatusBadge</ComponentLabel>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <StatusBadge status="completed" />
           <StatusBadge status="verify" />
-          <StatusBadge status="pending" />
+          <StatusBadge status="uncollected" />
+          <StatusBadge status="collected" />
         </div>
       </div>
 
@@ -108,7 +106,7 @@ export default function TestPage() {
 
       <div className="flex flex-col gap-2">
         <ComponentLabel>TextInput</ComponentLabel>
-        <TextInput value={inputVal} onChange={(e) => setInputVal(e.target.value)} placeholder="2-10자 이내" maxLength={10} />
+        <TextInput value={inputVal} onChange={(e) => setInputVal(e.target.value)} placeholder="2-6자 이내" maxLength={6} />
       </div>
 
       <div className="flex flex-col gap-2">
@@ -118,7 +116,7 @@ export default function TestPage() {
 
       <div className="flex flex-col gap-2">
         <ComponentLabel>SpeechBubble</ComponentLabel>
-        <SpeechBubble />
+        <SpeechBubble>말풍선 텍스트</SpeechBubble>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -127,29 +125,28 @@ export default function TestPage() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <ComponentLabel>Modal / TimePicker / PermissionModal</ComponentLabel>
+        <ComponentLabel>Modal / TimePicker</ComponentLabel>
         <Button variant="secondary" onClick={() => setShowTimePicker(true)}>TimePicker</Button>
         <Button variant="secondary" onClick={() => setShowDeleteModal(true)}>Modal — 삭제</Button>
         <Button variant="secondary" onClick={() => setShowAIModal(true)}>Modal — AI 최적화</Button>
         <Button variant="secondary" onClick={() => setShowLogout(true)}>Modal — 로그아웃</Button>
-        <Button variant="secondary" onClick={() => setShowPermission(true)}>PermissionModal</Button>
       </div>
 
       <div className="flex flex-col gap-2">
         <ComponentLabel>PlaceCard</ComponentLabel>
         <PlaceCard imageUrl={IMG} name="송도 해수욕장" category="sea" status="completed" onDelete={() => setShowDeleteModal(true)} onClick={() => setShowDetailSheet(true)} />
         <PlaceCard imageUrl={IMG} name="해운대 해수욕장" category="culture" status="verify" onDelete={() => setShowDeleteModal(true)} />
-        <PlaceCard imageUrl={IMG} name="광안리 해수욕장" category="nature" status="pending" />
+        <PlaceCard imageUrl={IMG} name="광안리 해수욕장" category="nature" status="pending" onDelete={() => setShowDeleteModal(true)} />
       </div>
 
       <div className="flex flex-col gap-2">
         <ComponentLabel>PlaceInfoRow</ComponentLabel>
-        <div className="bg-white rounded-[14px] px-4">
-          <PlaceInfoRow icon="🕐" label="운영시간" value="09:00 - 18:00" />
-          <PlaceInfoRow icon="💰" label="입장료" value="무료" />
-          <PlaceInfoRow icon="🅿️" label="주차" value="공영 주차장" />
-          <PlaceInfoRow icon="📞" label="문의" value="051-240-4000" />
-        </div>
+        <PlaceInfoRow items={[
+          { icon: "🕐", label: "운영시간", value: "09:00 - 18:00" },
+          { icon: "💰", label: "입장료", value: "무료" },
+          { icon: "🏠", label: "주차", value: "공영 주차장" },
+          { icon: "📞", label: "문의", value: "051-240-4000" },
+        ]} />
       </div>
 
       <div className="flex flex-col gap-2">
@@ -220,24 +217,6 @@ export default function TestPage() {
         <Button variant="secondary" onClick={() => setShowArrivalModal(true)}>ArrivalVerifyModal</Button>
       </div>
 
-      {/* ════════════════════════════════ 도감 탭 ════════════════════════════════ */}
-      <SectionTitle>도감 탭</SectionTitle>
-
-      <div className="flex flex-col gap-2">
-        <ComponentLabel>CollectionProgressCard</ComponentLabel>
-        <CollectionProgressCard collectedCount={24} totalCount={34} description="부산에서 내가 남긴 나의 여행 발자국 🐾" onViewMore={() => {}} />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <ComponentLabel>CategoryStatCard</ComponentLabel>
-        <div className="grid grid-cols-4 gap-2">
-          <CategoryStatCard category="sea" collectedCount={4} totalCount={34} />
-          <CategoryStatCard category="nature" collectedCount={4} totalCount={34} />
-          <CategoryStatCard category="culture" collectedCount={4} totalCount={34} />
-          <CategoryStatCard category="experience" collectedCount={4} totalCount={34} />
-        </div>
-      </div>
-
       {/* ════════════════════════════════ 마이페이지 탭 ════════════════════════════════ */}
       <SectionTitle>마이페이지 탭</SectionTitle>
 
@@ -254,8 +233,7 @@ export default function TestPage() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <ComponentLabel>NicknameModal / AvatarSelectModal</ComponentLabel>
-        <Button variant="secondary" onClick={() => setShowNickname(true)}>NicknameModal</Button>
+        <ComponentLabel>AvatarSelectModal</ComponentLabel>
         <Button variant="secondary" onClick={() => setShowAvatarSelect(true)}>AvatarSelectModal</Button>
       </div>
 
@@ -274,10 +252,28 @@ export default function TestPage() {
         <span className="font-paperlogy text-sm text-sub-gray text-center">* 언제든 다시 로그인할 수 있어요.</span>
       </Modal>
       <ArrivalVerifyModal isOpen={showArrivalModal} onClose={() => setShowArrivalModal(false)} placeName="송도 해수욕장" onVerify={() => {}} onLater={() => {}} />
-      <PlaceDetailSheet isOpen={showDetailSheet} onClose={() => setShowDetailSheet(false)} imageUrl={IMG} name="송도 해수욕장" category="sea" status="pending" description="부산의 대표적인 해수욕장입니다." address="서울 서구 송도해변로 100" info="운영시간: 09:00 ~ 18:00" />
-      <NicknameModal isOpen={showNickname} onClose={() => setShowNickname(false)} currentNickname="은지미" onConfirm={() => {}} />
+      <PlaceDetailSheet
+        isOpen={showDetailSheet}
+        onClose={() => setShowDetailSheet(false)}
+        imageUrl={IMG}
+        name="송도 해수욕장"
+        category="sea"
+        status="pending"
+        description="부산의 대표적인 해수욕장입니다."
+        address="서울 서구 송도해변로 100"
+        infoItems={[
+          { icon: "🕐", label: "운영시간", value: "09:00 - 18:00" },
+          { icon: "💰", label: "입장료", value: "무료" },
+          { icon: "🏠", label: "주차", value: "공영 주차장" },
+        ]}
+        relatedLogs={[
+          { imageUrl: IMG, userName: "은지미" },
+          { imageUrl: IMG2, userName: "바니" },
+          { imageUrl: IMG, userName: "쿠키" },
+        ]}
+        onViewMoreLogs={() => {}}
+      />
       <AvatarSelectModal isOpen={showAvatarSelect} onClose={() => setShowAvatarSelect(false)} avatars={MOCK_AVATARS} currentAvatar={MOCK_AVATARS[0]} onConfirm={() => {}} />
-      <PermissionModal isOpen={showPermission} onClose={() => setShowPermission(false)} message="사용자의 앨범에 접근하려고 합니다." subMessage="앱수품을 기록하며 여행의 순간을 담아보세요." options={[{ label: "앱을 사용하는 동안 허용", variant: "primary", onClick: () => {} }, { label: "항상 허용", onClick: () => {} }, { label: "허용 안 함", onClick: () => {} }]} />
     </div>
   );
 }

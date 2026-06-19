@@ -1,5 +1,3 @@
-export { ItineraryTimeline } from "./ItineraryTimeline";
-export type { ItineraryItem, ItineraryPlaceItem, ItineraryTransportItem } from "./ItineraryTimeline";
 export { TransportCard } from "./TransportCard";
 export { LogCard } from "./LogCard";
 export { ArrivalVerifyModal } from "./ArrivalVerifyModal";

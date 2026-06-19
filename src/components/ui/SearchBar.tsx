@@ -18,15 +18,15 @@ export function SearchBar({
   return (
     <div
       className={cn(
-        "flex items-center gap-2",
-        "h-[30px] px-4 rounded-[10px]",
+        "flex items-center gap-1",
+        "py-2 px-3 rounded-[10px]",
         "bg-system-searchbg",
         className
       )}
     >
       <svg
-        width="16"
-        height="16"
+        width="10"
+        height="10"
         viewBox="0 0 16 16"
         fill="none"
         className="shrink-0 text-sub-gray"
