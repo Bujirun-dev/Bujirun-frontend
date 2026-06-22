@@ -31,7 +31,7 @@ export function PlaceCard({
   return (
     <div
       className={cn(
-        "w-[295px] h-[98px] flex bg-white rounded-[20px] overflow-hidden shadow-sm cursor-pointer",
+        "w-full h-[98px] flex bg-white rounded-[20px] overflow-hidden shadow-sm cursor-pointer",
         className
       )}
       onClick={onClick}

@@ -16,7 +16,6 @@ import { ItineraryTimeline, ArrivalVerifyModal } from "@/features/itinerary";
 import type { ItineraryStop } from "@/features/itinerary";
 import type { StaticImageData } from "next/image";
 
-// ─── 샘플 데이터 ────────────────────────────────────────────────────────────────
 type BaseStop = Omit<
   ItineraryStop,
   "onDelete" | "onClick" | "onTimeClick" | "onTransportClick" | "onVerify"
@@ -100,7 +99,6 @@ const TRANSPORT_ICONS: Record<string, StaticImageData> = {
   택시: taxiIcon,
 };
 
-// ─── 컴포넌트 ────────────────────────────────────────────────────────────────────
 type ModalType = "optimize" | "delete" | "time" | "transport" | "verify";
 
 export default function ItineraryPage() {
@@ -110,28 +108,42 @@ export default function ItineraryPage() {
   const [stopsPerDay, setStopsPerDay] = useState<BaseStop[][]>(DAYS);
   const [modal, setModal] = useState<ModalType | null>(null);
   const [activeStopId, setActiveStopId] = useState<string | null>(null);
+  const [activeDayIdx, setActiveDayIdx] = useState(0);
   const [timeValue, setTimeValue] = useState({ hour: 12, minute: 0 });
 
   const touchStartX = useRef(0);
 
-  const activeStop = stopsPerDay[currentDay].find((s) => s.id === activeStopId);
+  const activeStop = stopsPerDay[activeDayIdx].find((s) => s.id === activeStopId);
 
   // ── 핸들러 ──────────────────────────────────────────────────────────────────
-  const openDelete = (id: string) => { setActiveStopId(id); setModal("delete"); };
-  const openTime = (id: string, time: string) => {
+  const openDelete = (dayIdx: number, id: string) => {
+    setActiveDayIdx(dayIdx);
+    setActiveStopId(id);
+    setModal("delete");
+  };
+  const openTime = (dayIdx: number, id: string, time: string) => {
     const [h, m] = time.split(":").map(Number);
     setTimeValue({ hour: h, minute: m });
+    setActiveDayIdx(dayIdx);
     setActiveStopId(id);
     setModal("time");
   };
-  const openTransport = (id: string) => { setActiveStopId(id); setModal("transport"); };
-  const openVerify = (id: string) => { setActiveStopId(id); setModal("verify"); };
+  const openTransport = (dayIdx: number, id: string) => {
+    setActiveDayIdx(dayIdx);
+    setActiveStopId(id);
+    setModal("transport");
+  };
+  const openVerify = (dayIdx: number, id: string) => {
+    setActiveDayIdx(dayIdx);
+    setActiveStopId(id);
+    setModal("verify");
+  };
   const closeModal = () => setModal(null);
 
   const confirmDelete = () => {
     setStopsPerDay((prev) => {
       const next = [...prev];
-      next[currentDay] = next[currentDay].filter((s) => s.id !== activeStopId);
+      next[activeDayIdx] = next[activeDayIdx].filter((s) => s.id !== activeStopId);
       return next;
     });
     closeModal();
@@ -141,7 +153,7 @@ export default function ItineraryPage() {
     const timeStr = `${String(timeValue.hour).padStart(2, "0")}:${String(timeValue.minute).padStart(2, "0")}`;
     setStopsPerDay((prev) => {
       const next = [...prev];
-      next[currentDay] = [...next[currentDay]]
+      next[activeDayIdx] = [...next[activeDayIdx]]
         .map((s) => (s.id === activeStopId ? { ...s, time: timeStr } : s))
         .sort((a, b) => a.time.localeCompare(b.time));
       return next;
@@ -152,8 +164,10 @@ export default function ItineraryPage() {
   const confirmTransport = (type: string) => {
     setStopsPerDay((prev) => {
       const next = [...prev];
-      next[currentDay] = next[currentDay].map((s) =>
-        s.id === activeStopId && s.transport ? { ...s, transport: { ...s.transport, type: type as "버스" | "지하철" | "도보" | "택시" } } : s
+      next[activeDayIdx] = next[activeDayIdx].map((s) =>
+        s.id === activeStopId && s.transport
+          ? { ...s, transport: { ...s.transport, type: type as "버스" | "지하철" | "도보" | "택시" } }
+          : s
       );
       return next;
     });
@@ -163,7 +177,7 @@ export default function ItineraryPage() {
   const confirmVerify = () => {
     setStopsPerDay((prev) => {
       const next = [...prev];
-      next[currentDay] = next[currentDay].map((s) =>
+      next[activeDayIdx] = next[activeDayIdx].map((s) =>
         s.id === activeStopId ? { ...s, status: "completed" as const } : s
       );
       return next;
@@ -182,27 +196,29 @@ export default function ItineraryPage() {
     if (diff < 0 && currentDay > 0) setCurrentDay((d) => d - 1);
   };
 
-  // ── 현재 날짜 stops에 핸들러 주입 ─────────────────────────────────────────────
-  const currentStops: ItineraryStop[] = stopsPerDay[currentDay].map((stop) => ({
-    ...stop,
-    onClick: () => router.push(`/itinerary/place/${stop.id}`),
-    onDelete: () => openDelete(stop.id),
-    onTimeClick: () => openTime(stop.id, stop.time),
-    onTransportClick: stop.transport ? () => openTransport(stop.id) : undefined,
-    onVerify: stop.status === "verify" ? () => openVerify(stop.id) : undefined,
-  }));
+  // ── 날별 stops (핸들러 주입) ──────────────────────────────────────────────────
+  const allDayStops: ItineraryStop[][] = stopsPerDay.map((dayStops, dayIdx) =>
+    dayStops.map((stop) => ({
+      ...stop,
+      onClick: () => router.push(`/itinerary/place/${stop.id}`),
+      onDelete: () => openDelete(dayIdx, stop.id),
+      onTimeClick: () => openTime(dayIdx, stop.id, stop.time),
+      onTransportClick: stop.transport ? () => openTransport(dayIdx, stop.id) : undefined,
+      onVerify: stop.status === "verify" ? () => openVerify(dayIdx, stop.id) : undefined,
+    }))
+  );
 
   return (
     <div className="flex h-full flex-col relative">
       <div className="flex flex-1 flex-col overflow-hidden rounded-tl-[40px] rounded-tr-[40px] bg-white">
         {/* ── 여행 헤더 ── */}
-        <div className="flex items-center gap-[10px] px-[24px] pt-5 pb-3">
-          <div className="flex h-[28px] items-center rounded-[10px] bg-main-blue px-4 shrink-0">
-            <span className="font-ssurround text-sm font-bold text-white tracking-[0.5px]">
+        <div className="flex items-center gap-[10px] px-[30px] pt-[30px] pb-[15px]">
+          <div className="flex items-center rounded-[10px] bg-main-blue px-[10px] py-[5px] shrink-0">
+            <span className="font-ssurround text-[14px] font-bold text-white tracking-[0.5px]">
               day {currentDay + 1}
             </span>
           </div>
-          <span className="flex-1 font-paperlogy text-base font-bold text-sub-deepblue">
+          <span className="flex-1 font-paperlogy text-[16px] font-bold text-sub-deepblue">
             부지렁즈
           </span>
           <div className="flex items-center gap-[5px]">
@@ -226,9 +242,8 @@ export default function ItineraryPage() {
             </button>
           </div>
         </div>
-
         {/* ── 날짜 + 일정 추가 버튼 ── */}
-        <div className="flex items-center gap-[10px] pl-[12px] pr-[24px] pb-4">
+        <div className="flex items-center gap-[10px] px-[24px] pb-4">
           <button
             className="flex size-[18px] items-center justify-center rounded-[6px] bg-sub-coral shrink-0"
             onClick={() => router.push("/itinerary/search")}
@@ -240,13 +255,23 @@ export default function ItineraryPage() {
           </span>
         </div>
 
-        {/* ── 타임라인 (스와이프 제스처) ── */}
-        <div
-          className="flex-1 overflow-y-auto pl-[12px] pr-[24px] pb-6"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          <ItineraryTimeline stops={currentStops} />
+        {/* ── 슬라이딩 타임라인 ── */}
+        <div className="flex-1 overflow-hidden">
+          <div
+            className="flex h-full transition-transform duration-300 ease-in-out will-change-transform"
+            style={{ transform: `translateX(-${currentDay * 100}%)` }}
+          >
+            {allDayStops.map((dayStops, dayIdx) => (
+              <div
+                key={dayIdx}
+                className="w-full h-full shrink-0 overflow-y-auto px-[24px] pb-6"
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+              >
+                <ItineraryTimeline stops={dayStops} />
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* ── 날짜 페이지 도트 ── */}
@@ -272,8 +297,6 @@ export default function ItineraryPage() {
       </div>
 
       {/* ════════════════ 모달들 ════════════════ */}
-
-      {/* AI 최적화 안내 */}
       <Modal
         isOpen={modal === "optimize"}
         onClose={closeModal}
@@ -286,7 +309,6 @@ export default function ItineraryPage() {
         onCancel={closeModal}
       />
 
-      {/* 일정 삭제 안내 */}
       <Modal
         isOpen={modal === "delete"}
         onClose={closeModal}
@@ -299,7 +321,6 @@ export default function ItineraryPage() {
         onCancel={closeModal}
       />
 
-      {/* 시간 변경 */}
       <TimePicker
         isOpen={modal === "time"}
         hour={timeValue.hour}
@@ -309,7 +330,6 @@ export default function ItineraryPage() {
         onClose={closeModal}
       />
 
-      {/* 교통수단 선택 */}
       {modal === "transport" && (
         <div
           className="absolute inset-0 z-50 flex items-end"
@@ -339,7 +359,6 @@ export default function ItineraryPage() {
         </div>
       )}
 
-      {/* 인증하기 */}
       <ArrivalVerifyModal
         isOpen={modal === "verify"}
         onClose={closeModal}
