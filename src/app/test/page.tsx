@@ -204,7 +204,7 @@ export default function TestPage() {
 
       <div className="flex flex-col gap-2">
         <ComponentLabel>LogCard</ComponentLabel>
-        <LogCard imageUrl={IMG} placeName="송도 해수욕장" extraCount={3} author="은지미" tripType="당일치기" date="2026.05.18" dDay={90} />
+        <LogCard imageUrl={IMG} placeName="송도 해수욕장" extraCount={3} author="은지미" tripType="당일치기" date="2026.05.18" downloadCount={90} />
       </div>
 
 <div className="flex flex-col gap-2">
