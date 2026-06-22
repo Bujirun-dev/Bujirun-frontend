@@ -275,7 +275,7 @@ export default function ItineraryPage() {
         </div>
 
         {/* ── 날짜 페이지 도트 ── */}
-        <div className="flex items-center justify-center gap-2 py-3">
+        <div className="flex items-center justify-center gap-[20px] pt-3 pb-[10px]">
           {DAYS.map((_, i) =>
             i === currentDay ? (
               <button
@@ -283,12 +283,12 @@ export default function ItineraryPage() {
                 className="flex size-[22px] items-center justify-center rounded-full bg-main-blue"
                 onClick={() => setCurrentDay(i)}
               >
-                <span className="font-paperlogy text-[10px] font-bold text-white">{i + 1}</span>
+                <span className="font-proup text-[12px] font-normal text-white">{i + 1}</span>
               </button>
             ) : (
               <button
                 key={i}
-                className="size-[8px] rounded-full bg-main-blue/30"
+                className="size-[9px] rounded-full bg-main-blue/30"
                 onClick={() => setCurrentDay(i)}
               />
             )
