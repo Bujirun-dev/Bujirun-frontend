@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import { cn } from "@/shared/utils";
 import { Button } from "@/components";
+
+type AvatarSource = string | StaticImageData;
 
 interface AvatarSelectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  avatars: string[];
-  currentAvatar?: string;
-  onConfirm: (avatarUrl: string) => void;
+  avatars: AvatarSource[];
+  currentAvatar?: AvatarSource;
+  onConfirm: (avatarUrl: AvatarSource) => void;
 }
 
 export function AvatarSelectModal({
@@ -20,7 +22,7 @@ export function AvatarSelectModal({
   currentAvatar,
   onConfirm,
 }: AvatarSelectModalProps) {
-  const [selected, setSelected] = useState(currentAvatar ?? avatars[0]);
+  const [selected, setSelected] = useState<AvatarSource>(currentAvatar ?? avatars[0]);
 
   if (!isOpen) return null;
 

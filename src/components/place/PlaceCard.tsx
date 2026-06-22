@@ -1,4 +1,6 @@
 import Image from "next/image";
+import removeWhiteIcon from "@/assets/icons/itinerary/remove-white.png";
+import markerPinkIcon from "@/assets/icons/itinerary/marker-pink.png";
 import { cn } from "@/shared/utils";
 import { CategoryChip, StatusBadge } from "@/components";
 import type { Category } from "@/components";
@@ -12,6 +14,7 @@ interface PlaceCardProps {
   status?: PlaceStatus;
   onDelete?: () => void;
   onClick?: () => void;
+  onVerify?: () => void;
   className?: string;
 }
 
@@ -22,6 +25,7 @@ export function PlaceCard({
   status,
   onDelete,
   onClick,
+  onVerify,
   className,
 }: PlaceCardProps) {
   return (
@@ -39,24 +43,19 @@ export function PlaceCard({
       <div className="flex-1 flex flex-col justify-between px-[10px] py-[10px] relative">
         {onDelete && (
           <button
-            className="absolute top-2 right-2 w-[18px] h-[18px] rounded-full bg-sub-coral flex items-center justify-center"
+            className="absolute top-2 right-2 w-[18px] h-[18px] rounded-[6px] bg-sub-coral flex items-center justify-center"
             onClick={(e) => {
               e.stopPropagation();
               onDelete();
             }}
           >
-            <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
-              <path d="M2 3.5h10M5.5 3.5V2.5h3v1M3.5 3.5l.5 8h6l.5-8" stroke="white" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <Image src={removeWhiteIcon} alt="삭제" width={10} height={10} />
           </button>
         )}
 
         <div className="flex flex-col gap-1 pr-8">
           <div className="flex items-center gap-[5px] min-w-0">
-            <svg width="13" height="13" viewBox="0 0 12 12" fill="none">
-              <path d="M6 1C4.07 1 2.5 2.57 2.5 4.5C2.5 7.25 6 11 6 11C6 11 9.5 7.25 9.5 4.5C9.5 2.57 7.93 1 6 1Z" fill="#FF7F50" />
-              <circle cx="6" cy="4.5" r="1.2" fill="white" />
-            </svg>
+            <Image src={markerPinkIcon} alt="위치" width={13} height={13} className="shrink-0" />
             <span className="font-paperlogy font-medium text-[14px] text-text-heading truncate">{name}</span>
           </div>
           <CategoryChip category={category} className="self-start" />
@@ -64,7 +63,13 @@ export function PlaceCard({
 
         {status && (
           <div className="flex justify-end">
-            <StatusBadge status={status} />
+            {status === "verify" && onVerify ? (
+              <button onClick={(e) => { e.stopPropagation(); onVerify(); }}>
+                <StatusBadge status={status} />
+              </button>
+            ) : (
+              <StatusBadge status={status} />
+            )}
           </div>
         )}
       </div>
