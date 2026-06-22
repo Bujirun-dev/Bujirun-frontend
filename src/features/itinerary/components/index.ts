@@ -6,3 +6,6 @@ export { InviteCard } from "./InviteCard";
 export { PlaceSearchItem } from "./PlaceSearchItem";
 export { ItineraryTimeline } from "./ItineraryTimeline";
 export type { ItineraryStop } from "./ItineraryTimeline";
+export { ItineraryHeader } from "./ItineraryHeader";
+export { DayNavigator } from "./DayNavigator";
+export { TransportSelectSheet } from "./TransportSelectSheet";

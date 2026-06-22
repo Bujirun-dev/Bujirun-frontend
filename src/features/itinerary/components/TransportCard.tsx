@@ -1,20 +1,8 @@
 import Image from "next/image";
-import busIcon from "@/assets/icons/home/bus.png";
-import subwayIcon from "@/assets/icons/home/subway.png";
-import walkIcon from "@/assets/icons/home/walk.png";
-import taxiIcon from "@/assets/icons/home/taxi.png";
-import clockIcon from "@/assets/icons/itinerary/clock-dark.png";
-import arrowIcon from "@/assets/icons/itinerary/arrow-small-right.png";
+import clockIcon from "@/assets/icons/home/clock.png";
 import { cn } from "@/shared/utils";
 
 type TransportType = "버스" | "지하철" | "도보" | "택시";
-
-const TRANSPORT_ICONS: Record<TransportType, typeof busIcon> = {
-  버스: busIcon,
-  지하철: subwayIcon,
-  도보: walkIcon,
-  택시: taxiIcon,
-};
 
 interface TransportCardProps {
   type: TransportType;
@@ -38,33 +26,32 @@ export function TransportCard({
   return (
     <div
       className={cn(
-        "flex items-center justify-between",
-        "bg-sub-green rounded-[16px] px-4 py-3",
+        "flex items-center gap-[9px]",
+        "bg-sub-green rounded-[15px] w-[285px] p-[8px]",
         className
       )}
     >
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1 bg-white/60 rounded-[8px] px-2 py-1">
-          <Image src={TRANSPORT_ICONS[type]} alt={type} width={16} height={16} />
-          <span className="font-paperlogy text-xs font-semibold text-text-primary">{type}</span>
-        </div>
-        <div className="flex flex-col gap-0.5">
-          <span className="font-paperlogy font-bold text-md text-text-heading">{routeName}</span>
-          <span className="font-paperlogy text-xs text-text-primary flex items-center gap-1">
-            {from}
-            <Image src={arrowIcon} alt="→" width={10} height={10} />
-            {to}
-          </span>
-        </div>
+      {/* 교통수단 타입 배지 */}
+      <div className="flex items-center justify-center bg-main-white rounded-[10px] w-[35px] h-[27px] shrink-0">
+        <span className="font-ssurround text-[12px] font-bold text-main-blue">{type}</span>
       </div>
 
-      <div className="flex flex-col items-end gap-0.5">
-        <span className="font-paperlogy text-sm text-text-primary flex items-center gap-1">
+      {/* 중간: 노선명 + 구간 */}
+      <div className="flex-1 flex flex-col gap-px min-w-0">
+        <span className="font-paperlogy font-medium text-[12px] text-text-primary leading-none truncate">{routeName}</span>
+        <span className="font-paperlogy font-normal text-[11px] text-sub-darkgray truncate">
+          {from} → {to}
+        </span>
+      </div>
+
+      {/* 오른쪽: 시간 + 비용 */}
+      <div className="flex flex-col items-end gap-px shrink-0">
+        <span className="font-paperlogy font-normal text-[12px] text-text-primary flex items-center gap-px">
           <Image src={clockIcon} alt="시간" width={10} height={10} />
           {durationMin}min
         </span>
         {cost !== undefined && (
-          <span className="font-paperlogy text-sm text-text-primary">
+          <span className="font-paperlogy font-normal text-[11px] text-sub-darkgray">
             ₩{cost.toLocaleString()}
           </span>
         )}

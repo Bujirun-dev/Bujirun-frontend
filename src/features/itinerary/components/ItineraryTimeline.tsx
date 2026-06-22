@@ -33,29 +33,45 @@ export interface ItineraryStop {
 
 interface ItineraryTimelineProps {
   stops: ItineraryStop[];
+  date?: string;
+  onAdd?: () => void;
 }
 
-export function ItineraryTimeline({ stops }: ItineraryTimelineProps) {
+export function ItineraryTimeline({ stops, date, onAdd }: ItineraryTimelineProps) {
   return (
     <div className="relative">
       {/* 세로 타임라인 선 */}
       <div
-        className="absolute top-2 bottom-0 w-px bg-[rgba(151,193,255,0.4)]"
-        style={{ left: "54px" }}
+        className="absolute top-0 bottom-[-24px] w-[2px] bg-sub-lightgray"
+        style={{ left: "46px" }}
       />
 
       <div className="flex flex-col gap-5">
+        {/* 상단: + 버튼 + 날짜 */}
+        <div className="flex items-center">
+          <div className="w-10 shrink-0" />
+          <div className="flex items-center gap-[10px] relative z-10 -ml-[3px]">
+            <button
+              className="flex size-[18px] items-center justify-center rounded-[6px] bg-sub-coral shrink-0"
+              onClick={onAdd}
+            >
+              <span className="text-white text-xs font-bold leading-none">+</span>
+            </button>
+            <span className="font-paperlogy text-[11px] font-semibold text-sub-gray">{date}</span>
+          </div>
+        </div>
+
         {stops.map((stop) => (
           <div key={stop.id}>
             {/* 시간 + 도트 + 장소 카드 */}
-            <div className="flex items-start">
+            <div className="flex items-center">
               <button
-                className="w-12 shrink-0 text-right font-paperlogy text-xs font-medium text-sub-deepblue tracking-[0.6px] pr-[10px] pt-[3px]"
+                className="w-10 shrink-0 text-right font-paperlogy text-xs font-medium text-sub-deepblue tracking-[0.6px] pr-[10px]"
                 onClick={stop.onTimeClick}
               >
                 {stop.time}
               </button>
-              <div className="w-3 h-3 rounded-[4px] bg-main-blue shrink-0 mt-[3px] relative z-10" />
+              <div className="w-3 h-3 rounded-full bg-main-blue shrink-0 relative z-10" />
               <div className="flex-1 pl-3">
                 <PlaceCard
                   imageUrl={stop.imageUrl}
@@ -72,7 +88,7 @@ export function ItineraryTimeline({ stops }: ItineraryTimelineProps) {
             {/* 교통수단 카드 */}
             {stop.transport && (
               <button
-                className="mt-3 ml-[60px] w-[calc(100%-60px)] text-left"
+                className="mt-5 ml-[64px] w-[calc(100%-64px)] text-left"
                 onClick={stop.onTransportClick}
               >
                 <TransportCard {...stop.transport} />

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import removeWhiteIcon from "@/assets/icons/itinerary/remove-white.png";
-import markerPinkIcon from "@/assets/icons/itinerary/marker-pink.png";
+import markerBlueIcon from "@/assets/icons/itinerary/marker-blue.png";
 import { cn } from "@/shared/utils";
 import { CategoryChip, StatusBadge } from "@/components";
 import type { Category } from "@/components";
@@ -31,7 +31,7 @@ export function PlaceCard({
   return (
     <div
       className={cn(
-        "w-full h-[98px] flex bg-white rounded-[20px] overflow-hidden shadow-sm cursor-pointer",
+        "w-[285px] h-[98px] flex bg-white rounded-[20px] overflow-hidden shadow-sm cursor-pointer",
         className
       )}
       onClick={onClick}
@@ -40,22 +40,10 @@ export function PlaceCard({
         <Image src={imageUrl} alt={name} fill className="object-cover" />
       </div>
 
-      <div className="flex-1 flex flex-col justify-between px-[10px] py-[10px] relative">
-        {onDelete && (
-          <button
-            className="absolute top-2 right-2 w-[18px] h-[18px] rounded-[6px] bg-sub-coral flex items-center justify-center"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-          >
-            <Image src={removeWhiteIcon} alt="삭제" width={10} height={10} />
-          </button>
-        )}
-
-        <div className="flex flex-col gap-1 pr-8">
-          <div className="flex items-center gap-[5px] min-w-0">
-            <Image src={markerPinkIcon} alt="위치" width={13} height={13} className="shrink-0" />
+      <div className="flex-1 flex flex-col justify-between px-[10px] py-[10px] overflow-hidden relative">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-[5px] pr-[22px]">
+            <Image src={markerBlueIcon} alt="위치" width={13} height={13} className="shrink-0" />
             <span className="font-paperlogy font-medium text-[14px] text-text-heading truncate">{name}</span>
           </div>
           <CategoryChip category={category} className="self-start" />
@@ -71,6 +59,18 @@ export function PlaceCard({
               <StatusBadge status={status} />
             )}
           </div>
+        )}
+
+        {onDelete && (
+          <button
+            className="absolute top-[10px] right-[10px] w-[18px] h-[18px] rounded-[6px] bg-sub-coral flex items-center justify-center"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+          >
+            <Image src={removeWhiteIcon} alt="삭제" width={10} height={10} />
+          </button>
         )}
       </div>
     </div>

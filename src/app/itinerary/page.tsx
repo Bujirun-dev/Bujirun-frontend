@@ -2,19 +2,16 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import mapMagnifierIcon from "@/assets/icons/itinerary/map-magnifier.png";
-import magicWandIcon from "@/assets/icons/itinerary/magic-wand.png";
-import listIcon from "@/assets/icons/itinerary/list.png";
-import busIcon from "@/assets/icons/home/bus.png";
-import subwayIcon from "@/assets/icons/home/subway.png";
-import walkIcon from "@/assets/icons/home/walk.png";
-import taxiIcon from "@/assets/icons/home/taxi.png";
 import characterImg from "@/assets/character/face.png";
 import { Modal, TimePicker } from "@/components";
-import { ItineraryTimeline, ArrivalVerifyModal } from "@/features/itinerary";
+import {
+  ItineraryTimeline,
+  ItineraryHeader,
+  DayNavigator,
+  TransportSelectSheet,
+  ArrivalVerifyModal,
+} from "@/features/itinerary";
 import type { ItineraryStop } from "@/features/itinerary";
-import type { StaticImageData } from "next/image";
 
 type BaseStop = Omit<
   ItineraryStop,
@@ -92,13 +89,6 @@ const DAYS: BaseStop[][] = [
 
 const TRIP_DATES = ["2026.05.18", "2026.05.19", "2026.05.20"];
 
-const TRANSPORT_ICONS: Record<string, StaticImageData> = {
-  버스: busIcon,
-  지하철: subwayIcon,
-  도보: walkIcon,
-  택시: taxiIcon,
-};
-
 type ModalType = "optimize" | "delete" | "time" | "transport" | "verify";
 
 export default function ItineraryPage() {
@@ -115,28 +105,19 @@ export default function ItineraryPage() {
 
   const activeStop = stopsPerDay[activeDayIdx].find((s) => s.id === activeStopId);
 
-  // ── 핸들러 ──────────────────────────────────────────────────────────────────
   const openDelete = (dayIdx: number, id: string) => {
-    setActiveDayIdx(dayIdx);
-    setActiveStopId(id);
-    setModal("delete");
+    setActiveDayIdx(dayIdx); setActiveStopId(id); setModal("delete");
   };
   const openTime = (dayIdx: number, id: string, time: string) => {
     const [h, m] = time.split(":").map(Number);
     setTimeValue({ hour: h, minute: m });
-    setActiveDayIdx(dayIdx);
-    setActiveStopId(id);
-    setModal("time");
+    setActiveDayIdx(dayIdx); setActiveStopId(id); setModal("time");
   };
   const openTransport = (dayIdx: number, id: string) => {
-    setActiveDayIdx(dayIdx);
-    setActiveStopId(id);
-    setModal("transport");
+    setActiveDayIdx(dayIdx); setActiveStopId(id); setModal("transport");
   };
   const openVerify = (dayIdx: number, id: string) => {
-    setActiveDayIdx(dayIdx);
-    setActiveStopId(id);
-    setModal("verify");
+    setActiveDayIdx(dayIdx); setActiveStopId(id); setModal("verify");
   };
   const closeModal = () => setModal(null);
 
@@ -185,7 +166,6 @@ export default function ItineraryPage() {
     closeModal();
   };
 
-  // ── 스와이프 ─────────────────────────────────────────────────────────────────
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   };
@@ -196,7 +176,6 @@ export default function ItineraryPage() {
     if (diff < 0 && currentDay > 0) setCurrentDay((d) => d - 1);
   };
 
-  // ── 날별 stops (핸들러 주입) ──────────────────────────────────────────────────
   const allDayStops: ItineraryStop[][] = stopsPerDay.map((dayStops, dayIdx) =>
     dayStops.map((stop) => ({
       ...stop,
@@ -211,51 +190,15 @@ export default function ItineraryPage() {
   return (
     <div className="flex h-full flex-col relative">
       <div className="flex flex-1 flex-col overflow-hidden rounded-tl-[40px] rounded-tr-[40px] bg-white">
-        {/* ── 여행 헤더 ── */}
-        <div className="flex items-center gap-[10px] px-[30px] pt-[30px] pb-[15px]">
-          <div className="flex items-center rounded-[10px] bg-main-blue px-[10px] py-[5px] shrink-0">
-            <span className="font-ssurround text-[14px] font-bold text-white tracking-[0.5px] leading-[18px]">
-              day {currentDay + 1}
-            </span>
-          </div>
-          <span className="flex-1 font-paperlogy text-[16px] font-bold text-sub-deepblue">
-            부지렁즈
-          </span>
-          <div className="flex items-center gap-[5px]">
-            <button
-              className="size-[28px] rounded-[10px] bg-[#d5e6ff] border border-main-blue/30 flex items-center justify-center"
-              onClick={() => router.push("/itinerary/logs")}
-            >
-              <Image src={mapMagnifierIcon} alt="로그" width={20} height={20} className="object-contain" />
-            </button>
-            <button
-              className="size-[28px] rounded-[10px] bg-[#d5e6ff] border border-main-blue/30 flex items-center justify-center"
-              onClick={() => setModal("optimize")}
-            >
-              <Image src={magicWandIcon} alt="최적화" width={20} height={20} className="object-contain" />
-            </button>
-            <button
-              className="size-[28px] rounded-[10px] bg-[#d5e6ff] border border-main-blue/30 flex items-center justify-center"
-              onClick={() => router.push("/itinerary/trips")}
-            >
-              <Image src={listIcon} alt="목록" width={20} height={20} className="object-contain" />
-            </button>
-          </div>
-        </div>
-        {/* ── 날짜 + 일정 추가 버튼 ── */}
-        <div className="flex items-center gap-[10px] px-[24px] pb-4">
-          <button
-            className="flex size-[18px] items-center justify-center rounded-[6px] bg-sub-coral shrink-0"
-            onClick={() => router.push("/itinerary/search")}
-          >
-            <span className="text-white text-xs font-bold leading-none">+</span>
-          </button>
-          <span className="font-paperlogy text-xs font-semibold text-sub-gray">
-            {TRIP_DATES[currentDay]}
-          </span>
-        </div>
+        <ItineraryHeader
+          currentDay={currentDay}
+          tripName="부지렁즈"
+          onLogsClick={() => router.push("/itinerary/logs")}
+          onOptimizeClick={() => setModal("optimize")}
+          onTripsClick={() => router.push("/itinerary/trips")}
+        />
 
-        {/* ── 슬라이딩 타임라인 ── */}
+        {/* 슬라이딩 타임라인 */}
         <div className="flex-1 overflow-hidden">
           <div
             className="flex h-full transition-transform duration-300 ease-in-out will-change-transform"
@@ -264,39 +207,28 @@ export default function ItineraryPage() {
             {allDayStops.map((dayStops, dayIdx) => (
               <div
                 key={dayIdx}
-                className="w-full h-full shrink-0 overflow-y-auto px-[24px] pb-6"
+                className="w-full h-full shrink-0 overflow-y-auto pl-[12px] pr-[20px] pb-6"
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
               >
-                <ItineraryTimeline stops={dayStops} />
+                <ItineraryTimeline
+                  stops={dayStops}
+                  date={TRIP_DATES[dayIdx]}
+                  onAdd={() => router.push("/itinerary/search")}
+                />
               </div>
             ))}
           </div>
         </div>
 
-        {/* ── 날짜 페이지 도트 ── */}
-        <div className="flex items-center justify-center gap-[20px] pt-3 pb-[10px]">
-          {DAYS.map((_, i) =>
-            i === currentDay ? (
-              <button
-                key={i}
-                className="flex size-[22px] items-center justify-center rounded-full bg-main-blue"
-                onClick={() => setCurrentDay(i)}
-              >
-                <span className="font-proup text-[12px] font-normal text-white">{i + 1}</span>
-              </button>
-            ) : (
-              <button
-                key={i}
-                className="size-[9px] rounded-full bg-main-blue/30"
-                onClick={() => setCurrentDay(i)}
-              />
-            )
-          )}
-        </div>
+        <DayNavigator
+          totalDays={DAYS.length}
+          currentDay={currentDay}
+          onDayChange={setCurrentDay}
+        />
       </div>
 
-      {/* ════════════════ 모달들 ════════════════ */}
+      {/* 모달들 */}
       <Modal
         isOpen={modal === "optimize"}
         onClose={closeModal}
@@ -330,34 +262,11 @@ export default function ItineraryPage() {
         onClose={closeModal}
       />
 
-      {modal === "transport" && (
-        <div
-          className="absolute inset-0 z-50 flex items-end"
-          style={{ backgroundColor: "var(--color-system-blackbg)" }}
-          onClick={closeModal}
-        >
-          <div
-            className="w-full bg-white rounded-t-[30px] px-6 pt-6 pb-10"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="font-paperlogy font-bold text-lg text-text-heading mb-5 text-center">
-              교통수단 선택
-            </h3>
-            <div className="grid grid-cols-2 gap-3">
-              {(["버스", "지하철", "도보", "택시"] as const).map((type) => (
-                <button
-                  key={type}
-                  className="flex items-center gap-2 bg-sub-green rounded-[16px] px-4 py-3 active:opacity-80"
-                  onClick={() => confirmTransport(type)}
-                >
-                  <Image src={TRANSPORT_ICONS[type]} alt={type} width={20} height={20} />
-                  <span className="font-paperlogy font-bold text-md text-text-heading">{type}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      <TransportSelectSheet
+        isOpen={modal === "transport"}
+        onClose={closeModal}
+        onSelect={confirmTransport}
+      />
 
       <ArrivalVerifyModal
         isOpen={modal === "verify"}
