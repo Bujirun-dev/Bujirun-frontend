@@ -26,6 +26,8 @@ export function ArrivalVerifyModal({
 }: ArrivalVerifyModalProps) {
   if (!isOpen) return null;
 
+  if (typeof document === "undefined") return null;
+
   const appRoot = document.getElementById("app-root");
   if (!appRoot) return null;
 

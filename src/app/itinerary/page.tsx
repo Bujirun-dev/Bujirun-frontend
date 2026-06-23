@@ -274,15 +274,20 @@ export default function ItineraryPage() {
           const base = activeStop?.transport?.baseDurationMin ?? 30;
           const f = activeStop?.transport?.from ?? "";
           const t = activeStop?.transport?.to ?? "";
+          const transitLegs = (activeStop?.transport?.legs ?? []).filter(
+            (leg) => leg.type === "버스" || leg.type === "지하철"
+          );
+
           return [
             {
               id: "transit",
               isRecommended: true,
               durationMin: base,
               cost: 1500,
-              legs: (activeStop?.transport?.legs ?? []).filter((l) => l.type === "버스" || l.type === "지하철").length > 0
-                ? activeStop!.transport!.legs.filter((l) => l.type === "버스" || l.type === "지하철")
-                : [{ type: "버스" as const, routeName: "버스", from: f, to: t }],
+              legs:
+                transitLegs.length > 0
+                  ? transitLegs
+                  : [{ type: "버스" as const, routeName: "버스", from: f, to: t }],
             },
             {
               id: "taxi",

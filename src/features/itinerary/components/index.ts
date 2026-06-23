@@ -10,4 +10,3 @@ export { ItineraryHeader } from "./ItineraryHeader";
 export { DayNavigator } from "./DayNavigator";
 export { TransportSelectSheet } from "./TransportSelectSheet";
 export type { RouteOption } from "./TransportSelectSheet";
-export { KakaoMapSheet } from "./KakaoMapSheet";
