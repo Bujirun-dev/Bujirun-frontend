@@ -5,15 +5,14 @@ import { TransportCard } from "./TransportCard";
 import type { Category } from "@/components";
 
 type PlaceStatus = "completed" | "verify";
-type TransportType = "버스" | "지하철" | "도보" | "택시";
+import type { TransportLeg } from "./TransportCard";
 
 interface TransportInfo {
-  type: TransportType;
-  routeName: string;
   from: string;
   to: string;
   durationMin: number;
   cost?: number;
+  legs: TransportLeg[];
 }
 
 export interface ItineraryStop {

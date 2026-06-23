@@ -177,7 +177,17 @@ export default function TestPage() {
 
       <div className="flex flex-col gap-2">
         <ComponentLabel>TransportCard</ComponentLabel>
-        <TransportCard type="버스" routeName="2012" from="송도 해수욕장" to="해운대" durationMin={20} cost={1500} />
+        <TransportCard
+          from="출발 장소"
+          to="도착 장소"
+          durationMin={30}
+          cost={1500}
+          isRecommended
+          legs={[
+            { type: "버스", routeName: "2012", from: "버스 출발 정류장", to: "버스 도착 정류장" },
+            { type: "지하철", routeName: "1호선", from: "지하철 출발역", to: "지하철 도착역" },
+          ]}
+        />
       </div>
 
 <div className="flex flex-col gap-2">

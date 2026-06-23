@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import characterImg from "@/assets/character/face.png";
-import { Modal, TimePicker } from "@/components";
+import { Modal, TimePicker, PageCard } from "@/components";
 import {
   ItineraryTimeline,
   ItineraryHeader,
@@ -12,82 +12,79 @@ import {
   ArrivalVerifyModal,
 } from "@/features/itinerary";
 import type { ItineraryStop } from "@/features/itinerary";
+import { getScheduleById, getPlaceById } from "@/mocks";
+import type { TravelMode } from "@/shared/types";
+import type { Category } from "@/components";
+
+// ── 더미 데이터 변환 헬퍼 ──────────────────────────────
+const FALLBACK_IMAGE = "https://picsum.photos/seed/busan/300/200";
+
+const CATEGORY_MAP: Record<string, Category> = {
+  "자연·공원": "nature",
+  "역사·문화": "culture",
+  "체험·레저": "experience",
+  "음식·카페": "experience",
+};
+
+const TRAVEL_MODE_MAP: Record<TravelMode, "버스" | "지하철" | "도보" | "택시"> = {
+  transit: "버스",
+  bus: "버스",
+  walk: "도보",
+  taxi: "택시",
+};
 
 type BaseStop = Omit<
   ItineraryStop,
   "onDelete" | "onClick" | "onTimeClick" | "onTransportClick" | "onVerify"
 >;
 
-const DAYS: BaseStop[][] = [
-  [
-    {
-      id: "d1-1",
-      time: "12:00",
-      placeName: "송도 해수욕장",
-      imageUrl: "https://picsum.photos/seed/beach1/300/200",
-      category: "sea",
-      status: "completed",
-      transport: { type: "버스", routeName: "2012", from: "송도 해수욕장", to: "해운대", durationMin: 20, cost: 1500 },
-    },
-    {
-      id: "d1-2",
-      time: "14:30",
-      placeName: "해운대 해수욕장",
-      imageUrl: "https://picsum.photos/seed/beach2/300/200",
-      category: "culture",
-      status: "verify",
-      transport: { type: "버스", routeName: "2012", from: "해운대", to: "광안리", durationMin: 20, cost: 1500 },
-    },
-    {
-      id: "d1-3",
-      time: "18:30",
-      placeName: "광안리 해수욕장",
-      imageUrl: "https://picsum.photos/seed/beach3/300/200",
-      category: "experience",
-      status: "verify",
-    },
-  ],
-  [
-    {
-      id: "d2-1",
-      time: "10:00",
-      placeName: "경복궁",
-      imageUrl: "https://picsum.photos/seed/palace/300/200",
-      category: "culture",
-      status: "verify",
-      transport: { type: "지하철", routeName: "3호선", from: "경복궁역", to: "인사동역", durationMin: 5 },
-    },
-    {
-      id: "d2-2",
-      time: "13:00",
-      placeName: "인사동",
-      imageUrl: "https://picsum.photos/seed/insadong/300/200",
-      category: "experience",
-      status: "verify",
-    },
-  ],
-  [
-    {
-      id: "d3-1",
-      time: "09:00",
-      placeName: "한라산",
-      imageUrl: "https://picsum.photos/seed/mountain/300/200",
-      category: "nature",
-      status: "verify",
-      transport: { type: "도보", routeName: "등산로", from: "한라산 입구", to: "정상", durationMin: 180 },
-    },
-    {
-      id: "d3-2",
-      time: "15:00",
-      placeName: "제주 해변",
-      imageUrl: "https://picsum.photos/seed/jejubeach/300/200",
-      category: "sea",
-      status: "verify",
-    },
-  ],
-];
+function buildDays(scheduleId: string): { days: BaseStop[][]; dates: string[] } {
+  const schedule = getScheduleById(scheduleId);
+  if (!schedule) return { days: [], dates: [] };
 
-const TRIP_DATES = ["2026.05.18", "2026.05.19", "2026.05.20"];
+  const days = schedule.days.map((day) =>
+    day.items.map((item, idx): BaseStop => {
+      const place = getPlaceById(item.spotId);
+      const nextItem = day.items[idx + 1];
+      const nextPlace = nextItem ? getPlaceById(nextItem.spotId) : undefined;
+
+      return {
+        id: item.id,
+        time: item.arrivalTime,
+        placeName: item.spotName,
+        imageUrl: place?.thumbnailUrl || FALLBACK_IMAGE,
+        category: CATEGORY_MAP[place?.category ?? ""] ?? "nature",
+        status: "verify",
+        transport: nextItem
+          ? {
+              from: item.spotName,
+              to: nextItem.spotName,
+              durationMin: nextItem.travelTimeMin,
+              legs: [
+                {
+                  type: TRAVEL_MODE_MAP[nextItem.travelMode] ?? "버스",
+                  routeName: TRAVEL_MODE_MAP[nextItem.travelMode] ?? "버스",
+                  from: place?.address ?? item.spotName,
+                  to: nextPlace?.address ?? nextItem.spotName,
+                },
+              ],
+            }
+          : undefined,
+      };
+    })
+  );
+
+  const dates = schedule.days.map((d) => {
+    const [, month, day] = d.date.split("-");
+    return `2026.${month}.${day}`;
+  });
+
+  return { days, dates };
+}
+
+// ── 페이지 ─────────────────────────────────────────────
+const SCHEDULE_ID = "660e8400-e29b-41d4-a716-446655440000"; // 해운대 힐링 코스
+const { days: INITIAL_DAYS, dates: TRIP_DATES } = buildDays(SCHEDULE_ID);
 
 type ModalType = "optimize" | "delete" | "time" | "transport" | "verify";
 
@@ -95,11 +92,12 @@ export default function ItineraryPage() {
   const router = useRouter();
 
   const [currentDay, setCurrentDay] = useState(0);
-  const [stopsPerDay, setStopsPerDay] = useState<BaseStop[][]>(DAYS);
+  const [stopsPerDay, setStopsPerDay] = useState<BaseStop[][]>(INITIAL_DAYS);
   const [modal, setModal] = useState<ModalType | null>(null);
   const [activeStopId, setActiveStopId] = useState<string | null>(null);
   const [activeDayIdx, setActiveDayIdx] = useState(0);
   const [timeValue, setTimeValue] = useState({ hour: 12, minute: 0 });
+  const [selectedRouteOptionId, setSelectedRouteOptionId] = useState<string>("transit");
 
   const touchStartX = useRef(0);
 
@@ -142,12 +140,13 @@ export default function ItineraryPage() {
     closeModal();
   };
 
-  const confirmTransport = (type: string) => {
+  const confirmTransport = (option: import("@/features/itinerary").RouteOption) => {
+    setSelectedRouteOptionId(option.id);
     setStopsPerDay((prev) => {
       const next = [...prev];
       next[activeDayIdx] = next[activeDayIdx].map((s) =>
         s.id === activeStopId && s.transport
-          ? { ...s, transport: { ...s.transport, type: type as "버스" | "지하철" | "도보" | "택시" } }
+          ? { ...s, transport: { ...s.transport, legs: option.legs, durationMin: option.durationMin, cost: option.cost } }
           : s
       );
       return next;
@@ -172,7 +171,7 @@ export default function ItineraryPage() {
   const handleTouchEnd = (e: React.TouchEvent) => {
     const diff = touchStartX.current - e.changedTouches[0].clientX;
     if (Math.abs(diff) < 50) return;
-    if (diff > 0 && currentDay < DAYS.length - 1) setCurrentDay((d) => d + 1);
+    if (diff > 0 && currentDay < stopsPerDay.length - 1) setCurrentDay((d) => d + 1);
     if (diff < 0 && currentDay > 0) setCurrentDay((d) => d - 1);
   };
 
@@ -187,12 +186,14 @@ export default function ItineraryPage() {
     }))
   );
 
+  const schedule = getScheduleById(SCHEDULE_ID);
+
   return (
-    <div className="flex h-full flex-col relative">
-      <div className="flex flex-1 flex-col overflow-hidden rounded-tl-[40px] rounded-tr-[40px] bg-white">
+    <div className="relative h-full">
+    <PageCard>
         <ItineraryHeader
           currentDay={currentDay}
-          tripName="부지렁즈"
+          tripName={schedule?.title ?? "부지렁즈"}
           onLogsClick={() => router.push("/itinerary/logs")}
           onOptimizeClick={() => setModal("optimize")}
           onTripsClick={() => router.push("/itinerary/trips")}
@@ -222,11 +223,11 @@ export default function ItineraryPage() {
         </div>
 
         <DayNavigator
-          totalDays={DAYS.length}
+          totalDays={stopsPerDay.length}
           currentDay={currentDay}
           onDayChange={setCurrentDay}
         />
-      </div>
+    </PageCard>
 
       {/* 모달들 */}
       <Modal
@@ -265,6 +266,32 @@ export default function ItineraryPage() {
       <TransportSelectSheet
         isOpen={modal === "transport"}
         onClose={closeModal}
+        from={activeStop?.transport?.from ?? "출발 장소"}
+        to={activeStop?.transport?.to ?? "도착 장소"}
+        selectedOptionId={selectedRouteOptionId}
+        options={[
+          {
+            id: "transit",
+            isRecommended: true,
+            durationMin: activeStop?.transport?.durationMin ?? 30,
+            cost: 1500,
+            legs: activeStop?.transport?.legs ?? [
+              { type: "버스", routeName: "버스", from: activeStop?.transport?.from ?? "", to: activeStop?.transport?.to ?? "" },
+            ],
+          },
+          {
+            id: "taxi",
+            durationMin: Math.round((activeStop?.transport?.durationMin ?? 30) * 0.6),
+            cost: 14500,
+            legs: [{ type: "택시", routeName: "택시", from: activeStop?.transport?.from ?? "", to: activeStop?.transport?.to ?? "" }],
+          },
+          {
+            id: "walk",
+            durationMin: (activeStop?.transport?.durationMin ?? 30) * 3,
+            cost: 0,
+            legs: [{ type: "도보", routeName: "도보", from: activeStop?.transport?.from ?? "", to: activeStop?.transport?.to ?? "" }],
+          },
+        ]}
         onSelect={confirmTransport}
       />
 

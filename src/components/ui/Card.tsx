@@ -23,6 +23,7 @@ const cardVariants: Record<CardVariant, string> = {
     "border border-[rgba(255,255,255,0.4)]",
     "rounded-[30px]",
     "opacity-[0.97]",
+    "p-[20px]",
   ].join(" "),
 
   "glass-sm": [
@@ -31,11 +32,13 @@ const cardVariants: Record<CardVariant, string> = {
     "border border-[rgba(151,193,255,0.2)]",
     "rounded-[20px]",
     "opacity-[0.97]",
+    "p-[16px]",
   ].join(" "),
 
   "white": [
     "bg-white",
     "rounded-[15px]",
     "shadow-sm",
+    "p-[16px]",
   ].join(" "),
 };

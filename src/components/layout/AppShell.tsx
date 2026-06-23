@@ -17,7 +17,7 @@ export function AppShell({ children }: AppShellProps) {
         style={{ backgroundImage: `url(${backgroundImg.src})` }}
       >
         <AppHeader />
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[24px]">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[24px] px-[24px]">{children}</div>
         <BottomNavigation />
       </div>
     </div>

@@ -93,7 +93,7 @@ export function BottomNavigation() {
 
   return (
     // 하단 네비게이션 전체 디자인
-    <nav className="z-30 w-full shrink-0 pb-[34px] bg-main-white backdrop-blur">
+    <nav className="z-30 w-full shrink-0 bg-main-white backdrop-blur pb-[env(safe-area-inset-bottom)]">
       <div className="grid h-[84px] grid-cols-4 p-2">
         {/* 메뉴 배열을 돌면서 탭을 하나씩 만들기 */}
         {navigationItems.map((item) => {
