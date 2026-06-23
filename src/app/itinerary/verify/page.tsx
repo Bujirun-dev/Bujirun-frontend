@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { ArrivalVerifyModal } from "@/features/itinerary";
+import { PageCard } from "@/components";
 import characterImg from "@/assets/character/face.png";
 
 export default function VerifyPage() {
@@ -9,7 +10,7 @@ export default function VerifyPage() {
 
   return (
     <div className="flex h-full flex-col relative">
-      <div className="flex flex-1 flex-col rounded-tl-[40px] rounded-tr-[40px] bg-white" />
+      <PageCard />
       <ArrivalVerifyModal
         isOpen
         onClose={() => router.back()}

@@ -27,6 +27,7 @@ export interface ScheduleItem {
   durationMin: number;
   travelMode: TravelMode;
   travelTimeMin: number;
+  routeName?: string; // API 연결 시 버스 번호("2012") 또는 지하철 노선("1호선") 등
   memo: string | null;
 }
 

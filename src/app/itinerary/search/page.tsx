@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import angleLeftIcon from "@/assets/icons/itinerary/angle-left.png";
-import { SearchBar } from "@/components";
+import { PageCard, SearchBar } from "@/components";
 import { PlaceSearchItem } from "@/features/itinerary";
 
 const SAMPLE_PLACES = [
@@ -27,10 +27,9 @@ export default function PlaceSearchPage() {
   );
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex flex-1 flex-col overflow-hidden rounded-tl-[40px] rounded-tr-[40px] bg-white">
+    <PageCard>
         {/* 헤더 */}
-        <div className="flex items-center gap-3 px-5 pt-5 pb-3">
+        <div className="flex items-center gap-3 pt-5 pb-3">
           <button
             onClick={() => router.back()}
             className="size-[28px] rounded-[10px] bg-[#d5e6ff] flex items-center justify-center shrink-0"
@@ -43,7 +42,7 @@ export default function PlaceSearchPage() {
         </div>
 
         {/* 정렬 */}
-        <div className="flex gap-2 px-5 pb-3">
+        <div className="flex gap-2 pb-3">
           {SORT_OPTIONS.map((opt) => (
             <button
               key={opt}
@@ -60,7 +59,7 @@ export default function PlaceSearchPage() {
         </div>
 
         {/* 관광지 목록 */}
-        <div className="flex-1 overflow-y-auto px-5 pb-6 flex flex-col gap-2">
+        <div className="app-scrollbar flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-2">
           {filtered.length === 0 ? (
             <div className="flex flex-1 items-center justify-center text-sub-gray font-paperlogy text-sm pt-20">
               검색 결과가 없습니다.
@@ -78,7 +77,6 @@ export default function PlaceSearchPage() {
             ))
           )}
         </div>
-      </div>
-    </div>
+    </PageCard>
   );
 }

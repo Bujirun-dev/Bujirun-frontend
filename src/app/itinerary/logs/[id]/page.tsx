@@ -8,7 +8,7 @@ import friendsIcon from "@/assets/icons/itinerary/friends.png";
 import calendarIcon from "@/assets/icons/itinerary/calendar.png";
 import markerIcon from "@/assets/icons/itinerary/marker-pink.png";
 import clockIcon from "@/assets/icons/itinerary/clock-blue.png";
-import { Button, CategoryChip, type Category } from "@/components";
+import { Button, CategoryChip, PageCard, type Category } from "@/components";
 
 interface ScheduleStop {
   time: string;
@@ -28,8 +28,7 @@ export default function LogDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex flex-1 flex-col overflow-hidden rounded-tl-[40px] rounded-tr-[40px] bg-white">
+    <PageCard className="px-0">
         {/* 대표 이미지 */}
         <div className="relative w-full h-[220px] shrink-0">
           <Image
@@ -47,7 +46,7 @@ export default function LogDetailPage({ params }: { params: { id: string } }) {
         </div>
 
         {/* 스크롤 영역 */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="app-scrollbar flex-1 overflow-y-auto overflow-x-hidden">
           {/* 정보 섹션 */}
           <div className="px-5 pt-4 pb-3 flex flex-col gap-3 border-b border-gray-100">
             <div className="flex items-start justify-between gap-2">
@@ -130,7 +129,6 @@ export default function LogDetailPage({ params }: { params: { id: string } }) {
             내 일정에 추가
           </Button>
         </div>
-      </div>
-    </div>
+    </PageCard>
   );
 }

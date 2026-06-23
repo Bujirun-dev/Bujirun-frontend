@@ -11,6 +11,7 @@ interface TransportInfo {
   from: string;
   to: string;
   durationMin: number;
+  baseDurationMin: number;
   cost?: number;
   legs: TransportLeg[];
 }
@@ -38,10 +39,10 @@ interface ItineraryTimelineProps {
 
 export function ItineraryTimeline({ stops, date, onAdd }: ItineraryTimelineProps) {
   return (
-    <div className="relative">
+    <div className="relative min-h-full min-w-0 pb-[15px]">
       {/* 세로 타임라인 선 */}
       <div
-        className="absolute top-0 bottom-[-24px] w-[2px] bg-sub-lightgray"
+        className="absolute top-0 bottom-[15px] w-[2px] bg-sub-lightgray rounded-full"
         style={{ left: "46px" }}
       />
 
@@ -61,9 +62,9 @@ export function ItineraryTimeline({ stops, date, onAdd }: ItineraryTimelineProps
         </div>
 
         {stops.map((stop) => (
-          <div key={stop.id}>
+          <div key={stop.id} className="min-w-0">
             {/* 시간 + 도트 + 장소 카드 */}
-            <div className="flex items-center">
+            <div className="flex min-w-0 items-center">
               <button
                 className="w-10 shrink-0 text-right font-paperlogy text-xs font-medium text-sub-deepblue tracking-[0.6px] pr-[10px]"
                 onClick={stop.onTimeClick}
@@ -71,7 +72,7 @@ export function ItineraryTimeline({ stops, date, onAdd }: ItineraryTimelineProps
                 {stop.time}
               </button>
               <div className="w-3 h-3 rounded-full bg-main-blue shrink-0 relative z-10" />
-              <div className="flex-1 pl-3">
+              <div className="min-w-0 flex-1 pl-3">
                 <PlaceCard
                   imageUrl={stop.imageUrl}
                   name={stop.placeName}
@@ -86,12 +87,15 @@ export function ItineraryTimeline({ stops, date, onAdd }: ItineraryTimelineProps
 
             {/* 교통수단 카드 */}
             {stop.transport && (
-              <button
-                className="mt-5 ml-[64px] w-[calc(100%-64px)] text-left"
-                onClick={stop.onTransportClick}
-              >
-                <TransportCard {...stop.transport} />
-              </button>
+              <div className="mt-5 flex min-w-0">
+                <div className="w-[64px] shrink-0" />
+                <button
+                  className="min-w-0 flex-1 text-left"
+                  onClick={stop.onTransportClick}
+                >
+                  <TransportCard {...stop.transport} />
+                </button>
+              </div>
             )}
           </div>
         ))}

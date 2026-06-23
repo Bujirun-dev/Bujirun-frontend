@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { createPortal } from "react-dom";
 import markerIcon from "@/assets/icons/itinerary/marker-blue.png";
 import { Button } from "@/components";
 
@@ -25,14 +26,17 @@ export function ArrivalVerifyModal({
 }: ArrivalVerifyModalProps) {
   if (!isOpen) return null;
 
-  return (
+  const appRoot = document.getElementById("app-root");
+  if (!appRoot) return null;
+
+  return createPortal(
     <div
-      className="absolute inset-0 z-50 flex items-center justify-center px-6"
+      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6 backdrop-blur-[2px]"
       style={{ backgroundColor: "var(--color-system-blackbg)" }}
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[320px] bg-white rounded-[30px] px-7 pt-10 pb-7 flex flex-col items-center gap-4"
+        className="app-scrollbar relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-[30px] px-5 pt-10 pb-6 flex flex-col items-center gap-4"
         onClick={(e) => e.stopPropagation()}
       >
         {userAvatarUrl && (
@@ -74,6 +78,7 @@ export function ArrivalVerifyModal({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    appRoot
   );
 }

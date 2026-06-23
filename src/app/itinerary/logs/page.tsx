@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import angleLeftIcon from "@/assets/icons/itinerary/angle-left.png";
+import { PageCard } from "@/components";
 import { LogCard } from "@/features/itinerary";
 
 const SAMPLE_LOGS = [
@@ -28,10 +29,9 @@ export default function LogsPage() {
     .sort((a, b) => sortBy === "인기순" ? b.downloadCount - a.downloadCount : 0);
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex flex-1 flex-col overflow-hidden rounded-tl-[40px] rounded-tr-[40px] bg-white">
+    <PageCard>
         {/* 헤더 */}
-        <div className="flex items-center gap-3 px-6 pt-5 pb-4">
+        <div className="flex items-center gap-3 pt-5 pb-4">
           <button
             onClick={() => router.back()}
             className="size-[28px] rounded-[10px] bg-[#d5e6ff] flex items-center justify-center shrink-0"
@@ -45,7 +45,7 @@ export default function LogsPage() {
         </div>
 
         {/* 카테고리 칩 */}
-        <div className="flex gap-2 px-6 pb-3 overflow-x-auto scrollbar-none">
+        <div className="flex gap-2 pb-3 overflow-x-auto scrollbar-none">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
@@ -62,7 +62,7 @@ export default function LogsPage() {
         </div>
 
         {/* 정렬 */}
-        <div className="flex justify-end items-center gap-2 px-6 pb-4">
+        <div className="flex justify-end items-center gap-2 pb-4">
           <button
             onClick={() => setSortBy("최신순")}
             className={`font-paperlogy text-[12px] font-semibold ${
@@ -83,7 +83,7 @@ export default function LogsPage() {
         </div>
 
         {/* 로그 목록 */}
-        <div className="flex-1 overflow-y-auto px-6 pb-6 flex flex-col gap-4">
+        <div className="app-scrollbar flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-4">
           {filtered.length === 0 ? (
             <div className="flex flex-1 items-center justify-center text-sub-gray font-paperlogy text-sm pt-20">
               해당 카테고리의 로그가 없습니다.
@@ -104,7 +104,6 @@ export default function LogsPage() {
             ))
           )}
         </div>
-      </div>
-    </div>
+    </PageCard>
   );
 }

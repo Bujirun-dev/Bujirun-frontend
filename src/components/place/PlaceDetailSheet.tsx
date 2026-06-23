@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { createPortal } from "react-dom";
 import { cn } from "@/shared/utils";
 import { CategoryChip, StatusBadge, PlaceInfoRow } from "@/components";
 import type { Category } from "@/components";
@@ -49,11 +50,18 @@ export function PlaceDetailSheet({
 }: PlaceDetailSheetProps) {
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
+  const appRoot = document.getElementById("app-root");
+  if (!appRoot) return null;
+
+  return createPortal(
+    <div
+      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6 backdrop-blur-[2px]"
+      style={{ backgroundColor: "var(--color-system-blackbg)" }}
+      onClick={onClose}
+    >
       <div
         className={cn(
-          "w-[285px] h-[470px] rounded-[20px] bg-white shadow-md flex flex-col overflow-hidden",
+          "w-full max-w-[335px] h-[470px] max-h-[80dvh] rounded-[20px] bg-white shadow-md flex flex-col overflow-hidden",
           className
         )}
         onClick={(e) => e.stopPropagation()}
@@ -72,7 +80,7 @@ export function PlaceDetailSheet({
         </div>
 
         {/* 스크롤 영역 (이미지 포함) */}
-        <div className="overflow-y-auto flex-1 pb-[24px] px-[20px]">
+        <div className="app-scrollbar overflow-y-auto overflow-x-hidden flex-1 pb-[24px] px-[20px]">
           {/* 이미지 */}
           <div className="relative w-full h-[152px] rounded-[10px] overflow-hidden">
             <Image src={imageUrl} alt={name} fill className="object-cover" />
@@ -177,6 +185,7 @@ export function PlaceDetailSheet({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    appRoot
   );
 }

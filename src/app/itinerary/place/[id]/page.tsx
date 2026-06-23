@@ -9,15 +9,14 @@ import bookmarkOnIcon from "@/assets/icons/itinerary/bookmark-on.png";
 import markerIcon from "@/assets/icons/itinerary/marker.svg";
 import kakaoMapIcon from "@/assets/icons/itinerary/kakaomap_horizontal_ko.png";
 import callIcon from "@/assets/icons/itinerary/call.png";
-import { Button, CategoryChip } from "@/components";
+import { Button, CategoryChip, PageCard } from "@/components";
 
 export default function PlaceDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [bookmarked, setBookmarked] = useState(false);
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex flex-1 flex-col overflow-hidden rounded-tl-[40px] rounded-tr-[40px] bg-white">
+    <PageCard className="px-0">
         {/* 대표 이미지 */}
         <div className="relative w-full h-[220px] shrink-0">
           <Image
@@ -49,7 +48,7 @@ export default function PlaceDetailPage({ params }: { params: { id: string } }) 
         </div>
 
         {/* 상세 정보 */}
-        <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4">
+        <div className="app-scrollbar flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 flex flex-col gap-4">
           {/* 이름 + 카테고리 */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -97,7 +96,6 @@ export default function PlaceDetailPage({ params }: { params: { id: string } }) 
             + 일정에 추가
           </Button>
         </div>
-      </div>
-    </div>
+    </PageCard>
   );
 }

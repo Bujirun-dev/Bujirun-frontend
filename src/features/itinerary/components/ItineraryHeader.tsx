@@ -19,7 +19,7 @@ export function ItineraryHeader({
   onTripsClick,
 }: ItineraryHeaderProps) {
   return (
-    <div className="flex items-center gap-[10px] px-[30px] pt-[30px] pb-[15px]">
+    <div className="flex items-center gap-[10px] px-[10px] pt-[30px] pb-[15px]">
       <div className="flex items-center rounded-[10px] bg-main-blue px-[10px] py-[5px] shrink-0">
         <span className="font-ssurround text-[14px] font-bold text-white tracking-[0.5px] leading-[18px]">
           day {currentDay + 1}

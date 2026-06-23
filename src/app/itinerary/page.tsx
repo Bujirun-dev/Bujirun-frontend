@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import characterImg from "@/assets/character/face.png";
 import { Modal, TimePicker, PageCard } from "@/components";
@@ -60,10 +60,11 @@ function buildDays(scheduleId: string): { days: BaseStop[][]; dates: string[] } 
               from: item.spotName,
               to: nextItem.spotName,
               durationMin: nextItem.travelTimeMin,
+              baseDurationMin: nextItem.travelTimeMin,
               legs: [
                 {
                   type: TRAVEL_MODE_MAP[nextItem.travelMode] ?? "버스",
-                  routeName: TRAVEL_MODE_MAP[nextItem.travelMode] ?? "버스",
+                  routeName: nextItem.routeName ?? TRAVEL_MODE_MAP[nextItem.travelMode] ?? "버스",
                   from: place?.address ?? item.spotName,
                   to: nextPlace?.address ?? nextItem.spotName,
                 },
@@ -146,7 +147,7 @@ export default function ItineraryPage() {
       const next = [...prev];
       next[activeDayIdx] = next[activeDayIdx].map((s) =>
         s.id === activeStopId && s.transport
-          ? { ...s, transport: { ...s.transport, legs: option.legs, durationMin: option.durationMin, cost: option.cost } }
+          ? { ...s, transport: { ...s.transport, legs: option.legs, durationMin: option.durationMin, cost: option.cost, baseDurationMin: s.transport.baseDurationMin } }
           : s
       );
       return next;
@@ -200,7 +201,7 @@ export default function ItineraryPage() {
         />
 
         {/* 슬라이딩 타임라인 */}
-        <div className="flex-1 overflow-hidden">
+        <div className="-ml-2.5 flex-1 overflow-hidden">
           <div
             className="flex h-full transition-transform duration-300 ease-in-out will-change-transform"
             style={{ transform: `translateX(-${currentDay * 100}%)` }}
@@ -208,7 +209,7 @@ export default function ItineraryPage() {
             {allDayStops.map((dayStops, dayIdx) => (
               <div
                 key={dayIdx}
-                className="w-full h-full shrink-0 overflow-y-auto pl-[12px] pr-[20px] pb-6"
+                className="native-scroll-hidden box-border w-full min-w-0 h-full shrink-0 overflow-y-scroll pl-0 pr-1 pb-6"
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
               >
@@ -269,29 +270,34 @@ export default function ItineraryPage() {
         from={activeStop?.transport?.from ?? "출발 장소"}
         to={activeStop?.transport?.to ?? "도착 장소"}
         selectedOptionId={selectedRouteOptionId}
-        options={[
-          {
-            id: "transit",
-            isRecommended: true,
-            durationMin: activeStop?.transport?.durationMin ?? 30,
-            cost: 1500,
-            legs: activeStop?.transport?.legs ?? [
-              { type: "버스", routeName: "버스", from: activeStop?.transport?.from ?? "", to: activeStop?.transport?.to ?? "" },
-            ],
-          },
-          {
-            id: "taxi",
-            durationMin: Math.round((activeStop?.transport?.durationMin ?? 30) * 0.6),
-            cost: 14500,
-            legs: [{ type: "택시", routeName: "택시", from: activeStop?.transport?.from ?? "", to: activeStop?.transport?.to ?? "" }],
-          },
-          {
-            id: "walk",
-            durationMin: (activeStop?.transport?.durationMin ?? 30) * 3,
-            cost: 0,
-            legs: [{ type: "도보", routeName: "도보", from: activeStop?.transport?.from ?? "", to: activeStop?.transport?.to ?? "" }],
-          },
-        ]}
+        options={(() => {
+          const base = activeStop?.transport?.baseDurationMin ?? 30;
+          const f = activeStop?.transport?.from ?? "";
+          const t = activeStop?.transport?.to ?? "";
+          return [
+            {
+              id: "transit",
+              isRecommended: true,
+              durationMin: base,
+              cost: 1500,
+              legs: (activeStop?.transport?.legs ?? []).filter((l) => l.type === "버스" || l.type === "지하철").length > 0
+                ? activeStop!.transport!.legs.filter((l) => l.type === "버스" || l.type === "지하철")
+                : [{ type: "버스" as const, routeName: "버스", from: f, to: t }],
+            },
+            {
+              id: "taxi",
+              durationMin: Math.round(base * 0.6),
+              cost: 14500,
+              legs: [{ type: "택시" as const, routeName: "택시", from: f, to: t }],
+            },
+            {
+              id: "walk",
+              durationMin: base * 3,
+              cost: 0,
+              legs: [{ type: "도보" as const, routeName: "도보", from: f, to: t }],
+            },
+          ];
+        })()}
         onSelect={confirmTransport}
       />
 

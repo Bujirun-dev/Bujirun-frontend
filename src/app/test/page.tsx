@@ -13,9 +13,7 @@ import {
   VotePlaceCard, InviteCard,
   PlaceSearchItem,
 } from "@/features/itinerary";
-import {
-  ProfileCard, MenuItem, AvatarSelectModal,
-} from "@/features/mypage";
+import { MenuItem, AvatarSelectModal } from "@/features/mypage";
 import { HomeItineraryItem, DogamProgressBar } from "@/features/home";
 
 const IMG = "https://picsum.photos/400/300";
@@ -54,7 +52,7 @@ export default function TestPage() {
   const [showAvatarSelect, setShowAvatarSelect] = useState(false);
 
   return (
-    <div className="bg-system-navbg px-5 py-6 flex flex-col gap-8 overflow-y-auto">
+    <div className="app-scrollbar bg-system-navbg px-5 py-6 flex flex-col gap-8 overflow-y-auto overflow-x-hidden">
       <h1 className="font-paperlogy font-bold text-2xl text-text-heading">컴포넌트 테스트</h1>
 
       {/* ════════════════════════════════ 공통 UI ════════════════════════════════ */}
@@ -229,11 +227,6 @@ export default function TestPage() {
 
       {/* ════════════════════════════════ 마이페이지 탭 ════════════════════════════════ */}
       <SectionTitle>마이페이지 탭</SectionTitle>
-
-      <div className="flex flex-col gap-2">
-        <ComponentLabel>ProfileCard</ComponentLabel>
-        <ProfileCard nickname="은지미" isVerified categories={["sea", "culture"]} collectedCount={24} totalCount={34} />
-      </div>
 
       <div className="flex flex-col gap-2">
         <ComponentLabel>MenuItem</ComponentLabel>

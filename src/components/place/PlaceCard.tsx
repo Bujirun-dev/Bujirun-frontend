@@ -31,7 +31,7 @@ export function PlaceCard({
   return (
     <div
       className={cn(
-        "w-[285px] h-[98px] flex bg-white rounded-[20px] overflow-hidden shadow-sm cursor-pointer",
+        "w-full min-w-0 h-[98px] flex bg-white rounded-[20px] overflow-hidden shadow-sm cursor-pointer",
         className
       )}
       onClick={onClick}
@@ -40,9 +40,9 @@ export function PlaceCard({
         <Image src={imageUrl} alt={name} fill className="object-cover" />
       </div>
 
-      <div className="flex-1 flex flex-col justify-between px-[10px] py-[10px] overflow-hidden relative">
+      <div className="min-w-0 flex-1 flex flex-col justify-between px-[10px] py-[10px] overflow-hidden relative">
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-[5px] pr-[22px]">
+          <div className="flex min-w-0 items-center gap-[5px] pr-[22px]">
             <Image src={markerBlueIcon} alt="위치" width={13} height={13} className="shrink-0" />
             <span className="font-paperlogy font-medium text-[14px] text-text-heading truncate">{name}</span>
           </div>
