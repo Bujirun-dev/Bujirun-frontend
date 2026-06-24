@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/shared/utils";
 import { Button } from "./Button";
 import { Card } from "./Card";
@@ -45,20 +46,25 @@ export function Modal({
 
   if (!isOpen) return null;
 
+  if (typeof document === "undefined") return null;
+
+  const appRoot = document.getElementById("app-root");
+  if (!appRoot) return null;
+
   const handleCancel = () => {
     onCancel?.();
     onClose();
   };
 
-  return (
+  return createPortal(
     <div
-      className="absolute inset-0 z-50 flex items-center justify-center px-6"
+      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6 backdrop-blur-[2px]"
       style={{ backgroundColor: "var(--color-system-blackbg)" }}
       onClick={onClose}
     >
       <div
         className={cn(
-          "w-full max-w-[343px] bg-white rounded-[30px] px-[34px] py-[42px] flex flex-col items-center gap-5",
+          "app-scrollbar w-full max-w-[343px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-[30px] px-5 py-6 flex flex-col items-center gap-5",
           className
         )}
         onClick={(e) => e.stopPropagation()}
@@ -95,6 +101,7 @@ export function Modal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    appRoot
   );
 }

@@ -18,3 +18,4 @@ export { AppHeader } from "./layout/AppHeader";
 export { AppShell } from "./layout/AppShell";
 export { BottomNavigation } from "./layout/BottomNavigation";
 export { ScrollToTop } from "./layout/ScrollToTop";
+export { PageCard } from "./layout/PageCard";

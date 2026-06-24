@@ -13,9 +13,7 @@ import {
   VotePlaceCard, InviteCard,
   PlaceSearchItem,
 } from "@/features/itinerary";
-import {
-  ProfileCard, MenuItem, AvatarSelectModal,
-} from "@/features/mypage";
+import { MenuItem, AvatarSelectModal } from "@/features/mypage";
 import { HomeItineraryItem, DogamProgressBar } from "@/features/home";
 
 const IMG = "https://picsum.photos/400/300";
@@ -54,7 +52,7 @@ export default function TestPage() {
   const [showAvatarSelect, setShowAvatarSelect] = useState(false);
 
   return (
-    <div className="bg-system-navbg px-5 py-6 flex flex-col gap-8 overflow-y-auto">
+    <div className="app-scrollbar bg-system-navbg px-5 py-6 flex flex-col gap-8 overflow-y-auto overflow-x-hidden">
       <h1 className="font-paperlogy font-bold text-2xl text-text-heading">컴포넌트 테스트</h1>
 
       {/* ════════════════════════════════ 공통 UI ════════════════════════════════ */}
@@ -177,7 +175,17 @@ export default function TestPage() {
 
       <div className="flex flex-col gap-2">
         <ComponentLabel>TransportCard</ComponentLabel>
-        <TransportCard type="버스" routeName="2012" from="송도 해수욕장" to="해운대" durationMin={20} cost={1500} />
+        <TransportCard
+          from="출발 장소"
+          to="도착 장소"
+          durationMin={30}
+          cost={1500}
+          isRecommended
+          legs={[
+            { type: "버스", routeName: "2012", from: "버스 출발 정류장", to: "버스 도착 정류장" },
+            { type: "지하철", routeName: "1호선", from: "지하철 출발역", to: "지하철 도착역" },
+          ]}
+        />
       </div>
 
 <div className="flex flex-col gap-2">
@@ -204,7 +212,7 @@ export default function TestPage() {
 
       <div className="flex flex-col gap-2">
         <ComponentLabel>LogCard</ComponentLabel>
-        <LogCard imageUrl={IMG} placeName="송도 해수욕장" extraCount={3} author="은지미" tripType="당일치기" date="2026.05.18" dDay={90} />
+        <LogCard imageUrl={IMG} placeName="송도 해수욕장" extraCount={3} author="은지미" tripType="당일치기" date="2026.05.18" downloadCount={90} />
       </div>
 
 <div className="flex flex-col gap-2">
@@ -219,11 +227,6 @@ export default function TestPage() {
 
       {/* ════════════════════════════════ 마이페이지 탭 ════════════════════════════════ */}
       <SectionTitle>마이페이지 탭</SectionTitle>
-
-      <div className="flex flex-col gap-2">
-        <ComponentLabel>ProfileCard</ComponentLabel>
-        <ProfileCard nickname="은지미" isVerified categories={["sea", "culture"]} collectedCount={24} totalCount={34} />
-      </div>
 
       <div className="flex flex-col gap-2">
         <ComponentLabel>MenuItem</ComponentLabel>

@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
+import { createPortal } from "react-dom";
 import { cn } from "@/shared/utils";
 import { Button } from "@/components";
+
+type AvatarSource = string | StaticImageData;
 
 interface AvatarSelectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  avatars: string[];
-  currentAvatar?: string;
-  onConfirm: (avatarUrl: string) => void;
+  avatars: AvatarSource[];
+  currentAvatar?: AvatarSource;
+  onConfirm: (avatarUrl: AvatarSource) => void;
 }
 
 export function AvatarSelectModal({
@@ -20,18 +23,23 @@ export function AvatarSelectModal({
   currentAvatar,
   onConfirm,
 }: AvatarSelectModalProps) {
-  const [selected, setSelected] = useState(currentAvatar ?? avatars[0]);
+  const [selected, setSelected] = useState<AvatarSource>(currentAvatar ?? avatars[0]);
 
   if (!isOpen) return null;
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  const appRoot = document.getElementById("app-root");
+  if (!appRoot) return null;
+
+  return createPortal(
     <div
-      className="absolute inset-0 z-50 flex items-center justify-center px-6"
+      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6 backdrop-blur-[2px]"
       style={{ backgroundColor: "var(--color-system-blackbg)" }}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[320px] bg-white rounded-[30px] px-6 py-7 flex flex-col gap-5"
+        className="app-scrollbar w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-[30px] px-5 py-6 flex flex-col gap-5"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="font-paperlogy font-bold text-lg text-text-heading text-center">
@@ -60,6 +68,7 @@ export function AvatarSelectModal({
           <Button variant="primary" className="flex-1" onClick={() => { onConfirm(selected); onClose(); }}>완료</Button>
         </div>
       </div>
-    </div>
+    </div>,
+    appRoot
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/shared/utils";
 import { Button } from "./Button";
 
@@ -82,14 +83,19 @@ export function TimePicker({
 }: TimePickerProps) {
   if (!isOpen) return null;
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  const appRoot = document.getElementById("app-root");
+  if (!appRoot) return null;
+
+  return createPortal(
     <div
-      className="absolute inset-0 z-50 flex items-center justify-center px-6"
+      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6 backdrop-blur-[2px]"
       style={{ backgroundColor: "var(--color-system-blackbg)" }}
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-[24px] px-8 py-6 flex flex-col items-center gap-4 w-[260px]"
+        className="w-full max-w-[260px] max-h-[80dvh] bg-white rounded-[24px] px-5 py-6 flex flex-col items-center gap-4"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="font-paperlogy font-bold text-2xl text-text-heading">시간 변경</h3>
@@ -130,6 +136,7 @@ export function TimePicker({
           완료
         </Button>
       </div>
-    </div>
+    </div>,
+    appRoot
   );
 }

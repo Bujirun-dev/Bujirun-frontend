@@ -1,3 +1,5 @@
+import Image from "next/image";
+import kakaoLoginImg from "@/assets/icons/login-register/kakao_login_large_wide.png";
 import { cn } from "@/shared/utils";
 
 interface KakaoLoginButtonProps {
@@ -8,18 +10,10 @@ interface KakaoLoginButtonProps {
 export function KakaoLoginButton({ onClick, className }: KakaoLoginButtonProps) {
   return (
     <button
-      className={cn(
-        "w-full h-[52px] rounded-[14px]",
-        "flex items-center justify-center gap-2",
-        "font-paperlogy font-bold text-[15px] text-[#3C1E1E]",
-        "transition-opacity active:opacity-80",
-        className
-      )}
-      style={{ backgroundColor: "#FEE500" }}
+      className={cn("w-full transition-opacity active:opacity-80", className)}
       onClick={onClick}
     >
-      <span className="text-2xl">💬</span>
-      카카오 로그인
+      <Image src={kakaoLoginImg} alt="카카오 로그인" className="w-full h-auto" />
     </button>
   );
 }

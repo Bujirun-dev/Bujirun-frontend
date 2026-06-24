@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { createPortal } from "react-dom";
+import markerIcon from "@/assets/icons/itinerary/marker-blue.png";
 import { Button } from "@/components";
 
 interface ArrivalVerifyModalProps {
@@ -24,14 +26,19 @@ export function ArrivalVerifyModal({
 }: ArrivalVerifyModalProps) {
   if (!isOpen) return null;
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  const appRoot = document.getElementById("app-root");
+  if (!appRoot) return null;
+
+  return createPortal(
     <div
-      className="absolute inset-0 z-50 flex items-center justify-center px-6"
+      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6 backdrop-blur-[2px]"
       style={{ backgroundColor: "var(--color-system-blackbg)" }}
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[320px] bg-white rounded-[30px] px-7 pt-10 pb-7 flex flex-col items-center gap-4"
+        className="app-scrollbar relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-[30px] px-5 pt-10 pb-6 flex flex-col items-center gap-4"
         onClick={(e) => e.stopPropagation()}
       >
         {userAvatarUrl && (
@@ -48,7 +55,7 @@ export function ArrivalVerifyModal({
 
         <div className="flex flex-col items-center gap-2 text-center">
           <div className="flex items-center gap-1 bg-sub-lightblue px-3 py-1 rounded-full">
-            <span className="text-sm">📍</span>
+            <Image src={markerIcon} alt="위치" width={14} height={14} />
             <span className="font-paperlogy font-semibold text-md text-sub-deepblue">
               {placeName}
             </span>
@@ -73,6 +80,7 @@ export function ArrivalVerifyModal({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    appRoot
   );
 }

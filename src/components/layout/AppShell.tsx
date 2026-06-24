@@ -13,11 +13,12 @@ export function AppShell({ children }: AppShellProps) {
     <div className="h-dvh overflow-hidden overscroll-none bg-main-white">
       <ScrollToTop />
       <div
+        id="app-root"
         className="relative mx-auto flex h-dvh w-full max-w-[390px] flex-col overflow-hidden overscroll-none bg-cover bg-center bg-no-repeat sm:h-[844px] sm:max-h-dvh"
         style={{ backgroundImage: `url(${backgroundImg.src})` }}
       >
         <AppHeader />
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[24px]">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pt-[24px] px-[24px]">{children}</div>
         <BottomNavigation />
       </div>
     </div>

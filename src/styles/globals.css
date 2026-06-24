@@ -184,19 +184,37 @@ body {
   background: var(--color-main-white);
   color: var(--color-text-primary);
   font-family: "Paperlogy", sans-serif;
-  -ms-overflow-style: none;
+}
+
+.app-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-system-scroll) transparent;
+  scrollbar-gutter: stable;
+}
+
+.app-scrollbar::-webkit-scrollbar {
+  display: block;
+  width: 6px;
+  height: 6px;
+}
+
+.app-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 999px;
+}
+
+.app-scrollbar::-webkit-scrollbar-thumb {
+  min-height: 110px;
+  border-radius: 999px;
+  background: var(--color-system-scroll);
+  background-clip: padding-box;
+}
+
+.native-scroll-hidden {
   scrollbar-width: none;
 }
 
-body::-webkit-scrollbar {
-  display: none;
-}
-
-* {
-  scrollbar-width: none;
-}
-
-*::-webkit-scrollbar {
+.native-scroll-hidden::-webkit-scrollbar {
   display: none;
 }
 
@@ -204,4 +222,3 @@ button,
 a {
   -webkit-tap-highlight-color: transparent;
 }
-

@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import searchIcon from "@/assets/icons/collection/search.png";
 import { cn } from "@/shared/utils";
 
 interface SearchBarProps {
@@ -24,16 +26,7 @@ export function SearchBar({
         className
       )}
     >
-      <svg
-        width="10"
-        height="10"
-        viewBox="0 0 16 16"
-        fill="none"
-        className="shrink-0 text-sub-gray"
-      >
-        <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M11 11L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
+      <Image src={searchIcon} alt="검색" width={16} height={16} className="shrink-0" />
       <input
         type="text"
         value={value}
