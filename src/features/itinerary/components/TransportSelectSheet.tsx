@@ -107,7 +107,7 @@ export function TransportSelectSheet({
       onClick={onClose}
     >
       <div
-        className="app-scrollbar w-full max-w-[350px] max-h-[80dvh] bg-main-white rounded-[20px] px-5 py-6 flex flex-col gap-3 overflow-y-auto overflow-x-hidden shadow-lg"
+        className="w-full max-w-[350px] max-h-[80dvh] bg-main-white rounded-[20px] px-5 py-6 flex flex-col gap-3 overflow-y-auto overflow-x-hidden shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">

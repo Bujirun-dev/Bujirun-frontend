@@ -82,7 +82,7 @@ export function PlaceDetailSheet({
         </div>
 
         {/* 스크롤 영역 (이미지 포함) */}
-        <div className="app-scrollbar overflow-y-auto overflow-x-hidden flex-1 pb-[24px] px-[20px]">
+        <div className="overflow-y-auto overflow-x-hidden flex-1 pb-[24px] px-[20px]">
           {/* 이미지 */}
           <div className="relative w-full h-[152px] rounded-[10px] overflow-hidden">
             <Image src={imageUrl} alt={name} fill className="object-cover" />

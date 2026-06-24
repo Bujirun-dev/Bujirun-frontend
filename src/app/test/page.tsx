@@ -52,7 +52,7 @@ export default function TestPage() {
   const [showAvatarSelect, setShowAvatarSelect] = useState(false);
 
   return (
-    <div className="app-scrollbar bg-system-navbg px-5 py-6 flex flex-col gap-8 overflow-y-auto overflow-x-hidden">
+    <div className="bg-system-navbg px-5 py-6 flex flex-col gap-8 overflow-y-auto overflow-x-hidden">
       <h1 className="font-paperlogy font-bold text-2xl text-text-heading">컴포넌트 테스트</h1>
 
       {/* ════════════════════════════════ 공통 UI ════════════════════════════════ */}

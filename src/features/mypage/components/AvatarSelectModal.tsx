@@ -39,7 +39,7 @@ export function AvatarSelectModal({
       onClick={onClose}
     >
       <div
-        className="app-scrollbar w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-[30px] px-5 py-6 flex flex-col gap-5"
+        className="w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-[30px] px-5 py-6 flex flex-col gap-5"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="font-paperlogy font-bold text-lg text-text-heading text-center">

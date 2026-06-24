@@ -38,7 +38,7 @@ export function ArrivalVerifyModal({
       onClick={onClose}
     >
       <div
-        className="app-scrollbar relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-[30px] px-5 pt-10 pb-6 flex flex-col items-center gap-4"
+        className="relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-[30px] px-5 pt-10 pb-6 flex flex-col items-center gap-4"
         onClick={(e) => e.stopPropagation()}
       >
         {userAvatarUrl && (

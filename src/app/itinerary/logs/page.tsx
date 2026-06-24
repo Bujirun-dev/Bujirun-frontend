@@ -45,7 +45,7 @@ export default function LogsPage() {
         </div>
 
         {/* 카테고리 칩 */}
-        <div className="flex gap-2 pb-3 overflow-x-auto scrollbar-none">
+        <div className="flex gap-2 pb-3 overflow-x-auto">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
@@ -83,7 +83,7 @@ export default function LogsPage() {
         </div>
 
         {/* 로그 목록 */}
-        <div className="app-scrollbar flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-4">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-4">
           {filtered.length === 0 ? (
             <div className="flex flex-1 items-center justify-center text-sub-gray font-paperlogy text-sm pt-20">
               해당 카테고리의 로그가 없습니다.

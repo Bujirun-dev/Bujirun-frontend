@@ -64,7 +64,7 @@ export function Modal({
     >
       <div
         className={cn(
-          "app-scrollbar w-full max-w-[343px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-[30px] px-5 py-6 flex flex-col items-center gap-5",
+          "w-full max-w-[343px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-[30px] px-5 py-6 flex flex-col items-center gap-5",
           className
         )}
         onClick={(e) => e.stopPropagation()}

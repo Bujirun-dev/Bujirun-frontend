@@ -10,3 +10,8 @@ export { ItineraryHeader } from "./ItineraryHeader";
 export { DayNavigator } from "./DayNavigator";
 export { TransportSelectSheet } from "./TransportSelectSheet";
 export type { RouteOption } from "./TransportSelectSheet";
+export { TripCard } from "./TripCard";
+export type { Trip } from "./TripCard";
+export { TripEditModal } from "./TripEditModal";
+export { TripDeleteModal } from "./TripDeleteModal";
+export { TripDeleteToast } from "./TripDeleteToast";
