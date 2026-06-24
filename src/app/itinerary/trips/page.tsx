@@ -15,10 +15,7 @@ const MOCK_TRIPS: Trip[] = [
   { id: "3", name: "여행 이름", startDate: "2026.05.18", endDate: "2026.05.20" },
 ];
 
-type ModalState =
-  | { type: "edit"; trip: Trip }
-  | { type: "delete"; trip: Trip }
-  | null;
+type ModalState = { type: "edit"; trip: Trip } | { type: "delete"; trip: Trip } | null;
 
 export default function TripsPage() {
   const router = useRouter();
@@ -27,20 +24,29 @@ export default function TripsPage() {
   const [modal, setModal] = useState<ModalState>(null);
   const [showDeleteToast, setShowDeleteToast] = useState(false);
 
-  const handleSelect = useCallback((id: string) => {
-    // TODO: API 연동 시 선택된 tripId를 전역 상태/URL 파라미터로 전달
-    router.push("/itinerary");
-  }, [router]);
+  const handleSelect = useCallback(
+    (id: string) => {
+      // TODO: API 연동 시 선택된 tripId를 전역 상태/URL 파라미터로 전달
+      router.push(`/itinerary?tripId=${id}`);
+    },
+    [router],
+  );
 
-  const handleEdit = useCallback((id: string) => {
-    const trip = trips.find((t) => t.id === id);
-    if (trip) setModal({ type: "edit", trip });
-  }, [trips]);
+  const handleEdit = useCallback(
+    (id: string) => {
+      const trip = trips.find((t) => t.id === id);
+      if (trip) setModal({ type: "edit", trip });
+    },
+    [trips],
+  );
 
-  const handleDelete = useCallback((id: string) => {
-    const trip = trips.find((t) => t.id === id);
-    if (trip) setModal({ type: "delete", trip });
-  }, [trips]);
+  const handleDelete = useCallback(
+    (id: string) => {
+      const trip = trips.find((t) => t.id === id);
+      if (trip) setModal({ type: "delete", trip });
+    },
+    [trips],
+  );
 
   const handleEditConfirm = useCallback((updated: Trip) => {
     // TODO: API 연동 시 PATCH /trips/:id 호출
@@ -65,7 +71,13 @@ export default function TripsPage() {
         className="absolute top-[28px] right-[32px] size-[28px] rounded-[10px] bg-sub-coral flex items-center justify-center active:opacity-80 z-10"
         onClick={() => {}}
       >
-        <Image src={plusSmallIcon} alt="여행 추가" width={24} height={24} className="brightness-0 invert" />
+        <Image
+          src={plusSmallIcon}
+          alt="여행 추가"
+          width={24}
+          height={24}
+          className="brightness-0 invert"
+        />
       </button>
 
       {/* 헤더 */}
@@ -108,10 +120,7 @@ export default function TripsPage() {
       )}
 
       {/* 삭제 토스트 */}
-      <TripDeleteToast
-        isVisible={showDeleteToast}
-        onHide={() => setShowDeleteToast(false)}
-      />
+      <TripDeleteToast isVisible={showDeleteToast} onHide={() => setShowDeleteToast(false)} />
     </PageCard>
   );
 }

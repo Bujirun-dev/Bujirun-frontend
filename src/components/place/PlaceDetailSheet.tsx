@@ -57,21 +57,23 @@ export function PlaceDetailSheet({
 
   return createPortal(
     <div
-      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6 backdrop-blur-[2px]"
+      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6"
       style={{ backgroundColor: "var(--color-system-blackbg)" }}
       onClick={onClose}
     >
       <div
         className={cn(
           "w-full max-w-[335px] h-[470px] max-h-[80dvh] rounded-[20px] bg-white shadow-md flex flex-col overflow-hidden",
-          className
+          className,
         )}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 네비게이션 */}
         <div className="px-[20px] pt-[24px] pb-3 flex items-center justify-between shrink-0">
           <button onClick={onClose} className="flex items-center justify-center">
-            <span className="font-paperlogy font-bold text-[16px] text-text-heading leading-none">‹</span>
+            <span className="font-paperlogy font-bold text-[16px] text-text-heading leading-none">
+              ‹
+            </span>
           </button>
           <button
             onClick={onAdd}
@@ -91,7 +93,9 @@ export function PlaceDetailSheet({
                 onClick={onVerify}
                 className="absolute top-2 right-2 h-[26px] px-3 bg-sub-coral rounded-[8px] flex items-center justify-center"
               >
-                <span className="font-paperlogy font-bold text-white text-[11px] leading-none">인증하기</span>
+                <span className="font-paperlogy font-bold text-white text-[11px] leading-none">
+                  인증하기
+                </span>
               </button>
             )}
             {status && (
@@ -106,10 +110,15 @@ export function PlaceDetailSheet({
             <div className="flex items-center gap-[10px]">
               <div className="flex items-center gap-1">
                 <svg width="13" height="15" viewBox="0 0 14 16" fill="none">
-                  <path d="M7 0C4.24 0 2 2.24 2 5C2 8.75 7 15 7 15C7 15 12 8.75 12 5C12 2.24 9.76 0 7 0Z" fill="#FF7F50" />
+                  <path
+                    d="M7 0C4.24 0 2 2.24 2 5C2 8.75 7 15 7 15C7 15 12 8.75 12 5C12 2.24 9.76 0 7 0Z"
+                    fill="#FF7F50"
+                  />
                   <circle cx="7" cy="5" r="2" fill="white" />
                 </svg>
-                <span className="font-paperlogy font-medium text-[14px] text-text-heading">{name}</span>
+                <span className="font-paperlogy font-medium text-[14px] text-text-heading">
+                  {name}
+                </span>
               </div>
               <CategoryChip category={category} />
             </div>
@@ -130,8 +139,12 @@ export function PlaceDetailSheet({
 
           <div>
             <div className="py-[10px]">
-              <h3 className="font-paperlogy font-semibold text-[12px] text-text-heading mb-[10px]">소개</h3>
-              <p className="font-paperlogy font-normal text-[11px] text-text-primary leading-relaxed">{description}</p>
+              <h3 className="font-paperlogy font-semibold text-[12px] text-text-heading mb-[10px]">
+                소개
+              </h3>
+              <p className="font-paperlogy font-normal text-[11px] text-text-primary leading-relaxed">
+                {description}
+              </p>
             </div>
 
             <hr className="border-t border-[#EEEEEE]" />
@@ -141,10 +154,15 @@ export function PlaceDetailSheet({
                 <h3 className="font-paperlogy font-semibold text-[12px] text-text-heading">위치</h3>
                 <div className="flex items-center gap-1 bg-sub-lightblue px-2 py-0.5 rounded-full">
                   <svg width="10" height="11" viewBox="0 0 14 16" fill="none">
-                    <path d="M7 0C4.24 0 2 2.24 2 5C2 8.75 7 15 7 15C7 15 12 8.75 12 5C12 2.24 9.76 0 7 0Z" fill="#F9B82F" />
+                    <path
+                      d="M7 0C4.24 0 2 2.24 2 5C2 8.75 7 15 7 15C7 15 12 8.75 12 5C12 2.24 9.76 0 7 0Z"
+                      fill="#F9B82F"
+                    />
                     <circle cx="7" cy="5" r="2" fill="white" />
                   </svg>
-                  <span className="font-paperlogy text-[11px] text-sub-deepblue font-medium">카카오맵</span>
+                  <span className="font-paperlogy text-[11px] text-sub-deepblue font-medium">
+                    카카오맵
+                  </span>
                 </div>
               </div>
               <p className="font-paperlogy font-normal text-[11px] text-text-primary">{address}</p>
@@ -154,7 +172,9 @@ export function PlaceDetailSheet({
               <>
                 <hr className="border-t border-[#EEEEEE]" />
                 <div className="py-[10px]">
-                  <h3 className="font-paperlogy font-semibold text-[12px] text-text-heading mb-[10px]">정보</h3>
+                  <h3 className="font-paperlogy font-semibold text-[12px] text-text-heading mb-[10px]">
+                    정보
+                  </h3>
                   <PlaceInfoRow items={infoItems} />
                 </div>
               </>
@@ -164,7 +184,9 @@ export function PlaceDetailSheet({
                 <hr className="border-t border-[#EEEEEE]" />
                 <div className="py-[10px]">
                   <div className="flex items-center justify-between mb-[10px]">
-                    <h3 className="font-paperlogy font-semibold text-[12px] text-text-heading">관련 로그</h3>
+                    <h3 className="font-paperlogy font-semibold text-[12px] text-text-heading">
+                      관련 로그
+                    </h3>
                     <button onClick={onViewMoreLogs} className="flex items-center gap-0.5">
                       <span className="font-paperlogy text-[11px] text-sub-deepblue">더보기</span>
                       <span className="font-paperlogy text-[11px] text-sub-deepblue">›</span>
@@ -172,8 +194,16 @@ export function PlaceDetailSheet({
                   </div>
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {relatedLogs.map((log, i) => (
-                      <div key={i} className="relative w-[110px] h-[90px] shrink-0 rounded-[10px] overflow-hidden">
-                        <Image src={log.imageUrl} alt={log.userName} fill className="object-cover" />
+                      <div
+                        key={i}
+                        className="relative w-[110px] h-[90px] shrink-0 rounded-[10px] overflow-hidden"
+                      >
+                        <Image
+                          src={log.imageUrl}
+                          alt={log.userName}
+                          fill
+                          className="object-cover"
+                        />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                         <span className="absolute bottom-1.5 left-2 font-paperlogy font-medium text-[10px] text-white">
                           {log.userName}
@@ -188,6 +218,6 @@ export function PlaceDetailSheet({
         </div>
       </div>
     </div>,
-    appRoot
+    appRoot,
   );
 }

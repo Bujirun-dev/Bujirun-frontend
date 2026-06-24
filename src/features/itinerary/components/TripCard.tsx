@@ -18,6 +18,8 @@ interface TripCardProps {
   onDelete: (id: string) => void;
 }
 
+const getDateOnly = (date: string) => date.split(" ")[0];
+
 export function TripCard({ trip, onSelect, onEdit, onDelete }: TripCardProps) {
   const { id, name, startDate, endDate } = trip;
 
@@ -29,9 +31,11 @@ export function TripCard({ trip, onSelect, onEdit, onDelete }: TripCardProps) {
       >
         <Image src={bagIcon} alt="여행" width={18} height={18} />
         <div className="flex flex-col gap-[5px]">
-          <span className="font-paperlogy font-bold text-[14px] text-text-heading leading-none">{name}</span>
+          <span className="font-paperlogy font-bold text-[14px] text-text-heading leading-none">
+            {name}
+          </span>
           <span className="font-paperlogy font-medium text-[11px] text-sub-gray leading-none">
-            {startDate} - {endDate}
+            {getDateOnly(startDate)} - {getDateOnly(endDate)}
           </span>
         </div>
       </button>

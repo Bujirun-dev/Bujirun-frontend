@@ -102,7 +102,7 @@ export function TransportSelectSheet({
 
   return createPortal(
     <div
-      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6 backdrop-blur-[2px]"
+      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6"
       style={{ backgroundColor: "var(--color-system-blackbg)" }}
       onClick={onClose}
     >
@@ -123,7 +123,11 @@ export function TransportSelectSheet({
         </div>
 
         {options.map((option) => (
-          <button key={option.id} className="text-left active:opacity-80" onClick={() => onSelect(option)}>
+          <button
+            key={option.id}
+            className="text-left active:opacity-80"
+            onClick={() => onSelect(option)}
+          >
             <TransportCard
               from={from}
               to={to}
@@ -137,6 +141,6 @@ export function TransportSelectSheet({
         ))}
       </div>
     </div>,
-    appRoot
+    appRoot,
   );
 }

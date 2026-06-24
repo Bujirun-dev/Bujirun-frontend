@@ -62,7 +62,7 @@ function ScrollColumn({
               "flex items-center justify-center cursor-pointer font-paperlogy transition-all select-none",
               v === selected
                 ? "text-2xl font-bold text-text-heading"
-                : "text-lg font-semibold text-sub-gray"
+                : "text-lg font-semibold text-sub-gray",
             )}
           >
             {String(v).padStart(2, "0")}
@@ -90,7 +90,7 @@ export function TimePicker({
 
   return createPortal(
     <div
-      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6 backdrop-blur-[2px]"
+      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6"
       style={{ backgroundColor: "var(--color-system-blackbg)" }}
       onClick={onClose}
     >
@@ -112,11 +112,7 @@ export function TimePicker({
             }}
           />
 
-          <ScrollColumn
-            items={HOURS}
-            selected={hour}
-            onSelect={(h) => onChange(h, minute)}
-          />
+          <ScrollColumn items={HOURS} selected={hour} onSelect={(h) => onChange(h, minute)} />
 
           <span
             className="relative z-10 font-paperlogy font-bold text-2xl text-text-heading"
@@ -125,11 +121,7 @@ export function TimePicker({
             :
           </span>
 
-          <ScrollColumn
-            items={MINUTES}
-            selected={minute}
-            onSelect={(m) => onChange(hour, m)}
-          />
+          <ScrollColumn items={MINUTES} selected={minute} onSelect={(m) => onChange(hour, m)} />
         </div>
 
         <Button variant="primary" onClick={onConfirm} className="w-full">
@@ -137,6 +129,6 @@ export function TimePicker({
         </Button>
       </div>
     </div>,
-    appRoot
+    appRoot,
   );
 }

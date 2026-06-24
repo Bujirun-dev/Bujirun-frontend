@@ -13,5 +13,6 @@ export type { RouteOption } from "./TransportSelectSheet";
 export { TripCard } from "./TripCard";
 export type { Trip } from "./TripCard";
 export { TripEditModal } from "./TripEditModal";
+export { TripDateTimePicker } from "./TripDateTimePicker";
 export { TripDeleteModal } from "./TripDeleteModal";
 export { TripDeleteToast } from "./TripDeleteToast";
