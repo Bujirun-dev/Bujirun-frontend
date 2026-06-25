@@ -35,14 +35,14 @@ src/
 
 ### 색상
 
-| 그룹 | 토큰 |
-| --- | --- |
-| 메인 | `main-blue`, `main-white` |
-| 서브 | `sub-deepblue`, `sub-lightblue`, `sub-pink`, `sub-green`, `sub-violet`, `sub-coral`, `sub-gray`, `sub-darkgray`, `sub-lightgray` |
-| 텍스트 | `text-primary`, `text-heading` |
-| 시스템 | `system-whitebg`, `system-blackbg`, `system-navbg`, `system-scroll`, `system-searchbg`, `system-selected`, `system-divider`, `system-glassfrom`, `system-glassto`, `system-glassborder` |
-| 카테고리 | `category-sea`, `category-nature`, `category-culture`, `category-experience` |
-| 교통 | `transport-taxi` |
+| 그룹     | 토큰                                                                                                                                                                                    |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 메인     | `main-blue`, `main-white`                                                                                                                                                               |
+| 서브     | `sub-deepblue`, `sub-lightblue`, `sub-pink`, `sub-green`, `sub-violet`, `sub-coral`, `sub-gray`, `sub-darkgray`, `sub-lightgray`                                                        |
+| 텍스트   | `text-primary`, `text-heading`                                                                                                                                                          |
+| 시스템   | `system-whitebg`, `system-blackbg`, `system-navbg`, `system-scroll`, `system-searchbg`, `system-selected`, `system-divider`, `system-glassfrom`, `system-glassto`, `system-glassborder` |
+| 카테고리 | `category-sea`, `category-nature`, `category-culture`, `category-experience`                                                                                                            |
+| 교통     | `transport-taxi`                                                                                                                                                                        |
 
 ```tsx
 // ❌
@@ -53,13 +53,13 @@ src/
 
 ### 텍스트 크기
 
-| 클래스 | 값 |
-| --- | --- |
-| `text-xs` | 11px |
-| `text-sm` | 12px |
-| `text-md` | 14px |
-| `text-lg` | 16px |
-| `text-xl` | 18px |
+| 클래스     | 값   |
+| ---------- | ---- |
+| `text-xs`  | 11px |
+| `text-sm`  | 12px |
+| `text-md`  | 14px |
+| `text-lg`  | 16px |
+| `text-xl`  | 18px |
 | `text-2xl` | 20px |
 
 ```tsx
@@ -71,29 +71,29 @@ src/
 
 숫자 1 = 4px. `p-[16px]` 대신 `p-4` 사용합니다.
 
-| suffix | 값 |
-| --- | --- |
-| `1` | 4px |
-| `2` | 8px |
-| `3` | 12px |
-| `4` | 16px |
-| `5` | 20px |
-| `6` | 24px |
-| `7` | 28px |
-| `8` | 32px |
+| suffix | 값   |
+| ------ | ---- |
+| `1`    | 4px  |
+| `2`    | 8px  |
+| `3`    | 12px |
+| `4`    | 16px |
+| `5`    | 20px |
+| `6`    | 24px |
+| `7`    | 28px |
+| `8`    | 32px |
 
 > 아이콘 크기, 고정 너비/높이, 특수 위치값은 `w-[28px]`, `top-[3px]` 임의값 허용합니다.
 
 ### 라운드
 
-| 클래스 | 값 | 주요 사용처 |
-| --- | --- | --- |
-| `rounded-md` | 6px | 태그, 뱃지 |
-| `rounded-lg` | 8px | 버튼, 입력창 |
-| `rounded-xl` | 12px | 중형 카드, 이미지 |
-| `rounded-2xl` | 16px | 일반 카드, 모달 내부 |
-| `rounded-3xl` | 24px | 시트, 큰 카드 |
-| `rounded-full` | 50% | 원형 버튼, 아바타 |
+| 클래스         | 값   | 주요 사용처          |
+| -------------- | ---- | -------------------- |
+| `rounded-md`   | 6px  | 태그, 뱃지           |
+| `rounded-lg`   | 8px  | 버튼, 입력창         |
+| `rounded-xl`   | 12px | 중형 카드, 이미지    |
+| `rounded-2xl`  | 16px | 일반 카드, 모달 내부 |
+| `rounded-3xl`  | 24px | 시트, 큰 카드        |
+| `rounded-full` | 50%  | 원형 버튼, 아바타    |
 
 ```tsx
 // ❌  rounded-[10px]
@@ -113,14 +113,14 @@ src/
 
 ## 공통 UI
 
-| 용도 | 컴포넌트 |
-| --- | --- |
-| 버튼 | `Button` (`primary` / `secondary` / `warning`) |
-| 카드 | `Card` (`glass-lg` / `glass-sm` / `white`) |
-| 팝업 | `Modal` |
-| 전체 화면 카드 | `PageCard` |
-| 검색창 | `SearchBar` |
-| 텍스트 입력 | `TextInput` |
+| 용도           | 컴포넌트                                       |
+| -------------- | ---------------------------------------------- |
+| 버튼           | `Button` (`primary` / `secondary` / `warning`) |
+| 카드           | `Card` (`glass-lg` / `glass-sm` / `white`)     |
+| 팝업           | `Modal`                                        |
+| 전체 화면 카드 | `PageCard`                                     |
+| 검색창         | `SearchBar`                                    |
+| 텍스트 입력    | `TextInput`                                    |
 
 ---
 
@@ -145,12 +145,12 @@ API 데이터          → TanStack Query
 
 ## Git
 
-| 브랜치 | 용도 |
-| --- | --- |
-| `main` | 배포 기준 |
-| `feature/*` | 기능 개발 |
-| `fix/*` | 버그 수정 |
-| `chore/*` | 설정, 기타 |
+| 브랜치      | 용도       |
+| ----------- | ---------- |
+| `main`      | 배포 기준  |
+| `feature/*` | 기능 개발  |
+| `fix/*`     | 버그 수정  |
+| `chore/*`   | 설정, 기타 |
 
 ```
 feat: 일정 타임라인 추가
@@ -173,11 +173,11 @@ chore: 설정 업데이트
 
 ## 팀 담당 영역
 
-| 담당자 | 화면/기능 |
-| --- | --- |
-| 은진 | 일정 탭 |
-| 유리 | 홈 탭, 도감 탭 |
-| 성빈 | 로그인/회원가입, 마이페이지 탭 |
+| 담당자 | 화면/기능                      |
+| ------ | ------------------------------ |
+| 은진   | 일정 탭                        |
+| 유리   | 홈 탭, 도감 탭                 |
+| 성빈   | 로그인/회원가입, 마이페이지 탭 |
 
 - `components`, `shared`, `globals.css`, `layout.tsx` 수정 시 팀에 먼저 공유
 - PR은 한 화면 또는 한 기능 단위로 작게 올리기

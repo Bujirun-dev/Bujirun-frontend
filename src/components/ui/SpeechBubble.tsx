@@ -39,9 +39,7 @@ export function SpeechBubble({
           borderBottom: `6px solid ${tailColor}`,
         }}
       />
-      <div className={cn("px-2.5 py-2 w-fit flex items-center text-xs", bubble)}>
-        {children}
-      </div>
+      <div className={cn("px-2.5 py-2 w-fit flex items-center text-xs", bubble)}>{children}</div>
     </div>
   );
 }

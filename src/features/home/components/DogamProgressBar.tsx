@@ -6,11 +6,7 @@ interface DogamProgressBarProps {
   className?: string;
 }
 
-export function DogamProgressBar({
-  collectedCount,
-  totalCount,
-  className,
-}: DogamProgressBarProps) {
+export function DogamProgressBar({ collectedCount, totalCount, className }: DogamProgressBarProps) {
   const percent = Math.min(100, Math.round((collectedCount / totalCount) * 100));
 
   return (

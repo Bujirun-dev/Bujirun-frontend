@@ -32,7 +32,7 @@ export function PlaceCard({
     <div
       className={cn(
         "w-full min-w-0 h-[98px] flex bg-white rounded-2xl overflow-hidden shadow-sm cursor-pointer",
-        className
+        className,
       )}
       onClick={onClick}
     >
@@ -44,7 +44,9 @@ export function PlaceCard({
         <div className="flex flex-col gap-1">
           <div className="flex min-w-0 items-center gap-1 pr-5">
             <Image src={markerBlueIcon} alt="위치" width={13} height={13} className="shrink-0" />
-            <span className="font-paperlogy font-medium text-md text-text-heading truncate">{name}</span>
+            <span className="font-paperlogy font-medium text-md text-text-heading truncate">
+              {name}
+            </span>
           </div>
           <CategoryChip category={category} className="self-start" />
         </div>
@@ -52,7 +54,12 @@ export function PlaceCard({
         {status && (
           <div className="flex justify-end">
             {status === "verify" && onVerify ? (
-              <button onClick={(e) => { e.stopPropagation(); onVerify(); }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onVerify();
+                }}
+              >
                 <StatusBadge status={status} />
               </button>
             ) : (

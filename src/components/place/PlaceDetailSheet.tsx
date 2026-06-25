@@ -116,9 +116,7 @@ export function PlaceDetailSheet({
                   />
                   <circle cx="7" cy="5" r="2" fill="white" />
                 </svg>
-                <span className="font-paperlogy font-medium text-md text-text-heading">
-                  {name}
-                </span>
+                <span className="font-paperlogy font-medium text-md text-text-heading">{name}</span>
               </div>
               <CategoryChip category={category} />
             </div>

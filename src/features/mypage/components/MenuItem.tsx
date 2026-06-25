@@ -14,7 +14,7 @@ export function MenuItem({ icon, label, onClick, className }: MenuItemProps) {
         "w-full flex items-center justify-between",
         "bg-white/60 rounded-2xl px-5 py-4",
         "transition-opacity active:opacity-70",
-        className
+        className,
       )}
       onClick={onClick}
     >

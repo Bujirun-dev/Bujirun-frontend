@@ -53,7 +53,8 @@ export function LogCard({
       <div className="px-4 py-3 flex flex-col gap-1 flex-1">
         <p className="font-paperlogy text-sm font-normal text-text-primary flex items-center gap-1.5 tracking-[0.24px]">
           <span>📍</span>
-          {placeName}{extraCount ? ` 외 ${extraCount}곳` : ""}
+          {placeName}
+          {extraCount ? ` 외 ${extraCount}곳` : ""}
         </p>
         <p className="font-paperlogy text-sm font-normal text-text-primary flex items-center gap-1.5 tracking-[0.24px]">
           <span>📸</span>

@@ -6,7 +6,11 @@ import Image from "next/image";
 import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
 import calendarPlusDarkIcon from "@/assets/icons/itinerary/calendar-plus-dark.png";
 import { PageCard, Modal } from "@/components";
-import { SAMPLE_LOGS, type DaySchedule, type ScheduleStop } from "@/features/itinerary/data/sampleLogs";
+import {
+  SAMPLE_LOGS,
+  type DaySchedule,
+  type ScheduleStop,
+} from "@/features/itinerary/data/sampleLogs";
 
 const IMPORT_NAVIGATION_DELAY_MS = 600;
 
@@ -59,10 +63,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
     <PageCard>
       {/* 헤더 */}
       <div className="flex items-center gap-4 pb-4 shrink-0">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center justify-center shrink-0"
-        >
+        <button onClick={() => router.back()} className="flex items-center justify-center shrink-0">
           <Image
             src={angleLeftIcon}
             alt="뒤로"
@@ -149,12 +150,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
                     {/* 사진 */}
                     {stop.imageUrl && (
                       <div className="relative w-[254px] h-[118px] rounded-lg overflow-hidden border-[0.3px] border-system-glassborder shrink-0">
-                        <Image
-                          src={stop.imageUrl}
-                          alt={stop.place}
-                          fill
-                          className="object-cover"
-                        />
+                        <Image src={stop.imageUrl} alt={stop.place} fill className="object-cover" />
                       </div>
                     )}
 

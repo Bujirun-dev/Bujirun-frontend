@@ -65,13 +65,16 @@ export function HomeItineraryItem({
             />
             <span className="font-paperlogy text-xs font-semibold text-main-blue bg-white/80 px-1.5 h-[19px] rounded-full inline-flex items-center justify-center gap-0.5">
               {TRANSPORT_ICONS[transport.type] && (
-                <Image src={TRANSPORT_ICONS[transport.type]} alt={transport.type} width={12} height={12} />
+                <Image
+                  src={TRANSPORT_ICONS[transport.type]}
+                  alt={transport.type}
+                  width={12}
+                  height={12}
+                />
               )}
               {transport.type}
             </span>
-            <span className="font-paperlogy text-xs text-text-primary">
-              {transport.routeName}
-            </span>
+            <span className="font-paperlogy text-xs text-text-primary">{transport.routeName}</span>
             <span className="font-paperlogy text-xs text-text-primary">
               {transport.durationMin}min
             </span>

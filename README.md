@@ -99,12 +99,12 @@ src/
 
 ## Routing
 
-| Path           | Page          | Layout   |
-| -------------- | ------------- | -------- |
-| `/`            | 홈 탭          | AppShell |
-| `/itinerary`   | 일정 탭         | AppShell |
-| `/collection`  | 도감 탭         | AppShell |
-| `/mypage`      | 마이페이지 탭     | AppShell |
+| Path          | Page          | Layout   |
+| ------------- | ------------- | -------- |
+| `/`           | 홈 탭         | AppShell |
+| `/itinerary`  | 일정 탭       | AppShell |
+| `/collection` | 도감 탭       | AppShell |
+| `/mypage`     | 마이페이지 탭 | AppShell |
 
 ## Layout Policy
 

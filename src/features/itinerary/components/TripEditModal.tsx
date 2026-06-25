@@ -65,9 +65,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-1.5">
           <Image src={calendarIcon} alt="여행 기간" width={16} height={16} />
-          <span className="font-paperlogy text-lg font-semibold text-text-heading">
-            여행 기간
-          </span>
+          <span className="font-paperlogy text-lg font-semibold text-text-heading">여행 기간</span>
         </div>
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center gap-3.5">

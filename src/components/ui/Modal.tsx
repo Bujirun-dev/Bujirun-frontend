@@ -95,10 +95,7 @@ export function Modal({
           <div className="flex flex-col items-center gap-5 text-center">
             {title && (
               <h2
-                className={cn(
-                  "font-ssurround text-xl font-bold text-text-heading",
-                  titleClassName,
-                )}
+                className={cn("font-ssurround text-xl font-bold text-text-heading", titleClassName)}
               >
                 {title}
               </h2>
