@@ -1,11 +1,22 @@
 import { cn } from "@/shared/utils";
 
+type SpeechBubbleVariant = "white" | "blue";
+
 interface SpeechBubbleProps {
   children: React.ReactNode;
   className?: string;
+  variant?: SpeechBubbleVariant; // white, blue
+  tailPosition?: number; // 말풍선 꼬리 x-위치
 }
 
-export function SpeechBubble({ children, className }: SpeechBubbleProps) {
+export function SpeechBubble({
+  children,
+  className,
+  variant = "white",
+  tailPosition = 20,
+}: SpeechBubbleProps) {
+  const isBlue = variant === "blue";
+
   return (
     <div className={cn("relative pt-1.5", className)}>
       <div
@@ -22,3 +33,10 @@ export function SpeechBubble({ children, className }: SpeechBubbleProps) {
     </div>
   );
 }
+
+// 말풍선 본체 - variant별로 분리
+const speechBubbleVariants: Record<SpeechBubbleVariant, string> = {
+  white: ["bg-main-white", "border-[0.3px]", "border-main-blue", "rounded-[13px]"].join(" "),
+
+  blue: ["bg-system-searchbg", "border-[0.3px]", "border-main-blue", "rounded-[13px]"].join(" "),
+};
