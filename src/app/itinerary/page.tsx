@@ -12,6 +12,8 @@ import {
   DayNavigator,
   TransportSelectSheet,
   ArrivalVerifyModal,
+  AiOptimizeModal,
+  AiOptimizeLoadingModal,
 } from "@/features/itinerary";
 import type { ItineraryStop } from "@/features/itinerary";
 import { getScheduleById, getPlaceById } from "@/mocks";
@@ -92,7 +94,7 @@ function buildDays(scheduleId: string): { days: BaseStop[][]; dates: string[] } 
 const SCHEDULE_ID = "660e8400-e29b-41d4-a716-446655440000"; // 해운대 힐링 코스
 const { days: INITIAL_DAYS, dates: TRIP_DATES } = buildDays(SCHEDULE_ID);
 
-type ModalType = "optimize" | "delete" | "time" | "transport" | "verify";
+type ModalType = "optimize" | "optimizing" | "delete" | "time" | "transport" | "verify";
 
 function ItineraryEmptyState() {
   const router = useRouter();
@@ -261,16 +263,17 @@ function ItineraryMain() {
     </PageCard>
 
       {/* 모달들 */}
-      <Modal
+      <AiOptimizeModal
         isOpen={modal === "optimize"}
         onClose={closeModal}
-        title="일정 최적화"
-        description={`AI가 현재 일정의 이동 동선을\n최적화해드립니다.`}
-        confirmText="최적화 시작"
-        cancelText="취소"
-        confirmVariant="primary"
-        onConfirm={closeModal}
-        onCancel={closeModal}
+        onConfirm={() => setModal("optimizing")}
+      />
+
+      <AiOptimizeLoadingModal
+        isOpen={modal === "optimizing"}
+        onClose={closeModal}
+        // TODO: API 연결 후 최적화된 일정 데이터로 stopsPerDay 업데이트
+        onComplete={closeModal}
       />
 
       <Modal

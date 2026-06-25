@@ -7,6 +7,7 @@ import {
   Button,
   Card,
   CategoryChip,
+  FilterChips,
   StatusBadge,
   SearchBar,
   TimePicker,
@@ -50,6 +51,7 @@ function ComponentLabel({ children }: { children: React.ReactNode }) {
 
 export default function TestPage() {
   const [search, setSearch] = useState("");
+  const [filterChip, setFilterChip] = useState("전체");
   const [inputVal, setInputVal] = useState("");
   const [count, setCount] = useState(2);
   const [hour, setHour] = useState(12);
@@ -94,6 +96,16 @@ export default function TestPage() {
         <Card variant="white" className="p-4">
           <p className="font-paperlogy text-md">white</p>
         </Card>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <ComponentLabel>FilterChips</ComponentLabel>
+        <FilterChips
+          options={["전체", "바다", "자연", "문화", "체험"] as const}
+          selected={filterChip}
+          onChange={setFilterChip}
+          className="justify-center"
+        />
       </div>
 
       <div className="flex flex-col gap-2">

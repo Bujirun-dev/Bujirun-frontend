@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import angleLeftIcon from "@/assets/icons/itinerary/angle-left.png";
-import { PageCard } from "@/components";
+import { PageCard, FilterChips } from "@/components";
 import { LogCard } from "@/features/itinerary";
 
 const SAMPLE_LOGS = [
@@ -45,21 +45,12 @@ export default function LogsPage() {
         </div>
 
         {/* 카테고리 칩 */}
-        <div className="flex gap-2 pb-3 overflow-x-auto">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`shrink-0 w-[56px] h-[25px] rounded-[10px] font-paperlogy text-[12px] font-medium transition-colors ${
-                selectedCategory === cat
-                  ? "bg-main-blue text-white"
-                  : "bg-system-searchbg border border-main-blue text-sub-deepblue"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+        <FilterChips
+          options={CATEGORIES}
+          selected={selectedCategory}
+          onChange={setSelectedCategory}
+          className="pb-3 justify-center"
+        />
 
         {/* 정렬 */}
         <div className="flex justify-end items-center gap-2 pb-4">
