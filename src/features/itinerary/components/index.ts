@@ -16,3 +16,8 @@ export { TripEditModal } from "./TripEditModal";
 export { TripDateTimePicker } from "./TripDateTimePicker";
 export { TripDeleteModal } from "./TripDeleteModal";
 export { TripDeleteToast } from "./TripDeleteToast";
+export { AiOptimizeModal } from "./AiOptimizeModal";
+export { AiOptimizeLoadingModal } from "./AiOptimizeLoadingModal";
+export { SlidingTimeline } from "./SlidingTimeline";
+export { ItineraryModals } from "./ItineraryModals";
+export type { ModalType } from "./ItineraryModals";

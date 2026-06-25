@@ -75,7 +75,7 @@ export function Modal({
     >
       <div
         className={cn(
-          "w-full max-w-[343px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-[30px] px-[34px] py-[40px] flex flex-col items-center gap-[24px]",
+          "w-full max-w-[343px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-3xl px-8 py-10 flex flex-col items-center gap-6",
           className,
         )}
         onClick={(e) => e.stopPropagation()}
@@ -83,7 +83,7 @@ export function Modal({
         {icon && (
           <div
             className={cn(
-              "w-[48px] h-[48px] rounded-full bg-system-navbg flex items-center justify-center text-[28px]",
+              "w-[48px] h-[48px] rounded-full bg-system-navbg flex items-center justify-center text-2xl",
               iconClassName,
             )}
           >
@@ -92,11 +92,11 @@ export function Modal({
         )}
 
         {(title || description) && (
-          <div className="flex flex-col items-center gap-[20px] text-center">
+          <div className="flex flex-col items-center gap-5 text-center">
             {title && (
               <h2
                 className={cn(
-                  "font-ssurround text-[18px] font-bold text-text-heading",
+                  "font-ssurround text-xl font-bold text-text-heading",
                   titleClassName,
                 )}
               >
@@ -116,7 +116,7 @@ export function Modal({
             <Card
               variant="glass-sm"
               className={cn(
-                "w-full rounded-[10px] px-3 py-2 flex flex-col gap-2 justify-center",
+                "w-full rounded-lg px-3 py-2 flex flex-col gap-2 justify-center",
                 childrenClassName,
               )}
             >
@@ -129,10 +129,10 @@ export function Modal({
         {footer}
 
         {!hideActions && (
-          <div className="mt-[4px] flex w-full justify-center gap-[25px]">
+          <div className="mt-1 flex w-full justify-center gap-6">
             <button
               className={cn(
-                "h-[40px] w-[125px] rounded-[10px] border font-ssurround text-[14px] font-bold active:opacity-70",
+                "h-[40px] w-[125px] rounded-lg border font-ssurround text-md font-bold active:opacity-70",
                 confirmVariant === "warning"
                   ? "border-sub-coral text-sub-coral"
                   : "border-main-blue text-sub-deepblue",
@@ -144,7 +144,7 @@ export function Modal({
             {onConfirm && (
               <button
                 className={cn(
-                  "h-[40px] w-[125px] rounded-[10px] font-ssurround text-[14px] font-bold text-white active:opacity-70",
+                  "h-[40px] w-[125px] rounded-lg font-ssurround text-md font-bold text-white active:opacity-70",
                   confirmVariant === "warning" ? "bg-sub-coral" : "bg-main-blue",
                 )}
                 onClick={onConfirm}

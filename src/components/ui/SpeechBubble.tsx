@@ -18,46 +18,16 @@ export function SpeechBubble({
   const isBlue = variant === "blue";
 
   return (
-    <div className={cn("relative pt-[6px]", className)}>
-      {/* 말풍선 꼬리 */}
-      <>
-        {/* 바깥쪽 삼각형 -> 테두리 */}
-        <div
-          className="absolute top-0 z-10"
-          style={{
-            left: tailPosition,
-            transform: "translateX(-50%)",
-            width: 0,
-            height: 0,
-            borderLeft: "5px solid transparent",
-            borderRight: "5px solid transparent",
-            borderBottom: "7px solid var(--color-main-blue)",
-          }}
-        />
-
-        {/* 안쪽 삼각형 -> 배경색 */}
-        <div
-          className="absolute z-20"
-          style={{
-            top: "1px",
-            left: tailPosition,
-            transform: "translateX(-50%)",
-            width: 0,
-            height: 0,
-            borderLeft: "4px solid transparent",
-            borderRight: "4px solid transparent",
-            borderBottom: `6px solid ${isBlue ? "var(--color-system-searchbg)" : "var(--color-main-white)"}`,
-          }}
-        />
-      </>
-
-      {/* 말풍선 본체 */}
+    <div className={cn("relative pt-1.5", className)}>
       <div
-        className={cn(
-          "relative z-10 px-5 py-2 w-fit flex items-center text-xs",
-          speechBubbleVariants[variant],
-        )}
-      >
+        className="absolute top-0 left-5 w-0 h-0"
+        style={{
+          borderLeft: "6px solid transparent",
+          borderRight: "6px solid transparent",
+          borderBottom: "6px solid white",
+        }}
+      />
+      <div className="bg-white rounded-lg px-2.5 py-2 w-fit flex items-center text-xs">
         {children}
       </div>
     </div>

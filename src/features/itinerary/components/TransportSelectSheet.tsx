@@ -107,7 +107,7 @@ export function TransportSelectSheet({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[350px] max-h-[80dvh] bg-main-white rounded-[20px] px-5 py-6 flex flex-col gap-3 overflow-y-auto overflow-x-hidden shadow-lg"
+        className="w-full max-w-[350px] max-h-[80dvh] bg-main-white rounded-2xl px-5 py-6 flex flex-col gap-3 overflow-y-auto overflow-x-hidden shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -115,7 +115,7 @@ export function TransportSelectSheet({
             <Image src={closeIcon} alt="닫기" width={22} height={22} />
           </button>
           <button
-            className="rounded-[8px] border border-sub-lightgray p-1 active:opacity-80"
+            className="rounded-lg border border-sub-lightgray p-1 active:opacity-80"
             onClick={() => openKakaoMapRoute(from, to)}
           >
             <Image src={kakaoMapLogo} alt="카카오맵" width={55} height={16} />

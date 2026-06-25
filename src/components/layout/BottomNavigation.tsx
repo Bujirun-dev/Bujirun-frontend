@@ -120,7 +120,7 @@ export function BottomNavigation() {
               <div className="relative flex translate-y-0.5 flex-col items-center justify-center gap-1.5">
                 <NavIcon href={item.href} isActive={isActive} />
                 <span
-                  className={`translate-y-0 rounded-lg px-0 py-0 font-paperlogy text-[10px] font-semibold leading-none transition-all duration-500 ease-out ${
+                  className={`translate-y-0 rounded-lg px-0 py-0 font-paperlogy text-xs font-semibold leading-none transition-all duration-500 ease-out ${
                     isActive ? "text-sub-deepblue opacity-100" : "text-text-primary opacity-100"
                   }`}
                 >

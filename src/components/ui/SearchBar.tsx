@@ -21,7 +21,7 @@ export function SearchBar({
     <div
       className={cn(
         "flex items-center gap-1",
-        "py-2 px-3 rounded-[10px]",
+        "py-2 px-3 rounded-lg",
         "bg-system-searchbg",
         className
       )}

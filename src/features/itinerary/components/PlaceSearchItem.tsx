@@ -25,11 +25,11 @@ export function PlaceSearchItem({
 }: PlaceSearchItemProps) {
   return (
     <div
-      className={cn("flex items-center gap-3 bg-white rounded-[14px] p-3 cursor-pointer active:opacity-80", className)}
+      className={cn("flex items-center gap-3 bg-white rounded-xl p-3 cursor-pointer active:opacity-80", className)}
       onClick={onClick}
     >
       {imageUrl && (
-        <div className="relative w-[80px] h-[56px] rounded-[10px] overflow-hidden shrink-0">
+        <div className="relative w-[80px] h-[56px] rounded-lg overflow-hidden shrink-0">
           <Image src={imageUrl} alt={name} fill className="object-cover" />
         </div>
       )}

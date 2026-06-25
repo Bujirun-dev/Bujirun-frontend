@@ -18,7 +18,7 @@ export function CategoryChip({ category, className }: CategoryChipProps) {
   const { label, bg } = CATEGORY_CONFIG[category];
 
   return (
-    <div className={cn("inline-flex items-center justify-center py-[3px] px-[5px] rounded-[7px] text-xs", bg, className)}>
+    <div className={cn("inline-flex items-center justify-center py-0.5 px-1 rounded-md text-xs", bg, className)}>
       <span className="font-paperlogy text-text-primary tracking-[0.16px]">{label}</span>
     </div>
   );

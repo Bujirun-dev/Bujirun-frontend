@@ -9,9 +9,9 @@ import { PlaceSearchItem } from "@/features/itinerary";
 
 const SAMPLE_PLACES = [
   { id: "1", name: "해운대 해수욕장", category: "sea" as const, status: "completed" as const, imageUrl: "https://picsum.photos/seed/beach2/300/200" },
-  { id: "2", name: "경복궁", category: "culture" as const, status: "verify" as const, imageUrl: "https://picsum.photos/seed/palace/300/200" },
-  { id: "3", name: "설악산 국립공원", category: "nature" as const, imageUrl: "https://picsum.photos/seed/mountain2/300/200" },
-  { id: "4", name: "에버랜드", category: "experience" as const, imageUrl: "https://picsum.photos/seed/theme/300/200" },
+  { id: "2", name: "감천문화마을", category: "culture" as const, status: "verify" as const, imageUrl: "https://picsum.photos/seed/culture/300/200" },
+  { id: "3", name: "금정산", category: "nature" as const, imageUrl: "https://picsum.photos/seed/mountain/300/200" },
+  { id: "4", name: "송도해상케이블카", category: "experience" as const, imageUrl: "https://picsum.photos/seed/cable/300/200" },
   { id: "5", name: "광안리 해수욕장", category: "sea" as const, status: "verify" as const, imageUrl: "https://picsum.photos/seed/beach3/300/200" },
 ];
 
@@ -29,10 +29,10 @@ export default function PlaceSearchPage() {
   return (
     <PageCard>
         {/* 헤더 */}
-        <div className="flex items-center gap-3 pt-5 pb-3">
+        <div className="flex items-center gap-3 pb-3">
           <button
             onClick={() => router.back()}
-            className="size-[28px] rounded-[10px] bg-[#d5e6ff] flex items-center justify-center shrink-0"
+            className="size-[28px] rounded-lg bg-system-scroll flex items-center justify-center shrink-0"
           >
             <Image src={angleLeftIcon} alt="뒤로" width={16} height={16} />
           </button>
