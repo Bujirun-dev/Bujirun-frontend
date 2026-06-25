@@ -1,11 +1,12 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
 import calendarPlusDarkIcon from "@/assets/icons/itinerary/calendar-plus-dark.png";
-import { PageCard } from "@/components";
+import checkCircleIcon from "@/assets/icons/itinerary/check-circle.png";
+import { PageCard, Modal, Toast } from "@/components";
 import { SAMPLE_LOGS, type DaySchedule, type ScheduleStop } from "@/features/itinerary/data/sampleLogs";
 
 function TagChip({ label, isLight }: { label: string; isLight?: boolean }) {
@@ -29,6 +30,8 @@ function TagChip({ label, isLight }: { label: string; isLight?: boolean }) {
 export default function LogDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
   const log = SAMPLE_LOGS.find((l) => l.id === id);
 
   if (!log) {
@@ -63,7 +66,10 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
         <span className="font-ssurround font-bold text-[16px] text-text-heading flex-1">
           {log.title}
         </span>
-        <button className="size-[28px] rounded-[10px] bg-system-scroll border-[0.5px] border-main-blue flex items-center justify-center shrink-0">
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="size-[28px] rounded-[10px] bg-system-scroll border-[0.5px] border-main-blue flex items-center justify-center shrink-0"
+        >
           <Image src={calendarPlusDarkIcon} alt="일정 추가" width={16} height={16} />
         </button>
       </div>
@@ -134,7 +140,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
 
                     {/* 사진 */}
                     {stop.imageUrl && (
-                      <div className="relative w-full aspect-[316/146] rounded-[10px] overflow-hidden border-[0.3px] border-[rgba(151,193,255,0.2)] shrink-0">
+                      <div className="relative w-[254px] h-[118px] rounded-[10px] overflow-hidden border-[0.3px] border-[rgba(151,193,255,0.2)] shrink-0">
                         <Image
                           src={stop.imageUrl}
                           alt={stop.place}
@@ -157,6 +163,37 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
           </div>
         ))}
       </div>
+      <Toast
+        isVisible={showToast}
+        onHide={() => setShowToast(false)}
+        message="일정이 추가되었어요."
+        icon={<Image src={checkCircleIcon} alt="완료" width={12} height={12} />}
+      />
+      <Modal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        icon={
+          <div className="size-[52px] rounded-full bg-system-searchbg flex items-center justify-center">
+            <Image src={calendarPlusDarkIcon} alt="일정 추가" width={24} height={24} />
+          </div>
+        }
+        title="내 일정에 추가"
+        description={`'${log.author}'님의 여행 일정을\n내 일정에 추가하시겠어요?`}
+        confirmText="추가하기"
+        cancelText="취소"
+        confirmVariant="primary"
+        onConfirm={() => {
+          setShowAddModal(false);
+          localStorage.setItem("importedLogId", id);
+          setShowToast(true);
+          setTimeout(() => router.push("/itinerary"), 1500);
+        }}
+        onCancel={() => setShowAddModal(false)}
+      >
+        <p className="font-paperlogy font-medium text-[12px] text-sub-darkgray text-center">
+          * 다른 사람의 일정을 불러오면 현재 일정은 사라져요.
+        </p>
+      </Modal>
     </PageCard>
   );
 }
