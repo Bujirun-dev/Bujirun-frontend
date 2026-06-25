@@ -1,13 +1,18 @@
 "use client";
 
-import { useState } from "react"; // useEffect 삭제
+import { useState, useEffect } from "react";
 import { FeaturePlaceholder } from "@/components";
 
 export default function Home() {
-  const [isLoggedIn] = useState(() => {
-    if (typeof window === "undefined") return false; // SSR 환경 대비
-    return !!localStorage.getItem("accessToken");
-  });
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // localStorage는 클라이언트에서만 접근 가능해서 불가피하게 useEffect 사용 (임시 코드)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsLoggedIn(!!localStorage.getItem("accessToken"));
+  }, []);
+
+  if (isLoggedIn === null) return null;
 
   return (
     <div>
