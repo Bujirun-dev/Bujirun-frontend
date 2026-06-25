@@ -10,9 +10,9 @@ import { LogCard } from "@/features/itinerary";
 // TODO: API 연결 시 createdAt(로그 생성일), downloadCount(일정 추가 횟수) 필드 그대로 사용
 const SAMPLE_LOGS = [
   { id: "1", imageUrl: "https://picsum.photos/seed/log1/400/300", placeName: "해운대 해수욕장", extraCount: 2, author: "여행자123", tripType: "바다", date: "2026.05.10 ~ 05.12", downloadCount: 34, category: "바다", createdAt: "2026-05-10" },
-  { id: "2", imageUrl: "https://picsum.photos/seed/log2/400/300", placeName: "경복궁", extraCount: 1, author: "여행러버", tripType: "문화", date: "2026.05.08 ~ 05.09", downloadCount: 12, category: "문화", createdAt: "2026-05-08" },
-  { id: "3", imageUrl: "https://picsum.photos/seed/log3/400/300", placeName: "한라산", extraCount: 0, author: "트레커", tripType: "자연", date: "2026.05.01 ~ 05.03", downloadCount: 8, category: "자연", createdAt: "2026-05-01" },
-  { id: "4", imageUrl: "https://picsum.photos/seed/log4/400/300", placeName: "에버랜드", extraCount: 3, author: "테마파크매니아", tripType: "체험", date: "2026.04.20 ~ 04.21", downloadCount: 56, category: "체험", createdAt: "2026-04-20" },
+  { id: "2", imageUrl: "https://picsum.photos/seed/log2/400/300", placeName: "감천문화마을", extraCount: 1, author: "여행러버", tripType: "문화", date: "2026.05.08 ~ 05.09", downloadCount: 12, category: "문화", createdAt: "2026-05-08" },
+  { id: "3", imageUrl: "https://picsum.photos/seed/log3/400/300", placeName: "금정산", extraCount: 0, author: "트레커", tripType: "자연", date: "2026.05.01 ~ 05.03", downloadCount: 8, category: "자연", createdAt: "2026-05-01" },
+  { id: "4", imageUrl: "https://picsum.photos/seed/log4/400/300", placeName: "송도해상케이블카", extraCount: 3, author: "테마파크매니아", tripType: "체험", date: "2026.04.20 ~ 04.21", downloadCount: 56, category: "체험", createdAt: "2026-04-20" },
   { id: "5", imageUrl: "https://picsum.photos/seed/log5/400/300", placeName: "광안리 해수욕장", extraCount: 1, author: "바다사랑", tripType: "바다", date: "2026.04.15 ~ 04.17", downloadCount: 21, category: "바다", createdAt: "2026-04-15" },
 ];
 

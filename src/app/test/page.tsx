@@ -409,7 +409,7 @@ export default function TestPage() {
         category="sea"
         status="pending"
         description="부산의 대표적인 해수욕장입니다."
-        address="서울 서구 송도해변로 100"
+        address="부산 서구 송도해변로 100"
         infoItems={[
           { icon: "🕐", label: "운영시간", value: "09:00 - 18:00" },
           { icon: "💰", label: "입장료", value: "무료" },
