@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
 import calendarPlusDarkIcon from "@/assets/icons/itinerary/calendar-plus-dark.png";
-import checkCircleIcon from "@/assets/icons/itinerary/check-circle.png";
-import { PageCard, Modal, Toast } from "@/components";
+import { PageCard, Modal } from "@/components";
 import { SAMPLE_LOGS, type DaySchedule, type ScheduleStop } from "@/features/itinerary/data/sampleLogs";
 
 function TagChip({ label, isLight }: { label: string; isLight?: boolean }) {
@@ -31,7 +30,6 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
   const { id } = use(params);
   const router = useRouter();
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showToast, setShowToast] = useState(false);
   const log = SAMPLE_LOGS.find((l) => l.id === id);
 
   if (!log) {
@@ -163,12 +161,6 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
           </div>
         ))}
       </div>
-      <Toast
-        isVisible={showToast}
-        onHide={() => setShowToast(false)}
-        message="일정이 추가되었어요."
-        icon={<Image src={checkCircleIcon} alt="완료" width={12} height={12} />}
-      />
       <Modal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
@@ -185,8 +177,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
         onConfirm={() => {
           setShowAddModal(false);
           localStorage.setItem("importedLogId", id);
-          setShowToast(true);
-          setTimeout(() => router.push("/itinerary"), 1500);
+          router.push("/itinerary");
         }}
         onCancel={() => setShowAddModal(false)}
       >

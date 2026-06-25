@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import characterImg from "@/assets/character/face.png";
 import travelImg from "@/assets/character/travel.png";
-import { Modal, TimePicker, PageCard, Button } from "@/components";
+import checkCircleIcon from "@/assets/icons/itinerary/check-circle.png";
+import { Modal, TimePicker, PageCard, Button, Toast } from "@/components";
 import {
   ItineraryTimeline,
   ItineraryHeader,
@@ -19,6 +20,7 @@ import type { ItineraryStop } from "@/features/itinerary";
 import { getScheduleById, getPlaceById } from "@/mocks";
 import type { TravelMode } from "@/shared/types";
 import type { Category } from "@/components";
+import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";
 
 // TODO: 실제 API 연동 시 교체 (현재 선택된 여행이 있는지 여부)
 const MOCK_HAS_ACTIVE_TRIP = true;
@@ -44,6 +46,30 @@ type BaseStop = Omit<
   ItineraryStop,
   "onDelete" | "onClick" | "onTimeClick" | "onTransportClick" | "onVerify"
 >;
+
+function categoryFromTags(tags: string[]): Category {
+  const joined = tags.join("");
+  if (joined.includes("#바다")) return "sea";
+  if (joined.includes("#자연") || joined.includes("#등산") || joined.includes("#산")) return "nature";
+  if (joined.includes("#문화") || joined.includes("#골목") || joined.includes("#역사")) return "culture";
+  if (joined.includes("#체험") || joined.includes("#케이블") || joined.includes("#레저")) return "experience";
+  return "sea";
+}
+
+function buildDaysFromLog(log: (typeof SAMPLE_LOGS)[0]): { days: BaseStop[][]; dates: string[] } {
+  const days = log.days.map((daySchedule) =>
+    daySchedule.stops.map((stop, idx): BaseStop => ({
+      id: `imported-${log.id}-d${daySchedule.day}-${idx}`,
+      time: stop.time,
+      placeName: stop.place,
+      imageUrl: stop.imageUrl || FALLBACK_IMAGE,
+      category: categoryFromTags(stop.tags),
+      status: "verify" as const,
+    }))
+  );
+  const dates = log.days.map((d) => d.date.replace(/-/g, "."));
+  return { days, dates };
+}
 
 function buildDays(scheduleId: string): { days: BaseStop[][]; dates: string[] } {
   const schedule = getScheduleById(scheduleId);
@@ -126,6 +152,8 @@ function ItineraryMain() {
 
   const [currentDay, setCurrentDay] = useState(0);
   const [stopsPerDay, setStopsPerDay] = useState<BaseStop[][]>(INITIAL_DAYS);
+  const [tripDates, setTripDates] = useState<string[]>(TRIP_DATES);
+  const [showImportToast, setShowImportToast] = useState(false);
   const [modal, setModal] = useState<ModalType | null>(null);
   const [activeStopId, setActiveStopId] = useState<string | null>(null);
   const [activeDayIdx, setActiveDayIdx] = useState(0);
@@ -134,7 +162,20 @@ function ItineraryMain() {
 
   const touchStartX = useRef(0);
 
-  const activeStop = stopsPerDay[activeDayIdx].find((s) => s.id === activeStopId);
+  useEffect(() => {
+    const logId = localStorage.getItem("importedLogId");
+    if (!logId) return;
+    localStorage.removeItem("importedLogId");
+    const log = SAMPLE_LOGS.find((l) => l.id === logId);
+    if (!log) return;
+    const { days, dates } = buildDaysFromLog(log);
+    setStopsPerDay(days);
+    setTripDates(dates);
+    setCurrentDay(0);
+    setShowImportToast(true);
+  }, []);
+
+  const activeStop = stopsPerDay[activeDayIdx]?.find((s) => s.id === activeStopId);
 
   const openDelete = (dayIdx: number, id: string) => {
     setActiveDayIdx(dayIdx); setActiveStopId(id); setModal("delete");
@@ -247,7 +288,7 @@ function ItineraryMain() {
               >
                 <ItineraryTimeline
                   stops={dayStops}
-                  date={TRIP_DATES[dayIdx]}
+                  date={tripDates[dayIdx]}
                   onAdd={() => router.push("/itinerary/search")}
                 />
               </div>
@@ -346,6 +387,13 @@ function ItineraryMain() {
         characterImageUrl={characterImg.src}
         onVerify={confirmVerify}
         onLater={closeModal}
+      />
+
+      <Toast
+        isVisible={showImportToast}
+        onHide={() => setShowImportToast(false)}
+        message="일정이 추가되었어요."
+        icon={<Image src={checkCircleIcon} alt="완료" width={12} height={12} />}
       />
     </div>
   );
