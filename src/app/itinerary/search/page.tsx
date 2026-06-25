@@ -29,7 +29,7 @@ export default function PlaceSearchPage() {
   return (
     <PageCard>
         {/* 헤더 */}
-        <div className="flex items-center gap-3 pt-5 pb-3">
+        <div className="flex items-center gap-3 pb-3">
           <button
             onClick={() => router.back()}
             className="size-[28px] rounded-[10px] bg-[#d5e6ff] flex items-center justify-center shrink-0"

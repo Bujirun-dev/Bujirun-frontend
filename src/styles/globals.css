@@ -173,6 +173,12 @@
   --font-dxmovie: "DXMovie", sans-serif;
 }
 
+*,
+*::before,
+*::after {
+  line-height: 1.2;
+}
+
 html,
 body {
   height: 100%;

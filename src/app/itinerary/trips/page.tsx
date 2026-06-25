@@ -81,7 +81,7 @@ export default function TripsPage() {
       </button>
 
       {/* 헤더 */}
-      <div className="flex items-center justify-center pt-[32px] pb-[26px]">
+      <div className="flex items-center justify-center pb-[26px]">
         <span className="font-ssurround font-bold text-[16px] text-text-heading">여행 목록</span>
       </div>
 
