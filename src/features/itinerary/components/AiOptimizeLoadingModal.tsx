@@ -33,6 +33,7 @@ export function AiOptimizeLoadingModal({
 
   useEffect(() => {
     if (!isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setProgress(0);
       return;
     }

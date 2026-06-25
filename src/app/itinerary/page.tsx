@@ -19,7 +19,6 @@ import {
   type BaseStop,
   buildDays,
   buildDaysFromLog,
-  getTransportPointName,
 } from "@/features/itinerary/utils/scheduleUtils";
 import type { RouteOption } from "@/features/itinerary";
 
@@ -80,6 +79,7 @@ function ItineraryMain() {
     const log = SAMPLE_LOGS.find((l) => l.id === importedLogId);
     if (!log) return;
     const { days, dates } = buildDaysFromLog(log);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setStopsPerDay(days);
     setTripDates(dates);
     setCurrentDay(0);

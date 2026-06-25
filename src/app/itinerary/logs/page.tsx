@@ -36,6 +36,7 @@ export default function LogsPage() {
 
   // 카테고리/정렬 바뀌면 페이지 초기화
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
   }, [selectedCategory, sortBy]);
 

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import characterImg from "@/assets/character/face.png";
 import { Modal, TimePicker } from "@/components";
 import { TransportSelectSheet } from "./TransportSelectSheet";
