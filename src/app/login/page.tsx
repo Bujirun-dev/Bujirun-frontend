@@ -8,13 +8,22 @@ export default function LoginPage() {
   return (
     <main className="relative flex flex-col items-center w-full h-full">
       <div className="flex flex-col items-center w-full h-full">
-        {/* 말풍선 */}
-        <div className="mt-[120px] px-[47px] w-full flex flex-col gap-1">
-          <Card variant="glass-sm" className="self-start py-[10px] px-[14px]">
-            <span className="font-proup text-text-heading">반가워요!</span>
+        {/* 말풍선 영역 */}
+        <div className="mt-[120px] w-full flex flex-col gap-0">
+          {/* 첫 번째 말풍선*/}
+          <Card
+            variant="glass-sm"
+            className="ml-[24px] w-[130px] h-[44px] flex items-center justify-center rounded-[24px] !border-none shadow-none"
+          >
+            <span className="font-proup text-text-heading text-lg">반가워요!</span>
           </Card>
-          <Card variant="glass-sm" className="self-start ml-[16px] py-[10px] px-[14px]">
-            <span className="font-proup text-text-heading">부산 여행을 떠나볼까요?</span>
+
+          {/* 두 번째 말풍선 */}
+          <Card
+            variant="glass-sm"
+            className="ml-[55px] w-[261px] h-[44px] flex items-center justify-center rounded-[24px] -mt-[3px] !border-none shadow-none"
+          >
+            <span className="font-proup text-text-heading text-lg">부산 여행을 떠나볼까요?</span>
           </Card>
         </div>
         {/* 캐릭터 */}
