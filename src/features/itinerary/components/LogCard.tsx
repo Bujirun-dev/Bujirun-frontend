@@ -9,8 +9,8 @@ interface LogCardProps {
   extraCount?: number;
   /** 작성자 닉네임 */
   author: string;
-  /** 여행 유형 (당일치기 등) */
-  tripType: string;
+  /** 여행 기간 (당일치기, 1박2일 등) */
+  duration: string;
   /** 여행 기간 */
   date: string;
   /** 다른 사람 일정에 추가된 횟수 */
@@ -25,7 +25,7 @@ export function LogCard({
   placeName,
   extraCount,
   author,
-  tripType,
+  duration,
   date,
   downloadCount,
   imageUrl,
@@ -61,7 +61,7 @@ export function LogCard({
         </p>
         <p className="font-paperlogy text-[12px] font-normal text-text-primary flex items-center gap-1.5 tracking-[0.24px]">
           <span>📅</span>
-          {tripType} · {date}
+          {duration} · {date}
         </p>
       </div>
     </div>

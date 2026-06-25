@@ -301,7 +301,7 @@ export default function TestPage() {
           placeName="송도 해수욕장"
           extraCount={3}
           author="은지미"
-          tripType="당일치기"
+          duration="당일치기"
           date="2026.05.18"
           downloadCount={90}
         />

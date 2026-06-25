@@ -1,65 +1,22 @@
 "use client";
 
+import { use } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
 import calendarPlusDarkIcon from "@/assets/icons/itinerary/calendar-plus-dark.png";
 import { PageCard } from "@/components";
-
-interface ScheduleStop {
-  time: string;
-  place: string;
-  imageUrl?: string;
-  tags: string[];
-}
-
-interface DaySchedule {
-  day: number;
-  date: string;
-  stops: ScheduleStop[];
-}
-
-const SAMPLE_LOG = {
-  title: "은지미 로그 💫",
-  summaryPlace: "송도 해수욕장 외 3곳",
-  tripType: "당일치기",
-  date: "2026.05.18",
-  days: [
-    {
-      day: 1,
-      date: "2026.05.18",
-      stops: [
-        {
-          time: "12:00",
-          place: "송도 해수욕장",
-          imageUrl: "https://picsum.photos/seed/log1a/400/300",
-          tags: ["#바다", "#시원", "#사진명소"],
-        },
-        {
-          time: "16:30",
-          place: "감천문화마을",
-          imageUrl: "https://picsum.photos/seed/log1b/400/300",
-          tags: ["#문화", "#골목길"],
-        },
-        {
-          time: "19:00",
-          place: "광안리 해수욕장",
-          tags: ["#야경", "#낭만"],
-        },
-      ],
-    },
-  ],
-};
+import { SAMPLE_LOGS, type DaySchedule, type ScheduleStop } from "@/features/itinerary/data/sampleLogs";
 
 function TagChip({ label, isLight }: { label: string; isLight?: boolean }) {
   return (
     <div
-      className={`h-[16px] rounded-[7px] flex items-center justify-center px-[5px] ${
+      className={`rounded-[7px] inline-flex items-center justify-center px-[6px] py-[4px] ${
         isLight ? "bg-[rgba(151,193,255,0.5)]" : "bg-main-blue"
       }`}
     >
       <span
-        className={`font-paperlogy font-normal text-[8px] text-center tracking-[0.16px] ${
+        className={`font-paperlogy font-normal text-[11px] text-center tracking-[0.16px] ${
           isLight ? "text-text-primary" : "text-white"
         }`}
       >
@@ -69,9 +26,23 @@ function TagChip({ label, isLight }: { label: string; isLight?: boolean }) {
   );
 }
 
-export default function LogDetailPage({ params }: { params: { id: string } }) {
+export default function LogDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
-  const log = SAMPLE_LOG;
+  const log = SAMPLE_LOGS.find((l) => l.id === id);
+
+  if (!log) {
+    return (
+      <PageCard>
+        <div className="flex flex-1 items-center justify-center text-sub-gray font-paperlogy text-sm">
+          로그를 찾을 수 없습니다.
+        </div>
+      </PageCard>
+    );
+  }
+
+  const summaryPlace =
+    log.extraCount > 0 ? `${log.placeName} 외 ${log.extraCount}곳` : log.placeName;
 
   return (
     <PageCard>
@@ -102,13 +73,13 @@ export default function LogDetailPage({ params }: { params: { id: string } }) {
         <div className="flex items-center gap-[5px]">
           <span className="text-[14px] shrink-0">📍</span>
           <span className="font-paperlogy font-medium text-[14px] text-text-primary tracking-[0.28px]">
-            {log.summaryPlace}
+            {summaryPlace}
           </span>
         </div>
         <div className="flex items-center gap-[5px]">
           <span className="text-[12px] shrink-0">📅</span>
           <span className="font-paperlogy font-medium text-[12px] text-sub-darkgray tracking-[0.24px]">
-            {log.tripType} · {log.date}
+            {log.duration} · {log.date}
           </span>
         </div>
       </div>
@@ -130,30 +101,29 @@ export default function LogDetailPage({ params }: { params: { id: string } }) {
             </div>
 
             {/* 타임라인 */}
-            <div className="flex flex-col">
+            <div className="relative flex flex-col pb-[6px]">
+              {/* 세로 선 */}
+              <div
+                className="absolute top-[6px] bottom-[6px] w-[2px] bg-sub-lightgray rounded-full"
+                style={{ left: "46px", transform: "translateX(-50%)" }}
+              />
               {daySchedule.stops.map((stop: ScheduleStop, idx: number) => (
-                <div key={idx} className="flex items-start">
-                  {/* 시간 */}
-                  <div className="w-[44px] shrink-0 text-right pt-[1px]">
-                    <span className="font-paperlogy font-medium text-[12px] text-sub-deepblue tracking-[0.6px]">
-                      {stop.time}
-                    </span>
-                  </div>
-
-                  {/* 도트 + 연결선 */}
-                  <div className="flex flex-col items-center w-[18px] shrink-0 self-stretch">
-                    <div className="size-[12px] rounded-full bg-main-blue shrink-0 mt-[2px] z-10" />
-                    {idx < daySchedule.stops.length - 1 && (
-                      <div className="w-0 flex-1 border-l border-dashed border-main-blue/40 mt-[4px]" />
-                    )}
+                <div
+                  key={idx}
+                  className={`flex items-start ${idx < daySchedule.stops.length - 1 ? "pb-[20px]" : ""}`}
+                >
+                  {/* 시간 + 도트 */}
+                  <div className="flex items-center shrink-0">
+                    <div className="w-10 text-right pr-[10px]">
+                      <span className="font-paperlogy font-medium text-[12px] text-sub-deepblue tracking-[0.6px]">
+                        {stop.time}
+                      </span>
+                    </div>
+                    <div className="w-3 h-3 rounded-full bg-main-blue shrink-0 relative z-10" />
                   </div>
 
                   {/* 내용 */}
-                  <div
-                    className={`flex-1 flex flex-col gap-[10px] pl-[9px] ${
-                      idx < daySchedule.stops.length - 1 ? "pb-[20px]" : ""
-                    }`}
-                  >
+                  <div className="flex-1 flex flex-col gap-[10px] pl-[9px]">
                     {/* 장소명 */}
                     <div className="flex items-center gap-[5px]">
                       <span className="text-[14px] shrink-0">📍</span>
