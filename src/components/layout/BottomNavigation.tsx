@@ -61,12 +61,12 @@ function NavIcon({ href, isActive }: { href: string; isActive: boolean }) {
   const { off, on } = ICON_PATHS[href];
 
   return (
-    <div className="relative size-4.5">
+    <div className="relative size-4">
       {/* 아이콘 */}
       {/* 비활성화 시 */}
       <svg
         viewBox="0 0 24 24"
-        className={`absolute inset-0 size-4.5 text-text-primary transition-all duration-500 ease-out ${
+        className={`absolute inset-0 size-4 text-text-primary transition-all duration-500 ease-out ${
           isActive ? "scale-95 opacity-0" : "scale-100 opacity-100"
         }`}
       >
@@ -76,7 +76,7 @@ function NavIcon({ href, isActive }: { href: string; isActive: boolean }) {
       {/* 활성화 시 */}
       <svg
         viewBox="0 0 24 24"
-        className={`absolute inset-0 size-4.5 text-sub-deepblue transition-all duration-500 ease-out ${
+        className={`absolute inset-0 size-4 text-sub-deepblue transition-all duration-500 ease-out ${
           isActive ? "scale-100 opacity-100" : "scale-95 opacity-0"
         }`}
       >
@@ -97,7 +97,7 @@ export function BottomNavigation() {
   return (
     // 하단 네비게이션 전체 디자인
     <nav className="z-30 w-full shrink-0 bg-main-white backdrop-blur pb-[env(safe-area-inset-bottom)]">
-      <div className="grid h-[84px] grid-cols-4 p-2">
+      <div className="grid h-[56px] grid-cols-4 p-2">
         {/* 메뉴 배열을 돌면서 탭을 하나씩 만들기 */}
         {navigationItems.map((item) => {
           // 현재 탭이 활성화 상태인지 판단
@@ -114,7 +114,7 @@ export function BottomNavigation() {
               {/* 활성화 시 */}
               {/* 배경 - 활성화 상태일 때만 표시 */}
               <div
-                className={`absolute size-14 rounded-2xl transition-all duration-500 ease-out ${
+                className={`absolute size-12 rounded-2xl transition-all duration-500 ease-out ${
                   isActive ? "bg-main-blue/[0.18]" : "bg-transparent"
                 }`}
               />
