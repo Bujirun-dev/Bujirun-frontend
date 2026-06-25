@@ -22,7 +22,7 @@ export function DayNavigator({ totalDays, currentDay, onDayChange }: DayNavigato
             className="size-[9px] rounded-full bg-main-blue/30"
             onClick={() => onDayChange(i)}
           />
-        )
+        ),
       )}
     </div>
   );

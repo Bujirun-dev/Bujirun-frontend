@@ -39,7 +39,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
         "w-[60px] h-[24px] rounded-md",
         "font-paperlogy text-xs font-semibold",
         style,
-        className
+        className,
       )}
     >
       {label}

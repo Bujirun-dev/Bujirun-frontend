@@ -82,7 +82,13 @@ export function AiOptimizeLoadingModal({
               style={{ width: `${progress}%` }}
             />
           </div>
-          <Image src={seaCharacter} alt="캐릭터" width={250} height={187} className="object-contain" />
+          <Image
+            src={seaCharacter}
+            alt="캐릭터"
+            width={250}
+            height={187}
+            className="object-contain"
+          />
         </div>
       }
     >

@@ -31,13 +31,25 @@ export function ItineraryHeader({
           className="size-[28px] rounded-lg bg-system-scroll border border-main-blue/30 flex items-center justify-center"
           onClick={onLogsClick}
         >
-          <Image src={mapMagnifierIcon} alt="로그" width={20} height={20} className="object-contain" />
+          <Image
+            src={mapMagnifierIcon}
+            alt="로그"
+            width={20}
+            height={20}
+            className="object-contain"
+          />
         </button>
         <button
           className="size-[28px] rounded-lg bg-system-scroll border border-main-blue/30 flex items-center justify-center"
           onClick={onOptimizeClick}
         >
-          <Image src={magicWandIcon} alt="최적화" width={20} height={20} className="object-contain" />
+          <Image
+            src={magicWandIcon}
+            alt="최적화"
+            width={20}
+            height={20}
+            className="object-contain"
+          />
         </button>
         <button
           className="size-[28px] rounded-lg bg-system-scroll border border-main-blue/30 flex items-center justify-center"

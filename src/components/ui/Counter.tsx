@@ -20,7 +20,7 @@ export function Counter({ value, onChange, min = 1, max = 99, className }: Count
           "w-[24px] h-[24px] rounded-full bg-sub-lightblue",
           "flex items-center justify-center",
           "font-paperlogy font-bold text-lg text-sub-deepblue",
-          "transition-opacity disabled:opacity-30"
+          "transition-opacity disabled:opacity-30",
         )}
       >
         −
@@ -35,7 +35,7 @@ export function Counter({ value, onChange, min = 1, max = 99, className }: Count
           "w-[24px] h-[24px] rounded-full bg-sub-lightblue",
           "flex items-center justify-center",
           "font-paperlogy font-bold text-lg text-sub-deepblue",
-          "transition-opacity disabled:opacity-30"
+          "transition-opacity disabled:opacity-30",
         )}
       >
         +

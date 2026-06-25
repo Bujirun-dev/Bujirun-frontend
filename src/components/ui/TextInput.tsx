@@ -20,7 +20,7 @@ export function TextInput({ className, maxLength, value, ...props }: TextInputPr
           "font-paperlogy font-semibold text-sm text-sub-darkgray",
           "placeholder:text-sub-gray",
           "outline-none focus:border-main-blue transition-colors",
-          className
+          className,
         )}
         {...props}
       />

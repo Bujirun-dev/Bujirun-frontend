@@ -35,9 +35,13 @@ function ItineraryEmptyState() {
       <div className="flex-1 flex flex-col items-center justify-center gap-6 pb-10 px-5">
         <Image src={travelImg} alt="여행" width={160} height={160} />
         <div className="flex flex-col items-center gap-2 text-center">
-          <p className="font-paperlogy font-bold text-xl text-text-heading">아직 여행 일정이 없어요</p>
+          <p className="font-paperlogy font-bold text-xl text-text-heading">
+            아직 여행 일정이 없어요
+          </p>
           <p className="font-paperlogy text-sm text-sub-gray">
-            부지런즈와 함께<br />여행을 시작해볼까요?
+            부지런즈와 함께
+            <br />
+            여행을 시작해볼까요?
           </p>
         </div>
         <Button variant="primary" onClick={() => router.push("/itinerary/trips")}>
@@ -98,35 +102,84 @@ function ItineraryMain() {
   const activeStop = stopsPerDay[activeDayIdx]?.find((s) => s.id === activeStopId);
   const closeModal = () => setModal(null);
 
-  const openDelete = (dayIdx: number, id: string) => { setActiveDayIdx(dayIdx); setActiveStopId(id); setModal("delete"); };
+  const openDelete = (dayIdx: number, id: string) => {
+    setActiveDayIdx(dayIdx);
+    setActiveStopId(id);
+    setModal("delete");
+  };
   const openTime = (dayIdx: number, id: string, time: string) => {
     const [h, m] = time.split(":").map(Number);
     setTimeValue({ hour: h, minute: m });
-    setActiveDayIdx(dayIdx); setActiveStopId(id); setModal("time");
+    setActiveDayIdx(dayIdx);
+    setActiveStopId(id);
+    setModal("time");
   };
-  const openTransport = (dayIdx: number, id: string) => { setActiveDayIdx(dayIdx); setActiveStopId(id); setModal("transport"); };
-  const openVerify = (dayIdx: number, id: string) => { setActiveDayIdx(dayIdx); setActiveStopId(id); setModal("verify"); };
+  const openTransport = (dayIdx: number, id: string) => {
+    setActiveDayIdx(dayIdx);
+    setActiveStopId(id);
+    setModal("transport");
+  };
+  const openVerify = (dayIdx: number, id: string) => {
+    setActiveDayIdx(dayIdx);
+    setActiveStopId(id);
+    setModal("verify");
+  };
 
   const confirmDelete = () => {
-    setStopsPerDay((prev) => { const next = [...prev]; next[activeDayIdx] = next[activeDayIdx].filter((s) => s.id !== activeStopId); return next; });
+    setStopsPerDay((prev) => {
+      const next = [...prev];
+      next[activeDayIdx] = next[activeDayIdx].filter((s) => s.id !== activeStopId);
+      return next;
+    });
     closeModal();
   };
   const confirmTime = () => {
     const timeStr = `${String(timeValue.hour).padStart(2, "0")}:${String(timeValue.minute).padStart(2, "0")}`;
-    setStopsPerDay((prev) => { const next = [...prev]; next[activeDayIdx] = [...next[activeDayIdx]].map((s) => s.id === activeStopId ? { ...s, time: timeStr } : s).sort((a, b) => a.time.localeCompare(b.time)); return next; });
+    setStopsPerDay((prev) => {
+      const next = [...prev];
+      next[activeDayIdx] = [...next[activeDayIdx]]
+        .map((s) => (s.id === activeStopId ? { ...s, time: timeStr } : s))
+        .sort((a, b) => a.time.localeCompare(b.time));
+      return next;
+    });
     closeModal();
   };
   const confirmTransport = (option: RouteOption) => {
     setSelectedRouteOptionId(option.id);
-    setStopsPerDay((prev) => { const next = [...prev]; next[activeDayIdx] = next[activeDayIdx].map((s) => s.id === activeStopId && s.transport ? { ...s, transport: { ...s.transport, legs: option.legs, durationMin: option.durationMin, cost: option.cost, baseDurationMin: s.transport.baseDurationMin } } : s); return next; });
+    setStopsPerDay((prev) => {
+      const next = [...prev];
+      next[activeDayIdx] = next[activeDayIdx].map((s) =>
+        s.id === activeStopId && s.transport
+          ? {
+              ...s,
+              transport: {
+                ...s.transport,
+                legs: option.legs,
+                durationMin: option.durationMin,
+                cost: option.cost,
+                baseDurationMin: s.transport.baseDurationMin,
+              },
+            }
+          : s,
+      );
+      return next;
+    });
     closeModal();
   };
   const confirmVerify = () => {
-    setStopsPerDay((prev) => { const next = [...prev]; next[activeDayIdx] = next[activeDayIdx].map((s) => s.id === activeStopId ? { ...s, status: "completed" as const } : s); return next; });
+    setStopsPerDay((prev) => {
+      const next = [...prev];
+      next[activeDayIdx] = next[activeDayIdx].map((s) =>
+        s.id === activeStopId ? { ...s, status: "completed" as const } : s,
+      );
+      return next;
+    });
     closeModal();
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
   const handleTouchEnd = (e: React.TouchEvent) => {
     const diff = touchStartX.current - e.changedTouches[0].clientX;
     if (Math.abs(diff) < 50) return;
@@ -142,7 +195,7 @@ function ItineraryMain() {
       onTimeClick: () => openTime(dayIdx, stop.id, stop.time),
       onTransportClick: stop.transport ? () => openTransport(dayIdx, stop.id) : undefined,
       onVerify: stop.status === "verify" ? () => openVerify(dayIdx, stop.id) : undefined,
-    }))
+    })),
   );
 
   const schedule = getScheduleById(SCHEDULE_ID);
@@ -190,7 +243,15 @@ function ItineraryMain() {
         isVisible={toastMessage !== null}
         onHide={() => setToastMessage(null)}
         message={toastMessage ?? ""}
-        icon={<Image src={successIcon} alt="완료" width={12} height={12} className="brightness-0 invert" />}
+        icon={
+          <Image
+            src={successIcon}
+            alt="완료"
+            width={12}
+            height={12}
+            className="brightness-0 invert"
+          />
+        }
       />
     </div>
   );

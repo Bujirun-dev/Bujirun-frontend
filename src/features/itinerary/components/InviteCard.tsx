@@ -38,7 +38,7 @@ export function InviteCard({ friends, total, onInvite, className }: InviteCardPr
               key={i}
               className={cn(
                 "rounded-full overflow-hidden",
-                !friend && "border-2 border-dashed border-sub-lightgray bg-transparent"
+                !friend && "border-2 border-dashed border-sub-lightgray bg-transparent",
               )}
               style={{ width: 56, height: 56 }}
             >

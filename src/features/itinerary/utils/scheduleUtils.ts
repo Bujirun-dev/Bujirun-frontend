@@ -30,9 +30,12 @@ export type BaseStop = Omit<
 export function categoryFromTags(tags: string[]): Category {
   const joined = tags.join("");
   if (joined.includes("#바다")) return "sea";
-  if (joined.includes("#자연") || joined.includes("#등산") || joined.includes("#산")) return "nature";
-  if (joined.includes("#문화") || joined.includes("#골목") || joined.includes("#역사")) return "culture";
-  if (joined.includes("#체험") || joined.includes("#케이블") || joined.includes("#레저")) return "experience";
+  if (joined.includes("#자연") || joined.includes("#등산") || joined.includes("#산"))
+    return "nature";
+  if (joined.includes("#문화") || joined.includes("#골목") || joined.includes("#역사"))
+    return "culture";
+  if (joined.includes("#체험") || joined.includes("#케이블") || joined.includes("#레저"))
+    return "experience";
   return "sea";
 }
 
@@ -55,9 +58,10 @@ export function getTransportPointName(type: TransportType, placeName: string): s
   return placeName;
 }
 
-export function buildDaysFromLog(
-  log: (typeof SAMPLE_LOGS)[0]
-): { days: BaseStop[][]; dates: string[] } {
+export function buildDaysFromLog(log: (typeof SAMPLE_LOGS)[0]): {
+  days: BaseStop[][];
+  dates: string[];
+} {
   const days = log.days.map((daySchedule) =>
     daySchedule.stops.map((stop, idx): BaseStop => {
       const nextStop = daySchedule.stops[idx + 1];
@@ -89,7 +93,7 @@ export function buildDaysFromLog(
             }
           : undefined,
       };
-    })
+    }),
   );
   const dates = log.days.map((d) => d.date.replace(/-/g, "."));
   return { days, dates };
@@ -131,7 +135,7 @@ export function buildDays(scheduleId: string): { days: BaseStop[][]; dates: stri
         status: "verify",
         transport,
       };
-    })
+    }),
   );
 
   const dates = schedule.days.map((d) => {
@@ -142,14 +146,12 @@ export function buildDays(scheduleId: string): { days: BaseStop[][]; dates: stri
   return { days, dates };
 }
 
-export function buildTransportOptions(
-  activeStop: BaseStop | undefined
-): RouteOption[] {
+export function buildTransportOptions(activeStop: BaseStop | undefined): RouteOption[] {
   const base = activeStop?.transport?.baseDurationMin ?? 30;
   const f = activeStop?.transport?.from ?? "";
   const t = activeStop?.transport?.to ?? "";
   const transitLegs = (activeStop?.transport?.legs ?? []).filter(
-    (leg) => leg.type === "버스" || leg.type === "지하철"
+    (leg) => leg.type === "버스" || leg.type === "지하철",
   );
 
   return [

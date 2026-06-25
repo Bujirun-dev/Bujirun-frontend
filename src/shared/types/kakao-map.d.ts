@@ -75,6 +75,6 @@ interface KakaoPlaceResult {
 interface KakaoPlaces {
   keywordSearch: (
     keyword: string,
-    callback: (result: KakaoPlaceResult[], status: string) => void
+    callback: (result: KakaoPlaceResult[], status: string) => void,
   ) => void;
 }

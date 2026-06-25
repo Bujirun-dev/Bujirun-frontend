@@ -9,11 +9,7 @@ interface CardProps {
 }
 
 export function Card({ variant = "glass-lg", className, children }: CardProps) {
-  return (
-    <div className={cn(cardVariants[variant], className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn(cardVariants[variant], className)}>{children}</div>;
 }
 
 const cardVariants: Record<CardVariant, string> = {
@@ -35,10 +31,5 @@ const cardVariants: Record<CardVariant, string> = {
     "p-[16px]",
   ].join(" "),
 
-  "white": [
-    "bg-white",
-    "rounded-2xl",
-    "shadow-sm",
-    "p-[16px]",
-  ].join(" "),
+  white: ["bg-white", "rounded-2xl", "shadow-sm", "p-[16px]"].join(" "),
 };

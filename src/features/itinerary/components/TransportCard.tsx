@@ -40,11 +40,20 @@ const TRANSPORT_COLORS: Record<TransportType, string> = {
   택시: "bg-transport-taxi",
 };
 
-export function TransportCard({ from, to, durationMin, cost, legs, isRecommended, selected, className }: TransportCardProps) {
+export function TransportCard({
+  from,
+  to,
+  durationMin,
+  cost,
+  legs,
+  isRecommended,
+  selected,
+  className,
+}: TransportCardProps) {
   const cardBase = cn(
     "w-full min-w-0 overflow-hidden rounded-2xl py-3.5 px-2.5 shadow-sm",
     selected === false ? "bg-main-white" : "bg-system-navbg",
-    className
+    className,
   );
   const metaText = `${isRecommended ? "⭐ " : ""}${durationMin}분${cost !== undefined ? ` · ${cost.toLocaleString()}원` : ""}`;
 
@@ -54,7 +63,12 @@ export function TransportCard({ from, to, durationMin, cost, legs, isRecommended
     return (
       <div className={cardBase}>
         <div className="flex min-w-0 items-center gap-3">
-          <div className={cn("w-6 h-6 rounded-lg flex items-center justify-center shrink-0", TRANSPORT_COLORS[leg.type])}>
+          <div
+            className={cn(
+              "w-6 h-6 rounded-lg flex items-center justify-center shrink-0",
+              TRANSPORT_COLORS[leg.type],
+            )}
+          >
             <Image src={TRANSPORT_ICONS[leg.type]} alt={leg.type} width={14} height={14} />
           </div>
           <div className="flex flex-col gap-0.5 min-w-0 flex-1">
@@ -85,7 +99,10 @@ export function TransportCard({ from, to, durationMin, cost, legs, isRecommended
           width="1.6"
         >
           <line
-            x1="0.8" y1="0" x2="0.8" y2="100%"
+            x1="0.8"
+            y1="0"
+            x2="0.8"
+            y2="100%"
             stroke="var(--color-sub-gray)"
             strokeWidth="1.6"
             strokeDasharray="4 4"
@@ -98,15 +115,27 @@ export function TransportCard({ from, to, durationMin, cost, legs, isRecommended
           <div className="w-6 flex justify-center shrink-0 relative z-10">
             <div
               className="w-3 h-3 rounded-full bg-sub-gray"
-              style={{ boxShadow: selected === false ? "0 0 0 3px var(--color-main-white)" : "0 0 0 3px var(--color-system-navbg)" }}
+              style={{
+                boxShadow:
+                  selected === false
+                    ? "0 0 0 3px var(--color-main-white)"
+                    : "0 0 0 3px var(--color-system-navbg)",
+              }}
             />
           </div>
-          <span className="truncate font-paperlogy font-semibold text-md text-text-heading">{from}</span>
+          <span className="truncate font-paperlogy font-semibold text-md text-text-heading">
+            {from}
+          </span>
         </div>
 
         {legs.map((leg, index) => (
           <div key={index} className="flex items-center gap-3">
-            <div className={cn("w-6 h-6 rounded-lg flex items-center justify-center shrink-0 relative z-10", TRANSPORT_COLORS[leg.type])}>
+            <div
+              className={cn(
+                "w-6 h-6 rounded-lg flex items-center justify-center shrink-0 relative z-10",
+                TRANSPORT_COLORS[leg.type],
+              )}
+            >
               <Image src={TRANSPORT_ICONS[leg.type]} alt={leg.type} width={14} height={14} />
             </div>
             <div className="flex flex-1 items-center justify-between min-w-0 gap-2">
@@ -134,10 +163,17 @@ export function TransportCard({ from, to, durationMin, cost, legs, isRecommended
           <div className="w-6 flex justify-center shrink-0 relative z-10">
             <div
               className="w-3 h-3 rounded-full bg-sub-gray"
-              style={{ boxShadow: selected === false ? "0 0 0 3px var(--color-main-white)" : "0 0 0 3px var(--color-system-navbg)" }}
+              style={{
+                boxShadow:
+                  selected === false
+                    ? "0 0 0 3px var(--color-main-white)"
+                    : "0 0 0 3px var(--color-system-navbg)",
+              }}
             />
           </div>
-          <span className="truncate font-paperlogy font-semibold text-md text-text-heading">{to}</span>
+          <span className="truncate font-paperlogy font-semibold text-md text-text-heading">
+            {to}
+          </span>
         </div>
       </div>
     </div>

@@ -31,11 +31,7 @@ export function SlidingTimeline({
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
           >
-            <ItineraryTimeline
-              stops={dayStops}
-              date={tripDates[dayIdx]}
-              onAdd={onAdd}
-            />
+            <ItineraryTimeline stops={dayStops} date={tripDates[dayIdx]} onAdd={onAdd} />
           </div>
         ))}
       </div>

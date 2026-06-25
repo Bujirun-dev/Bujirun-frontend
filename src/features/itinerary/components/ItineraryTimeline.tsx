@@ -89,10 +89,7 @@ export function ItineraryTimeline({ stops, date, onAdd }: ItineraryTimelineProps
             {stop.transport && (
               <div className="mt-5 flex min-w-0">
                 <div className="w-[64px] shrink-0" />
-                <button
-                  className="min-w-0 flex-1 text-left"
-                  onClick={stop.onTransportClick}
-                >
+                <button className="min-w-0 flex-1 text-left" onClick={stop.onTransportClick}>
                   <TransportCard {...stop.transport} />
                 </button>
               </div>

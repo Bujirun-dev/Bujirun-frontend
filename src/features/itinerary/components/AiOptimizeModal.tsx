@@ -29,8 +29,12 @@ export function AiOptimizeModal({ isOpen, onClose, onConfirm }: AiOptimizeModalP
             <Image src={freepassBlueIcon} alt="" width={12} height={12} />
             이동 동선 최적화
           </p>
-          <p className="font-paperlogy text-sm font-medium text-sub-darkgray leading-none">⏰ 이동 시간 단축</p>
-          <p className="font-paperlogy text-sm font-medium text-sub-darkgray leading-none">🚌 교통비 절약</p>
+          <p className="font-paperlogy text-sm font-medium text-sub-darkgray leading-none">
+            ⏰ 이동 시간 단축
+          </p>
+          <p className="font-paperlogy text-sm font-medium text-sub-darkgray leading-none">
+            🚌 교통비 절약
+          </p>
         </div>
       </div>
     </Modal>
