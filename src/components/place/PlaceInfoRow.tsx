@@ -18,8 +18,8 @@ export function PlaceInfoRow({ items, className }: PlaceInfoRowProps) {
       {items.map((item) => (
         <div key={item.label} className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-[36px] h-[36px] rounded-[5px] bg-system-navbg flex items-center justify-center">
-              <span className="text-[12px]">{item.icon}</span>
+            <div className="w-[36px] h-[36px] rounded bg-system-navbg flex items-center justify-center">
+              <span className="text-sm">{item.icon}</span>
             </div>
             <span className="font-paperlogy font-medium text-xs text-text-primary">{item.label}</span>
           </div>

@@ -95,7 +95,7 @@ export function TimePicker({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[260px] max-h-[80dvh] bg-white rounded-[24px] px-5 py-6 flex flex-col items-center gap-4"
+        className="w-full max-w-[260px] max-h-[80dvh] bg-white rounded-3xl px-5 py-6 flex flex-col items-center gap-4"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="font-paperlogy font-bold text-2xl text-text-heading">시간 변경</h3>
@@ -104,7 +104,7 @@ export function TimePicker({
         <div className="relative flex items-center gap-2" style={{ height: ITEM_H * VISIBLE }}>
           {/* 선택된 행 하이라이트 (두 컬럼 전체 너비) */}
           <div
-            className="absolute -left-4 -right-4 rounded-[14px] z-0"
+            className="absolute -left-4 -right-4 rounded-xl z-0"
             style={{
               top: ITEM_H * 2,
               height: ITEM_H,

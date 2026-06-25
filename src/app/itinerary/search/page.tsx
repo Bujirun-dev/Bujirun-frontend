@@ -32,7 +32,7 @@ export default function PlaceSearchPage() {
         <div className="flex items-center gap-3 pb-3">
           <button
             onClick={() => router.back()}
-            className="size-[28px] rounded-[10px] bg-[#d5e6ff] flex items-center justify-center shrink-0"
+            className="size-[28px] rounded-lg bg-system-scroll flex items-center justify-center shrink-0"
           >
             <Image src={angleLeftIcon} alt="뒤로" width={16} height={16} />
           </button>

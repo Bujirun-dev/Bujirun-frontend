@@ -68,7 +68,7 @@ export default function TripsPage() {
     <PageCard className="relative">
       {/* + 버튼 */}
       <button
-        className="absolute top-[28px] right-[32px] size-[28px] rounded-[10px] bg-sub-coral flex items-center justify-center active:opacity-80 z-10"
+        className="absolute top-[28px] right-[32px] size-[28px] rounded-lg bg-sub-coral flex items-center justify-center active:opacity-80 z-10"
         onClick={() => {}}
       >
         <Image
@@ -81,12 +81,12 @@ export default function TripsPage() {
       </button>
 
       {/* 헤더 */}
-      <div className="flex items-center justify-center pb-[26px]">
-        <span className="font-ssurround font-bold text-[16px] text-text-heading">여행 목록</span>
+      <div className="flex items-center justify-center pb-6">
+        <span className="font-ssurround font-bold text-lg text-text-heading">여행 목록</span>
       </div>
 
       {/* 여행 목록 */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-[14px]">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-3.5">
         {trips.map((trip) => (
           <TripCard
             key={trip.id}

@@ -35,7 +35,7 @@ export function LogCard({
   return (
     <div
       className={cn(
-        "w-full h-[223px] shrink-0 flex flex-col bg-white rounded-[15px] overflow-hidden border border-gray-200/60 shadow-[0px_4px_15px_0px_#d9d9d9] cursor-pointer active:opacity-80",
+        "w-full h-[223px] shrink-0 flex flex-col bg-white rounded-2xl overflow-hidden border border-gray-200/60 shadow-[0px_4px_15px_0px_#d9d9d9] cursor-pointer active:opacity-80",
         className,
       )}
       onClick={onClick}
@@ -43,23 +43,23 @@ export function LogCard({
       {/* 대표 사진 */}
       <div className="relative w-full h-[146px] shrink-0">
         <Image src={imageUrl} alt={placeName} fill className="object-cover" />
-        <div className="absolute top-[12px] right-[14px] flex items-center justify-center gap-[4px] px-[8px] py-[4px] bg-white rounded-[8px] shadow-sm">
+        <div className="absolute top-[12px] right-[14px] flex items-center justify-center gap-1 px-2 py-1 bg-white rounded-lg shadow-sm">
           <Image src={calendarPlusIcon} alt="추가 횟수" width={10} height={10} />
-          <span className="font-paperlogy text-[11px] font-medium text-sub-gray">{downloadCount}</span>
+          <span className="font-paperlogy text-xs font-medium text-sub-gray">{downloadCount}</span>
         </div>
       </div>
 
       {/* 정보 */}
-      <div className="px-[16px] py-[12px] flex flex-col gap-[5px] flex-1">
-        <p className="font-paperlogy text-[12px] font-normal text-text-primary flex items-center gap-1.5 tracking-[0.24px]">
+      <div className="px-4 py-3 flex flex-col gap-1 flex-1">
+        <p className="font-paperlogy text-sm font-normal text-text-primary flex items-center gap-1.5 tracking-[0.24px]">
           <span>📍</span>
           {placeName}{extraCount ? ` 외 ${extraCount}곳` : ""}
         </p>
-        <p className="font-paperlogy text-[12px] font-normal text-text-primary flex items-center gap-1.5 tracking-[0.24px]">
+        <p className="font-paperlogy text-sm font-normal text-text-primary flex items-center gap-1.5 tracking-[0.24px]">
           <span>📸</span>
           {author}
         </p>
-        <p className="font-paperlogy text-[12px] font-normal text-text-primary flex items-center gap-1.5 tracking-[0.24px]">
+        <p className="font-paperlogy text-sm font-normal text-text-primary flex items-center gap-1.5 tracking-[0.24px]">
           <span>📅</span>
           {duration} · {date}
         </p>

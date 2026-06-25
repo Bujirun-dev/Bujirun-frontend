@@ -64,14 +64,14 @@ export default function LogsPage() {
   return (
     <PageCard>
         {/* 헤더 */}
-        <div className="flex items-center gap-[16px] pb-[18px]">
+        <div className="flex items-center gap-4 pb-4">
           <button
             onClick={() => router.back()}
             className="flex items-center justify-center shrink-0"
           >
             <Image src={angleLeftIcon} alt="뒤로" width={16} height={16} style={{ filter: "invert(53%)" }} />
           </button>
-          <span className="font-ssurround font-bold text-[16px] text-text-heading">
+          <span className="font-ssurround font-bold text-lg text-text-heading">
             로그 둘러보기
           </span>
         </div>
@@ -81,14 +81,14 @@ export default function LogsPage() {
           options={CATEGORIES}
           selected={selectedCategory}
           onChange={setSelectedCategory}
-          className="pb-[16px] justify-center"
+          className="pb-4 justify-center"
         />
 
         {/* 정렬 */}
-        <div className="flex justify-end items-center gap-2 pb-[16px]">
+        <div className="flex justify-end items-center gap-2 pb-4">
           <button
             onClick={() => setSortBy("최신순")}
-            className={`font-paperlogy text-[11px] ${
+            className={`font-paperlogy text-xs ${
               sortBy === "최신순" ? "font-semibold text-sub-deepblue" : "font-medium text-sub-gray"
             }`}
           >
@@ -97,7 +97,7 @@ export default function LogsPage() {
           <div className="w-[1px] h-[10px] bg-sub-gray/40" />
           <button
             onClick={() => setSortBy("인기순")}
-            className={`font-paperlogy text-[11px] ${
+            className={`font-paperlogy text-xs ${
               sortBy === "인기순" ? "font-semibold text-sub-deepblue" : "font-medium text-sub-gray"
             }`}
           >
@@ -106,7 +106,7 @@ export default function LogsPage() {
         </div>
 
         {/* 로그 목록 */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-[30px]">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-7">
           {visibleLogs.length === 0 ? (
             <div className="flex flex-1 items-center justify-center text-sub-gray font-paperlogy text-sm pt-20">
               해당 카테고리의 로그가 없습니다.
@@ -129,7 +129,7 @@ export default function LogsPage() {
               {/* 무한 스크롤 감지 sentinel */}
               <div ref={sentinelRef} className="h-1 shrink-0" />
               {isLoading && (
-                <p className="text-center font-paperlogy text-[12px] text-sub-gray pb-2">불러오는 중...</p>
+                <p className="text-center font-paperlogy text-sm text-sub-gray pb-2">불러오는 중...</p>
               )}
             </>
           )}

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import magicWandIcon from "@/assets/icons/itinerary/magic-wand.png";
+import freepassBlueIcon from "@/assets/icons/itinerary/freepass-blue.png";
 import { Modal } from "@/components";
 
 interface AiOptimizeModalProps {
@@ -23,10 +24,13 @@ export function AiOptimizeModal({ isOpen, onClose, onConfirm }: AiOptimizeModalP
       onCancel={onClose}
     >
       <div className="flex flex-col items-center w-full">
-        <div className="flex flex-col items-start gap-[3px] py-1">
-          <p className="font-paperlogy text-[14px] font-medium text-sub-darkgray leading-none">✨ 이동 동선 최적화</p>
-          <p className="font-paperlogy text-[14px] font-medium text-sub-darkgray leading-none">⏰ 이동 시간 단축</p>
-          <p className="font-paperlogy text-[14px] font-medium text-sub-darkgray leading-none">🚌 교통비 절약</p>
+        <div className="flex flex-col items-start gap-0.5">
+          <p className="flex items-center gap-1.5 font-paperlogy text-sm font-medium text-sub-darkgray leading-none">
+            <Image src={freepassBlueIcon} alt="" width={12} height={12} />
+            이동 동선 최적화
+          </p>
+          <p className="font-paperlogy text-sm font-medium text-sub-darkgray leading-none">⏰ 이동 시간 단축</p>
+          <p className="font-paperlogy text-sm font-medium text-sub-darkgray leading-none">🚌 교통비 절약</p>
         </div>
       </div>
     </Modal>

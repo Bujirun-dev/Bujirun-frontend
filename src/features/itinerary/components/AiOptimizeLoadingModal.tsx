@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import magicWandIcon from "@/assets/icons/itinerary/magic-wand.png";
+import freepassBlueIcon from "@/assets/icons/itinerary/freepass-blue.png";
 import seaCharacter from "@/assets/character/sea.png";
 import { Modal } from "@/components";
 
@@ -72,12 +73,11 @@ export function AiOptimizeLoadingModal({
       title="AI가 최적 경로를 찾고 있어요"
       hideActions
       childrenVariant="card"
-      childrenClassName="-my-[4px]"
       footer={
-        <div className="flex flex-col items-center gap-[12px] w-full">
-          <div className="w-[248px] h-[8px] rounded-[10px] bg-system-scroll overflow-hidden">
+        <div className="flex flex-col items-center gap-3 w-full">
+          <div className="w-[248px] h-[8px] rounded-lg bg-system-scroll overflow-hidden">
             <div
-              className="h-full bg-sub-deepblue rounded-[10px] transition-all duration-[3000ms] ease-in-out"
+              className="h-full bg-sub-deepblue rounded-lg transition-all duration-[3000ms] ease-in-out"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -85,8 +85,8 @@ export function AiOptimizeLoadingModal({
         </div>
       }
     >
-      <p className="flex items-center justify-center gap-[6px] font-paperlogy text-[12px] font-medium text-sub-darkgray py-1">
-        <span className="text-main-blue">✦</span>
+      <p className="flex items-center justify-center gap-1.5 font-paperlogy text-sm font-medium text-sub-darkgray">
+        <Image src={freepassBlueIcon} alt="" width={12} height={12} />
         여행 동선을 계산하는 중...
       </p>
     </Modal>

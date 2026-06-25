@@ -39,7 +39,7 @@ interface ItineraryTimelineProps {
 
 export function ItineraryTimeline({ stops, date, onAdd }: ItineraryTimelineProps) {
   return (
-    <div className="relative min-h-full min-w-0 pb-[15px]">
+    <div className="relative min-h-full min-w-0 pb-3.5">
       {/* 세로 타임라인 선 */}
       <div
         className="absolute top-0 bottom-[15px] w-[2px] bg-sub-lightgray rounded-full"
@@ -50,14 +50,14 @@ export function ItineraryTimeline({ stops, date, onAdd }: ItineraryTimelineProps
         {/* 상단: + 버튼 + 날짜 */}
         <div className="flex items-center">
           <div className="w-10 shrink-0" />
-          <div className="flex items-center gap-[10px] relative z-10 -ml-[3px]">
+          <div className="flex items-center gap-2.5 relative z-10 -ml-0.5">
             <button
-              className="flex size-[18px] items-center justify-center rounded-[6px] bg-sub-coral shrink-0"
+              className="flex size-[18px] items-center justify-center rounded-md bg-sub-coral shrink-0"
               onClick={onAdd}
             >
               <span className="text-white text-xs font-bold leading-none">+</span>
             </button>
-            <span className="font-paperlogy text-[11px] font-semibold text-sub-gray">{date}</span>
+            <span className="font-paperlogy text-xs font-semibold text-sub-gray">{date}</span>
           </div>
         </div>
 
@@ -66,7 +66,7 @@ export function ItineraryTimeline({ stops, date, onAdd }: ItineraryTimelineProps
             {/* 시간 + 도트 + 장소 카드 */}
             <div className="flex min-w-0 items-center">
               <button
-                className="w-10 shrink-0 text-right font-paperlogy text-xs font-medium text-sub-deepblue tracking-[0.6px] pr-[10px]"
+                className="w-10 shrink-0 text-right font-paperlogy text-xs font-medium text-sub-deepblue tracking-[0.6px] pr-2.5"
                 onClick={stop.onTimeClick}
               >
                 {stop.time}

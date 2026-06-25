@@ -24,17 +24,17 @@ export function TripCard({ trip, onSelect, onEdit, onDelete }: TripCardProps) {
   const { id, name, startDate, endDate } = trip;
 
   return (
-    <Card variant="glass-sm" className="relative flex items-center gap-3 px-[24px] py-[16px]">
+    <Card variant="glass-sm" className="relative flex items-center gap-3 px-6 py-4">
       <button
-        className="flex items-start gap-[14px] flex-1 text-left active:opacity-70"
+        className="flex items-start gap-3.5 flex-1 text-left active:opacity-70"
         onClick={() => onSelect(id)}
       >
         <Image src={bagIcon} alt="여행" width={18} height={18} />
-        <div className="flex flex-col gap-[5px]">
-          <span className="font-paperlogy font-bold text-[14px] text-text-heading leading-none">
+        <div className="flex flex-col gap-1">
+          <span className="font-paperlogy font-bold text-md text-text-heading leading-none">
             {name}
           </span>
-          <span className="font-paperlogy font-medium text-[11px] text-sub-gray leading-none">
+          <span className="font-paperlogy font-medium text-xs text-sub-gray leading-none">
             {getDateOnly(startDate)} - {getDateOnly(endDate)}
           </span>
         </div>
@@ -42,13 +42,13 @@ export function TripCard({ trip, onSelect, onEdit, onDelete }: TripCardProps) {
 
       <div className="absolute top-[16px] right-[24px] flex items-center gap-2">
         <button
-          className="size-[20px] rounded-[6px] bg-main-blue flex items-center justify-center active:opacity-70"
+          className="size-[20px] rounded-md bg-main-blue flex items-center justify-center active:opacity-70"
           onClick={() => onEdit(id)}
         >
           <Image src={pencilWhiteIcon} alt="수정" width={12} height={12} />
         </button>
         <button
-          className="size-[20px] rounded-[6px] bg-sub-coral flex items-center justify-center active:opacity-70"
+          className="size-[20px] rounded-md bg-sub-coral flex items-center justify-center active:opacity-70"
           onClick={() => onDelete(id)}
         >
           <Image src={removeWhiteIcon} alt="삭제" width={12} height={12} />

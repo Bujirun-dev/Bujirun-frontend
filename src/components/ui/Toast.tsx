@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/shared/utils";
 
 interface ToastProps {
@@ -29,19 +30,25 @@ export function Toast({
 
   if (!isVisible) return null;
 
-  return (
-    <div className="fixed bottom-[94px] left-1/2 z-50 -translate-x-1/2">
+  const appRoot = typeof document === "undefined" ? null : document.getElementById("app-root");
+
+  const toast = (
+    <div className="absolute bottom-[94px] left-1/2 z-50 -translate-x-1/2">
       <div
         className={cn(
-          "flex h-[28px] w-[155px] items-center justify-center gap-2 rounded-[10px] bg-sub-darkgray px-[18px] py-[6px]",
+          "flex h-[28px] w-[155px] items-center justify-center gap-2 rounded-lg bg-sub-darkgray px-4 py-1.5",
           className,
         )}
       >
         {icon}
-        <span className="whitespace-nowrap font-paperlogy text-[12px] font-medium text-white">
+        <span className="whitespace-nowrap font-paperlogy text-sm font-medium text-white">
           {message}
         </span>
       </div>
     </div>
   );
+
+  if (!appRoot) return toast;
+
+  return createPortal(toast, appRoot);
 }

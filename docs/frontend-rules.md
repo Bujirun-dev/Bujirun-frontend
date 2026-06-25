@@ -76,52 +76,111 @@ import { apiClient } from "@/shared/api";
 ## 7. 스타일 규칙
 
 - 스타일은 Tailwind class를 우선 사용합니다.
-- 색상, 폰트, spacing은 `src/styles/globals.css`의 토큰을 먼저 사용합니다.
+- 색상, 폰트, spacing은 `src/styles/globals.css`의 커스텀 토큰과 Tailwind spacing scale을 먼저 사용합니다.
 - 반복되는 hex 색상은 컴포넌트에 직접 쓰지 말고 토큰으로 정리합니다.
 - 조건부 class는 `cn` 유틸을 사용합니다.
 - 반복되는 스타일은 공통 컴포넌트나 variant로 빼는 것을 우선합니다.
 
-## 8. 패딩 기준
+## 8. 디자인 토큰
 
-전체 화면:
+토큰 기준 파일은 `src/styles/globals.css`입니다. Tailwind v4의 `@theme inline`에 선언된 값은 `bg-main-blue`, `text-text-heading`, `font-paperlogy`, `px-screen-x`처럼 클래스에서 바로 사용합니다.
 
-- 기본 페이지 좌우 패딩은 `24px`입니다.
-- `AppShell` 본문은 현재 `px-[24px] pt-[24px]`를 사용합니다.
-- `PageCard`처럼 화면을 꽉 채우는 카드형 영역은 `-mx-[24px]`로 바깥 여백을 맞춥니다.
-
-컴포넌트:
-
-| 영역 | 기준 |
-| --- | --- |
-| 큰 카드 | `p-[20px]` |
-| 작은 카드 | `p-[16px]` |
-| 리스트 아이템 | `px-4~5`, `py-3~4` |
-| 검색/입력 | `px-3~4`, 높이 `40px` 기준 |
-| 모달 | 바깥 여백 `px-6`, 내부 여백은 컴포넌트별로 조정 |
-
-- 새 화면을 만들 때는 먼저 전체 `24px` 기준을 맞춥니다.
-- 카드 안쪽 여백은 보통 `16px` 또는 `20px` 중에서 고릅니다.
-- 같은 화면 안에서는 패딩 값을 너무 많이 섞지 않습니다.
-- 특별한 이유가 없으면 `13px`, `17px`처럼 애매한 값은 피합니다.
-
-자주 쓰는 토큰:
+색상:
 
 | 용도 | 토큰 |
 | --- | --- |
 | 메인 | `main-blue`, `main-white` |
-| 서브 | `sub-deepblue`, `sub-pink`, `sub-green`, `sub-violet`, `sub-coral` |
+| 서브 | `sub-deepblue`, `sub-lightblue`, `sub-pink`, `sub-green`, `sub-violet`, `sub-coral`, `sub-gray`, `sub-darkgray`, `sub-lightgray` |
 | 텍스트 | `text-primary`, `text-heading` |
-| 시스템 | `system-navbg`, `system-searchbg`, `system-blackbg` |
+| 시스템 | `system-whitebg`, `system-blackbg`, `system-navbg`, `system-scroll`, `system-searchbg` |
+| 카테고리 | `category-sea`, `category-nature`, `category-culture`, `category-experience` |
+
+사용 예:
+
+```tsx
+<div className="bg-system-navbg text-text-heading border-main-blue" />
+<span className="text-sub-deepblue" />
+```
 
 폰트:
 
 | 용도 | 클래스 |
 | --- | --- |
-| 기본 | `font-paperlogy` |
+| 기본 본문 | `font-paperlogy` |
 | 강조/버튼 | `font-ssurround` |
 | 로고성 텍스트 | `font-giants`, `font-proup`, `font-dxmovie` |
 
-## 9. 공통 UI 사용
+텍스트 크기:
+
+| 클래스 | 값 |
+| --- | --- |
+| `text-xs` | `11px` |
+| `text-sm` | `12px` |
+| `text-md` | `14px` |
+| `text-lg` | `16px` |
+| `text-xl` | `18px` |
+| `text-2xl` | `20px` |
+
+커스텀 spacing:
+
+| 클래스 | 값 | 용도 |
+| --- | --- | --- |
+| `px-screen-x`, `gap-screen-x`, `p-screen-x` | `24px` | 화면 기본 좌우 여백 |
+| `p-card-inner`, `px-card-inner`, `gap-card-inner` | `18px` | 카드 내부 여백 |
+
+Tailwind spacing scale도 프로젝트의 spacing 토큰으로 사용합니다. `gap-[13px]`, `px-[24px]` 같은 임의값보다 아래 scale을 우선합니다.
+
+| 클래스 suffix | 값 |
+| --- | --- |
+| `0.5` | `2px` |
+| `1` | `4px` |
+| `1.5` | `6px` |
+| `2` | `8px` |
+| `2.5` | `10px` |
+| `3` | `12px` |
+| `3.5` | `14px` |
+| `4` | `16px` |
+| `5` | `20px` |
+| `6` | `24px` |
+| `7` | `28px` |
+| `8` | `32px` |
+| `10` | `40px` |
+
+사용 예:
+
+```tsx
+<div className="flex flex-col gap-3 px-6 py-8" />
+<Card className="p-4" />
+```
+
+## 9. 간격 기준
+
+전체 화면:
+
+- 기본 페이지 좌우 패딩은 `24px`입니다.
+- `AppShell` 본문은 현재 `px-6 pt-6`을 사용합니다.
+- `PageCard`처럼 화면을 꽉 채우는 카드형 영역은 `-mx-6`으로 바깥 여백을 맞춥니다.
+
+컴포넌트:
+
+| 영역 | 기준 |
+| --- | --- |
+| 큰 카드 | `p-5` |
+| 작은 카드 | `p-4` |
+| 리스트 아이템 | `px-4~5`, `py-3~4` |
+| 검색/입력 | `px-3~4`, 높이 `40px` 기준 |
+| 모달 | 바깥 여백 `px-6`, 내부 여백은 컴포넌트별로 조정 |
+| 모달 내부 | 보통 `px-8 py-10`, `gap-6` |
+| 컴포넌트 내부 gap | 보통 `gap-1~3` |
+| 섹션 간 gap | 보통 `gap-5~8` |
+
+- 새 화면을 만들 때는 먼저 전체 `24px` 기준을 맞춥니다.
+- 카드 안쪽 여백은 보통 `p-4` 또는 `p-5` 중에서 고릅니다.
+- 같은 화면 안에서는 패딩 값을 너무 많이 섞지 않습니다.
+- 특별한 이유가 없으면 `13px`, `17px`, `21px`처럼 scale 밖의 애매한 값을 피합니다.
+- 고정 크기, 아이콘 크기, 특수한 위치값은 필요한 경우 `w-[155px]`, `top-[28px]`처럼 임의값을 사용할 수 있습니다.
+
+## 10. 공통 UI 사용
 
 - 버튼은 `Button`을 먼저 사용합니다.
   - `primary`, `secondary`, `warning`
@@ -132,14 +191,14 @@ import { apiClient } from "@/shared/api";
 - 상태 표시는 `StatusBadge`, 카테고리는 `CategoryChip`을 사용합니다.
 - 화면별로 조금 다른 스타일은 `className`으로 확장합니다.
 
-## 10. 이미지와 아이콘
+## 11. 이미지와 아이콘
 
 - 이미지는 `src/assets`에 기능별로 정리합니다.
 - 이미지 렌더링은 `next/image`를 우선 사용합니다.
 - 단순 공통 아이콘은 `lucide-react` 사용을 먼저 고려합니다.
 - `alt`는 가능한 의미 있게 적습니다.
 
-## 11. 상태 관리
+## 12. 상태 관리
 
 - API 데이터는 TanStack Query를 사용합니다.
 - 한 화면 안에서만 쓰는 UI 상태는 `useState`를 사용합니다.
@@ -161,7 +220,7 @@ useQuery({
 });
 ```
 
-## 12. API 규칙
+## 13. API 규칙
 
 - HTTP 요청은 `apiClient`를 사용합니다.
 - API 기본 주소는 `NEXT_PUBLIC_API_BASE_URL`을 사용합니다.
@@ -169,7 +228,7 @@ useQuery({
 - API 응답 타입은 가능한 명확히 적습니다.
 - 지금 UI 작업 중에는 mock 데이터를 쓰더라도, 나중에 API로 바꾸기 쉽게 props 형태를 맞춰둡니다.
 
-## 13. 나중에 API 연결할 때 체크할 것
+## 14. 나중에 API 연결할 때 체크할 것
 
 - 백엔드 응답 데이터 이름과 프론트에서 쓰는 이름을 맞춥니다.
 - 로딩, 에러, 빈 데이터 화면을 준비합니다.
@@ -179,14 +238,14 @@ useQuery({
 - 날짜, 시간, 이미지 URL, id 값은 화면에서 바로 쓰기 좋은 형태인지 확인합니다.
 - API 연결 후에도 모바일 화면이 깨지지 않는지 다시 확인합니다.
 
-## 14. TypeScript 규칙
+## 15. TypeScript 규칙
 
 - `any`는 최대한 피합니다.
 - 공통 타입은 `src/shared/types`에 둡니다.
 - 특정 기능에서만 쓰는 타입은 해당 feature 안에 둡니다.
 - 상수 객체는 필요하면 `as const`를 사용합니다.
 
-## 15. 컴포넌트 규칙
+## 16. 컴포넌트 규칙
 
 - 컴포넌트 파일명은 PascalCase로 작성합니다.
 - 일반 컴포넌트는 named export를 사용합니다.
@@ -194,7 +253,7 @@ useQuery({
 - 이벤트 함수는 `handle`, 모달 함수는 `open`, `close`로 시작하면 좋습니다.
 - 리스트 key는 가능하면 id를 사용합니다.
 
-## 16. Git 규칙
+## 17. Git 규칙
 
 브랜치:
 
@@ -215,7 +274,7 @@ docs: 프론트엔드 규칙 정리
 chore: 설정 업데이트
 ```
 
-## 17. PR 체크리스트
+## 18. PR 체크리스트
 
 - [ ] 요구사항을 만족했나요?
 - [ ] 모바일 `390px` 기준으로 화면이 깨지지 않나요?
@@ -224,7 +283,7 @@ chore: 설정 업데이트
 - [ ] `npm run typecheck`를 통과했나요?
 - [ ] 불필요한 console, 임시 주석, 죽은 코드를 지웠나요?
 
-## 18. 팀 담당 영역
+## 19. 팀 담당 영역
 
 | 담당자 | 담당 화면/기능 |
 | --- | --- |
@@ -232,7 +291,7 @@ chore: 설정 업데이트
 | 유리 | 도감 탭, 마이페이지 탭 |
 | 성빈 | 홈 탭, 일정 탭 중 취향분석결과까지, 로그인/회원가입 |
 
-## 19. 팀 작업 규칙
+## 20. 팀 작업 규칙
 
 - 작업 시작 전 `main`을 최신 상태로 맞춥니다.
 - 같은 파일을 건드릴 것 같으면 미리 공유합니다.
@@ -253,7 +312,7 @@ fix/itinerary-modal
 docs/frontend-rules
 ```
 
-## 20. 환경변수
+## 21. 환경변수
 
 - `.env.local`은 커밋하지 않습니다.
 - 노션이나 README에는 환경변수 이름만 적습니다.

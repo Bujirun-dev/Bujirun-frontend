@@ -148,6 +148,14 @@
   --color-system-navbg: #ecf5ff;
   --color-system-scroll: #d5e6ff;
   --color-system-searchbg: #f2f5fa;
+  --color-system-selected: #e8f3ff;
+  --color-system-divider: #eeeeee;
+  --color-system-glassfrom: rgba(255, 255, 255, 0.52);
+  --color-system-glassto: rgba(234, 244, 255, 0.39);
+  --color-system-glassborder: rgba(151, 193, 255, 0.2);
+
+  /* Transport */
+  --color-transport-taxi: #9b89d1;
 
   /* Category */
   --color-category-sea: rgba(151, 193, 255, 0.5);
