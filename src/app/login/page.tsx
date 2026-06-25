@@ -1,8 +1,6 @@
 import Image from "next/image";
-import { SpeechBubble } from "@/components/ui/SpeechBubble";
 import { KakaoLoginButton } from "@/components/ui/KakaoLoginButton";
 import characterImg from "@/assets/character/primary.png";
-import { Card } from "@/components/ui/Card";
 
 export default function LoginPage() {
   return (
@@ -10,21 +8,15 @@ export default function LoginPage() {
       <div className="flex flex-col items-center w-full h-full">
         {/* 말풍선 영역 */}
         <div className="mt-[120px] w-full flex flex-col gap-0">
-          {/* 첫 번째 말풍선*/}
-          <Card
-            variant="glass-sm"
-            className="ml-[24px] w-[130px] h-[44px] flex items-center justify-center rounded-[24px] !border-none shadow-none"
-          >
+          {/* 첫 번째 말풍선 */}
+          <div className="ml-[24px] w-[130px] h-[44px] flex items-center justify-center rounded-[24px] backdrop-blur-[15px] bg-white/50">
             <span className="font-proup text-text-heading text-lg">반가워요!</span>
-          </Card>
+          </div>
 
           {/* 두 번째 말풍선 */}
-          <Card
-            variant="glass-sm"
-            className="ml-[55px] w-[261px] h-[44px] flex items-center justify-center rounded-[24px] -mt-[3px] !border-none shadow-none"
-          >
+          <div className="ml-[55px] w-[261px] h-[44px] flex items-center justify-center rounded-[24px] -mt-[3px] backdrop-blur-[15px] bg-white/50">
             <span className="font-proup text-text-heading text-lg">부산 여행을 떠나볼까요?</span>
-          </Card>
+          </div>
         </div>
         {/* 캐릭터 */}
         <div className="mt-[29px] px-[45px] w-full flex justify-center">

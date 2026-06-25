@@ -7,6 +7,7 @@ import { cn } from "@/shared/utils";
 
 interface KakaoLoginButtonProps {
   className?: string;
+  onClick?: () => void; // 추가
 }
 
 const KAKAO_AUTH_URL =

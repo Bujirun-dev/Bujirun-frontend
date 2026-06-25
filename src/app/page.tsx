@@ -1,15 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react"; // useEffect 삭제
 import { FeaturePlaceholder } from "@/components";
 
 export default function Home() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    setIsLoggedIn(!!token);
-  }, []);
+  const [isLoggedIn] = useState(() => {
+    if (typeof window === "undefined") return false; // SSR 환경 대비
+    return !!localStorage.getItem("accessToken");
+  });
 
   return (
     <div>
