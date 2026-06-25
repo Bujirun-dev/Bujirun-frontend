@@ -7,8 +7,7 @@ export const getPlaces = (): Place[] => db.places as Place[];
 export const getPlaceById = (id: string): Place | undefined =>
   db.places.find((p) => p.id === id) as Place | undefined;
 
-export const getCollectedPlaces = (): Place[] =>
-  db.places.filter((p) => p.isCollected) as Place[];
+export const getCollectedPlaces = (): Place[] => db.places.filter((p) => p.isCollected) as Place[];
 
 // ── 일정 ────────────────────────────────────────────────
 export const getSchedules = (): Schedule[] => db.schedules as Schedule[];
@@ -25,8 +24,7 @@ export const getLogs = (): TravelLog[] => db.logs as TravelLog[];
 export const getLogsByScheduleId = (itineraryId: string): TravelLog[] =>
   db.logs.filter((l) => l.itineraryId === itineraryId) as TravelLog[];
 
-export const getSharedLogs = (): TravelLog[] =>
-  db.logs.filter((l) => l.shared) as TravelLog[];
+export const getSharedLogs = (): TravelLog[] => db.logs.filter((l) => l.shared) as TravelLog[];
 
 // ── 유저 ────────────────────────────────────────────────
 export const getUsers = (): User[] => db.users as User[];

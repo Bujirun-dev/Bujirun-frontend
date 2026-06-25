@@ -38,7 +38,7 @@ export function ArrivalVerifyModal({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-[30px] px-5 pt-10 pb-6 flex flex-col items-center gap-4"
+        className="relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-3xl px-5 pt-10 pb-6 flex flex-col items-center gap-4"
         onClick={(e) => e.stopPropagation()}
       >
         {userAvatarUrl && (
@@ -65,7 +65,7 @@ export function ArrivalVerifyModal({
           </h2>
         </div>
 
-        <div className="w-full backdrop-blur-[15px] bg-gradient-to-b from-[rgba(255,255,255,0.52)] to-[rgba(234,244,255,0.39)] border border-[rgba(151,193,255,0.2)] rounded-[10px] px-4 py-3 text-center">
+        <div className="w-full backdrop-blur-[15px] bg-gradient-to-b from-system-glassfrom to-system-glassto border border-system-glassborder rounded-lg px-4 py-3 text-center">
           <span className="font-paperlogy text-sm text-sub-gray">
             * GPS 위치 확인 후 관광지를 수집해주세요.
           </span>

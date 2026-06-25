@@ -114,11 +114,10 @@
 }
 
 @font-face {
-  font-family: "DXMovie";
-  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2102@1.0/DXMoviePoster.woff")
-    format("woff");
-  font-weight: normal;
-  font-style: normal;
+  font-family: "LaundryGothic";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicR.woff2")
+    format("woff2");
+  font-weight: 400;
   font-display: swap;
 }
 
@@ -148,6 +147,14 @@
   --color-system-navbg: #ecf5ff;
   --color-system-scroll: #d5e6ff;
   --color-system-searchbg: #f2f5fa;
+  --color-system-selected: #e8f3ff;
+  --color-system-divider: #eeeeee;
+  --color-system-glassfrom: rgba(255, 255, 255, 0.52);
+  --color-system-glassto: rgba(234, 244, 255, 0.39);
+  --color-system-glassborder: rgba(151, 193, 255, 0.2);
+
+  /* Transport */
+  --color-transport-taxi: #9b89d1;
 
   /* Category */
   --color-category-sea: rgba(151, 193, 255, 0.5);
@@ -170,7 +177,13 @@
   --font-paperlogy: "Paperlogy", sans-serif;
   --font-ssurround: "Cafe24Ssurround", sans-serif;
   --font-proup: "Cafe24ProUp", sans-serif;
-  --font-dxmovie: "DXMovie", sans-serif;
+  --font-laundrygothic: "LaundryGothic", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  line-height: 1.2;
 }
 
 html,

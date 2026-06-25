@@ -31,20 +31,22 @@ export function PlaceCard({
   return (
     <div
       className={cn(
-        "w-full min-w-0 h-[98px] flex bg-white rounded-[20px] overflow-hidden shadow-sm cursor-pointer",
-        className
+        "w-full min-w-0 h-[98px] flex bg-white rounded-2xl overflow-hidden shadow-sm cursor-pointer",
+        className,
       )}
       onClick={onClick}
     >
-      <div className="relative w-[115px] h-[80px] shrink-0 self-center ml-[9px] rounded-[14px] overflow-hidden">
+      <div className="relative w-[115px] h-[80px] shrink-0 self-center ml-2 rounded-xl overflow-hidden">
         <Image src={imageUrl} alt={name} fill className="object-cover" />
       </div>
 
-      <div className="min-w-0 flex-1 flex flex-col justify-between px-[10px] py-[10px] overflow-hidden relative">
+      <div className="min-w-0 flex-1 flex flex-col justify-between px-2.5 py-2.5 overflow-hidden relative">
         <div className="flex flex-col gap-1">
-          <div className="flex min-w-0 items-center gap-[5px] pr-[22px]">
+          <div className="flex min-w-0 items-center gap-1 pr-5">
             <Image src={markerBlueIcon} alt="위치" width={13} height={13} className="shrink-0" />
-            <span className="font-paperlogy font-medium text-[14px] text-text-heading truncate">{name}</span>
+            <span className="font-paperlogy font-medium text-md text-text-heading truncate">
+              {name}
+            </span>
           </div>
           <CategoryChip category={category} className="self-start" />
         </div>
@@ -52,7 +54,12 @@ export function PlaceCard({
         {status && (
           <div className="flex justify-end">
             {status === "verify" && onVerify ? (
-              <button onClick={(e) => { e.stopPropagation(); onVerify(); }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onVerify();
+                }}
+              >
                 <StatusBadge status={status} />
               </button>
             ) : (
@@ -63,7 +70,7 @@ export function PlaceCard({
 
         {onDelete && (
           <button
-            className="absolute top-[10px] right-[10px] w-[18px] h-[18px] rounded-[6px] bg-sub-coral flex items-center justify-center"
+            className="absolute top-[10px] right-[10px] w-[18px] h-[18px] rounded-md bg-sub-coral flex items-center justify-center"
             onClick={(e) => {
               e.stopPropagation();
               onDelete();

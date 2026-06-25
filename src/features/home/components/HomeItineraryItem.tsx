@@ -44,7 +44,7 @@ export function HomeItineraryItem({
       {/* 타임라인 */}
       <div className="flex flex-col items-center pt-1">
         <div className={cn("w-[11px] h-[11px] rounded-full shrink-0", dotColor)} />
-        {!isLast && <div className="w-px flex-1 bg-sub-gray mt-[3px]" />}
+        {!isLast && <div className="w-px flex-1 bg-sub-gray mt-0.5" />}
       </div>
 
       <div className="flex-1 flex flex-col gap-2 pb-5">
@@ -54,7 +54,7 @@ export function HomeItineraryItem({
         </div>
 
         {transport && (
-          <div className="relative inline-flex items-center gap-2 bg-sub-green rounded-2xl px-[10px] h-[27px] self-start">
+          <div className="relative inline-flex items-center gap-2 bg-sub-green rounded-2xl px-2.5 h-[27px] self-start">
             <div
               className="absolute -left-[7px] top-1/2 -translate-y-1/2 w-0 h-0"
               style={{
@@ -65,13 +65,16 @@ export function HomeItineraryItem({
             />
             <span className="font-paperlogy text-xs font-semibold text-main-blue bg-white/80 px-1.5 h-[19px] rounded-full inline-flex items-center justify-center gap-0.5">
               {TRANSPORT_ICONS[transport.type] && (
-                <Image src={TRANSPORT_ICONS[transport.type]} alt={transport.type} width={12} height={12} />
+                <Image
+                  src={TRANSPORT_ICONS[transport.type]}
+                  alt={transport.type}
+                  width={12}
+                  height={12}
+                />
               )}
               {transport.type}
             </span>
-            <span className="font-paperlogy text-xs text-text-primary">
-              {transport.routeName}
-            </span>
+            <span className="font-paperlogy text-xs text-text-primary">{transport.routeName}</span>
             <span className="font-paperlogy text-xs text-text-primary">
               {transport.durationMin}min
             </span>

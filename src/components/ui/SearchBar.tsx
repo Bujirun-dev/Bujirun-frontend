@@ -21,9 +21,9 @@ export function SearchBar({
     <div
       className={cn(
         "flex items-center gap-1",
-        "py-2 px-3 rounded-[10px]",
+        "py-2 px-3 rounded-lg",
         "bg-system-searchbg",
-        className
+        className,
       )}
     >
       <Image src={searchIcon} alt="검색" width={16} height={16} className="shrink-0" />
@@ -35,7 +35,7 @@ export function SearchBar({
         className={cn(
           "flex-1 bg-transparent outline-none",
           "font-paperlogy font-normal text-xs text-text-primary",
-          "placeholder:text-sub-gray"
+          "placeholder:text-sub-gray",
         )}
       />
     </div>

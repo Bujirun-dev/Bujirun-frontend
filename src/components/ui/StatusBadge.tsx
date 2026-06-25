@@ -36,10 +36,10 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     <span
       className={cn(
         "inline-flex items-center justify-center",
-        "w-[60px] h-[24px] rounded-[6px]",
+        "w-[60px] h-[24px] rounded-md",
         "font-paperlogy text-xs font-semibold",
         style,
-        className
+        className,
       )}
     >
       {label}

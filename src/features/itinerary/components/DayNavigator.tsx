@@ -6,7 +6,7 @@ interface DayNavigatorProps {
 
 export function DayNavigator({ totalDays, currentDay, onDayChange }: DayNavigatorProps) {
   return (
-    <div className="flex items-center justify-center gap-[20px] pt-3 pb-[10px]">
+    <div className="flex items-center justify-center gap-5 pt-3 pb-2.5">
       {Array.from({ length: totalDays }).map((_, i) =>
         i === currentDay ? (
           <button
@@ -14,7 +14,7 @@ export function DayNavigator({ totalDays, currentDay, onDayChange }: DayNavigato
             className="flex size-[22px] items-center justify-center rounded-full bg-main-blue"
             onClick={() => onDayChange(i)}
           >
-            <span className="font-proup text-[12px] font-normal text-white">{i + 1}</span>
+            <span className="font-proup text-sm font-normal text-white">{i + 1}</span>
           </button>
         ) : (
           <button
@@ -22,7 +22,7 @@ export function DayNavigator({ totalDays, currentDay, onDayChange }: DayNavigato
             className="size-[9px] rounded-full bg-main-blue/30"
             onClick={() => onDayChange(i)}
           />
-        )
+        ),
       )}
     </div>
   );

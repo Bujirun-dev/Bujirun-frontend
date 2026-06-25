@@ -17,23 +17,17 @@ export function VotePlaceCard({
   className,
 }: VotePlaceCardProps) {
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-1 cursor-pointer",
-        className
-      )}
-      onClick={onClick}
-    >
+    <div className={cn("flex flex-col gap-1 cursor-pointer", className)} onClick={onClick}>
       <div
         className={cn(
-          "relative w-[72px] h-[56px] rounded-[12px] overflow-hidden",
-          isSelected && "ring-2 ring-main-blue"
+          "relative w-[72px] h-[56px] rounded-xl overflow-hidden",
+          isSelected && "ring-2 ring-main-blue",
         )}
       >
         <Image src={imageUrl} alt={name ?? ""} fill className="object-cover" />
       </div>
       {name && (
-        <p className="font-paperlogy text-[10px] text-text-primary text-center truncate w-[72px]">
+        <p className="font-paperlogy text-xs text-text-primary text-center truncate w-[72px]">
           {name}
         </p>
       )}

@@ -25,11 +25,14 @@ export function PlaceSearchItem({
 }: PlaceSearchItemProps) {
   return (
     <div
-      className={cn("flex items-center gap-3 bg-white rounded-[14px] p-3 cursor-pointer active:opacity-80", className)}
+      className={cn(
+        "flex items-center gap-3 bg-white rounded-xl p-3 cursor-pointer active:opacity-80",
+        className,
+      )}
       onClick={onClick}
     >
       {imageUrl && (
-        <div className="relative w-[80px] h-[56px] rounded-[10px] overflow-hidden shrink-0">
+        <div className="relative w-[80px] h-[56px] rounded-lg overflow-hidden shrink-0">
           <Image src={imageUrl} alt={name} fill className="object-cover" />
         </div>
       )}
@@ -37,7 +40,9 @@ export function PlaceSearchItem({
       <div className="flex-1 flex flex-col gap-1.5 min-w-0">
         <div className="flex items-center gap-1">
           <Image src={markerIcon} alt="위치" width={12} height={12} className="shrink-0" />
-          <span className="font-paperlogy font-semibold text-md text-text-heading truncate">{name}</span>
+          <span className="font-paperlogy font-semibold text-md text-text-heading truncate">
+            {name}
+          </span>
         </div>
         <CategoryChip category={category} className="self-start" />
       </div>

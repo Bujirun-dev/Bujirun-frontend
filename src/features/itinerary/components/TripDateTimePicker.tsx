@@ -125,33 +125,33 @@ export function TripDateTimePicker({ value, onChange, minValue }: TripDateTimePi
       <button
         type="button"
         onClick={openPicker}
-        className="h-[27px] w-[197px] rounded-[9px] border-[0.5px] border-sub-lightblue bg-main-blue/20 px-3 text-left font-paperlogy text-[11px] font-light text-text-primary outline-none"
+        className="h-[27px] w-[197px] rounded-lg border-[0.5px] border-sub-lightblue bg-main-blue/20 px-3 text-left font-paperlogy text-xs font-light text-text-primary outline-none"
       >
         {value}
       </button>
 
       {isOpen && (
-        <div className="fixed left-1/2 top-1/2 z-10 w-[252px] -translate-x-1/2 -translate-y-1/2 rounded-[14px] border border-sub-lightblue bg-main-white p-[10px] shadow-lg">
+        <div className="fixed left-1/2 top-1/2 z-10 w-[252px] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-sub-lightblue bg-main-white p-[10px] shadow-lg">
           <div className="mb-2 flex items-center justify-between">
             <button
               type="button"
-              className="size-[22px] rounded-full bg-main-blue/20 font-paperlogy text-[12px] text-text-primary active:opacity-70"
+              className="size-[22px] rounded-full bg-main-blue/20 font-paperlogy text-sm text-text-primary active:opacity-70"
               onClick={() => moveCalendarMonth(-1)}
             >
               &lt;
             </button>
-            <span className="font-paperlogy text-[12px] font-semibold text-text-heading">
+            <span className="font-paperlogy text-sm font-semibold text-text-heading">
               {calendarMonth.getFullYear()}.{pad(calendarMonth.getMonth() + 1)}
             </span>
             <button
               type="button"
-              className="size-[22px] rounded-full bg-main-blue/20 font-paperlogy text-[12px] text-text-primary active:opacity-70"
+              className="size-[22px] rounded-full bg-main-blue/20 font-paperlogy text-sm text-text-primary active:opacity-70"
               onClick={() => moveCalendarMonth(1)}
             >
               &gt;
             </button>
           </div>
-          <div className="grid grid-cols-7 gap-1 text-center font-paperlogy text-[10px] text-sub-gray">
+          <div className="grid grid-cols-7 gap-1 text-center font-paperlogy text-xs text-sub-gray">
             {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
               <span key={day}>{day}</span>
             ))}
@@ -171,7 +171,7 @@ export function TripDateTimePicker({ value, onChange, minValue }: TripDateTimePi
                   type="button"
                   key={day}
                   disabled={isDisabled}
-                  className={`h-[22px] rounded-[6px] font-paperlogy text-[10px] active:opacity-70 ${
+                  className={`h-[22px] rounded-md font-paperlogy text-xs active:opacity-70 ${
                     isDisabled
                       ? "bg-system-searchbg text-sub-lightgray"
                       : isSelected
@@ -185,7 +185,7 @@ export function TripDateTimePicker({ value, onChange, minValue }: TripDateTimePi
               );
             })}
           </div>
-          <div className="mt-2 flex items-center justify-center gap-[6px]">
+          <div className="mt-2 flex items-center justify-center gap-1.5">
             <input
               type="text"
               inputMode="numeric"
@@ -193,9 +193,9 @@ export function TripDateTimePicker({ value, onChange, minValue }: TripDateTimePi
               onChange={(event) => handleTimeInput("hour", event.target.value)}
               onBlur={() => handleTimeInputBlur("hour")}
               onFocus={(event) => event.currentTarget.select()}
-              className="h-[30px] w-[48px] rounded-[8px] border-[0.5px] border-sub-lightblue bg-main-blue/20 text-center font-paperlogy text-[11px] text-text-primary outline-none"
+              className="h-[30px] w-[48px] rounded-lg border-[0.5px] border-sub-lightblue bg-main-blue/20 text-center font-paperlogy text-xs text-text-primary outline-none"
             />
-            <span className="font-paperlogy text-[12px] font-semibold text-text-primary">:</span>
+            <span className="font-paperlogy text-sm font-semibold text-text-primary">:</span>
             <input
               type="text"
               inputMode="numeric"
@@ -203,11 +203,11 @@ export function TripDateTimePicker({ value, onChange, minValue }: TripDateTimePi
               onChange={(event) => handleTimeInput("minute", event.target.value)}
               onBlur={() => handleTimeInputBlur("minute")}
               onFocus={(event) => event.currentTarget.select()}
-              className="h-[30px] w-[48px] rounded-[8px] border-[0.5px] border-sub-lightblue bg-main-blue/20 text-center font-paperlogy text-[11px] text-text-primary outline-none"
+              className="h-[30px] w-[48px] rounded-lg border-[0.5px] border-sub-lightblue bg-main-blue/20 text-center font-paperlogy text-xs text-text-primary outline-none"
             />
             <button
               type="button"
-              className="h-[30px] rounded-[8px] bg-main-blue px-3 font-paperlogy text-[11px] font-semibold text-white active:opacity-70"
+              className="h-[30px] rounded-lg bg-main-blue px-3 font-paperlogy text-xs font-semibold text-white active:opacity-70"
               onClick={() => setIsOpen(false)}
             >
               완료

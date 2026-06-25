@@ -15,17 +15,17 @@ export function TextInput({ className, maxLength, value, ...props }: TextInputPr
         value={value}
         maxLength={maxLength}
         className={cn(
-          "w-full h-[40px] px-4 rounded-[12px]",
+          "w-full h-[40px] px-4 rounded-xl",
           "bg-white border border-sub-gray",
           "font-paperlogy font-semibold text-sm text-sub-darkgray",
           "placeholder:text-sub-gray",
           "outline-none focus:border-main-blue transition-colors",
-          className
+          className,
         )}
         {...props}
       />
       {maxLength && (
-        <span className="font-paperlogy font-semibold text-sm text-sub-gray pr-[10px] text-right">
+        <span className="font-paperlogy font-semibold text-sm text-sub-gray pr-2.5 text-right">
           {currentLength}/{maxLength}
         </span>
       )}

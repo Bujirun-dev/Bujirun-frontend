@@ -12,6 +12,7 @@ export { KakaoLoginButton } from "./ui/KakaoLoginButton";
 export { SpeechBubble } from "./ui/SpeechBubble";
 export { CategoryChip } from "./ui/CategoryChip";
 export type { Category } from "./ui/CategoryChip";
+export { FilterChips } from "./ui/FilterChips";
 export { PlaceCard } from "./place/PlaceCard";
 export { PlaceDetailSheet } from "./place/PlaceDetailSheet";
 export { PlaceInfoRow } from "./place/PlaceInfoRow";
