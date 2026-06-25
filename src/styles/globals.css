@@ -114,11 +114,10 @@
 }
 
 @font-face {
-  font-family: "DXMovie";
-  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2102@1.0/DXMoviePoster.woff")
-    format("woff");
-  font-weight: normal;
-  font-style: normal;
+  font-family: "LaundryGothic";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicR.woff2")
+    format("woff2");
+  font-weight: 400;
   font-display: swap;
 }
 
@@ -170,7 +169,7 @@
   --font-paperlogy: "Paperlogy", sans-serif;
   --font-ssurround: "Cafe24Ssurround", sans-serif;
   --font-proup: "Cafe24ProUp", sans-serif;
-  --font-dxmovie: "DXMovie", sans-serif;
+  --font-laundrygothic: "LaundryGothic", sans-serif;
 }
 
 html,
