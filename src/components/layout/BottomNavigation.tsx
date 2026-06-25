@@ -93,8 +93,8 @@ export function BottomNavigation() {
 
   return (
     // 하단 네비게이션 전체 디자인
-    <nav className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[402px] pb-[env(safe-area-inset-bottom)] bg-main-white backdrop-blur">
-      <div className="grid h-17 grid-cols-4 p-2">
+    <nav className="z-30 w-full shrink-0 bg-main-white backdrop-blur pb-[env(safe-area-inset-bottom)]">
+      <div className="grid h-[84px] grid-cols-4 p-2">
         {/* 메뉴 배열을 돌면서 탭을 하나씩 만들기 */}
         {navigationItems.map((item) => {
           // 현재 탭이 활성화 상태인지 판단
@@ -106,7 +106,7 @@ export function BottomNavigation() {
               key={item.href}
               href={item.href}
               aria-current={isActive ? "page" : undefined}
-              className="relative flex min-w-0 flex-col items-center justify-center text-[11px] font-semibold transition-colors"
+              className="relative flex min-w-0 flex-col items-center justify-center text-xs font-semibold transition-colors"
             >
               {/* 활성화 시 */}
               {/* 배경 - 활성화 상태일 때만 표시 */}
@@ -120,7 +120,7 @@ export function BottomNavigation() {
               <div className="relative flex translate-y-0.5 flex-col items-center justify-center gap-1.5">
                 <NavIcon href={item.href} isActive={isActive} />
                 <span
-                  className={`translate-y-0 rounded-lg px-0 py-0 font-paperlogy text-[10px] font-semibold leading-none transition-all duration-500 ease-out ${
+                  className={`translate-y-0 rounded-lg px-0 py-0 font-paperlogy text-xs font-semibold leading-none transition-all duration-500 ease-out ${
                     isActive ? "text-sub-deepblue opacity-100" : "text-text-primary opacity-100"
                   }`}
                 >
