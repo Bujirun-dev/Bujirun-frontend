@@ -34,12 +34,12 @@ export function AvatarSelectModal({
 
   return createPortal(
     <div
-      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6 backdrop-blur-[2px]"
+      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6"
       style={{ backgroundColor: "var(--color-system-blackbg)" }}
       onClick={onClose}
     >
       <div
-        className="app-scrollbar w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-[30px] px-5 py-6 flex flex-col gap-5"
+        className="w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-[30px] px-5 py-6 flex flex-col gap-5"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="font-paperlogy font-bold text-lg text-text-heading text-center">
@@ -53,7 +53,7 @@ export function AvatarSelectModal({
               onClick={() => setSelected(url)}
               className={cn(
                 "w-[72px] h-[72px] rounded-full overflow-hidden border-2 transition-all",
-                selected === url ? "border-main-blue" : "border-transparent"
+                selected === url ? "border-main-blue" : "border-transparent",
               )}
             >
               <div className="relative w-full h-full">
@@ -64,11 +64,22 @@ export function AvatarSelectModal({
         </div>
 
         <div className="flex gap-3">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>취소</Button>
-          <Button variant="primary" className="flex-1" onClick={() => { onConfirm(selected); onClose(); }}>완료</Button>
+          <Button variant="secondary" className="flex-1" onClick={onClose}>
+            취소
+          </Button>
+          <Button
+            variant="primary"
+            className="flex-1"
+            onClick={() => {
+              onConfirm(selected);
+              onClose();
+            }}
+          >
+            완료
+          </Button>
         </div>
       </div>
     </div>,
-    appRoot
+    appRoot,
   );
 }

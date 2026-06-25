@@ -6,6 +6,7 @@ export { StatusBadge } from "./ui/StatusBadge";
 export { SearchBar } from "./ui/SearchBar";
 export { TimePicker } from "./ui/TimePicker";
 export { TextInput } from "./ui/TextInput";
+export { Toast } from "./ui/Toast";
 export { Counter } from "./ui/Counter";
 export { KakaoLoginButton } from "./ui/KakaoLoginButton";
 export { SpeechBubble } from "./ui/SpeechBubble";

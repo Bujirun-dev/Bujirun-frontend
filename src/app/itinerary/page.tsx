@@ -2,8 +2,10 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import characterImg from "@/assets/character/face.png";
-import { Modal, TimePicker, PageCard } from "@/components";
+import travelImg from "@/assets/character/travel.png";
+import { Modal, TimePicker, PageCard, Button } from "@/components";
 import {
   ItineraryTimeline,
   ItineraryHeader,
@@ -15,6 +17,9 @@ import type { ItineraryStop } from "@/features/itinerary";
 import { getScheduleById, getPlaceById } from "@/mocks";
 import type { TravelMode } from "@/shared/types";
 import type { Category } from "@/components";
+
+// TODO: 실제 API 연동 시 교체 (현재 선택된 여행이 있는지 여부)
+const MOCK_HAS_ACTIVE_TRIP = true;
 
 // ── 더미 데이터 변환 헬퍼 ──────────────────────────────
 const FALLBACK_IMAGE = "https://picsum.photos/seed/busan/300/200";
@@ -89,7 +94,32 @@ const { days: INITIAL_DAYS, dates: TRIP_DATES } = buildDays(SCHEDULE_ID);
 
 type ModalType = "optimize" | "delete" | "time" | "transport" | "verify";
 
+function ItineraryEmptyState() {
+  const router = useRouter();
+  return (
+    <PageCard>
+      <div className="flex-1 flex flex-col items-center justify-center gap-6 pb-10 px-5">
+        <Image src={travelImg} alt="여행" width={160} height={160} />
+        <div className="flex flex-col items-center gap-2 text-center">
+          <p className="font-paperlogy font-bold text-xl text-text-heading">아직 여행 일정이 없어요</p>
+          <p className="font-paperlogy text-sm text-sub-gray">
+            부지런즈와 함께<br />여행을 시작해볼까요?
+          </p>
+        </div>
+        <Button variant="primary" onClick={() => router.push("/itinerary/trips")}>
+          여행 목록 보기
+        </Button>
+      </div>
+    </PageCard>
+  );
+}
+
 export default function ItineraryPage() {
+  if (!MOCK_HAS_ACTIVE_TRIP) return <ItineraryEmptyState />;
+  return <ItineraryMain />;
+}
+
+function ItineraryMain() {
   const router = useRouter();
 
   const [currentDay, setCurrentDay] = useState(0);
@@ -209,7 +239,7 @@ export default function ItineraryPage() {
             {allDayStops.map((dayStops, dayIdx) => (
               <div
                 key={dayIdx}
-                className="native-scroll-hidden box-border w-full min-w-0 h-full shrink-0 overflow-y-scroll pl-0 pr-1 pb-6"
+                className="box-border w-full min-w-0 h-full shrink-0 overflow-y-scroll pl-0 pr-1 pb-6"
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
               >

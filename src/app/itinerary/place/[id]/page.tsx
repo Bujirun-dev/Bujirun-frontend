@@ -48,7 +48,7 @@ export default function PlaceDetailPage({ params }: { params: { id: string } }) 
         </div>
 
         {/* 상세 정보 */}
-        <div className="app-scrollbar flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 flex flex-col gap-4">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-5 py-5 flex flex-col gap-4">
           {/* 이름 + 카테고리 */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">

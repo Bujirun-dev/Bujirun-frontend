@@ -46,7 +46,7 @@ export default function LogDetailPage({ params }: { params: { id: string } }) {
         </div>
 
         {/* 스크롤 영역 */}
-        <div className="app-scrollbar flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
           {/* 정보 섹션 */}
           <div className="px-5 pt-4 pb-3 flex flex-col gap-3 border-b border-gray-100">
             <div className="flex items-start justify-between gap-2">

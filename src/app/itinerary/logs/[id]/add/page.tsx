@@ -46,7 +46,7 @@ export default function LogAddConfirmPage() {
         </div>
 
         {/* 여행 선택 */}
-        <div className="app-scrollbar flex flex-col gap-2 flex-1 overflow-y-auto overflow-x-hidden pb-6">
+        <div className="flex flex-col gap-2 flex-1 overflow-y-auto overflow-x-hidden pb-6">
           <p className="font-paperlogy text-[13px] text-text-primary font-semibold mb-1">
             추가할 여행을 선택해주세요
           </p>

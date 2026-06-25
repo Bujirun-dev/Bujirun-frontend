@@ -33,12 +33,12 @@ export function ArrivalVerifyModal({
 
   return createPortal(
     <div
-      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6 backdrop-blur-[2px]"
+      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6"
       style={{ backgroundColor: "var(--color-system-blackbg)" }}
       onClick={onClose}
     >
       <div
-        className="app-scrollbar relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-[30px] px-5 pt-10 pb-6 flex flex-col items-center gap-4"
+        className="relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-[30px] px-5 pt-10 pb-6 flex flex-col items-center gap-4"
         onClick={(e) => e.stopPropagation()}
       >
         {userAvatarUrl && (
@@ -72,15 +72,29 @@ export function ArrivalVerifyModal({
         </div>
 
         <div className="w-full flex gap-3">
-          <Button variant="secondary" className="flex-1" onClick={() => { onLater(); onClose(); }}>
+          <Button
+            variant="secondary"
+            className="flex-1"
+            onClick={() => {
+              onLater();
+              onClose();
+            }}
+          >
             나중에 하기
           </Button>
-          <Button variant="primary" className="flex-1" onClick={() => { onVerify(); onClose(); }}>
+          <Button
+            variant="primary"
+            className="flex-1"
+            onClick={() => {
+              onVerify();
+              onClose();
+            }}
+          >
             인증하기
           </Button>
         </div>
       </div>
     </div>,
-    appRoot
+    appRoot,
   );
 }

@@ -59,7 +59,7 @@ export default function PlaceSearchPage() {
         </div>
 
         {/* 관광지 목록 */}
-        <div className="app-scrollbar flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-2">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-2">
           {filtered.length === 0 ? (
             <div className="flex flex-1 items-center justify-center text-sub-gray font-paperlogy text-sm pt-20">
               검색 결과가 없습니다.

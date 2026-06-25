@@ -102,12 +102,12 @@ export function TransportSelectSheet({
 
   return createPortal(
     <div
-      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6 backdrop-blur-[2px]"
+      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6"
       style={{ backgroundColor: "var(--color-system-blackbg)" }}
       onClick={onClose}
     >
       <div
-        className="app-scrollbar w-full max-w-[350px] max-h-[80dvh] bg-main-white rounded-[20px] px-5 py-6 flex flex-col gap-3 overflow-y-auto overflow-x-hidden shadow-lg"
+        className="w-full max-w-[350px] max-h-[80dvh] bg-main-white rounded-[20px] px-5 py-6 flex flex-col gap-3 overflow-y-auto overflow-x-hidden shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -123,7 +123,11 @@ export function TransportSelectSheet({
         </div>
 
         {options.map((option) => (
-          <button key={option.id} className="text-left active:opacity-80" onClick={() => onSelect(option)}>
+          <button
+            key={option.id}
+            className="text-left active:opacity-80"
+            onClick={() => onSelect(option)}
+          >
             <TransportCard
               from={from}
               to={to}
@@ -137,6 +141,6 @@ export function TransportSelectSheet({
         ))}
       </div>
     </div>,
-    appRoot
+    appRoot,
   );
 }
