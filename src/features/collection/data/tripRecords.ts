@@ -1,4 +1,4 @@
-export const TRAVEL_RECORDS = [
+export const TRIP_RECORDS = [
   {
     id: 1,
     title: "여행이름 1",

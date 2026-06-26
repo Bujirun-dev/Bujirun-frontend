@@ -1,11 +1,57 @@
+"use client";
+
 import Image from "next/image";
 
+import { useState } from "react";
+import { RecordDeleteModal } from "@/features/collection/components/RecordDeleteModal";
+
 import bookIcon from "@/assets/icons/collection/book.png";
-import { Card, PageCard } from "@/components";
-import { TravelRecordItem } from "@/features/collection/components/TravelRecordItem";
-import { TRAVEL_RECORDS } from "@/features/collection/data/travelRecords";
+import successIcon from "@/assets/icons/mypage/success.svg";
+import { Card, CategoryChip, PageCard, Toast } from "@/components";
+import type { Category } from "@/components/ui/CategoryChip";
+import { TripRecordItem } from "@/features/collection/components/TripRecordItem";
+import { PLACES } from "@/features/collection/data/places";
+import { TRIP_RECORDS } from "@/features/collection/data/tripRecords";
 
 export default function CollectionRecordsPage() {
+  const collectedPlaces = PLACES.filter((place) => place.isCollected);
+  const collectedPlaceCount = collectedPlaces.length;
+
+  const favoriteCategoryCount = collectedPlaces.reduce<Partial<Record<Category, number>>>(
+    (acc, place) => {
+      const category = place.category as Category;
+      acc[category] = (acc[category] ?? 0) + 1;
+      return acc;
+    },
+    {},
+  );
+
+  const favoriteCategory = Object.entries(favoriteCategoryCount).sort(
+    ([, countA], [, countB]) => (countB ?? 0) - (countA ?? 0),
+  )[0]?.[0] as Category | undefined;
+
+  const [records, setRecords] = useState(TRIP_RECORDS);
+  const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const openDeleteModal = (tripId: number) => {
+    setSelectedTripId(tripId);
+  };
+
+  const closeDeleteModal = () => {
+    setSelectedTripId(null);
+  };
+
+  const selectedTrip = records.find((record) => record.id === selectedTripId) ?? null;
+
+  const handleDelete = () => {
+    if (selectedTripId === null) return;
+
+    setRecords((prevRecords) => prevRecords.filter((record) => record.id !== selectedTripId));
+    closeDeleteModal();
+    setToastMessage("여행 기록이 삭제되었어요.");
+  };
+
   return (
     <section className="flex h-full flex-col gap-6">
       <Card variant="white" className="rounded-[25px]">
@@ -26,21 +72,25 @@ export default function CollectionRecordsPage() {
           <div className="grid grid-cols-3 text-center">
             <div className="flex flex-col items-center gap-1 border-r border-dashed border-sub-gray">
               <p className="text-sm font-bold text-text-primary">총 여행 기록</p>
-              <p className="text-2xl font-bold text-main-blue">
-                4<span className="ml-1 text-sm text-text-primary">회</span>
+              <p className="text-2xl font-bold text-sub-deepblue">
+                {records.length}
+                <span className="ml-1 text-sm text-text-primary">회</span>
               </p>
             </div>
             <div className="flex flex-col items-center gap-1 border-r border-dashed border-sub-gray">
               <p className="text-sm font-bold text-text-primary">수집 관광지</p>
-              <p className="text-2xl font-bold text-main-blue">
-                30<span className="ml-1 text-sm text-text-primary">곳</span>
+              <p className="text-2xl font-bold text-sub-deepblue">
+                {collectedPlaceCount}
+                <span className="ml-1 text-sm text-text-primary">곳</span>
               </p>
             </div>
             <div className="flex flex-col items-center gap-2">
               <p className="text-sm font-bold text-text-primary">최애 카테고리</p>
-              <span className="rounded-full bg-sub-lightblue px-3 py-1  text-sm text-text-primary">
-                #바다
-              </span>
+              {favoriteCategory ? (
+                <CategoryChip category={favoriteCategory} />
+              ) : (
+                <span className="text-sm text-sub-gray">-</span>
+              )}
             </div>
           </div>
         </div>
@@ -48,11 +98,38 @@ export default function CollectionRecordsPage() {
 
       <PageCard className="px-6 pt-8 pb-4">
         <div className="flex flex-col gap-5">
-          {TRAVEL_RECORDS.map((record) => (
-            <TravelRecordItem key={record.id} title={record.title} period={record.period} />
+          {records.map((record) => (
+            <TripRecordItem
+              key={record.id}
+              title={record.title}
+              period={record.period}
+              onDelete={() => openDeleteModal(record.id)}
+            />
           ))}
         </div>
       </PageCard>
+
+      <RecordDeleteModal
+        isOpen={selectedTrip !== null}
+        tripName={selectedTrip?.title ?? ""}
+        onClose={closeDeleteModal}
+        onConfirm={handleDelete}
+      />
+
+      <Toast
+        isVisible={toastMessage !== null}
+        onHide={() => setToastMessage(null)}
+        message={toastMessage ?? ""}
+        icon={
+          <Image
+            src={successIcon}
+            alt="완료"
+            width={12}
+            height={12}
+            className="brightness-0 invert"
+          />
+        }
+      />
     </section>
   );
 }

@@ -5,10 +5,7 @@ import { useRouter } from "next/navigation";
 
 import turtleIcon from "@/assets/icons/collection/turtle.png";
 import { Card, SpeechBubble } from "@/components";
-
-// 임시 하드코딩 데이터: 전체 관광지 개수, 현재 수집한 관광지 개수
-const TOTAL_COLLECTION_COUNT = 50;
-const COLLECTED_COLLECTION_COUNT = 30;
+import { PLACES } from "@/features/collection/data/places";
 
 export default function CollectionPage() {
   const router = useRouter();
@@ -17,10 +14,12 @@ export default function CollectionPage() {
     router.push("/collection/records");
   };
 
+  const collectedPlaces = PLACES.filter((place) => place.isCollected);
+  const totalCollectionCount = PLACES.length;
+  const collectedCollectionCount = collectedPlaces.length;
+
   // 수집률
-  const collectionProgress = Math.round(
-    (COLLECTED_COLLECTION_COUNT / TOTAL_COLLECTION_COUNT) * 100,
-  );
+  const collectionProgress = Math.round((collectedCollectionCount / totalCollectionCount) * 100);
 
   // 말풍선 꼬리 위치 계산 (범위 제한)
   const TAIL_MIN = 16;
@@ -70,10 +69,10 @@ export default function CollectionPage() {
 
               <div className="ml-2 flex items-baseline">
                 <span className="text-xl font-bold leading-none text-sub-deepblue">
-                  {COLLECTED_COLLECTION_COUNT}
+                  {collectedCollectionCount}
                 </span>
                 <span className="ml-1 text-sm font-medium leading-none text-sub-gray">
-                  / {TOTAL_COLLECTION_COUNT}
+                  / {totalCollectionCount}
                 </span>
               </div>
             </div>
@@ -88,10 +87,10 @@ export default function CollectionPage() {
             </SpeechBubble>
 
             {/* 구분선 */}
-            <div className="mt-2 h-[1px] bg-sub-lightgray" />
+            <div className="my-2 h-[1px] bg-sub-lightgray" />
 
             {/* 여행 기록 보기 */}
-            <div className="mx-auto my-1 flex items-center gap-1 leading-none">
+            <div className="mx-auto flex items-center gap-1 leading-none">
               <span className="text-lg font-semibold leading-none text-sub-deepblue">
                 여행 기록 보기
               </span>
