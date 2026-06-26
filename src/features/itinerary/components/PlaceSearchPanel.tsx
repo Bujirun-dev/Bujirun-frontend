@@ -20,21 +20,122 @@ const SORT_OPTIONS: SortOption[] = ["추천순", "이름순"];
 
 // TODO: API 연결 시 제거 — GET /api/places?region=... 응답으로 교체
 const SAMPLE_PLACES = [
-  { id: "1", name: "해운대 해수욕장", category: "sea" as Category, status: "uncollected" as const, imageUrl: "https://picsum.photos/seed/beach2/300/200" },
-  { id: "2", name: "감천문화마을", category: "culture" as Category, status: "uncollected" as const, imageUrl: "https://picsum.photos/seed/culture/300/200" },
-  { id: "3", name: "금정산", category: "nature" as Category, status: "uncollected" as const, imageUrl: "https://picsum.photos/seed/mountain/300/200" },
-  { id: "4", name: "송도해상케이블카", category: "experience" as Category, status: "completed" as const, imageUrl: "https://picsum.photos/seed/cable/300/200" },
-  { id: "5", name: "광안리 해수욕장", category: "sea" as Category, status: "uncollected" as const, imageUrl: "https://picsum.photos/seed/beach3/300/200" },
-  { id: "6", name: "송도 해수욕장", category: "sea" as Category, status: "uncollected" as const, imageUrl: "https://picsum.photos/seed/beach4/300/200" },
-  { id: "7", name: "낙동강 하구 에코센터", category: "nature" as Category, status: "uncollected" as const, imageUrl: "https://picsum.photos/seed/eco/300/200" },
-  { id: "8", name: "남포동 거리", category: "culture" as Category, status: "completed" as const, imageUrl: "https://picsum.photos/seed/nampo/300/200" },
-  { id: "9", name: "다대포 해수욕장", category: "sea" as Category, status: "uncollected" as const, imageUrl: "https://picsum.photos/seed/dadaepo/300/200" },
-  { id: "10", name: "민락 수변 공원", category: "nature" as Category, status: "uncollected" as const, imageUrl: "https://picsum.photos/seed/minlak/300/200" },
+  {
+    id: "1",
+    name: "해운대 해수욕장",
+    category: "sea" as Category,
+    status: "uncollected" as const,
+    imageUrl: "https://picsum.photos/seed/beach2/300/200",
+  },
+  {
+    id: "2",
+    name: "감천문화마을",
+    category: "culture" as Category,
+    status: "uncollected" as const,
+    imageUrl: "https://picsum.photos/seed/culture/300/200",
+  },
+  {
+    id: "3",
+    name: "금정산",
+    category: "nature" as Category,
+    status: "uncollected" as const,
+    imageUrl: "https://picsum.photos/seed/mountain/300/200",
+  },
+  {
+    id: "4",
+    name: "송도해상케이블카",
+    category: "experience" as Category,
+    status: "completed" as const,
+    imageUrl: "https://picsum.photos/seed/cable/300/200",
+  },
+  {
+    id: "5",
+    name: "광안리 해수욕장",
+    category: "sea" as Category,
+    status: "uncollected" as const,
+    imageUrl: "https://picsum.photos/seed/beach3/300/200",
+  },
+  {
+    id: "6",
+    name: "송도 해수욕장",
+    category: "sea" as Category,
+    status: "uncollected" as const,
+    imageUrl: "https://picsum.photos/seed/beach4/300/200",
+  },
+  {
+    id: "7",
+    name: "낙동강 하구 에코센터",
+    category: "nature" as Category,
+    status: "uncollected" as const,
+    imageUrl: "https://picsum.photos/seed/eco/300/200",
+  },
+  {
+    id: "8",
+    name: "남포동 거리",
+    category: "culture" as Category,
+    status: "completed" as const,
+    imageUrl: "https://picsum.photos/seed/nampo/300/200",
+  },
+  {
+    id: "9",
+    name: "다대포 해수욕장",
+    category: "sea" as Category,
+    status: "uncollected" as const,
+    imageUrl: "https://picsum.photos/seed/dadaepo/300/200",
+  },
+  {
+    id: "10",
+    name: "민락 수변 공원",
+    category: "nature" as Category,
+    status: "uncollected" as const,
+    imageUrl: "https://picsum.photos/seed/minlak/300/200",
+  },
 ];
 
-const CONSONANTS = ["ㄱ", "ㄴ", "ㄷ", "ㄹ", "ㅁ", "ㅂ", "ㅅ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"];
-const CONSONANT_MAP = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"];
-const CONSONANT_NORMALIZE: Record<string, string> = { "ㄲ": "ㄱ", "ㄸ": "ㄷ", "ㅃ": "ㅂ", "ㅆ": "ㅅ", "ㅉ": "ㅈ" };
+const CONSONANTS = [
+  "ㄱ",
+  "ㄴ",
+  "ㄷ",
+  "ㄹ",
+  "ㅁ",
+  "ㅂ",
+  "ㅅ",
+  "ㅇ",
+  "ㅈ",
+  "ㅊ",
+  "ㅋ",
+  "ㅌ",
+  "ㅍ",
+  "ㅎ",
+];
+const CONSONANT_MAP = [
+  "ㄱ",
+  "ㄲ",
+  "ㄴ",
+  "ㄷ",
+  "ㄸ",
+  "ㄹ",
+  "ㅁ",
+  "ㅂ",
+  "ㅃ",
+  "ㅅ",
+  "ㅆ",
+  "ㅇ",
+  "ㅈ",
+  "ㅉ",
+  "ㅊ",
+  "ㅋ",
+  "ㅌ",
+  "ㅍ",
+  "ㅎ",
+];
+const CONSONANT_NORMALIZE: Record<string, string> = {
+  ㄲ: "ㄱ",
+  ㄸ: "ㄷ",
+  ㅃ: "ㅂ",
+  ㅆ: "ㅅ",
+  ㅉ: "ㅈ",
+};
 
 function getInitial(name: string): string {
   const code = name.charCodeAt(0);
@@ -104,7 +205,9 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
     if (!el || !list) return;
     setActiveSection(consonant);
     isScrollingRef.current = true;
-    setTimeout(() => { isScrollingRef.current = false; }, 700);
+    setTimeout(() => {
+      isScrollingRef.current = false;
+    }, 700);
     const top = el.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop;
     list.scrollTo({ top, behavior: "smooth" });
   };
@@ -115,7 +218,7 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
       <div className="pb-3.5">
         <SearchBar
           value={searchValue}
-          onChange={setSearchValue}
+          onChange={(v) => { setSearchValue(v); if (v) setCategoryFilter("all"); }}
           placeholder="관광지 검색"
           className="!h-[30px] !w-full !rounded-[10px] !bg-system-searchbg !py-0"
           inputClassName="!font-paperlogy !text-xs !font-normal !text-sub-gray placeholder:!text-sub-gray"
@@ -129,7 +232,10 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
         {SORT_OPTIONS.map((opt) => (
           <button
             key={opt}
-            onClick={() => { setSortBy(opt); if (opt === "이름순") setTimeout(() => scrollToSection("ㄱ"), 0); }}
+            onClick={() => {
+              setSortBy(opt);
+              if (opt === "이름순") setTimeout(() => scrollToSection("ㄱ"), 0);
+            }}
             className={cn(
               "relative rounded-md px-1.5 py-[3px] font-paperlogy text-xs font-medium",
               sortBy === opt ? "bg-system-navbg text-sub-deepblue" : "text-sub-gray",
@@ -142,7 +248,9 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
           </button>
         ))}
 
-        <CategoryFilterDropdown value={categoryFilter} onChange={setCategoryFilter} />
+        <div className="ml-auto">
+          <CategoryFilterDropdown value={categoryFilter} onChange={setCategoryFilter} />
+        </div>
       </div>
 
       {/* 목록 */}
@@ -162,7 +270,10 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
               category={place.category}
               status={place.status}
               imageUrl={place.imageUrl}
-              onClick={() => { onClose?.(); router.push(`/itinerary/place/${place.id}`); }} // TODO: API place.id 로 교체
+              onClick={() => {
+                onClose?.();
+                router.push(`/itinerary/place/${place.id}`);
+              }} // TODO: API place.id 로 교체
               className="rounded-[15px] border border-system-glassborder shadow-[2px_2px_6px_0px_var(--color-system-glassborder)]"
             />
           ))}
@@ -174,43 +285,53 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
             {activeConsonants.map((consonant) => (
               <div
                 key={consonant}
-                ref={(el) => { sectionRefs.current[consonant] = el; }}
+                ref={(el) => {
+                  sectionRefs.current[consonant] = el;
+                }}
                 data-consonant={consonant}
               >
                 {/* 섹션 헤더 */}
                 <div className="mb-3 flex w-full items-center rounded-[5px] bg-system-searchbg py-[2px] pl-1.5">
-                  <span className="font-paperlogy text-xs font-medium text-sub-deepblue">{consonant}</span>
+                  <span className="font-paperlogy text-xs font-medium text-sub-deepblue">
+                    {consonant}
+                  </span>
                 </div>
                 {/* 아이템 목록 */}
                 <div className="pl-[5px]">
-                {grouped[consonant].map((place, idx) => (
-                  <div key={place.id}>
-                    <button
-                      className={cn("flex w-full items-center gap-1.5 text-left active:opacity-70", idx === 0 ? "pt-0 pb-2.5" : "py-2.5")}
-                      onClick={() => { onClose?.(); router.push(`/itinerary/place/${place.id}`); }} // TODO: API place.id 로 교체
-                    >
-                      <Image
-                        src={place.status === "completed" ? markerBlueIcon : markerPinkIcon}
-                        alt="위치"
-                        width={12}
-                        height={12}
-                        className="shrink-0"
-                      />
-                      <span className="min-w-0 flex-1 truncate font-paperlogy text-sm font-normal text-text-primary">
-                        {place.name}
-                      </span>
-                    </button>
-                    {idx < grouped[consonant].length - 1 && (
-                      <div
-                        style={{
-                          height: "0.3px",
-                          backgroundColor: "var(--color-sub-lightgray)",
-                          width: "calc(100% - 12px)",
-                        }}
-                      />
-                    )}
-                  </div>
-                ))}
+                  {grouped[consonant].map((place, idx) => (
+                    <div key={place.id}>
+                      <button
+                        className={cn(
+                          "flex w-full items-center gap-1.5 text-left active:opacity-70",
+                          idx === 0 ? "pt-0 pb-2.5" : "py-2.5",
+                        )}
+                        onClick={() => {
+                          onClose?.();
+                          router.push(`/itinerary/place/${place.id}`);
+                        }} // TODO: API place.id 로 교체
+                      >
+                        <Image
+                          src={place.status === "completed" ? markerBlueIcon : markerPinkIcon}
+                          alt="위치"
+                          width={12}
+                          height={12}
+                          className="shrink-0"
+                        />
+                        <span className="min-w-0 flex-1 truncate font-paperlogy text-sm font-normal text-text-primary">
+                          {place.name}
+                        </span>
+                      </button>
+                      {idx < grouped[consonant].length - 1 && (
+                        <div
+                          style={{
+                            height: "0.3px",
+                            backgroundColor: "var(--color-sub-lightgray)",
+                            width: "calc(100% - 12px)",
+                          }}
+                        />
+                      )}
+                    </div>
+                  ))}
                 </div>
                 <div className="mb-0.5" />
               </div>
