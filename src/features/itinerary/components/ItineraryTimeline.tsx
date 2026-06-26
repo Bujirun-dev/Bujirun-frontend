@@ -148,7 +148,10 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
           return (
             <div
               key={stop.id}
-              ref={(el) => { if (el) stopRefs.current.set(stop.id, el); else stopRefs.current.delete(stop.id); }}
+              ref={(el) => {
+                if (el) stopRefs.current.set(stop.id, el);
+                else stopRefs.current.delete(stop.id);
+              }}
               className="min-w-0"
             >
               <div className="relative flex min-w-0 items-center">
@@ -171,9 +174,7 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
                 </div>
 
                 {/* 검색 카드 */}
-                {isActive && (
-                  <TimelineSearchPopup ref={searchCardRef} onClose={closeSearch} />
-                )}
+                {isActive && <TimelineSearchPopup ref={searchCardRef} onClose={closeSearch} />}
               </div>
 
               {/* 교통수단 카드 */}

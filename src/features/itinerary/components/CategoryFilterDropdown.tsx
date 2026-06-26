@@ -54,10 +54,14 @@ export function CategoryFilterDropdown({ value, onChange }: CategoryFilterDropdo
           {CATEGORY_OPTIONS.map((opt) => (
             <button
               key={opt.value}
-              onClick={() => { onChange(opt.value); setOpen(false); }}
+              onClick={() => {
+                onChange(opt.value);
+                setOpen(false);
+              }}
               className={cn(
                 "flex w-full items-center gap-1.5 whitespace-nowrap px-2 py-1 text-left font-paperlogy text-xs text-text-primary",
-                value === opt.value && "rounded-md border-[0.5px] border-main-blue bg-system-navbg font-semibold",
+                value === opt.value &&
+                  "rounded-md border-[0.5px] border-main-blue bg-system-navbg font-semibold",
               )}
             >
               <span>{CATEGORY_EMOJI[opt.value]}</span>

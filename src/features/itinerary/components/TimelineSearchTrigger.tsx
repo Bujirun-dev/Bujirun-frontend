@@ -33,9 +33,7 @@ export function TimelineSearchTrigger({ time, isActive, onOpen }: TimelineSearch
         onClick={onOpen}
         className="relative z-10 -mx-1.5 flex size-6 shrink-0 items-center justify-center"
       >
-        <span
-          className={cn("size-3 rounded-full", isActive ? "bg-sub-coral" : "bg-main-blue")}
-        />
+        <span className={cn("size-3 rounded-full", isActive ? "bg-sub-coral" : "bg-main-blue")} />
       </button>
     </>
   );
