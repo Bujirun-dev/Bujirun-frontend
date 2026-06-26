@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 // 헤더를 숨길 경로 목록
-const HIDDEN_HEADER_PATHS = ["/login", "/signup"];
+const HIDDEN_HEADER_PATHS = ["/login"];
 
 export function AppHeader() {
   const pathname = usePathname();
 
-  // 로그인 & 회원가입 페이지에서는 헤더 미노출
+  // 로그인페이지에서는 헤더 미노출
   if (HIDDEN_HEADER_PATHS.includes(pathname)) return null;
 
   return (
