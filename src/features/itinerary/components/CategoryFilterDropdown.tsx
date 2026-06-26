@@ -37,8 +37,7 @@ export function CategoryFilterDropdown({ value, onChange }: CategoryFilterDropdo
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex h-[19px] items-center gap-3.5 rounded-[7px] bg-system-navbg pl-[15px] pr-1.5 font-paperlogy text-xs font-normal text-text-primary"
-        style={{ border: "0.5px solid var(--color-main-blue)" }}
+        className="flex h-[19px] items-center gap-3.5 rounded-lg border-[0.5px] border-main-blue bg-system-navbg pl-[15px] pr-1.5 font-paperlogy text-xs font-normal text-text-primary"
       >
         {CATEGORY_OPTIONS.find((c) => c.value === value)?.label ?? "전체"}
         <Image
@@ -51,19 +50,15 @@ export function CategoryFilterDropdown({ value, onChange }: CategoryFilterDropdo
       </button>
 
       {open && (
-        <div
-          className="absolute right-0 top-[22px] z-20 w-full overflow-hidden rounded-lg bg-white py-[5px] px-[3px] shadow-md"
-          style={{ border: "0.5px solid var(--color-main-blue)" }}
-        >
+        <div className="absolute right-0 top-[22px] z-20 w-full overflow-hidden rounded-lg border-[0.5px] border-main-blue bg-main-white px-1 py-1.5 shadow-md">
           {CATEGORY_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => { onChange(opt.value); setOpen(false); }}
               className={cn(
-                "flex w-full items-center gap-1.5 whitespace-nowrap px-2 py-[3px] text-left font-paperlogy text-xs text-text-primary",
-                value === opt.value && "rounded-[5px] bg-system-navbg font-semibold",
+                "flex w-full items-center gap-1.5 whitespace-nowrap px-2 py-1 text-left font-paperlogy text-xs text-text-primary",
+                value === opt.value && "rounded-md border-[0.5px] border-main-blue bg-system-navbg font-semibold",
               )}
-              style={value === opt.value ? { border: "0.5px solid var(--color-main-blue)" } : undefined}
             >
               <span>{CATEGORY_EMOJI[opt.value]}</span>
               {opt.label}

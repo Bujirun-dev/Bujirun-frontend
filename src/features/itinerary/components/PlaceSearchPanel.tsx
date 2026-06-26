@@ -11,7 +11,6 @@ import { ConsonantIndexBar } from "./ConsonantIndexBar";
 import { CategoryFilterDropdown } from "./CategoryFilterDropdown";
 import type { Category } from "@/components";
 import { cn } from "@/shared/utils";
-import { CATEGORY_LABEL } from "@/shared/constants/category";
 
 type SortOption = "추천순" | "이름순";
 type CategoryFilter = Category | "all";
@@ -218,11 +217,13 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
       <div className="pb-3.5">
         <SearchBar
           value={searchValue}
-          onChange={(v) => { setSearchValue(v); if (v) setCategoryFilter("all"); }}
+          onChange={(v) => {
+            setSearchValue(v);
+            if (v) setCategoryFilter("all");
+          }}
           placeholder="관광지 검색"
-          className="!h-[30px] !w-full !rounded-[10px] !bg-system-searchbg !py-0"
+          className="!h-[30px] !w-full !rounded-lg !bg-system-searchbg !py-0"
           inputClassName="!font-paperlogy !text-xs !font-normal !text-sub-gray placeholder:!text-sub-gray"
-          gapClassName="!gap-[3px]"
           iconSize={11}
         />
       </div>
@@ -237,7 +238,7 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
               if (opt === "이름순") setTimeout(() => scrollToSection("ㄱ"), 0);
             }}
             className={cn(
-              "relative rounded-md px-1.5 py-[3px] font-paperlogy text-xs font-medium",
+              "relative rounded-md px-1.5 py-1 font-paperlogy text-xs font-medium",
               sortBy === opt ? "bg-system-navbg text-sub-deepblue" : "text-sub-gray",
             )}
           >
@@ -257,7 +258,7 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
       {filtered.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-1 pb-[50%]">
           <p className="font-paperlogy text-sm text-sub-gray">
-            "{searchValue}"에 대한 검색 결과가 없어요.
+            <span>&quot;{searchValue}&quot;</span>에 대한 검색 결과가 없어요.
           </p>
           <p className="font-paperlogy text-sm text-sub-gray">관광지 이름을 다시 확인해보세요.</p>
         </div>
@@ -274,7 +275,7 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
                 onClose?.();
                 router.push(`/itinerary/place/${place.id}`);
               }} // TODO: API place.id 로 교체
-              className="rounded-[15px] border border-system-glassborder shadow-[2px_2px_6px_0px_var(--color-system-glassborder)]"
+              className="rounded-2xl border border-system-glassborder shadow-[2px_2px_6px_0px_var(--color-system-glassborder)]"
             />
           ))}
         </div>
@@ -291,13 +292,13 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
                 data-consonant={consonant}
               >
                 {/* 섹션 헤더 */}
-                <div className="mb-3 flex w-full items-center rounded-[5px] bg-system-searchbg py-[2px] pl-1.5">
+                <div className="mb-3 flex w-full items-center rounded-md bg-system-searchbg py-0.5 pl-1.5">
                   <span className="font-paperlogy text-xs font-medium text-sub-deepblue">
                     {consonant}
                   </span>
                 </div>
                 {/* 아이템 목록 */}
-                <div className="pl-[5px]">
+                <div className="pl-1">
                   {grouped[consonant].map((place, idx) => (
                     <div key={place.id}>
                       <button
@@ -322,13 +323,7 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
                         </span>
                       </button>
                       {idx < grouped[consonant].length - 1 && (
-                        <div
-                          style={{
-                            height: "0.3px",
-                            backgroundColor: "var(--color-sub-lightgray)",
-                            width: "calc(100% - 12px)",
-                          }}
-                        />
+                        <div className="h-[0.3px] w-[calc(100%_-_12px)] bg-sub-lightgray" />
                       )}
                     </div>
                   ))}

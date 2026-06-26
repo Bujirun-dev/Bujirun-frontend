@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import type { TransportLeg } from "./TransportCard";
 import { PlaceCard } from "@/components";
 import { TransportCard } from "./TransportCard";
-import { PlaceSearchPanel } from "./PlaceSearchPanel";
+import { TimelineSearchPopup } from "./TimelineSearchPopup";
+import { TimelineSearchTrigger } from "./TimelineSearchTrigger";
 import { cn } from "@/shared/utils";
 import type { Category } from "@/components";
 
@@ -42,16 +43,25 @@ interface ItineraryTimelineProps {
 
 export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
   const [activeStopId, setActiveStopId] = useState<string | null>(null);
+  const [searchScrollSpace, setSearchScrollSpace] = useState(0);
   const searchCardRef = useRef<HTMLDivElement>(null);
   const stopRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const isAutoScrollingRef = useRef(false);
 
-  const openSearch = (stopId: string) => setActiveStopId(stopId);
-  const closeSearch = () => setActiveStopId(null);
+  const openSearch = (stopId: string) => {
+    setSearchScrollSpace(0);
+    setActiveStopId(stopId);
+  };
+  const closeSearch = () => {
+    setActiveStopId(null);
+    setSearchScrollSpace(0);
+  };
 
   useEffect(() => {
     if (!activeStopId) return;
     const el = stopRefs.current.get(activeStopId);
     if (!el) return;
+    const firstStopEl = stops[0] ? stopRefs.current.get(stops[0].id) : null;
     let scrollParent: HTMLElement | null = el.parentElement;
     while (scrollParent) {
       const ov = getComputedStyle(scrollParent).overflowY;
@@ -59,13 +69,49 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
       scrollParent = scrollParent.parentElement;
     }
     if (!scrollParent) return;
-    const top =
+    const activeTop =
       el.getBoundingClientRect().top -
       scrollParent.getBoundingClientRect().top +
-      scrollParent.scrollTop -
-      40;
-    scrollParent.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-  }, [activeStopId]);
+      scrollParent.scrollTop;
+    const firstStopTop = firstStopEl
+      ? firstStopEl.getBoundingClientRect().top -
+        scrollParent.getBoundingClientRect().top +
+        scrollParent.scrollTop
+      : 40;
+    const targetScrollTop = Math.max(0, activeTop - firstStopTop);
+    const maxScrollTop = Math.max(0, scrollParent.scrollHeight - scrollParent.clientHeight);
+    const maxScrollTopWithoutDynamicSpace = Math.max(0, maxScrollTop - searchScrollSpace);
+    const nextSearchScrollSpace = Math.ceil(
+      Math.max(0, targetScrollTop - maxScrollTopWithoutDynamicSpace),
+    );
+
+    if (nextSearchScrollSpace !== searchScrollSpace) {
+      setSearchScrollSpace(nextSearchScrollSpace);
+      return;
+    }
+
+    isAutoScrollingRef.current = true;
+    scrollParent.scrollTo({ top: targetScrollTop, behavior: "smooth" });
+
+    const autoScrollTimer = window.setTimeout(() => {
+      isAutoScrollingRef.current = false;
+    }, 900);
+    let closeTimer: number | undefined;
+
+    const handleScroll = () => {
+      if (isAutoScrollingRef.current) return;
+      if (Math.abs(scrollParent.scrollTop - targetScrollTop) < 90) return;
+      window.clearTimeout(closeTimer);
+      closeTimer = window.setTimeout(closeSearch, 250);
+    };
+
+    scrollParent.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.clearTimeout(autoScrollTimer);
+      window.clearTimeout(closeTimer);
+      scrollParent.removeEventListener("scroll", handleScroll);
+    };
+  }, [activeStopId, searchScrollSpace, stops]);
 
   const handleRootClick = (e: React.MouseEvent) => {
     if (!activeStopId) return;
@@ -75,11 +121,11 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
   };
 
   return (
-    <div className="relative min-h-full min-w-0 pb-3.5" onClick={handleRootClick}>
+    <div className="relative min-h-full min-w-0" onClick={handleRootClick}>
       {/* 세로 타임라인 선 */}
       <div className="absolute top-0 bottom-0 left-[46px] w-[2px] rounded-full bg-sub-lightgray" />
 
-      <div className={cn("flex flex-col gap-5", activeStopId && "pb-[470px]")}>
+      <div className="flex flex-col gap-5" style={{ paddingBottom: searchScrollSpace }}>
         {/* 상단: + 버튼 + 날짜 (검색 중엔 + 버튼만 숨김) */}
         <div className="flex items-center">
           <div className="w-10 shrink-0" />
@@ -91,7 +137,7 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
               )}
               onClick={() => stops[0] && openSearch(stops[0].id)}
             >
-              <span className="font-bold leading-none text-white text-xs">+</span>
+              <span className="font-bold leading-none text-main-white text-xs">+</span>
             </button>
             <span className="font-paperlogy text-xs font-semibold text-sub-gray">{date}</span>
           </div>
@@ -106,31 +152,10 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
               className="min-w-0"
             >
               <div className="relative flex min-w-0 items-center">
-                {/* 시간 버튼 */}
-                <button
-                  data-time-btn
-                  className="flex w-10 shrink-0 justify-end pr-2"
-                  onClick={() => openSearch(stop.id)}
-                >
-                  {isActive ? (
-                    <div className="flex items-center justify-center rounded-md border border-dashed border-sub-gray p-1">
-                      <span className="font-paperlogy text-xs font-medium text-sub-gray">
-                        {stop.time}
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="font-paperlogy text-xs font-medium tracking-[0.6px] text-sub-deepblue">
-                      {stop.time}
-                    </span>
-                  )}
-                </button>
-
-                {/* 도트 */}
-                <div
-                  className={cn(
-                    "relative z-10 h-3 w-3 shrink-0 rounded-full",
-                    isActive ? "bg-sub-coral" : "bg-main-blue",
-                  )}
+                <TimelineSearchTrigger
+                  time={stop.time}
+                  isActive={isActive}
+                  onOpen={() => openSearch(stop.id)}
                 />
 
                 <div className="min-w-0 flex-1 pl-3">
@@ -147,17 +172,7 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
 
                 {/* 검색 카드 */}
                 {isActive && (
-                  <div ref={searchCardRef} className="absolute left-[52px] right-0 top-0 z-20 pl-3">
-                    <div
-                      className="flex h-[470px] w-full flex-col overflow-hidden rounded-[30px] bg-white p-4"
-                      style={{
-                        border: "0.5px solid var(--color-system-glassborder)",
-                        boxShadow: "2px 2px 10px 0px var(--color-system-glassborder)",
-                      }}
-                    >
-                      <PlaceSearchPanel onClose={closeSearch} />
-                    </div>
-                  </div>
+                  <TimelineSearchPopup ref={searchCardRef} onClose={closeSearch} />
                 )}
               </div>
 
