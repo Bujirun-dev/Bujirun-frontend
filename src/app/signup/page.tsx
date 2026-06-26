@@ -41,7 +41,7 @@ export default function SignUpPage() {
         className="absolute bottom-0 left-0 right-0 h-[722px] rounded-t-[28px] rounded-b-none shadow-none p-0 flex flex-col"
       >
         {/* 타이틀 */}
-        <p className="text-center font-bold text-2xl text-text-heading mt-[35px]">회원가입</p>
+        <p className="text-center font-bold text-2xl text-text-heading mt-[20px]">회원가입</p>
 
         {/* flex-1 제거 — 콘텐츠 높이만큼만 차지하도록 */}
         <div className="px-[24px] mt-[28px] flex flex-col gap-[20px]">
