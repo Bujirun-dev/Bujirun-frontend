@@ -15,7 +15,7 @@ export function AppHeader() {
       <div className="mx-auto flex h-[56px] w-full max-w-[390px] items-center justify-center px-4">
         <Link
           href="/"
-          className="text-text-heading text-[24px] font-giants tracking-[-0.02em] text-foreground"
+          className="font-giants text-[24px] tracking-[-0.02em] text-text-heading"
         >
           BUJIRUN
         </Link>
