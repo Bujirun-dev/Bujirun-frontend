@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { TransportLeg } from "./TransportCard";
 import { PlaceCard } from "@/components";
 import { TransportCard } from "./TransportCard";
@@ -43,9 +43,29 @@ interface ItineraryTimelineProps {
 export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
   const [activeStopId, setActiveStopId] = useState<string | null>(null);
   const searchCardRef = useRef<HTMLDivElement>(null);
+  const stopRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const openSearch = (stopId: string) => setActiveStopId(stopId);
   const closeSearch = () => setActiveStopId(null);
+
+  useEffect(() => {
+    if (!activeStopId) return;
+    const el = stopRefs.current.get(activeStopId);
+    if (!el) return;
+    let scrollParent: HTMLElement | null = el.parentElement;
+    while (scrollParent) {
+      const ov = getComputedStyle(scrollParent).overflowY;
+      if (ov === "scroll" || ov === "auto") break;
+      scrollParent = scrollParent.parentElement;
+    }
+    if (!scrollParent) return;
+    const top =
+      el.getBoundingClientRect().top -
+      scrollParent.getBoundingClientRect().top +
+      scrollParent.scrollTop -
+      40;
+    scrollParent.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  }, [activeStopId]);
 
   const handleRootClick = (e: React.MouseEvent) => {
     if (!activeStopId) return;
@@ -80,7 +100,11 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
         {stops.map((stop) => {
           const isActive = activeStopId === stop.id;
           return (
-            <div key={stop.id} className="min-w-0">
+            <div
+              key={stop.id}
+              ref={(el) => { if (el) stopRefs.current.set(stop.id, el); else stopRefs.current.delete(stop.id); }}
+              className="min-w-0"
+            >
               <div className="relative flex min-w-0 items-center">
                 {/* 시간 버튼 */}
                 <button
