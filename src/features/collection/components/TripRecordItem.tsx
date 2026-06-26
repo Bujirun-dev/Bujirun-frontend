@@ -1,9 +1,11 @@
 interface TripRecordItemProps {
+  id: number;
   title: string;
   period: string;
-  onDelete?: () => void;
+  onDelete: (id: number) => void;
 }
 
+// 영수증 아이콘
 function ReceiptIcon() {
   return (
     <svg
@@ -18,6 +20,7 @@ function ReceiptIcon() {
   );
 }
 
+// 삭제 아이콘
 function TrashIcon() {
   return (
     <svg viewBox="0 0 512 512" aria-hidden="true" className="h-[15px] w-[15px] fill-main-white">
@@ -26,7 +29,7 @@ function TrashIcon() {
   );
 }
 
-export function TripRecordItem({ title, period, onDelete }: TripRecordItemProps) {
+export function TripRecordItem({ id, title, period, onDelete }: TripRecordItemProps) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex min-w-0 items-start gap-2">
@@ -41,7 +44,7 @@ export function TripRecordItem({ title, period, onDelete }: TripRecordItemProps)
 
       <button
         type="button"
-        onClick={onDelete}
+        onClick={() => onDelete(id)}
         aria-label={`${title} 삭제`}
         className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-[8px] bg-sub-coral"
       >

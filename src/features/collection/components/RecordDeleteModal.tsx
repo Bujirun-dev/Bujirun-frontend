@@ -16,13 +16,7 @@ function TrashIcon() {
   );
 }
 
-export function RecordDeleteModal({
-  isOpen,
-  tripName,
-  period,
-  onClose,
-  onConfirm,
-}: RecordDeleteModalProps) {
+export function RecordDeleteModal({ isOpen, period, onClose, onConfirm }: RecordDeleteModalProps) {
   return (
     <Modal
       isOpen={isOpen}

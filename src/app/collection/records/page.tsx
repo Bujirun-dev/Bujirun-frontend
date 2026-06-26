@@ -2,11 +2,10 @@
 
 import Image from "next/image";
 
-import { useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { RecordDeleteModal } from "@/features/collection/components/RecordDeleteModal";
 
 import bookIcon from "@/assets/icons/collection/book.png";
-import successIcon from "@/assets/icons/mypage/success.svg";
 import { Card, CategoryChip, PageCard, Toast } from "@/components";
 import type { Category } from "@/components/ui/CategoryChip";
 import { TripRecordItem } from "@/features/collection/components/TripRecordItem";
@@ -14,36 +13,40 @@ import { PLACES } from "@/features/collection/data/places";
 import { TRIP_RECORDS } from "@/features/collection/data/tripRecords";
 
 export default function CollectionRecordsPage() {
-  const collectedPlaces = PLACES.filter((place) => place.isCollected);
+  // 수집된 장소 목록
+  const collectedPlaces = useMemo(() => PLACES.filter((place) => place.isCollected), []);
   const collectedPlaceCount = collectedPlaces.length;
 
-  const favoriteCategoryCount = collectedPlaces.reduce<Partial<Record<Category, number>>>(
-    (acc, place) => {
+  // 최애 카테고리 계산
+  const favoriteCategory = useMemo(() => {
+    const count = collectedPlaces.reduce<Partial<Record<Category, number>>>((acc, place) => {
       const category = place.category as Category;
       acc[category] = (acc[category] ?? 0) + 1;
       return acc;
-    },
-    {},
-  );
+    }, {});
 
-  const favoriteCategory = Object.entries(favoriteCategoryCount).sort(
-    ([, countA], [, countB]) => (countB ?? 0) - (countA ?? 0),
-  )[0]?.[0] as Category | undefined;
+    return Object.entries(count).sort(([, a], [, b]) => (b ?? 0) - (a ?? 0))[0]?.[0] as
+      | Category
+      | undefined;
+  }, [collectedPlaces]);
 
   const [records, setRecords] = useState(TRIP_RECORDS);
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState("");
 
-  const openDeleteModal = (tripId: number) => {
+  // 삭제 모달 open/close
+  const openDeleteModal = useCallback((tripId: number) => {
     setSelectedTripId(tripId);
-  };
+  }, []);
 
-  const closeDeleteModal = () => {
+  const closeDeleteModal = useCallback(() => {
     setSelectedTripId(null);
-  };
+  }, []);
 
+  // 현재 선택된 여행 기록 (모달에 전달)
   const selectedTrip = records.find((record) => record.id === selectedTripId) ?? null;
 
+  // 여행 기록 삭제
   const handleDelete = () => {
     if (selectedTripId === null) return;
 
@@ -54,6 +57,7 @@ export default function CollectionRecordsPage() {
 
   return (
     <section className="flex h-full flex-col gap-6">
+      {/*상단 요약 카드 */}
       <Card variant="white" className="rounded-[25px]">
         <div className="px-5 py-2">
           {/* 상단 */}
@@ -96,14 +100,16 @@ export default function CollectionRecordsPage() {
         </div>
       </Card>
 
+      {/* 하단 여행 기록 */}
       <PageCard className="px-6 pt-8 pb-4">
         <div className="flex flex-col gap-5">
           {records.map((record) => (
             <TripRecordItem
               key={record.id}
+              id={record.id}
               title={record.title}
               period={record.period}
-              onDelete={() => openDeleteModal(record.id)}
+              onDelete={openDeleteModal}
             />
           ))}
         </div>
@@ -118,16 +124,16 @@ export default function CollectionRecordsPage() {
       />
 
       <Toast
-        isVisible={toastMessage !== null}
-        onHide={() => setToastMessage(null)}
-        message={toastMessage ?? ""}
+        isVisible={toastMessage !== ""}
+        onHide={() => setToastMessage("")}
+        message={toastMessage}
         icon={
           <svg
             viewBox="0 0 512 512"
             className="size-[14px] shrink-0 fill-main-white"
             aria-hidden="true"
           >
-            <path d="M448,85.333h-66.133C371.66,35.703,328.002,0.064,277.333,0h-42.667c-50.669,0.064-94.327,35.703-104.533,85.333H64c-11.782,0-21.333,9.551-21.333,21.333S52.218,128,64,128h21.333v277.333C85.404,464.214,133.119,511.93,192,512h128c58.881-.07,106.596-47.786,106.667-106.667V128H448c11.782,0,21.333-9.551,21.333-21.333S459.782,85.333,448,85.333zM234.667,362.667c0,11.782-9.551,21.333-21.333,21.333C201.551,384,192,374.449,192,362.667v-128c0-11.782,9.551-21.333,21.333-21.333s21.333,9.551,21.333,21.333ZM320,362.667c0,11.782-9.551,21.333-21.333,21.333s-21.333-9.551-21.333-21.333v-128c0-11.782,9.551-21.333,21.333-21.333S320,222.885,320,234.667ZM174.315,85.333c9.074-25.551,33.238-42.634,60.352-42.667h42.667c27.114.033,51.278,17.116,60.352,42.667Z" />
+            <path d="M448,85.333h-66.133C371.66,35.703,328.002,0.064,277.333,0h-42.667c-50.669,0.064-94.327,35.703-104.533,85.333H64c-11.782,0-21.333,9.551-21.333,21.333S52.218,128,64,128h21.333v277.333C85.404,464.214,133.119,511.93,192,512h128c58.881-0.07,106.596-47.786,106.667-106.667V128H448c11.782,0,21.333-9.551,21.333-21.333S459.782,85.333,448,85.333z M234.667,362.667c0,11.782-9.551,21.333-21.333,21.333C201.551,384,192,374.449,192,362.667v-128c0-11.782,9.551-21.333,21.333-21.333c11.782,0,21.333,9.551,21.333,21.333V362.667z M320,362.667c0,11.782-9.551,21.333-21.333,21.333c-11.782,0-21.333-9.551-21.333-21.333v-128c0-11.782,9.551-21.333,21.333-21.333c11.782,0,21.333,9.551,21.333,21.333V362.667z M174.315,85.333c9.074-25.551,33.238-42.634,60.352-42.667h42.667c27.114,0.033,51.278,17.116,60.352,42.667H174.315z" />
           </svg>
         }
       />
