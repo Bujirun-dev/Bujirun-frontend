@@ -107,7 +107,7 @@ export function ItineraryTimeline({ stops, date, onAdd }: ItineraryTimelineProps
                   onClick={() => openSearch(stop.id)}
                 >
                   {isActive ? (
-                    <div className="border border-dashed border-sub-gray rounded-md w-[42px] h-[20px] flex items-center justify-center">
+                    <div className="border border-dashed border-sub-gray rounded-md p-1 flex items-center justify-center">
                       <span className="font-paperlogy text-xs font-medium text-sub-gray">
                         {stop.time}
                       </span>

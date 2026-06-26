@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import triangleIcon from "@/assets/icons/itinerary/triangle.png";
 import { SearchBar } from "@/components";
 import { PlaceSearchItem } from "./PlaceSearchItem";
 import type { Category } from "@/components";
@@ -13,10 +15,18 @@ type CategoryFilter = Category | "all";
 
 const SORT_OPTIONS: SortOption[] = ["추천순", "이름순"];
 
+const CATEGORY_EMOJI: Record<string, string> = {
+  all: "⭐",
+  sea: "🌊",
+  nature: "🌿",
+  culture: "🏛",
+  experience: "🎡",
+};
+
 const CATEGORY_OPTIONS: { label: string; value: CategoryFilter }[] = [
   { label: "전체", value: "all" },
   ...Object.entries(CATEGORY_LABEL).map(([value, label]) => ({
-    label,
+    label: label.replace("#", ""),
     value: value as Category,
   })),
 ];
@@ -86,12 +96,12 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* 검색바 */}
-      <div className="pb-3">
+      <div className="pb-[14px]">
         <SearchBar
           value={searchValue}
           onChange={setSearchValue}
           placeholder="관광지 검색"
-          className="!h-[30px] !w-[243px] !rounded-[10px] !bg-system-searchbg !py-0"
+          className="!w-full !rounded-[10px] !bg-system-searchbg !h-[30px] !py-0"
           inputClassName="!font-paperlogy !text-[11px] !font-normal !text-sub-gray placeholder:!text-sub-gray"
           gapClassName="!gap-[3px]"
           iconSize={11}
@@ -99,19 +109,21 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
       </div>
 
       {/* 정렬 + 카테고리 필터 */}
-      <div className="flex items-center gap-3 pb-3">
+      <div className="flex items-center gap-0 pb-3">
         {SORT_OPTIONS.map((opt) => (
           <button
             key={opt}
             onClick={() => setSortBy(opt)}
             className={cn(
-              "relative pb-0.5 font-paperlogy text-xs font-semibold",
-              sortBy === opt ? "text-sub-deepblue" : "text-sub-gray",
+              "relative px-[6px] py-[3px] font-paperlogy text-[11px] font-medium rounded-md",
+              sortBy === opt
+                ? "text-sub-deepblue bg-system-navbg"
+                : "text-sub-gray",
             )}
           >
             {opt}
             {sortBy === opt && (
-              <span className="absolute bottom-0 left-0 right-0 h-[1.5px] rounded-full bg-sub-deepblue" />
+              <span className="absolute bottom-0 left-0 right-0 h-[0.5px] rounded-full bg-sub-deepblue" />
             )}
           </button>
         ))}
@@ -119,28 +131,21 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
         <div className="relative ml-auto">
           <button
             onClick={() => setShowCategoryDropdown((v) => !v)}
-            className="flex h-[19px] items-center gap-1 rounded-md border border-main-blue bg-system-navbg px-2 font-paperlogy text-xs text-text-primary"
+            className="flex h-[19px] items-center gap-[14px] rounded-[7px] bg-system-navbg pl-[15px] pr-[6px] font-paperlogy text-[11px] font-normal text-text-primary"
+            style={{ border: "0.5px solid var(--color-main-blue)" }}
           >
             {CATEGORY_OPTIONS.find((c) => c.value === categoryFilter)?.label ?? "전체"}
-            <svg
-              width="6"
-              height="4"
-              viewBox="0 0 6 4"
-              fill="none"
+            <Image
+              src={triangleIcon}
+              alt="드롭다운"
+              width={6}
+              height={6}
               className={cn("shrink-0 transition-transform", showCategoryDropdown && "rotate-180")}
-            >
-              <path
-                d="M1 1L3 3L5 1"
-                stroke="currentColor"
-                strokeWidth="1.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            />
           </button>
 
           {showCategoryDropdown && (
-            <div className="absolute right-0 top-[22px] z-10 min-w-[60px] overflow-hidden rounded-lg bg-white shadow-md">
+            <div className="absolute right-0 top-[22px] z-10 w-full overflow-hidden rounded-lg bg-white shadow-md py-[5px] px-[3px]" style={{ border: "0.5px solid var(--color-main-blue)" }}>
               {CATEGORY_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
@@ -149,12 +154,14 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
                     setShowCategoryDropdown(false);
                   }}
                   className={cn(
-                    "block w-full whitespace-nowrap px-3 py-1.5 text-left font-paperlogy text-xs",
+                    "flex w-full items-center gap-1.5 whitespace-nowrap py-[3px] text-left font-paperlogy text-[11px]",
                     categoryFilter === opt.value
-                      ? "font-semibold text-sub-deepblue"
-                      : "text-text-primary",
+                      ? "rounded-[5px] bg-system-navbg font-semibold px-2"
+                      : "text-text-primary px-2",
                   )}
+                  style={categoryFilter === opt.value ? { border: "0.5px solid var(--color-main-blue)" } : undefined}
                 >
+                  <span>{CATEGORY_EMOJI[opt.value]}</span>
                   {opt.label}
                 </button>
               ))}
