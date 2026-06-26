@@ -6,6 +6,7 @@ import { SearchBar } from "@/components";
 import { PlaceSearchItem } from "./PlaceSearchItem";
 import type { Category } from "@/components";
 import { cn } from "@/shared/utils";
+import { CATEGORY_LABEL } from "@/shared/constants/category";
 
 type SortOption = "추천순" | "이름순";
 type CategoryFilter = Category | "all";
@@ -14,10 +15,10 @@ const SORT_OPTIONS: SortOption[] = ["추천순", "이름순"];
 
 const CATEGORY_OPTIONS: { label: string; value: CategoryFilter }[] = [
   { label: "전체", value: "all" },
-  { label: "#바다", value: "sea" },
-  { label: "#자연", value: "nature" },
-  { label: "#문화", value: "culture" },
-  { label: "#체험", value: "experience" },
+  ...Object.entries(CATEGORY_LABEL).map(([value, label]) => ({
+    label,
+    value: value as Category,
+  })),
 ];
 
 const SAMPLE_PLACES = [
