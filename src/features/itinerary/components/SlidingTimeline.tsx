@@ -27,7 +27,7 @@ export function SlidingTimeline({
         {allDayStops.map((dayStops, dayIdx) => (
           <div
             key={dayIdx}
-            className="box-border w-full min-w-0 h-full shrink-0 overflow-y-scroll pl-0 pr-1 pb-6"
+            className="box-border w-full min-w-0 h-full shrink-0 overflow-y-scroll pl-4 pr-1 pb-6"
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
           >

@@ -66,7 +66,11 @@ const SAMPLE_PLACES = [
   },
 ];
 
-export function PlaceSearchPanel() {
+interface PlaceSearchPanelProps {
+  onClose?: () => void;
+}
+
+export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
   const router = useRouter();
   const [searchValue, setSearchValue] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("추천순");
@@ -83,7 +87,15 @@ export function PlaceSearchPanel() {
     <div className="flex h-full flex-col overflow-hidden">
       {/* 검색바 */}
       <div className="pb-3">
-        <SearchBar value={searchValue} onChange={setSearchValue} placeholder="관광지 검색" />
+        <SearchBar
+          value={searchValue}
+          onChange={setSearchValue}
+          placeholder="관광지 검색"
+          className="!h-[30px] !w-[243px] !rounded-[10px] !bg-system-searchbg !py-0"
+          inputClassName="!font-paperlogy !text-[11px] !font-normal !text-sub-gray placeholder:!text-sub-gray"
+          gapClassName="!gap-[3px]"
+          iconSize={11}
+        />
       </div>
 
       {/* 정렬 + 카테고리 필터 */}

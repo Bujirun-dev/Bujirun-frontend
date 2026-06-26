@@ -38,9 +38,9 @@ export function PlaceSearchItem({
       )}
 
       <div className="flex-1 flex flex-col gap-1.5 min-w-0">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 min-w-0">
           <Image src={markerIcon} alt="위치" width={12} height={12} className="shrink-0" />
-          <span className="font-paperlogy font-semibold text-md text-text-heading truncate">
+          <span className="font-paperlogy font-semibold text-md text-text-heading truncate min-w-0">
             {name}
           </span>
         </div>
