@@ -26,21 +26,21 @@ export function PlaceSearchItem({
   return (
     <div
       className={cn(
-        "relative flex w-full h-[81px] items-start gap-[6px] bg-white rounded-xl py-[8px] px-[10px] cursor-pointer active:opacity-80",
+        "relative flex h-[81px] w-full cursor-pointer items-start gap-1.5 rounded-xl bg-white px-2.5 py-2 active:opacity-80",
         className,
       )}
       onClick={onClick}
     >
       {imageUrl && (
-        <div className="relative w-[80px] h-[56px] rounded-lg overflow-hidden shrink-0">
+        <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg">
           <Image src={imageUrl} alt={name} fill className="object-cover" />
         </div>
       )}
 
-      <div className="flex-1 flex flex-col gap-1.5 min-w-0 pt-[4px]">
-        <div className="flex items-center gap-1 min-w-0">
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5 pt-1">
+        <div className="flex min-w-0 items-center gap-1">
           <Image src={markerIcon} alt="위치" width={11} height={11} className="shrink-0" />
-          <span className="font-paperlogy font-medium text-[12px] text-text-heading truncate min-w-0">
+          <span className="min-w-0 truncate font-paperlogy text-sm font-medium text-text-heading">
             {name}
           </span>
         </div>
@@ -48,7 +48,7 @@ export function PlaceSearchItem({
       </div>
 
       {status && (
-        <div className="absolute bottom-[8px] right-[10px]">
+        <div className="absolute bottom-2 right-2.5">
           <StatusBadge status={status} />
         </div>
       )}

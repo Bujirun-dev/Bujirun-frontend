@@ -8,7 +8,6 @@ import markerBlueIcon from "@/assets/icons/itinerary/marker-blue.png";
 import markerPinkIcon from "@/assets/icons/itinerary/marker-pink.png";
 import { SearchBar } from "@/components";
 import { PlaceSearchItem } from "./PlaceSearchItem";
-import { CategoryChip } from "@/components";
 import type { Category } from "@/components";
 import { cn } from "@/shared/utils";
 import { CATEGORY_LABEL } from "@/shared/constants/category";
@@ -126,27 +125,27 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* 검색바 */}
-      <div className="pb-[14px]">
+      <div className="pb-3.5">
         <SearchBar
           value={searchValue}
           onChange={setSearchValue}
           placeholder="관광지 검색"
-          className="!w-full !rounded-[10px] !bg-system-searchbg !h-[30px] !py-0"
-          inputClassName="!font-paperlogy !text-[11px] !font-normal !text-sub-gray placeholder:!text-sub-gray"
+          className="!h-[30px] !w-full !rounded-[10px] !bg-system-searchbg !py-0"
+          inputClassName="!font-paperlogy !text-xs !font-normal !text-sub-gray placeholder:!text-sub-gray"
           gapClassName="!gap-[3px]"
           iconSize={11}
         />
       </div>
 
       {/* 정렬 + 카테고리 필터 */}
-      <div className="flex items-center gap-0 pb-[35px]">
+      <div className="flex items-center pb-5">
         {SORT_OPTIONS.map((opt) => (
           <button
             key={opt}
-            onClick={() => setSortBy(opt)}
+            onClick={() => { setSortBy(opt); if (opt === "이름순") setTimeout(() => scrollToSection("ㄱ"), 0); }}
             className={cn(
-              "relative px-[6px] py-[3px] font-paperlogy text-[11px] font-medium rounded-md",
-              sortBy === opt ? "text-sub-deepblue bg-system-navbg" : "text-sub-gray",
+              "relative rounded-md px-1.5 py-[3px] font-paperlogy text-xs font-medium",
+              sortBy === opt ? "bg-system-navbg text-sub-deepblue" : "text-sub-gray",
             )}
           >
             {opt}
@@ -159,7 +158,7 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
         <div className="relative ml-auto">
           <button
             onClick={() => setShowCategoryDropdown((v) => !v)}
-            className="flex h-[19px] items-center gap-[14px] rounded-[7px] bg-system-navbg pl-[15px] pr-[6px] font-paperlogy text-[11px] font-normal text-text-primary"
+            className="flex h-[19px] items-center gap-3.5 rounded-[7px] bg-system-navbg pl-[15px] pr-1.5 font-paperlogy text-xs font-normal text-text-primary"
             style={{ border: "0.5px solid var(--color-main-blue)" }}
           >
             {CATEGORY_OPTIONS.find((c) => c.value === categoryFilter)?.label ?? "전체"}
@@ -168,13 +167,13 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
               alt="드롭다운"
               width={6}
               height={6}
-              className={cn("shrink-0 transition-transform", showCategoryDropdown && "rotate-180")}
+              className={cn("shrink-0 transition-transform rotate-180", showCategoryDropdown && "!rotate-0")}
             />
           </button>
 
           {showCategoryDropdown && (
             <div
-              className="absolute right-0 top-[22px] z-10 w-full overflow-hidden rounded-lg bg-white shadow-md py-[5px] px-[3px]"
+              className="absolute right-0 top-[22px] z-20 w-full overflow-hidden rounded-lg bg-white py-[5px] px-[3px] shadow-md"
               style={{ border: "0.5px solid var(--color-main-blue)" }}
             >
               {CATEGORY_OPTIONS.map((opt) => (
@@ -182,10 +181,8 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
                   key={opt.value}
                   onClick={() => { setCategoryFilter(opt.value); setShowCategoryDropdown(false); }}
                   className={cn(
-                    "flex w-full items-center gap-1.5 whitespace-nowrap py-[3px] text-left font-paperlogy text-[11px]",
-                    categoryFilter === opt.value
-                      ? "rounded-[5px] bg-system-navbg font-semibold px-2"
-                      : "text-text-primary px-2",
+                    "flex w-full items-center gap-1.5 whitespace-nowrap px-2 py-[3px] text-left font-paperlogy text-xs text-text-primary",
+                    categoryFilter === opt.value && "rounded-[5px] bg-system-navbg font-semibold",
                   )}
                   style={categoryFilter === opt.value ? { border: "0.5px solid var(--color-main-blue)" } : undefined}
                 >
@@ -200,11 +197,14 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
 
       {/* 목록 */}
       {filtered.length === 0 ? (
-        <div className="flex items-center justify-center pt-10 font-paperlogy text-sm text-sub-gray">
-          검색 결과가 없습니다.
+        <div className="flex flex-1 flex-col items-center justify-center gap-1 pb-[50%]">
+          <p className="font-paperlogy text-sm text-sub-gray">
+            "{searchValue}"에 대한 검색 결과가 없어요.
+          </p>
+          <p className="font-paperlogy text-sm text-sub-gray">관광지 이름을 다시 확인해보세요.</p>
         </div>
       ) : sortBy === "추천순" ? (
-        <div className="flex flex-col gap-2.5 overflow-x-hidden overflow-y-auto">
+        <div className="flex flex-col gap-2.5 overflow-y-auto overflow-x-hidden">
           {filtered.map((place) => (
             <PlaceSearchItem
               key={place.id}
@@ -213,7 +213,7 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
               status={place.status}
               imageUrl={place.imageUrl}
               onClick={() => router.push(`/itinerary/place/${place.id}`)}
-              className="rounded-[15px] border border-sub-lightblue/30 shadow-[2px_2px_6px_0px_rgba(151,193,255,0.15)]"
+              className="rounded-[15px] border border-system-glassborder shadow-[2px_2px_6px_0px_var(--color-system-glassborder)]"
             />
           ))}
         </div>
@@ -225,17 +225,17 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
               <div
                 key={consonant}
                 ref={(el) => { sectionRefs.current[consonant] = el; }}
-              data-consonant={consonant}
+                data-consonant={consonant}
               >
                 {/* 섹션 헤더 */}
-                <div className="mb-2 flex w-full items-center rounded-[5px] bg-system-searchbg py-[2px] pl-[6px]">
-                  <span className="font-paperlogy text-[11px] font-medium text-sub-deepblue">{consonant}</span>
+                <div className="mb-2 flex w-full items-center rounded-[5px] bg-system-searchbg py-[2px] pl-1.5">
+                  <span className="font-paperlogy text-xs font-medium text-sub-deepblue">{consonant}</span>
                 </div>
                 {/* 아이템 목록 */}
                 {grouped[consonant].map((place, idx) => (
                   <div key={place.id}>
                     <button
-                      className="flex w-full items-center gap-[6px] py-2 text-left active:opacity-70"
+                      className="flex w-full items-center gap-1.5 py-2 text-left active:opacity-70"
                       onClick={() => router.push(`/itinerary/place/${place.id}`)}
                     >
                       <Image
@@ -245,15 +245,18 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
                         height={12}
                         className="shrink-0"
                       />
-                      <div className="flex min-w-0 flex-1 items-center gap-[14px]">
-                        <span className="min-w-0 font-paperlogy text-[12px] font-normal text-text-primary truncate">
-                          {place.name}
-                        </span>
-                        <CategoryChip category={place.category} />
-                      </div>
+                      <span className="min-w-0 flex-1 truncate font-paperlogy text-sm font-normal text-text-primary">
+                        {place.name}
+                      </span>
                     </button>
                     {idx < grouped[consonant].length - 1 && (
-                      <div style={{ height: "0.3px", backgroundColor: "var(--color-sub-lightgray)", width: "calc(100% - 12px)" }} />
+                      <div
+                        style={{
+                          height: "0.3px",
+                          backgroundColor: "var(--color-sub-lightgray)",
+                          width: "calc(100% - 12px)",
+                        }}
+                      />
                     )}
                   </div>
                 ))}
@@ -263,19 +266,19 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
           </div>
 
           {/* 우측 인덱스바 */}
-          <div className="relative z-10 flex flex-col items-center justify-center gap-1 rounded-[5px] bg-system-navbg px-[4px] py-[3px] self-start">
-            <span className="font-paperlogy text-[11px] font-medium leading-none text-sub-deepblue">#</span>
+          <div className="relative z-10 flex flex-col items-center justify-center gap-1 self-start rounded-[5px] bg-system-navbg px-1 py-[3px]">
+            <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">#</span>
             {CONSONANTS.map((c) => (
               <button
                 key={c}
                 onClick={(e) => { e.stopPropagation(); scrollToSection(c); }}
                 className={cn(
-                  "flex w-[14px] items-center justify-center py-[1px] rounded-md font-paperlogy text-[11px] leading-none transition-colors",
+                  "flex w-[14px] items-center justify-center rounded-md py-[1px] font-paperlogy text-xs font-medium leading-none transition-colors",
                   activeSection === c
-                    ? "bg-main-blue font-medium text-white"
+                    ? "bg-main-blue text-white"
                     : activeConsonants.includes(c)
-                      ? "font-medium text-sub-deepblue"
-                      : "font-medium text-sub-lightgray",
+                      ? "text-sub-deepblue"
+                      : "text-sub-lightgray",
                 )}
               >
                 {c}
