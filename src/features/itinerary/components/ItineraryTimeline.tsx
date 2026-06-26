@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { PlaceCard } from "@/components";
 import { TransportCard } from "./TransportCard";
+import { PlaceSearchPanel } from "./PlaceSearchPanel";
 import type { Category } from "@/components";
 
 type PlaceStatus = "completed" | "verify";
@@ -38,6 +40,8 @@ interface ItineraryTimelineProps {
 }
 
 export function ItineraryTimeline({ stops, date, onAdd }: ItineraryTimelineProps) {
+  const [showSearch, setShowSearch] = useState(false);
+
   return (
     <div className="relative min-h-full min-w-0 pb-3.5">
       {/* 세로 타임라인 선 */}
@@ -53,13 +57,41 @@ export function ItineraryTimeline({ stops, date, onAdd }: ItineraryTimelineProps
           <div className="flex items-center gap-2.5 relative z-10 -ml-0.5">
             <button
               className="flex size-[18px] items-center justify-center rounded-md bg-sub-coral shrink-0"
-              onClick={onAdd}
+              onClick={() => setShowSearch((v) => !v)}
             >
               <span className="text-white text-xs font-bold leading-none">+</span>
             </button>
             <span className="font-paperlogy text-xs font-semibold text-sub-gray">{date}</span>
           </div>
         </div>
+
+        {/* 검색 팝업 인라인 카드 */}
+        {showSearch && (
+          <div className="flex items-start min-w-0">
+            {/* 타임 플레이스홀더 */}
+            <div className="w-10 shrink-0 flex justify-end pr-2 pt-0.5">
+              <div className="border border-dashed border-sub-gray rounded-md w-[38px] h-[19px] flex items-center justify-center">
+                <span className="font-paperlogy text-[9px] font-medium text-sub-gray tracking-[0.5px]">
+                  12:00
+                </span>
+              </div>
+            </div>
+            {/* 코랄 도트 */}
+            <div className="size-3 rounded-full bg-sub-coral shrink-0 relative z-10 mt-0.5" />
+            {/* 검색 카드 */}
+            <div className="pl-3 flex-1 min-w-0">
+              <div
+                className="w-full h-[470px] rounded-[30px] bg-white overflow-hidden flex flex-col p-4"
+                style={{
+                  border: "0.5px solid rgba(151, 193, 255, 0.2)",
+                  boxShadow: "2px 2px 10px 0px rgba(151, 193, 255, 0.2)",
+                }}
+              >
+                <PlaceSearchPanel />
+              </div>
+            </div>
+          </div>
+        )}
 
         {stops.map((stop) => (
           <div key={stop.id} className="min-w-0">

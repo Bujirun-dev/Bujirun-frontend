@@ -4,7 +4,7 @@ import { cn } from "@/shared/utils";
 import { CategoryChip, StatusBadge } from "@/components";
 import type { Category } from "@/components";
 
-type PlaceStatus = "completed" | "verify" | "pending";
+type PlaceStatus = "completed" | "verify" | "pending" | "uncollected";
 
 interface PlaceSearchItemProps {
   imageUrl?: string;
