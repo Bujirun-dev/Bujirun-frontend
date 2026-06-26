@@ -33,6 +33,7 @@ const CATEGORY_OPTIONS: { label: string; value: CategoryFilter }[] = [
   })),
 ];
 
+// TODO: API 연결 시 제거 — GET /api/places?region=... 응답으로 교체
 const SAMPLE_PLACES = [
   { id: "1", name: "해운대 해수욕장", category: "sea" as Category, status: "uncollected" as const, imageUrl: "https://picsum.photos/seed/beach2/300/200" },
   { id: "2", name: "감천문화마을", category: "culture" as Category, status: "uncollected" as const, imageUrl: "https://picsum.photos/seed/culture/300/200" },
@@ -94,6 +95,8 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
     return () => observer.disconnect();
   }, [sortBy]);
 
+  // TODO: API 연결 시 searchValue·categoryFilter·sortBy 를 쿼리 파라미터로 넘기고
+  //       추천순은 서버 정렬 결과 그대로 사용, 이름순만 클라이언트 정렬 유지
   const filtered = SAMPLE_PLACES.filter((p) => {
     const matchesSearch = p.name.includes(searchValue);
     const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
@@ -212,7 +215,7 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
               category={place.category}
               status={place.status}
               imageUrl={place.imageUrl}
-              onClick={() => router.push(`/itinerary/place/${place.id}`)}
+              onClick={() => router.push(`/itinerary/place/${place.id}`)} // TODO: API place.id 로 교체
               className="rounded-[15px] border border-system-glassborder shadow-[2px_2px_6px_0px_var(--color-system-glassborder)]"
             />
           ))}
@@ -236,7 +239,7 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
                   <div key={place.id}>
                     <button
                       className="flex w-full items-center gap-1.5 py-2 text-left active:opacity-70"
-                      onClick={() => router.push(`/itinerary/place/${place.id}`)}
+                      onClick={() => router.push(`/itinerary/place/${place.id}`)} // TODO: API place.id 로 교체
                     >
                       <Image
                         src={place.status === "completed" ? markerBlueIcon : markerPinkIcon}
