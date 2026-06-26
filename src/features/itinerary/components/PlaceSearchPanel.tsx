@@ -3,11 +3,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import triangleIcon from "@/assets/icons/itinerary/triangle.png";
 import markerBlueIcon from "@/assets/icons/itinerary/marker-blue.png";
 import markerPinkIcon from "@/assets/icons/itinerary/marker-pink.png";
 import { SearchBar } from "@/components";
 import { PlaceSearchItem } from "./PlaceSearchItem";
+import { ConsonantIndexBar } from "./ConsonantIndexBar";
+import { CategoryFilterDropdown } from "./CategoryFilterDropdown";
 import type { Category } from "@/components";
 import { cn } from "@/shared/utils";
 import { CATEGORY_LABEL } from "@/shared/constants/category";
@@ -16,22 +17,6 @@ type SortOption = "추천순" | "이름순";
 type CategoryFilter = Category | "all";
 
 const SORT_OPTIONS: SortOption[] = ["추천순", "이름순"];
-
-const CATEGORY_EMOJI: Record<string, string> = {
-  all: "⭐",
-  sea: "🌊",
-  nature: "🌿",
-  culture: "🏛",
-  experience: "🎡",
-};
-
-const CATEGORY_OPTIONS: { label: string; value: CategoryFilter }[] = [
-  { label: "전체", value: "all" },
-  ...Object.entries(CATEGORY_LABEL).map(([value, label]) => ({
-    label: label.replace("#", ""),
-    value: value as Category,
-  })),
-];
 
 // TODO: API 연결 시 제거 — GET /api/places?region=... 응답으로 교체
 const SAMPLE_PLACES = [
@@ -67,7 +52,6 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
   const [searchValue, setSearchValue] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("추천순");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const listRef = useRef<HTMLDivElement>(null);
@@ -158,44 +142,7 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
           </button>
         ))}
 
-        <div className="relative ml-auto">
-          <button
-            onClick={() => setShowCategoryDropdown((v) => !v)}
-            className="flex h-[19px] items-center gap-3.5 rounded-[7px] bg-system-navbg pl-[15px] pr-1.5 font-paperlogy text-xs font-normal text-text-primary"
-            style={{ border: "0.5px solid var(--color-main-blue)" }}
-          >
-            {CATEGORY_OPTIONS.find((c) => c.value === categoryFilter)?.label ?? "전체"}
-            <Image
-              src={triangleIcon}
-              alt="드롭다운"
-              width={6}
-              height={6}
-              className={cn("shrink-0 transition-transform rotate-180", showCategoryDropdown && "!rotate-0")}
-            />
-          </button>
-
-          {showCategoryDropdown && (
-            <div
-              className="absolute right-0 top-[22px] z-20 w-full overflow-hidden rounded-lg bg-white py-[5px] px-[3px] shadow-md"
-              style={{ border: "0.5px solid var(--color-main-blue)" }}
-            >
-              {CATEGORY_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => { setCategoryFilter(opt.value); setShowCategoryDropdown(false); }}
-                  className={cn(
-                    "flex w-full items-center gap-1.5 whitespace-nowrap px-2 py-[3px] text-left font-paperlogy text-xs text-text-primary",
-                    categoryFilter === opt.value && "rounded-[5px] bg-system-navbg font-semibold",
-                  )}
-                  style={categoryFilter === opt.value ? { border: "0.5px solid var(--color-main-blue)" } : undefined}
-                >
-                  <span>{CATEGORY_EMOJI[opt.value]}</span>
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <CategoryFilterDropdown value={categoryFilter} onChange={setCategoryFilter} />
       </div>
 
       {/* 목록 */}
@@ -215,7 +162,7 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
               category={place.category}
               status={place.status}
               imageUrl={place.imageUrl}
-              onClick={() => router.push(`/itinerary/place/${place.id}`)} // TODO: API place.id 로 교체
+              onClick={() => { onClose?.(); router.push(`/itinerary/place/${place.id}`); }} // TODO: API place.id 로 교체
               className="rounded-[15px] border border-system-glassborder shadow-[2px_2px_6px_0px_var(--color-system-glassborder)]"
             />
           ))}
@@ -231,15 +178,16 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
                 data-consonant={consonant}
               >
                 {/* 섹션 헤더 */}
-                <div className="mb-2 flex w-full items-center rounded-[5px] bg-system-searchbg py-[2px] pl-1.5">
+                <div className="mb-3 flex w-full items-center rounded-[5px] bg-system-searchbg py-[2px] pl-1.5">
                   <span className="font-paperlogy text-xs font-medium text-sub-deepblue">{consonant}</span>
                 </div>
                 {/* 아이템 목록 */}
+                <div className="pl-[5px]">
                 {grouped[consonant].map((place, idx) => (
                   <div key={place.id}>
                     <button
-                      className="flex w-full items-center gap-1.5 py-2 text-left active:opacity-70"
-                      onClick={() => router.push(`/itinerary/place/${place.id}`)} // TODO: API place.id 로 교체
+                      className={cn("flex w-full items-center gap-1.5 text-left active:opacity-70", idx === 0 ? "pt-0 pb-2.5" : "py-2.5")}
+                      onClick={() => { onClose?.(); router.push(`/itinerary/place/${place.id}`); }} // TODO: API place.id 로 교체
                     >
                       <Image
                         src={place.status === "completed" ? markerBlueIcon : markerPinkIcon}
@@ -263,31 +211,18 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
                     )}
                   </div>
                 ))}
-                <div className="mb-2" />
+                </div>
+                <div className="mb-0.5" />
               </div>
             ))}
           </div>
 
           {/* 우측 인덱스바 */}
-          <div className="relative z-10 flex flex-col items-center justify-center gap-1 self-start rounded-[5px] bg-system-navbg px-1 py-[3px]">
-            <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">#</span>
-            {CONSONANTS.map((c) => (
-              <button
-                key={c}
-                onClick={(e) => { e.stopPropagation(); scrollToSection(c); }}
-                className={cn(
-                  "flex w-[14px] items-center justify-center rounded-md py-[1px] font-paperlogy text-xs font-medium leading-none transition-colors",
-                  activeSection === c
-                    ? "bg-main-blue text-white"
-                    : activeConsonants.includes(c)
-                      ? "text-sub-deepblue"
-                      : "text-sub-lightgray",
-                )}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
+          <ConsonantIndexBar
+            activeConsonants={activeConsonants}
+            activeSection={activeSection}
+            onSelect={scrollToSection}
+          />
         </div>
       )}
     </div>
