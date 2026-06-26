@@ -36,7 +36,7 @@ export function Toast({
     <div className="absolute bottom-[94px] left-1/2 z-50 -translate-x-1/2">
       <div
         className={cn(
-          "flex h-[28px] items-center justify-center gap-1 rounded-lg bg-sub-darkgray px-3 py-1.5",
+          "flex h-[28px] items-center justify-center gap-1.5 rounded-lg bg-sub-darkgray px-3",
           className,
         )}
       >
