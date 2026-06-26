@@ -129,7 +129,7 @@ export function Modal({
           <div className="mt-1 flex w-full justify-center gap-6">
             <button
               className={cn(
-                "h-[40px] w-[125px] rounded-lg border font-ssurround text-md font-bold active:opacity-70",
+                "h-[40px] w-[125px] cursor-pointer rounded-lg border font-ssurround text-md font-bold active:opacity-70",
                 confirmVariant === "warning"
                   ? "border-sub-coral text-sub-coral"
                   : "border-main-blue text-sub-deepblue",
@@ -141,7 +141,7 @@ export function Modal({
             {onConfirm && (
               <button
                 className={cn(
-                  "h-[40px] w-[125px] rounded-lg font-ssurround text-md font-bold text-white active:opacity-70",
+                  "h-[40px] w-[125px] cursor-pointer rounded-lg font-ssurround text-md font-bold text-white active:opacity-70",
                   confirmVariant === "warning" ? "bg-sub-coral" : "bg-main-blue",
                 )}
                 onClick={onConfirm}
