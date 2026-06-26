@@ -36,14 +36,12 @@ export function Toast({
     <div className="absolute bottom-[94px] left-1/2 z-50 -translate-x-1/2">
       <div
         className={cn(
-          "flex h-[28px] w-[155px] items-center justify-center gap-2 rounded-lg bg-sub-darkgray px-4 py-1.5",
+          "flex h-[28px] items-center justify-center gap-1 rounded-lg bg-sub-darkgray px-3 py-1.5",
           className,
         )}
       >
         {icon}
-        <span className="whitespace-nowrap font-paperlogy text-sm font-medium text-white">
-          {message}
-        </span>
+        <span className="whitespace-nowrap text-sm font-medium text-white">{message}</span>
       </div>
     </div>
   );
