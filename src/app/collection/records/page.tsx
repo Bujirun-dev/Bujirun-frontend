@@ -112,6 +112,7 @@ export default function CollectionRecordsPage() {
       <RecordDeleteModal
         isOpen={selectedTrip !== null}
         tripName={selectedTrip?.title ?? ""}
+        period={selectedTrip?.period ?? ""}
         onClose={closeDeleteModal}
         onConfirm={handleDelete}
       />

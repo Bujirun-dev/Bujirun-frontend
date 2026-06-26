@@ -1,4 +1,6 @@
-export const TRIP_RECORDS = [
+import type { TripRecord } from "@/features/collection/types/tripRecord";
+
+export const TRIP_RECORDS: TripRecord[] = [
   {
     id: 1,
     title: "여행이름 1",
