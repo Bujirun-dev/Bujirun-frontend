@@ -95,8 +95,8 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
     return () => observer.disconnect();
   }, [sortBy]);
 
-  // TODO: API 연결 시 searchValue·categoryFilter·sortBy 를 쿼리 파라미터로 넘기고
-  //       추천순은 서버 정렬 결과 그대로 사용, 이름순만 클라이언트 정렬 유지
+  // TODO: API 연결 시 searchValue·categoryFilter 를 쿼리 파라미터로 넘기고
+  //       추천순은 백엔드 추천 로직 결과 순서 그대로 렌더링, 이름순만 클라이언트 정렬 유지
   const filtered = SAMPLE_PLACES.filter((p) => {
     const matchesSearch = p.name.includes(searchValue);
     const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
