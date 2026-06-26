@@ -91,6 +91,9 @@ export function BottomNavigation() {
   // 현재 주소 가져오기
   const pathname = usePathname();
 
+  // 로그인/회원가입 페이지에서는 숨기기
+  if (pathname === "/login" || pathname === "/signup") return null;
+
   return (
     // 하단 네비게이션 전체 디자인
     <nav className="z-30 w-full shrink-0 bg-main-white backdrop-blur pb-[env(safe-area-inset-bottom)]">
