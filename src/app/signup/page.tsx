@@ -11,6 +11,7 @@ import faceImg from "@/assets/character/face.png";
 import congsImg from "@/assets/character/congs.png";
 import yesIcon from "@/assets/icons/login-register/yes.png";
 import noIcon from "@/assets/icons/login-register/no.png";
+import { useRouter } from "next/navigation";
 
 const PROFILE_IMAGES = Array.from({ length: 9 }, (_, i) => ({ id: i + 1 }));
 
@@ -18,6 +19,7 @@ const PROFILE_IMAGES = Array.from({ length: 9 }, (_, i) => ({ id: i + 1 }));
 const TAKEN_NICKNAMES = ["유리", "성빈", "은진"];
 
 export default function SignUpPage() {
+  const router = useRouter();
   // 닉네임 값과 중복 여부를 하나의 객체로 관리 — 단일 setState로 렌더 보장
   const [nicknameState, setNicknameState] = useState({ value: "", isTaken: false });
   const [selectedProfile, setSelectedProfile] = useState<number | null>(null);
@@ -152,7 +154,7 @@ export default function SignUpPage() {
               <Button
                 variant="primary"
                 className="w-[275px] h-[31px]"
-                onClick={() => setIsSuccessModalOpen(false)}
+                onClick={() => router.push("/")}
               >
                 여행 시작하기
               </Button>
