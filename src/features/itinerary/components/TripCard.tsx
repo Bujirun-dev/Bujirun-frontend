@@ -43,13 +43,25 @@ export function TripCard({ trip, onSelect, onEdit, onDelete }: TripCardProps) {
           className="size-[20px] rounded-md bg-main-blue flex items-center justify-center active:opacity-70"
           onClick={() => onEdit(id)}
         >
-          <Image src={pencilWhiteIcon} alt="수정" width={12} height={12} className="brightness-0 invert" />
+          <Image
+            src={pencilWhiteIcon}
+            alt="수정"
+            width={12}
+            height={12}
+            className="brightness-0 invert"
+          />
         </button>
         <button
           className="size-[20px] rounded-md bg-sub-coral flex items-center justify-center active:opacity-70"
           onClick={() => onDelete(id)}
         >
-          <Image src={removeWhiteIcon} alt="삭제" width={12} height={12} className="brightness-0 invert" />
+          <Image
+            src={removeWhiteIcon}
+            alt="삭제"
+            width={12}
+            height={12}
+            className="brightness-0 invert"
+          />
         </button>
       </div>
     </Card>

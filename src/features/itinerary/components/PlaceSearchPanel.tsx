@@ -313,7 +313,10 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
                           alt="위치"
                           width={12}
                           height={12}
-                          className={cn("shrink-0", place.status === "completed" ? "icon-deepblue" : "icon-pink")}
+                          className={cn(
+                            "shrink-0",
+                            place.status === "completed" ? "icon-deepblue" : "icon-pink",
+                          )}
                         />
                         <span className="min-w-0 flex-1 truncate text-sm font-normal text-text-primary">
                           {place.name}

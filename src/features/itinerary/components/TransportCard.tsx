@@ -51,7 +51,7 @@ export function TransportCard({
   className,
 }: TransportCardProps) {
   const cardBase = cn(
-    "w-full min-w-0 overflow-hidden rounded-2xl py-3.5 px-2.5 shadow-sm",
+    "w-full min-w-0 overflow-hidden rounded-2xl py-3.5 px-2.5 shadow-[0_2px_8px_0_var(--color-system-scroll)]",
     selected === false ? "bg-main-white" : "bg-system-navbg",
     className,
   );
