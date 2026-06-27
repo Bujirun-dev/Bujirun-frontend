@@ -42,7 +42,7 @@ export function ProfileImageSelector({
                 : "bg-system-navbg outline outline-[2.5px] outline-transparent",
             )}
           >
-            <Image src={src} alt={`프로필 ${id}`} fill className="object-cover" />
+            <Image src={src} alt={`프로필 ${id}`} fill className="object-cover scale-120" />
           </button>
         ))}
       </div>
