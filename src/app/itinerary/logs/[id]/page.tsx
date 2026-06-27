@@ -3,8 +3,9 @@
 import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
 import calendarPlusDarkIcon from "@/assets/icons/itinerary/calendar-plus.svg";
-import { BackButton, PageCard, Modal } from "@/components";
+import { PageCard, Modal } from "@/components";
 import { cn } from "@/shared/utils";
 import { DayBadge } from "@/features/itinerary";
 import {
@@ -66,7 +67,9 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
     <PageCard>
       {/* 헤더 */}
       <div className="flex items-center gap-4 pb-4 shrink-0">
-        <BackButton />
+        <button onClick={() => router.back()} className="flex items-center justify-center shrink-0">
+          <Image src={angleLeftIcon} alt="뒤로" width={16} height={16} className="icon-gray" />
+        </button>
         <span className="font-ssurround font-bold text-lg text-text-heading flex-1">
           {log.title}
         </span>
