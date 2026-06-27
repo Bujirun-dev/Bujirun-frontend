@@ -12,7 +12,7 @@ export function AiOptimizeModal({ isOpen, onClose, onConfirm }: AiOptimizeModalP
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      icon={<MagicWandIcon width={28} height={28} className="block icon-coral" aria-hidden />}
+      icon={<MagicWandIcon width={25} height={25} className="block icon-coral" aria-hidden />}
       iconClassName="bg-sub-coral/10"
       title="AI 일정 최적화"
       description={"관광지의 위치와 이동 경로를 분석해\n더 효율적인 여행 코스를 추천해드릴게요."}
