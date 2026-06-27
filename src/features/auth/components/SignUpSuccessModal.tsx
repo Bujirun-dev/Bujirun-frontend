@@ -33,7 +33,7 @@ export function SignUpSuccessModal({ isOpen, onClose }: SignUpSuccessModalProps)
       iconClassName="bg-transparent w-auto h-auto"
       className="h-[435px]"
       title="회원가입 성공"
-      titleClassName="font-ssurround text-[18px] tracking-[0.5px]"
+      titleClassName="font-ssurround text-xl tracking-[0.5px]"
       description={`회원가입이 완료되었어요.\n같이 여행을 떠나볼까요?`}
       footer={
         <div className="w-full flex flex-col items-center">
@@ -41,14 +41,14 @@ export function SignUpSuccessModal({ isOpen, onClose }: SignUpSuccessModalProps)
             variant="glass-sm"
             className="mt-[30px] w-[275px] h-[31px] flex items-center justify-center py-0 px-3 rounded-[10px]"
           >
-            <p className="font-paperlogy font-medium text-[12px] text-sub-gray text-center">
+            <p className="font-medium text-sm text-sub-gray text-center">
               친구들과 여행의 추억을 기록해보세요!
             </p>
           </Card>
           <div className="mt-[45px] w-full flex justify-center">
             <Button
               variant="primary"
-              className="w-[278px] h-[40px] rounded-[10px] font-ssurround font-bold text-[14px]"
+              className="w-[278px] h-[40px] rounded-[10px] font-ssurround font-bold text-md"
               onClick={handleStart}
             >
               여행 시작하기
