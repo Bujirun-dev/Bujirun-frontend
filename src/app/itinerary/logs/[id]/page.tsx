@@ -3,8 +3,8 @@
 import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
-import calendarPlusDarkIcon from "@/assets/icons/itinerary/calendar-plus.svg";
+import AngleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
+import CalendarPlusIcon from "@/assets/icons/itinerary/calendar-plus.svg";
 import { PageCard, Modal } from "@/components";
 import { cn } from "@/shared/utils";
 import { DayBadge } from "@/features/itinerary";
@@ -27,7 +27,7 @@ function TagChip({ label, isLight }: { label: string; isLight?: boolean }) {
       <span
         className={cn(
           "font-normal text-xs text-center tracking-[0.16px]",
-          isLight ? "text-text-primary" : "text-white",
+          isLight ? "text-text-primary" : "text-main-white",
         )}
       >
         {label}
@@ -68,7 +68,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
       {/* 헤더 */}
       <div className="flex items-center gap-4 pb-4 shrink-0">
         <button onClick={() => router.back()} className="flex items-center justify-center shrink-0">
-          <Image src={angleLeftIcon} alt="뒤로" width={16} height={16} className="icon-gray" />
+          <AngleLeftIcon width={16} height={16} className="fill-sub-gray" aria-hidden />
         </button>
         <span className="font-ssurround font-bold text-lg text-text-heading flex-1">
           {log.title}
@@ -77,7 +77,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
           onClick={() => setShowAddModal(true)}
           className="size-[28px] rounded-lg bg-system-scroll border-[0.5px] border-main-blue flex items-center justify-center shrink-0"
         >
-          <Image src={calendarPlusDarkIcon} alt="일정 추가" width={16} height={16} />
+          <CalendarPlusIcon width={16} height={16} aria-hidden />
         </button>
       </div>
 
@@ -165,7 +165,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
         }}
         icon={
           <div className="size-[52px] rounded-full bg-system-searchbg flex items-center justify-center">
-            <Image src={calendarPlusDarkIcon} alt="일정 추가" width={24} height={24} />
+            <CalendarPlusIcon width={24} height={24} aria-hidden />
           </div>
         }
         title="내 일정에 추가"

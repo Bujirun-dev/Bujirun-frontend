@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { createPortal } from "react-dom";
-import markerIcon from "@/assets/icons/itinerary/marker.svg";
+import MarkerIcon from "@/assets/icons/itinerary/marker.svg";
 import { Button, Card } from "@/components";
 
 interface ArrivalVerifyModalProps {
@@ -55,7 +55,7 @@ export function ArrivalVerifyModal({
 
         <div className="flex flex-col items-center gap-2 text-center">
           <div className="flex items-center gap-1 bg-sub-lightblue px-3 py-1 rounded-full">
-            <Image src={markerIcon} alt="위치" width={14} height={14} className="icon-deepblue" />
+            <MarkerIcon width={14} height={14} className="fill-sub-deepblue" aria-hidden />
             <span className="font-semibold text-md text-sub-deepblue">{placeName}</span>
           </div>
           <h2 className="font-bold text-xl text-text-heading">이곳에 도착하셨나요?</h2>

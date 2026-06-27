@@ -3,12 +3,12 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
-import bookmarkOffIcon from "@/assets/icons/itinerary/bookmark-off.svg";
-import bookmarkOnIcon from "@/assets/icons/itinerary/bookmark-on.svg";
-import markerIcon from "@/assets/icons/itinerary/marker.svg";
+import AngleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
+import BookmarkOffIcon from "@/assets/icons/itinerary/bookmark-off.svg";
+import BookmarkOnIcon from "@/assets/icons/itinerary/bookmark-on.svg";
+import MarkerIcon from "@/assets/icons/itinerary/marker.svg";
 import kakaoMapIcon from "@/assets/icons/itinerary/kakaomap_horizontal_ko.png";
-import callIcon from "@/assets/icons/itinerary/call.svg";
+import CallIcon from "@/assets/icons/itinerary/call.svg";
 import { Button, CategoryChip, PageCard } from "@/components";
 
 export default function PlaceDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -32,18 +32,16 @@ export default function PlaceDetailPage({ params }: { params: Promise<{ id: stri
             onClick={() => router.back()}
             className="size-[32px] rounded-full bg-white/80 flex items-center justify-center shadow-sm"
           >
-            <Image src={angleLeftIcon} alt="뒤로" width={16} height={16} />
+            <AngleLeftIcon width={16} height={16} aria-hidden />
           </button>
           <button
             onClick={() => setBookmarked((b) => !b)}
             className="size-[32px] rounded-full bg-white/80 flex items-center justify-center shadow-sm"
           >
-            <Image
-              src={bookmarked ? bookmarkOnIcon : bookmarkOffIcon}
-              alt="북마크"
-              width={18}
-              height={18}
-            />
+            {bookmarked
+              ? <BookmarkOnIcon width={18} height={18} aria-label="북마크 해제" />
+              : <BookmarkOffIcon width={18} height={18} aria-label="북마크" />
+            }
           </button>
         </div>
       </div>
@@ -71,7 +69,7 @@ export default function PlaceDetailPage({ params }: { params: Promise<{ id: stri
         <div className="flex flex-col gap-2">
           <h2 className="font-bold text-md text-text-heading">위치</h2>
           <div className="flex items-start gap-2">
-            <Image src={markerIcon} alt="위치" width={14} height={14} className="mt-0.5 shrink-0" />
+            <MarkerIcon width={14} height={14} className="mt-0.5 shrink-0" aria-hidden />
             <span className="text-sm text-text-primary">
               부산광역시 해운대구 우동 해운대해변로 264
             </span>
@@ -91,7 +89,7 @@ export default function PlaceDetailPage({ params }: { params: Promise<{ id: stri
         <div className="flex flex-col gap-2">
           <h2 className="font-bold text-md text-text-heading">정보</h2>
           <div className="flex items-center gap-2">
-            <Image src={callIcon} alt="전화" width={14} height={14} />
+            <CallIcon width={14} height={14} aria-hidden />
             <span className="text-sm text-text-primary">051-749-7601</span>
           </div>
         </div>

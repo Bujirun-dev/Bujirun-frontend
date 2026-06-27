@@ -1,5 +1,4 @@
-import Image from "next/image";
-import removeWhiteIcon from "@/assets/icons/itinerary/remove.svg";
+import RemoveIcon from "@/assets/icons/itinerary/remove.svg";
 import { Toast } from "@/components";
 interface TripDeleteToastProps {
   isVisible: boolean;
@@ -12,15 +11,7 @@ export function TripDeleteToast({ isVisible, onHide }: TripDeleteToastProps) {
       isVisible={isVisible}
       onHide={onHide}
       message="여행이 삭제되었어요."
-      icon={
-        <Image
-          src={removeWhiteIcon}
-          alt="삭제"
-          width={12}
-          height={12}
-          className="brightness-0 invert"
-        />
-      }
+      icon={<RemoveIcon width={12} height={12} className="fill-white" aria-hidden />}
     />
   );
 }

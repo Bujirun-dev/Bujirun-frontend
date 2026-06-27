@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import calendarIcon from "@/assets/icons/itinerary/calendar.svg";
-import friendsIcon from "@/assets/icons/itinerary/friends.svg";
-import checkIcon from "@/assets/icons/itinerary/check-circle.svg";
+import CalendarIcon from "@/assets/icons/itinerary/calendar.svg";
+import FriendsIcon from "@/assets/icons/itinerary/friends.svg";
+import CheckCircleIcon from "@/assets/icons/itinerary/check-circle.svg";
 import { BackButton, Button, PageCard } from "@/components";
 
 const SAMPLE_TRIPS = [
@@ -70,25 +69,25 @@ export default function LogAddConfirmPage() {
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-md text-text-heading">{trip.name}</span>
                   {trip.isActive && (
-                    <span className="bg-main-blue text-white text-xs font-semibold px-1.5 py-0.5 rounded-full">
+                    <span className="bg-main-blue text-main-white text-xs font-semibold px-1.5 py-0.5 rounded-full">
                       진행 중
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1 text-xs text-sub-gray">
-                    <Image src={calendarIcon} alt="날짜" width={11} height={11} />
+                    <CalendarIcon width={11} height={11} aria-hidden />
                     {trip.startDate} ~ {trip.endDate}
                   </span>
                   <span className="flex items-center gap-1 text-xs text-sub-gray">
-                    <Image src={friendsIcon} alt="인원" width={11} height={11} />
+                    <FriendsIcon width={11} height={11} aria-hidden />
                     {trip.memberCount}명
                   </span>
                 </div>
               </div>
               {isSelected && (
                 <div className="size-[22px] rounded-full bg-main-blue flex items-center justify-center shrink-0">
-                  <Image src={checkIcon} alt="선택됨" width={12} height={12} />
+                  <CheckCircleIcon width={12} height={12} className="fill-white" aria-hidden />
                 </div>
               )}
             </button>

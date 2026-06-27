@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
-import triangleIcon from "@/assets/icons/itinerary/triangle.svg";
+import TriangleIcon from "@/assets/icons/itinerary/triangle.svg";
 import { cn } from "@/shared/utils";
 import { CATEGORY_LABEL } from "@/shared/constants/category";
 import type { Category } from "@/components";
@@ -50,12 +49,11 @@ export function CategoryFilterDropdown({ value, onChange }: CategoryFilterDropdo
         className="flex h-[19px] items-center gap-3.5 rounded-lg border-[0.5px] border-main-blue bg-system-navbg pl-[15px] pr-1.5 text-xs font-normal text-text-primary"
       >
         {CATEGORY_OPTIONS.find((c) => c.value === value)?.label ?? "전체"}
-        <Image
-          src={triangleIcon}
-          alt="드롭다운"
+        <TriangleIcon
           width={6}
           height={6}
           className={cn("shrink-0 transition-transform", open && "rotate-180")}
+          aria-hidden
         />
       </button>
 

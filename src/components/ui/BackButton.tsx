@@ -1,8 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
+import AngleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
 import { cn } from "@/shared/utils";
 
 interface BackButtonProps {
@@ -21,7 +20,7 @@ export function BackButton({ className, onClick }: BackButtonProps) {
         className,
       )}
     >
-      <Image src={angleLeftIcon} alt="뒤로" width={16} height={16} />
+      <AngleLeftIcon width={16} height={16} aria-hidden />
     </button>
   );
 }

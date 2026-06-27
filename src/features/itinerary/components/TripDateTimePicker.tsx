@@ -175,7 +175,7 @@ export function TripDateTimePicker({ value, onChange, minValue }: TripDateTimePi
                     isDisabled
                       ? "bg-system-searchbg text-sub-lightgray"
                       : isSelected
-                        ? "bg-main-blue text-white"
+                        ? "bg-main-blue text-main-white"
                         : "bg-system-searchbg text-text-primary"
                   }`}
                   onClick={() => handleDateSelect(day)}
@@ -207,7 +207,7 @@ export function TripDateTimePicker({ value, onChange, minValue }: TripDateTimePi
             />
             <button
               type="button"
-              className="h-[30px] rounded-lg bg-main-blue px-3 text-xs font-semibold text-white active:opacity-70"
+              className="h-[30px] rounded-lg bg-main-blue px-3 text-xs font-semibold text-main-white active:opacity-70"
               onClick={() => setIsOpen(false)}
             >
               완료
