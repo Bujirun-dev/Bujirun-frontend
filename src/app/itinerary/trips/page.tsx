@@ -70,7 +70,7 @@ export default function TripsPage() {
         className="absolute top-[28px] right-[32px] size-[28px] rounded-lg bg-sub-coral flex items-center justify-center active:opacity-80 z-10"
         onClick={() => {}}
       >
-        <PlusSmallIcon width={24} height={24} className="fill-white" aria-hidden />
+        <PlusSmallIcon width={24} height={24} className="brightness-0 invert" aria-hidden />
       </button>
 
       {/* 헤더 */}

@@ -70,7 +70,7 @@ export function AiOptimizeLoadingModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      icon={<MagicWandIcon width={28} height={28} className="icon-coral" aria-hidden />}
+      icon={<MagicWandIcon width={28} height={28} className="block icon-coral" aria-hidden />}
       iconClassName="bg-sub-coral/10"
       title="AI가 최적 경로를 찾고 있어요"
       hideActions

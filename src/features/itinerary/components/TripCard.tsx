@@ -42,13 +42,13 @@ export function TripCard({ trip, onSelect, onEdit, onDelete }: TripCardProps) {
           className="size-[20px] rounded-md bg-main-blue flex items-center justify-center active:opacity-70"
           onClick={() => onEdit(id)}
         >
-          <PencilIcon width={12} height={12} className="fill-white" aria-hidden />
+          <PencilIcon width={12} height={12} className="brightness-0 invert" aria-hidden />
         </button>
         <button
           className="size-[20px] rounded-md bg-sub-coral flex items-center justify-center active:opacity-70"
           onClick={() => onDelete(id)}
         >
-          <RemoveIcon width={12} height={12} className="fill-white" aria-hidden />
+          <RemoveIcon width={12} height={12} className="brightness-0 invert" aria-hidden />
         </button>
       </div>
     </Card>

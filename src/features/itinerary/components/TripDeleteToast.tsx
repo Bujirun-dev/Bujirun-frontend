@@ -11,7 +11,7 @@ export function TripDeleteToast({ isVisible, onHide }: TripDeleteToastProps) {
       isVisible={isVisible}
       onHide={onHide}
       message="여행이 삭제되었어요."
-      icon={<RemoveIcon width={12} height={12} className="fill-white" aria-hidden />}
+      icon={<RemoveIcon width={12} height={12} className="brightness-0 invert" aria-hidden />}
     />
   );
 }

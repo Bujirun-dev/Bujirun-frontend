@@ -242,7 +242,7 @@ function ItineraryMain() {
         onHide={() => setToastMessage(null)}
         message={toastMessage ?? ""}
         icon={
-          <SuccessIcon width={12} height={12} className="fill-white" aria-hidden />
+          <SuccessIcon width={12} height={12} className="brightness-0 invert" aria-hidden />
         }
       />
     </div>

@@ -87,7 +87,7 @@ export default function LogAddConfirmPage() {
               </div>
               {isSelected && (
                 <div className="size-[22px] rounded-full bg-main-blue flex items-center justify-center shrink-0">
-                  <CheckCircleIcon width={12} height={12} className="fill-white" aria-hidden />
+                  <CheckCircleIcon width={12} height={12} className="brightness-0 invert" aria-hidden />
                 </div>
               )}
             </button>
