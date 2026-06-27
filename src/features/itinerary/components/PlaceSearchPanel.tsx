@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import MarkerIcon from "@/assets/icons/itinerary/marker.svg";
+import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
 import { SearchBar } from "@/components";
 import { PlaceSearchItem } from "./PlaceSearchItem";
 import { ConsonantIndexBar } from "./ConsonantIndexBar";

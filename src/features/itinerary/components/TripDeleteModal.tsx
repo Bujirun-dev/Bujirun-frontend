@@ -1,4 +1,5 @@
-import RemoveIcon from "@/assets/icons/itinerary/remove.svg";
+import Image from "next/image";
+import removeIcon from "@/assets/icons/itinerary/remove.svg?url";
 import { Card, Modal } from "@/components";
 
 interface TripDeleteModalProps {
@@ -14,7 +15,14 @@ export function TripDeleteModal({ isOpen, tripName, onClose, onConfirm }: TripDe
       isOpen={isOpen}
       onClose={onClose}
       icon={
-        <RemoveIcon width={25} height={25} className="icon-coral" aria-hidden />
+        <Image
+          src={removeIcon}
+          alt=""
+          width={25}
+          height={25}
+          className="icon-coral"
+          aria-hidden
+        />
       }
       iconClassName="size-[48px] bg-system-navbg"
       title="여행 삭제"

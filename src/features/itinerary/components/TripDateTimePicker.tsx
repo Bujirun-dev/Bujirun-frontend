@@ -151,7 +151,7 @@ export function TripDateTimePicker({ value, onChange, minValue }: TripDateTimePi
       {isOpen && (
         <div
           ref={popupRef}
-          className="fixed left-1/2 top-1/2 z-10 w-[252px] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-sub-lightblue bg-main-white p-[10px] shadow-lg"
+          className="fixed left-1/2 top-1/2 z-10 w-[252px] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-sub-lightblue bg-main-white p-[10px] shadow-[0_4px_15px_0_var(--color-system-scroll)]"
         >
           <div className="mb-2 flex items-center justify-between">
             <button

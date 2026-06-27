@@ -1,8 +1,8 @@
-import type { FC, SVGProps } from "react";
-import BusIcon from "@/assets/icons/itinerary/bus.svg";
-import SubwayIcon from "@/assets/icons/itinerary/subway.svg";
-import WalkIcon from "@/assets/icons/itinerary/walk.svg";
-import TaxiIcon from "@/assets/icons/itinerary/taxi.svg";
+import Image from "next/image";
+import busIcon from "@/assets/icons/itinerary/bus.svg?url";
+import subwayIcon from "@/assets/icons/itinerary/subway.svg?url";
+import walkIcon from "@/assets/icons/itinerary/walk.svg?url";
+import taxiIcon from "@/assets/icons/itinerary/taxi.svg?url";
 import { cn } from "@/shared/utils";
 
 type TransportType = "버스" | "지하철" | "도보" | "택시";
@@ -26,11 +26,11 @@ interface TransportCardProps {
   className?: string;
 }
 
-const TRANSPORT_ICONS: Record<TransportType, FC<SVGProps<SVGSVGElement>>> = {
-  버스: BusIcon,
-  지하철: SubwayIcon,
-  도보: WalkIcon,
-  택시: TaxiIcon,
+const TRANSPORT_ICONS: Record<TransportType, string> = {
+  버스: busIcon,
+  지하철: subwayIcon,
+  도보: walkIcon,
+  택시: taxiIcon,
 };
 
 const TRANSPORT_COLORS: Record<TransportType, string> = {
@@ -62,7 +62,7 @@ export function TransportCard({
   // 단일 leg (택시/도보): 점 없이 심플 레이아웃
   if (legs.length === 1) {
     const leg = legs[0];
-    const LegIcon = TRANSPORT_ICONS[leg.type];
+    const legIcon = TRANSPORT_ICONS[leg.type];
     return (
       <div className={cardBase}>
         <div className="flex min-w-0 items-center gap-3">
@@ -72,7 +72,14 @@ export function TransportCard({
               TRANSPORT_COLORS[leg.type],
             )}
           >
-            <LegIcon width={14} height={14} className="brightness-0 invert" aria-hidden />
+            <Image
+              src={legIcon}
+              alt=""
+              width={14}
+              height={14}
+              className="brightness-0 invert"
+              aria-hidden
+            />
           </div>
           <div className="flex flex-col gap-0.5 min-w-0 flex-1">
             <div className="flex min-w-0 items-center justify-between gap-2">
@@ -130,7 +137,7 @@ export function TransportCard({
         </div>
 
         {legs.map((leg, index) => {
-          const LegIcon = TRANSPORT_ICONS[leg.type];
+          const legIcon = TRANSPORT_ICONS[leg.type];
           return (
             <div key={index} className="flex items-center gap-3">
               <div
@@ -139,7 +146,14 @@ export function TransportCard({
                   TRANSPORT_COLORS[leg.type],
                 )}
               >
-                <LegIcon width={14} height={14} className="brightness-0 invert" aria-hidden />
+                <Image
+                  src={legIcon}
+                  alt=""
+                  width={14}
+                  height={14}
+                  className="brightness-0 invert"
+                  aria-hidden
+                />
               </div>
               <div className="flex flex-1 items-center justify-between min-w-0 gap-2">
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">

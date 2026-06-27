@@ -3,8 +3,8 @@
 import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import AngleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
-import CalendarPlusIcon from "@/assets/icons/itinerary/calendar-plus.svg";
+import AngleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?svgr";
+import calendarPlusIcon from "@/assets/icons/itinerary/calendar-plus.svg?url";
 import { PageCard, Modal } from "@/components";
 import { cn } from "@/shared/utils";
 import { DayBadge } from "@/features/itinerary";
@@ -77,7 +77,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
           onClick={() => setShowAddModal(true)}
           className="size-[28px] rounded-lg bg-system-scroll border-[0.5px] border-main-blue flex items-center justify-center shrink-0"
         >
-          <CalendarPlusIcon width={16} height={16} aria-hidden />
+          <Image src={calendarPlusIcon} alt="" width={16} height={16} aria-hidden />
         </button>
       </div>
 
@@ -165,7 +165,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
         }}
         icon={
           <div className="size-[52px] rounded-full bg-system-searchbg flex items-center justify-center">
-            <CalendarPlusIcon width={24} height={24} aria-hidden />
+            <Image src={calendarPlusIcon} alt="" width={24} height={24} aria-hidden />
           </div>
         }
         title="내 일정에 추가"

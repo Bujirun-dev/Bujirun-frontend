@@ -63,7 +63,7 @@ export function PlaceDetailSheet({
     >
       <div
         className={cn(
-          "w-full max-w-[335px] h-[470px] max-h-[80dvh] rounded-2xl bg-white shadow-md flex flex-col overflow-hidden",
+          "w-full max-w-[335px] h-[470px] max-h-[80dvh] rounded-2xl bg-main-white shadow-[0_2px_8px_0_var(--color-system-scroll)] flex flex-col overflow-hidden",
           className,
         )}
         onClick={(e) => e.stopPropagation()}
@@ -77,7 +77,7 @@ export function PlaceDetailSheet({
             onClick={onAdd}
             className="w-[28px] h-[28px] bg-sub-coral rounded-lg flex items-center justify-center"
           >
-            <span className="font-bold text-white text-lg leading-none">+</span>
+            <span className="font-bold text-main-white text-lg leading-none">+</span>
           </button>
         </div>
 
@@ -91,7 +91,7 @@ export function PlaceDetailSheet({
                 onClick={onVerify}
                 className="absolute top-2 right-2 h-[26px] px-3 bg-sub-coral rounded-lg flex items-center justify-center"
               >
-                <span className="font-bold text-white text-xs leading-none">인증하기</span>
+                <span className="font-bold text-main-white text-xs leading-none">인증하기</span>
               </button>
             )}
             {status && (
@@ -108,9 +108,9 @@ export function PlaceDetailSheet({
                 <svg width="13" height="15" viewBox="0 0 14 16" fill="none">
                   <path
                     d="M7 0C4.24 0 2 2.24 2 5C2 8.75 7 15 7 15C7 15 12 8.75 12 5C12 2.24 9.76 0 7 0Z"
-                    fill="#FF7F50"
+                    fill="var(--color-sub-coral)"
                   />
-                  <circle cx="7" cy="5" r="2" fill="white" />
+                  <circle cx="7" cy="5" r="2" fill="var(--color-main-white)" />
                 </svg>
                 <span className="font-medium text-md text-text-heading">{name}</span>
               </div>
@@ -120,10 +120,12 @@ export function PlaceDetailSheet({
               <svg width="16" height="18" viewBox="0 0 20 24" fill="none">
                 <path
                   d="M2 2H18C19.1 2 20 2.9 20 4V22L10 18L0 22V4C0 2.9 0.9 2 2 2Z"
-                  stroke={isBookmarked ? "#FF7F50" : "#C4C4C4"}
+                  stroke={
+                    isBookmarked ? "var(--color-sub-coral)" : "var(--color-sub-lightgray)"
+                  }
                   strokeWidth="1.8"
                   strokeLinejoin="round"
-                  fill={isBookmarked ? "#FF7F50" : "none"}
+                  fill={isBookmarked ? "var(--color-sub-coral)" : "none"}
                 />
               </svg>
             </button>
@@ -146,9 +148,9 @@ export function PlaceDetailSheet({
                   <svg width="10" height="11" viewBox="0 0 14 16" fill="none">
                     <path
                       d="M7 0C4.24 0 2 2.24 2 5C2 8.75 7 15 7 15C7 15 12 8.75 12 5C12 2.24 9.76 0 7 0Z"
-                      fill="#F9B82F"
+                      fill="var(--color-sub-coral)"
                     />
-                    <circle cx="7" cy="5" r="2" fill="white" />
+                    <circle cx="7" cy="5" r="2" fill="var(--color-main-white)" />
                   </svg>
                   <span className="text-xs text-sub-deepblue font-medium">카카오맵</span>
                 </div>
@@ -189,7 +191,7 @@ export function PlaceDetailSheet({
                           className="object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                        <span className="absolute bottom-1.5 left-2 font-medium text-xs text-white">
+                        <span className="absolute bottom-1.5 left-2 font-medium text-xs text-main-white">
                           {log.userName}
                         </span>
                       </div>

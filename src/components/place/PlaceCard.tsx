@@ -1,6 +1,6 @@
 import Image from "next/image";
-import removeWhiteIcon from "@/assets/icons/itinerary/remove-white.png";
-import markerBlueIcon from "@/assets/icons/itinerary/marker-blue.png";
+import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
+import removeIcon from "@/assets/icons/itinerary/remove.svg?url";
 import { cn } from "@/shared/utils";
 import { CategoryChip, StatusBadge } from "@/components";
 import type { Category } from "@/components";
@@ -31,7 +31,7 @@ export function PlaceCard({
   return (
     <div
       className={cn(
-        "w-full min-w-0 h-[98px] flex bg-white rounded-2xl overflow-hidden shadow-sm cursor-pointer",
+        "w-full min-w-0 h-[98px] flex bg-main-white rounded-2xl overflow-hidden shadow-[0_2px_8px_0_var(--color-system-scroll)] cursor-pointer",
         className,
       )}
       onClick={onClick}
@@ -43,7 +43,7 @@ export function PlaceCard({
       <div className="min-w-0 flex-1 flex flex-col justify-between px-2.5 py-2.5 overflow-hidden relative">
         <div className="flex flex-col gap-1">
           <div className="flex min-w-0 items-center gap-1 pr-5">
-            <Image src={markerBlueIcon} alt="위치" width={13} height={13} className="shrink-0" />
+            <MarkerIcon width={13} height={13} className="shrink-0 fill-sub-deepblue" aria-hidden />
             <span className="font-medium text-md text-text-heading truncate">{name}</span>
           </div>
           <CategoryChip category={category} className="self-start" />
@@ -74,7 +74,13 @@ export function PlaceCard({
               onDelete();
             }}
           >
-            <Image src={removeWhiteIcon} alt="삭제" width={10} height={10} />
+            <Image
+              src={removeIcon}
+              alt="삭제"
+              width={10}
+              height={10}
+              className="brightness-0 invert"
+            />
           </button>
         )}
       </div>

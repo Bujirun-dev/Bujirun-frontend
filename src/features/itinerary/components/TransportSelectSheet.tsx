@@ -106,7 +106,7 @@ export function TransportSelectSheet({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[350px] max-h-[80dvh] bg-main-white rounded-2xl px-5 py-6 flex flex-col gap-3 overflow-y-auto overflow-x-hidden shadow-lg"
+        className="relative w-full max-w-[350px] max-h-[80dvh] bg-main-white rounded-2xl px-5 py-6 flex flex-col gap-3 overflow-y-auto overflow-x-hidden shadow-[0_4px_15px_0_var(--color-system-scroll)]"
         onClick={(e) => e.stopPropagation()}
       >
         <button

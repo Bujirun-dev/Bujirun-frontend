@@ -1,8 +1,9 @@
 import { useState } from "react";
-import PencilIcon from "@/assets/icons/itinerary/pencil.svg";
-import TitleIcon from "@/assets/icons/itinerary/title.svg";
-import CalendarIcon from "@/assets/icons/itinerary/calendar.svg";
-import ClockIcon from "@/assets/icons/itinerary/clock.svg";
+import Image from "next/image";
+import calendarIcon from "@/assets/icons/itinerary/calendar.svg?url";
+import clockIcon from "@/assets/icons/itinerary/clock.svg?url";
+import PencilIcon from "@/assets/icons/itinerary/pencil.svg?svgr";
+import titleIcon from "@/assets/icons/itinerary/title.svg?url";
 import { Card, Modal, TextInput } from "@/components";
 import { formatTripDateTime, parseTripDateTime, TripDateTimePicker } from "./TripDateTimePicker";
 import type { Trip } from "./TripCard";
@@ -52,7 +53,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
     >
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-1.5">
-          <TitleIcon width={16} height={16} aria-hidden />
+          <Image src={titleIcon} alt="" width={16} height={16} aria-hidden />
           <span className="text-lg font-semibold text-text-heading">여행명</span>
         </div>
         <TextInput
@@ -65,7 +66,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
 
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-1.5">
-          <CalendarIcon width={16} height={16} aria-hidden />
+          <Image src={calendarIcon} alt="" width={16} height={16} aria-hidden />
           <span className="text-lg font-semibold text-text-heading">여행 기간</span>
         </div>
         <div className="flex flex-col gap-2.5">
@@ -92,7 +93,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
 function DateTimeLabel({ label }: { label: string }) {
   return (
     <div className="flex shrink-0 items-center gap-1">
-      <ClockIcon width={11} height={11} aria-hidden />
+      <Image src={clockIcon} alt="" width={11} height={11} aria-hidden />
       <span className="text-sm font-semibold text-text-primary">{label}</span>
     </div>
   );

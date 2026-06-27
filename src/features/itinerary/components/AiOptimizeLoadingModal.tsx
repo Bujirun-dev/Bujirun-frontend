@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import MagicWandIcon from "@/assets/icons/itinerary/magic-wand.svg";
-import FreepassIcon from "@/assets/icons/itinerary/freepass.svg";
+import FreepassIcon from "@/assets/icons/itinerary/freepass.svg?svgr";
+import magicWandIcon from "@/assets/icons/itinerary/magic-wand.svg?url";
 import seaCharacter from "@/assets/character/sea.png";
 import { Modal } from "@/components";
 
@@ -70,7 +70,16 @@ export function AiOptimizeLoadingModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      icon={<MagicWandIcon width={25} height={25} className="block icon-coral" aria-hidden />}
+      icon={
+        <Image
+          src={magicWandIcon}
+          alt=""
+          width={25}
+          height={25}
+          className="block icon-coral"
+          aria-hidden
+        />
+      }
       iconClassName="bg-sub-coral/10"
       title="AI가 최적 경로를 찾고 있어요"
       hideActions

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import AngleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
+import AngleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?svgr";
 import { PageCard, FilterChips } from "@/components";
 import { LogCard } from "@/features/itinerary";
 import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";

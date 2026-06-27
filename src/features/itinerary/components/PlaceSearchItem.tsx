@@ -1,5 +1,5 @@
 import Image from "next/image";
-import MarkerIcon from "@/assets/icons/itinerary/marker.svg";
+import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
 import { cn } from "@/shared/utils";
 import { CategoryChip, StatusBadge } from "@/components";
 import type { Category } from "@/components";
@@ -26,7 +26,7 @@ export function PlaceSearchItem({
   return (
     <div
       className={cn(
-        "relative flex h-[81px] w-full cursor-pointer items-start gap-1.5 rounded-xl bg-white px-2.5 py-2 active:opacity-80",
+        "relative flex h-[81px] w-full cursor-pointer items-start gap-1.5 rounded-xl bg-main-white px-2.5 py-2 active:opacity-80",
         className,
       )}
       onClick={onClick}

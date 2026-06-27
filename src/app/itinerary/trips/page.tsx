@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import PlusSmallIcon from "@/assets/icons/itinerary/plus-small.svg";
+import plusSmallIcon from "@/assets/icons/itinerary/plus-small.svg?url";
 import { PageCard } from "@/components";
 import { TripCard, TripEditModal, TripDeleteModal, TripDeleteToast } from "@/features/itinerary";
 import type { Trip } from "@/features/itinerary";
@@ -70,7 +71,14 @@ export default function TripsPage() {
         className="absolute top-[28px] right-[32px] size-[28px] rounded-lg bg-sub-coral flex items-center justify-center active:opacity-80 z-10"
         onClick={() => {}}
       >
-        <PlusSmallIcon width={24} height={24} className="brightness-0 invert" aria-hidden />
+        <Image
+          src={plusSmallIcon}
+          alt=""
+          width={24}
+          height={24}
+          className="brightness-0 invert"
+          aria-hidden
+        />
       </button>
 
       {/* 헤더 */}

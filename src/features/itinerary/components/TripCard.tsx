@@ -1,6 +1,7 @@
-import BagIcon from "@/assets/icons/itinerary/bag.svg";
-import PencilIcon from "@/assets/icons/itinerary/pencil.svg";
-import RemoveIcon from "@/assets/icons/itinerary/remove.svg";
+import Image from "next/image";
+import bagIcon from "@/assets/icons/itinerary/bag.svg?url";
+import pencilIcon from "@/assets/icons/itinerary/pencil.svg?url";
+import removeIcon from "@/assets/icons/itinerary/remove.svg?url";
 import { Card } from "@/components";
 
 export interface Trip {
@@ -28,7 +29,7 @@ export function TripCard({ trip, onSelect, onEdit, onDelete }: TripCardProps) {
         className="flex items-start gap-3.5 flex-1 text-left active:opacity-70"
         onClick={() => onSelect(id)}
       >
-        <BagIcon width={18} height={18} aria-hidden />
+        <Image src={bagIcon} alt="" width={18} height={18} aria-hidden />
         <div className="flex flex-col gap-1">
           <span className="font-bold text-md text-text-heading leading-none">{name}</span>
           <span className="font-medium text-xs text-sub-gray leading-none">
@@ -42,13 +43,27 @@ export function TripCard({ trip, onSelect, onEdit, onDelete }: TripCardProps) {
           className="size-[20px] rounded-md bg-main-blue flex items-center justify-center active:opacity-70"
           onClick={() => onEdit(id)}
         >
-          <PencilIcon width={12} height={12} className="brightness-0 invert" aria-hidden />
+          <Image
+            src={pencilIcon}
+            alt=""
+            width={12}
+            height={12}
+            className="brightness-0 invert"
+            aria-hidden
+          />
         </button>
         <button
           className="size-[20px] rounded-md bg-sub-coral flex items-center justify-center active:opacity-70"
           onClick={() => onDelete(id)}
         >
-          <RemoveIcon width={12} height={12} className="brightness-0 invert" aria-hidden />
+          <Image
+            src={removeIcon}
+            alt=""
+            width={12}
+            height={12}
+            className="brightness-0 invert"
+            aria-hidden
+          />
         </button>
       </div>
     </Card>

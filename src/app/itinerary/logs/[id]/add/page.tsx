@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import CalendarIcon from "@/assets/icons/itinerary/calendar.svg";
-import FriendsIcon from "@/assets/icons/itinerary/friends.svg";
-import CheckCircleIcon from "@/assets/icons/itinerary/check-circle.svg";
+import calendarIcon from "@/assets/icons/itinerary/calendar.svg?url";
+import checkCircleIcon from "@/assets/icons/itinerary/check-circle.svg?url";
+import friendsIcon from "@/assets/icons/itinerary/friends.svg?url";
 import { BackButton, Button, PageCard } from "@/components";
 
 const SAMPLE_TRIPS = [
@@ -40,7 +41,7 @@ export default function LogAddConfirmPage() {
       {/* 헤더 */}
       <div className="flex items-center gap-3 pb-5">
         <BackButton />
-        <span className="flex-1 text-center font-bold text-base text-text-heading">
+        <span className="flex-1 text-center font-bold text-lg text-text-heading">
           내 일정에 추가
         </span>
         <div className="size-[28px]" />
@@ -62,7 +63,9 @@ export default function LogAddConfirmPage() {
               key={trip.id}
               onClick={() => setSelectedTrip(trip.id)}
               className={`w-full rounded-2xl border px-4 py-3.5 flex items-center justify-between text-left transition-colors ${
-                isSelected ? "border-main-blue bg-system-selected" : "border-gray-200 bg-white"
+                isSelected
+                  ? "border-main-blue bg-system-selected"
+                  : "border-sub-lightgray bg-main-white"
               }`}
             >
               <div className="flex flex-col gap-1.5">
@@ -76,18 +79,25 @@ export default function LogAddConfirmPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1 text-xs text-sub-gray">
-                    <CalendarIcon width={11} height={11} aria-hidden />
+                    <Image src={calendarIcon} alt="" width={11} height={11} aria-hidden />
                     {trip.startDate} ~ {trip.endDate}
                   </span>
                   <span className="flex items-center gap-1 text-xs text-sub-gray">
-                    <FriendsIcon width={11} height={11} aria-hidden />
+                    <Image src={friendsIcon} alt="" width={11} height={11} aria-hidden />
                     {trip.memberCount}명
                   </span>
                 </div>
               </div>
               {isSelected && (
                 <div className="size-[22px] rounded-full bg-main-blue flex items-center justify-center shrink-0">
-                  <CheckCircleIcon width={12} height={12} className="brightness-0 invert" aria-hidden />
+                  <Image
+                    src={checkCircleIcon}
+                    alt=""
+                    width={12}
+                    height={12}
+                    className="brightness-0 invert"
+                    aria-hidden
+                  />
                 </div>
               )}
             </button>

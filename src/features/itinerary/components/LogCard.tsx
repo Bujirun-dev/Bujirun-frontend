@@ -1,5 +1,5 @@
 import Image from "next/image";
-import CalendarPlusIcon from "@/assets/icons/itinerary/calendar-plus.svg";
+import CalendarPlusIcon from "@/assets/icons/itinerary/calendar-plus.svg?svgr";
 import { cn } from "@/shared/utils";
 
 interface LogCardProps {
@@ -35,7 +35,7 @@ export function LogCard({
   return (
     <div
       className={cn(
-        "w-full h-[223px] shrink-0 flex flex-col bg-white rounded-2xl overflow-hidden border border-gray-200/60 shadow-[0px_4px_15px_0px_#d9d9d9] cursor-pointer active:opacity-80",
+        "w-full h-[223px] shrink-0 flex flex-col bg-main-white rounded-2xl overflow-hidden border border-sub-lightgray/60 shadow-[0_4px_15px_0_var(--color-system-scroll)] cursor-pointer active:opacity-80",
         className,
       )}
       onClick={onClick}
@@ -43,7 +43,7 @@ export function LogCard({
       {/* 대표 사진 */}
       <div className="relative w-full h-[146px] shrink-0">
         <Image src={imageUrl} alt={placeName} fill className="object-cover" />
-        <div className="absolute top-[12px] right-[14px] flex items-center justify-center gap-1 px-2 py-1 bg-white rounded-lg shadow-sm">
+        <div className="absolute top-[12px] right-[14px] flex items-center justify-center gap-1 px-2 py-1 bg-main-white rounded-lg shadow-[0_2px_8px_0_var(--color-system-scroll)]">
           <CalendarPlusIcon width={10} height={10} className="fill-sub-gray" aria-hidden />
           <span className="text-xs font-medium text-sub-gray">{downloadCount}</span>
         </div>

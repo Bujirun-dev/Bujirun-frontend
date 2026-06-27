@@ -1,6 +1,7 @@
-import MapMagnifierIcon from "@/assets/icons/itinerary/map-magnifier.svg";
-import MagicWandIcon from "@/assets/icons/itinerary/magic-wand.svg";
-import ListIcon from "@/assets/icons/itinerary/list.svg";
+import Image from "next/image";
+import listIcon from "@/assets/icons/itinerary/list.svg?url";
+import magicWandIcon from "@/assets/icons/itinerary/magic-wand.svg?url";
+import mapMagnifierIcon from "@/assets/icons/itinerary/map-magnifier.svg?url";
 import { DayBadge } from "./DayBadge";
 
 interface ItineraryHeaderProps {
@@ -28,21 +29,21 @@ export function ItineraryHeader({
           onClick={onLogsClick}
           aria-label="로그"
         >
-          <MapMagnifierIcon width={20} height={20} aria-hidden />
+          <Image src={mapMagnifierIcon} alt="" width={20} height={20} aria-hidden />
         </button>
         <button
           className="size-[28px] rounded-lg bg-system-scroll border border-main-blue/30 flex items-center justify-center"
           onClick={onOptimizeClick}
           aria-label="최적화"
         >
-          <MagicWandIcon width={20} height={20} aria-hidden />
+          <Image src={magicWandIcon} alt="" width={20} height={20} aria-hidden />
         </button>
         <button
           className="size-[28px] rounded-lg bg-system-scroll border border-main-blue/30 flex items-center justify-center"
           onClick={onTripsClick}
           aria-label="목록"
         >
-          <ListIcon width={20} height={20} aria-hidden />
+          <Image src={listIcon} alt="" width={20} height={20} aria-hidden />
         </button>
       </div>
     </div>

@@ -1,4 +1,5 @@
-import MagicWandIcon from "@/assets/icons/itinerary/magic-wand.svg";
+import Image from "next/image";
+import magicWandIcon from "@/assets/icons/itinerary/magic-wand.svg?url";
 import { Modal } from "@/components";
 
 interface AiOptimizeModalProps {
@@ -12,7 +13,16 @@ export function AiOptimizeModal({ isOpen, onClose, onConfirm }: AiOptimizeModalP
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      icon={<MagicWandIcon width={25} height={25} className="block icon-coral" aria-hidden />}
+      icon={
+        <Image
+          src={magicWandIcon}
+          alt=""
+          width={25}
+          height={25}
+          className="block icon-coral"
+          aria-hidden
+        />
+      }
       iconClassName="bg-sub-coral/10"
       title="AI 일정 최적화"
       description={"관광지의 위치와 이동 경로를 분석해\n더 효율적인 여행 코스를 추천해드릴게요."}
