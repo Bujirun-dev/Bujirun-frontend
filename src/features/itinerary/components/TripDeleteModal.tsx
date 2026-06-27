@@ -1,5 +1,5 @@
 import Image from "next/image";
-import removeCoralIcon from "@/assets/icons/itinerary/remove-coral.png";
+import removeCoralIcon from "@/assets/icons/itinerary/remove.svg";
 import { Card, Modal } from "@/components";
 
 interface TripDeleteModalProps {
@@ -14,7 +14,7 @@ export function TripDeleteModal({ isOpen, tripName, onClose, onConfirm }: TripDe
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      icon={<Image src={removeCoralIcon} alt="삭제" width={25} height={25} />}
+      icon={<Image src={removeCoralIcon} alt="삭제" width={25} height={25} className="icon-coral" />}
       iconClassName="size-[48px] bg-system-navbg"
       title="여행 삭제"
       titleClassName="font-bold text-xl text-text-heading"

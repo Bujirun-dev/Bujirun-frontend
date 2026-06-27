@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import angleLeftIcon from "@/assets/icons/itinerary/angle-left.png";
+import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
 import { PageCard, SearchBar } from "@/components";
 import { PlaceSearchItem } from "@/features/itinerary";
 

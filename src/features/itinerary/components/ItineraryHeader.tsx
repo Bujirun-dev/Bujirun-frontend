@@ -1,7 +1,7 @@
 import Image from "next/image";
-import mapMagnifierIcon from "@/assets/icons/itinerary/map-magnifier.png";
-import magicWandIcon from "@/assets/icons/itinerary/magic-wand.png";
-import listIcon from "@/assets/icons/itinerary/list.png";
+import mapMagnifierIcon from "@/assets/icons/itinerary/map-magnifier.svg";
+import magicWandIcon from "@/assets/icons/itinerary/magic-wand.svg";
+import listIcon from "@/assets/icons/itinerary/list.svg";
 
 interface ItineraryHeaderProps {
   currentDay: number;

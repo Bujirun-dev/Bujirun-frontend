@@ -1,5 +1,5 @@
 import Image from "next/image";
-import calendarPlusIcon from "@/assets/icons/itinerary/calendar-plus-gray.png";
+import calendarPlusIcon from "@/assets/icons/itinerary/calendar-plus.svg";
 import { cn } from "@/shared/utils";
 
 interface LogCardProps {
@@ -44,7 +44,7 @@ export function LogCard({
       <div className="relative w-full h-[146px] shrink-0">
         <Image src={imageUrl} alt={placeName} fill className="object-cover" />
         <div className="absolute top-[12px] right-[14px] flex items-center justify-center gap-1 px-2 py-1 bg-white rounded-lg shadow-sm">
-          <Image src={calendarPlusIcon} alt="추가 횟수" width={10} height={10} />
+          <Image src={calendarPlusIcon} alt="추가 횟수" width={10} height={10} className="icon-gray" />
           <span className="text-xs font-medium text-sub-gray">{downloadCount}</span>
         </div>
       </div>

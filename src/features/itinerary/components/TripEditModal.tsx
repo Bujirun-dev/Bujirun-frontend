@@ -1,9 +1,9 @@
 import { useState } from "react";
 import Image from "next/image";
-import pencilBlueIcon from "@/assets/icons/itinerary/pencil-blue.png";
-import titleIcon from "@/assets/icons/itinerary/title.png";
-import calendarIcon from "@/assets/icons/itinerary/calendar.png";
-import clockDarkIcon from "@/assets/icons/itinerary/clock-dark.png";
+import pencilBlueIcon from "@/assets/icons/itinerary/pencil.svg";
+import titleIcon from "@/assets/icons/itinerary/title.svg";
+import calendarIcon from "@/assets/icons/itinerary/calendar.svg";
+import clockDarkIcon from "@/assets/icons/itinerary/clock.svg";
 import { Card, Modal, TextInput } from "@/components";
 import { formatTripDateTime, parseTripDateTime, TripDateTimePicker } from "./TripDateTimePicker";
 import type { Trip } from "./TripCard";
@@ -39,7 +39,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      icon={<Image src={pencilBlueIcon} alt="수정" width={25} height={25} />}
+      icon={<Image src={pencilBlueIcon} alt="수정" width={25} height={25} className="icon-deepblue" />}
       title="일정 정보 수정"
       titleClassName="font-bold text-xl text-text-heading"
       className="gap-6 px-8 py-10"

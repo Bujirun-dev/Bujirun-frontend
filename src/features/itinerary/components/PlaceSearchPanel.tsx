@@ -3,8 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import markerBlueIcon from "@/assets/icons/itinerary/marker-blue.png";
-import markerPinkIcon from "@/assets/icons/itinerary/marker-pink.png";
+import markerIcon from "@/assets/icons/itinerary/marker.svg";
 import { SearchBar } from "@/components";
 import { PlaceSearchItem } from "./PlaceSearchItem";
 import { ConsonantIndexBar } from "./ConsonantIndexBar";
@@ -244,7 +243,7 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
           >
             {opt}
             {sortBy === opt && (
-              <span className="absolute bottom-0 left-1.5 right-1.5 h-[0.5px] rounded-full bg-sub-deepblue" />
+              <span className="absolute bottom-0 left-0.5 right-0.5 h-[0.5px] rounded-full bg-sub-deepblue" />
             )}
           </button>
         ))}
@@ -310,11 +309,11 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
                         }} // TODO: API place.id 로 교체
                       >
                         <Image
-                          src={place.status === "completed" ? markerBlueIcon : markerPinkIcon}
+                          src={markerIcon}
                           alt="위치"
                           width={12}
                           height={12}
-                          className="shrink-0"
+                          className={cn("shrink-0", place.status === "completed" ? "icon-deepblue" : "icon-pink")}
                         />
                         <span className="min-w-0 flex-1 truncate text-sm font-normal text-text-primary">
                           {place.name}

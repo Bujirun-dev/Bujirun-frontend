@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import angleLeftIcon from "@/assets/icons/itinerary/angle-left.png";
-import calendarIcon from "@/assets/icons/itinerary/calendar.png";
-import friendsIcon from "@/assets/icons/itinerary/friends.png";
-import checkIcon from "@/assets/icons/itinerary/check.png";
+import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
+import calendarIcon from "@/assets/icons/itinerary/calendar.svg";
+import friendsIcon from "@/assets/icons/itinerary/friends.svg";
+import checkIcon from "@/assets/icons/itinerary/check-circle.svg";
 import { Button, PageCard } from "@/components";
 
 const SAMPLE_TRIPS = [

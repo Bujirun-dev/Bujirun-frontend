@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import angleLeftIcon from "@/assets/icons/itinerary/angle-left.png";
-import bookmarkOffIcon from "@/assets/icons/itinerary/bookmark-off.png";
-import bookmarkOnIcon from "@/assets/icons/itinerary/bookmark-on.png";
+import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
+import bookmarkOffIcon from "@/assets/icons/itinerary/bookmark-off.svg";
+import bookmarkOnIcon from "@/assets/icons/itinerary/bookmark-on.svg";
 import markerIcon from "@/assets/icons/itinerary/marker.svg";
 import kakaoMapIcon from "@/assets/icons/itinerary/kakaomap_horizontal_ko.png";
-import callIcon from "@/assets/icons/itinerary/call.png";
+import callIcon from "@/assets/icons/itinerary/call.svg";
 import { Button, CategoryChip, PageCard } from "@/components";
 
 export default function PlaceDetailPage({ params }: { params: { id: string } }) {

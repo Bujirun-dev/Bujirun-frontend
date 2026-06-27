@@ -4,7 +4,7 @@ import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
-import calendarPlusDarkIcon from "@/assets/icons/itinerary/calendar-plus-dark.png";
+import calendarPlusDarkIcon from "@/assets/icons/itinerary/calendar-plus.svg";
 import { PageCard, Modal } from "@/components";
 import {
   SAMPLE_LOGS,

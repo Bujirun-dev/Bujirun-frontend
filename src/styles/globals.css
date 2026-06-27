@@ -182,6 +182,24 @@
   --font-laundrygothic: "LaundryGothic", sans-serif;
 }
 
+/* SVG 아이콘 색상 필터 유틸리티 */
+@utility icon-deepblue {
+  filter: brightness(0) saturate(100%) invert(60%) sepia(95%) saturate(476%) hue-rotate(185deg)
+    brightness(104%) contrast(101%);
+}
+@utility icon-pink {
+  filter: brightness(0) saturate(100%) invert(79%) sepia(40%) saturate(850%) hue-rotate(297deg)
+    brightness(102%) contrast(101%);
+}
+@utility icon-coral {
+  filter: brightness(0) saturate(100%) invert(62%) sepia(57%) saturate(1030%) hue-rotate(333deg)
+    brightness(101%) contrast(98%);
+}
+@utility icon-gray {
+  filter: brightness(0) saturate(100%) invert(63%) sepia(0%) saturate(17%) hue-rotate(326deg)
+    brightness(96%) contrast(90%);
+}
+
 *,
 *::before,
 *::after {

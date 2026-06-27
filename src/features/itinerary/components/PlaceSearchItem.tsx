@@ -1,5 +1,5 @@
 import Image from "next/image";
-import markerIcon from "@/assets/icons/itinerary/marker-pink.png";
+import markerIcon from "@/assets/icons/itinerary/marker.svg";
 import { cn } from "@/shared/utils";
 import { CategoryChip, StatusBadge } from "@/components";
 import type { Category } from "@/components";
@@ -39,7 +39,7 @@ export function PlaceSearchItem({
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 pt-1">
         <div className="flex min-w-0 items-center gap-1">
-          <Image src={markerIcon} alt="위치" width={11} height={11} className="shrink-0" />
+          <Image src={markerIcon} alt="위치" width={11} height={11} className="shrink-0 icon-pink" />
           <span className="min-w-0 truncate text-sm font-medium text-text-heading">{name}</span>
         </div>
         <CategoryChip category={category} size="sm" className="self-start" />

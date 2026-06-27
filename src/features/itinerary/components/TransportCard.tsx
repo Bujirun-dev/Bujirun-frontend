@@ -1,8 +1,8 @@
 import Image from "next/image";
-import busIcon from "@/assets/icons/itinerary/bus.png";
-import subwayIcon from "@/assets/icons/itinerary/subway.png";
-import walkIcon from "@/assets/icons/itinerary/walk.png";
-import taxiIcon from "@/assets/icons/itinerary/taxi.png";
+import busIcon from "@/assets/icons/itinerary/bus.svg";
+import subwayIcon from "@/assets/icons/itinerary/subway.svg";
+import walkIcon from "@/assets/icons/itinerary/walk.svg";
+import taxiIcon from "@/assets/icons/itinerary/taxi.svg";
 import { cn } from "@/shared/utils";
 import type { StaticImageData } from "next/image";
 
@@ -37,7 +37,7 @@ const TRANSPORT_COLORS: Record<TransportType, string> = {
   버스: "bg-main-blue",
   지하철: "bg-sub-pink",
   도보: "bg-sub-green",
-  택시: "bg-transport-taxi",
+  택시: "bg-sub-violet",
 };
 
 export function TransportCard({
@@ -134,7 +134,7 @@ export function TransportCard({
                 TRANSPORT_COLORS[leg.type],
               )}
             >
-              <Image src={TRANSPORT_ICONS[leg.type]} alt={leg.type} width={14} height={14} />
+              <Image src={TRANSPORT_ICONS[leg.type]} alt={leg.type} width={14} height={14} className="brightness-0 invert" />
             </div>
             <div className="flex flex-1 items-center justify-between min-w-0 gap-2">
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
