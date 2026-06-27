@@ -8,7 +8,7 @@ import { TextInput } from "@/components/ui/TextInput";
 import { Card } from "@/components/ui/Card";
 import { ProfileImageSelector } from "@/components/profile/ProfileImageSelector";
 import { SignUpSuccessModal } from "@/features/auth/components/SignUpSuccessModal";
-import { PROFILE_AVATARS } from "@/features/mypage/avatarImages";
+
 import yesIcon from "@/assets/icons/login-register/yes.png";
 import noIcon from "@/assets/icons/login-register/no.png";
 import profileHat from "@/assets/character/profile/profile-hat.png"; //프로필 이미지

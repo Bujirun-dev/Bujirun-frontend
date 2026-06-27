@@ -34,19 +34,16 @@ export function SignUpSuccessModal({ isOpen, onClose }: SignUpSuccessModalProps)
       titleClassName="font-ssurround text-[18px] tracking-[0.5px]"
       description={`회원가입이 완료되었어요.\n같이 여행을 떠나볼까요?`}
       footer={
-        <div className="w-full flex flex-col items-center gap-[15px]">
-          {/* 피그마: glass 카드, 275px × 31px */}
+        <div className="w-full flex flex-col items-center">
           <Card
             variant="glass-sm"
-            className="w-[275px] h-[31px] flex items-center justify-center py-0 px-3 rounded-[10px]"
+            className="mt-[30px] w-[275px] h-[31px] flex items-center justify-center py-0 px-3 rounded-[10px]"
           >
-            {/* 피그마: Paperlogy, 12px, weight 500 */}
             <p className="font-paperlogy font-medium text-[12px] text-sub-gray text-center">
               친구들과 여행의 추억을 기록해보세요!
             </p>
           </Card>
-          {/* 피그마: 버튼 top 570 - 모달 top 216 - 카드 위치 = mt-[48px] */}
-          <div className="mt-[48px] w-full flex justify-center">
+          <div className="mt-[45px] w-full flex justify-center">
             <Button
               variant="primary"
               className="w-[278px] h-[40px] rounded-[10px] font-ssurround font-bold text-[14px]"
