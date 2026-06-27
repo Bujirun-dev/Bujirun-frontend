@@ -127,7 +127,7 @@ export function TransportSelectSheet({
 
         <div className="flex items-center justify-start pr-8">
           <button
-            className="rounded-lg border border-sub-lightgray p-1 active:opacity-80"
+            className="rounded-lg bg-main-blue p-1 active:opacity-80"
             onClick={() => openKakaoMapRoute(from, to)}
           >
             <Image src={kakaoMapLogo} alt="카카오맵" width={55} height={16} />
