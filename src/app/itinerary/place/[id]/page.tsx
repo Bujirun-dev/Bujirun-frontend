@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
@@ -11,7 +11,8 @@ import kakaoMapIcon from "@/assets/icons/itinerary/kakaomap_horizontal_ko.png";
 import callIcon from "@/assets/icons/itinerary/call.svg";
 import { Button, CategoryChip, PageCard } from "@/components";
 
-export default function PlaceDetailPage({ params }: { params: { id: string } }) {
+export default function PlaceDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const [bookmarked, setBookmarked] = useState(false);
 
@@ -20,7 +21,7 @@ export default function PlaceDetailPage({ params }: { params: { id: string } }) 
       {/* 대표 이미지 */}
       <div className="relative w-full h-[220px] shrink-0">
         <Image
-          src={`https://picsum.photos/seed/${params.id}/400/300`}
+          src={`https://picsum.photos/seed/${id}/400/300`}
           alt="관광지"
           fill
           className="object-cover"
