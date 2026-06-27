@@ -1,30 +1,27 @@
 import Image from "next/image";
 
+import { cn } from "@/shared/utils";
+
 import receiptBackground from "@/assets/receipt/receipt_background.png";
 import { ReceiptBarcode } from "@/features/collection/components/ReceiptBarcode";
 import { tripReceipts } from "@/features/collection/data/tripReceipts";
 import { PLACES } from "@/features/collection/data/places";
 
-const formatDateWithDots = (date: string) => date.replaceAll("-", ".");
+import {
+  formatDateWithDots,
+  createArchiveNumber,
+  createBarcode,
+  calculateTotalDays,
+} from "@/features/collection/utils/receipt";
 
-const formatDateToReceiptCode = (date: string) => date.replaceAll("-", "").slice(2);
+interface TripReceiptProps {
+  tripId: number;
+}
 
-const createArchiveNumber = (startDate: string, tripOrder: number) =>
-  `#BUSAN-${formatDateToReceiptCode(startDate)}-${String(tripOrder).padStart(3, "0")}`;
+export function TripReceipt({ tripId }: TripReceiptProps) {
+  const receipt = tripReceipts.find((r) => r.tripId === tripId);
+  if (!receipt) return null;
 
-const createBarcode = (startDate: string, endDate: string) =>
-  `${formatDateToReceiptCode(startDate)}-${formatDateToReceiptCode(endDate)}-BUSAN`;
-
-const calculateTotalDays = (startDate: string, endDate: string) => {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const diff = end.getTime() - start.getTime();
-
-  return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
-};
-
-export function TripReceipt() {
-  const receipt = tripReceipts[0];
   const tripOrder = receipt.tripId;
   const archiveNumber = createArchiveNumber(receipt.period.startDate, tripOrder);
   const issuedOn = formatDateWithDots(receipt.period.endDate);
@@ -49,10 +46,10 @@ export function TripReceipt() {
     ["THEME", receipt.theme],
     ["SPOTS VISITED", `${spotsVisited} PLACES`],
     ["COLLECTION", `${collectedCount}/${totalCollectionCount} (${collectionRate}%)`],
-  ] as const;
+  ] satisfies [string, string][];
 
   return (
-    <article className="relative isolate w-full overflow-hidden px-3 py-10 font-courierprime text-sm text-text-receipt-main">
+    <article className="relative isolate w-full overflow-hidden px-3 py-13 font-courierprime text-sm text-text-receipt-main">
       <Image
         src={receiptBackground}
         alt="여행 영수증 배경"
@@ -118,9 +115,10 @@ export function TripReceipt() {
                 {day.places.map((place, placeIndex) => (
                   <li
                     key={place.id}
-                    className={`grid grid-cols-[48px_86px_minmax(0,1fr)] items-center gap-3 py-2 ${
-                      placeIndex !== day.places.length - 1 ? "border-b border-sub-lightgray" : ""
-                    }`}
+                    className={cn(
+                      "grid grid-cols-[48px_86px_minmax(0,1fr)] items-center gap-3 py-2",
+                      placeIndex !== day.places.length - 1 && "border-b border-sub-lightgray",
+                    )}
                   >
                     <time className="text-center text-text-receipt-sub">{place.time}</time>
 

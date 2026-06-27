@@ -33,10 +33,11 @@ export default function CollectionRecordsPage() {
 
   const [records, setRecords] = useState(TRIP_RECORDS);
   const [selectedDeleteTripId, setSelectedDeleteTripId] = useState<number | null>(null);
+  const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  // 삭제 모달 open/close
+  // 삭제 모달
   const openDeleteModal = useCallback((tripId: number) => {
     setSelectedDeleteTripId(tripId);
   }, []);
@@ -45,12 +46,15 @@ export default function CollectionRecordsPage() {
     setSelectedDeleteTripId(null);
   }, []);
 
-  const openReceiptModal = useCallback(() => {
+  // 영수증 모달
+  const openReceiptModal = useCallback((tripId: number) => {
+    setSelectedTripId(tripId);
     setIsReceiptOpen(true);
   }, []);
 
   const closeReceiptModal = useCallback(() => {
     setIsReceiptOpen(false);
+    setSelectedTripId(null);
   }, []);
 
   // 현재 선택된 여행 기록 (모달에 전달)
@@ -66,7 +70,7 @@ export default function CollectionRecordsPage() {
   };
 
   return (
-    <section className="flex h-full flex-col gap-6">
+    <section className="relative flex h-full flex-col gap-6">
       {/*상단 요약 카드 */}
       <Card variant="white" className="rounded-[25px]">
         <div className="px-5 py-2">
@@ -133,7 +137,11 @@ export default function CollectionRecordsPage() {
         onClose={closeDeleteModal}
         onConfirm={handleDelete}
       />
-      <TripReceiptModal isOpen={isReceiptOpen} onClose={closeReceiptModal} />
+      <TripReceiptModal
+        isOpen={isReceiptOpen}
+        tripId={selectedTripId ?? 0}
+        onClose={closeReceiptModal}
+      />
 
       <Toast
         isVisible={toastMessage !== ""}
