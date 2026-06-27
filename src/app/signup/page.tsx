@@ -104,7 +104,7 @@ export default function SignUpPage() {
             variant="primary"
             disabled={!isFormValid}
             onClick={handleSignUp}
-            className={cn(!isFormValid && "bg-sub-darkgray cursor-not-allowed")}
+            className={cn(!isFormValid && "bg-sub-gray cursor-not-allowed")}
           >
             회원가입 완료
           </Button>
