@@ -134,23 +134,25 @@ export function TransportSelectSheet({
           </button>
         </div>
 
-        {options.map((option) => (
-          <button
-            key={option.id}
-            className="text-left active:opacity-80"
-            onClick={() => onSelect(option)}
-          >
-            <TransportCard
-              from={from}
-              to={to}
-              durationMin={option.durationMin}
-              cost={option.cost}
-              legs={option.legs}
-              isRecommended={option.isRecommended}
-              selected={selectedOptionId === undefined || option.id === selectedOptionId}
-            />
-          </button>
-        ))}
+        <div className="flex flex-col gap-4">
+          {options.map((option) => (
+            <button
+              key={option.id}
+              className="text-left active:opacity-80"
+              onClick={() => onSelect(option)}
+            >
+              <TransportCard
+                from={from}
+                to={to}
+                durationMin={option.durationMin}
+                cost={option.cost}
+                legs={option.legs}
+                isRecommended={option.isRecommended}
+                selected={selectedOptionId === undefined || option.id === selectedOptionId}
+              />
+            </button>
+          ))}
+        </div>
       </div>
     </div>,
     appRoot,
