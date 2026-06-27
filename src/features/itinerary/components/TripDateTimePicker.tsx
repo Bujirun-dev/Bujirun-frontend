@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface TripDateTimePickerProps {
   value: string;
@@ -41,11 +41,28 @@ const isBeforeMinute = (date: Date, target: Date) =>
 export function TripDateTimePicker({ value, onChange, minValue }: TripDateTimePickerProps) {
   const selectedDate = parseTripDateTime(value);
   const minDate = minValue ? parseTripDateTime(minValue) : null;
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => parseTripDateTime(value));
   const [hourInput, setHourInput] = useState(() => pad(selectedDate.getHours()));
   const [minuteInput, setMinuteInput] = useState(() => pad(selectedDate.getMinutes()));
   const calendarDays = getCalendarDays(calendarMonth);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+
+      if (triggerRef.current?.contains(target) || popupRef.current?.contains(target)) return;
+
+      setIsOpen(false);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [isOpen]);
 
   const applyDate = (date: Date) => {
     if (minDate && isBeforeMinute(date, minDate)) {
@@ -123,6 +140,7 @@ export function TripDateTimePicker({ value, onChange, minValue }: TripDateTimePi
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         onClick={openPicker}
         className="h-[27px] w-[197px] rounded-lg border-[0.5px] border-sub-lightblue bg-main-blue/20 px-3 text-left text-xs font-light text-text-primary outline-none"
@@ -131,7 +149,10 @@ export function TripDateTimePicker({ value, onChange, minValue }: TripDateTimePi
       </button>
 
       {isOpen && (
-        <div className="fixed left-1/2 top-1/2 z-10 w-[252px] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-sub-lightblue bg-main-white p-[10px] shadow-lg">
+        <div
+          ref={popupRef}
+          className="fixed left-1/2 top-1/2 z-10 w-[252px] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-sub-lightblue bg-main-white p-[10px] shadow-lg"
+        >
           <div className="mb-2 flex items-center justify-between">
             <button
               type="button"
