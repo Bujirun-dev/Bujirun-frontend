@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import markerIcon from "@/assets/icons/itinerary/marker.svg";
-import { Button } from "@/components";
+import { Button, Card } from "@/components";
 
 interface ArrivalVerifyModalProps {
   isOpen: boolean;
@@ -61,9 +61,9 @@ export function ArrivalVerifyModal({
           <h2 className="font-bold text-xl text-text-heading">이곳에 도착하셨나요?</h2>
         </div>
 
-        <div className="w-full backdrop-blur-[15px] bg-gradient-to-b from-system-glassfrom to-system-glassto border border-system-glassborder rounded-lg px-4 py-3 text-center">
+        <Card variant="glass-sm" className="w-full rounded-lg px-4 py-3 text-center">
           <span className="text-sm text-sub-gray">* GPS 위치 확인 후 관광지를 수집해주세요.</span>
-        </div>
+        </Card>
 
         <div className="w-full flex gap-3">
           <Button

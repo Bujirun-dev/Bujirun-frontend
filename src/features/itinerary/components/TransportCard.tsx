@@ -69,7 +69,13 @@ export function TransportCard({
               TRANSPORT_COLORS[leg.type],
             )}
           >
-            <Image src={TRANSPORT_ICONS[leg.type]} alt={leg.type} width={14} height={14} />
+            <Image
+              src={TRANSPORT_ICONS[leg.type]}
+              alt={leg.type}
+              width={14}
+              height={14}
+              className="brightness-0 invert"
+            />
           </div>
           <div className="flex flex-col gap-0.5 min-w-0 flex-1">
             <div className="flex min-w-0 items-center justify-between gap-2">
@@ -134,7 +140,13 @@ export function TransportCard({
                 TRANSPORT_COLORS[leg.type],
               )}
             >
-              <Image src={TRANSPORT_ICONS[leg.type]} alt={leg.type} width={14} height={14} className="brightness-0 invert" />
+              <Image
+                src={TRANSPORT_ICONS[leg.type]}
+                alt={leg.type}
+                width={14}
+                height={14}
+                className="brightness-0 invert"
+              />
             </div>
             <div className="flex flex-1 items-center justify-between min-w-0 gap-2">
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">

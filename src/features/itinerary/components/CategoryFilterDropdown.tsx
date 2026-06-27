@@ -55,7 +55,7 @@ export function CategoryFilterDropdown({ value, onChange }: CategoryFilterDropdo
           alt="드롭다운"
           width={6}
           height={6}
-          className={cn("shrink-0 transition-transform rotate-180", open && "!rotate-0")}
+          className={cn("shrink-0 transition-transform", open && "rotate-180")}
         />
       </button>
 

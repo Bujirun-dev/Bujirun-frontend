@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
 import calendarIcon from "@/assets/icons/itinerary/calendar.svg";
 import friendsIcon from "@/assets/icons/itinerary/friends.svg";
 import checkIcon from "@/assets/icons/itinerary/check-circle.svg";
-import { Button, PageCard } from "@/components";
+import { BackButton, Button, PageCard } from "@/components";
 
 const SAMPLE_TRIPS = [
   {
@@ -41,12 +40,7 @@ export default function LogAddConfirmPage() {
     <PageCard>
       {/* 헤더 */}
       <div className="flex items-center gap-3 pb-5">
-        <button
-          onClick={() => router.back()}
-          className="size-[28px] rounded-lg bg-system-scroll flex items-center justify-center shrink-0"
-        >
-          <Image src={angleLeftIcon} alt="뒤로" width={16} height={16} />
-        </button>
+        <BackButton />
         <span className="flex-1 text-center font-bold text-base text-text-heading">
           내 일정에 추가
         </span>

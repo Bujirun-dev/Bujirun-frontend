@@ -37,10 +37,9 @@ export function InviteCard({ friends, total, onInvite, className }: InviteCardPr
             <div
               key={i}
               className={cn(
-                "rounded-full overflow-hidden",
+                "size-14 rounded-full overflow-hidden",
                 !friend && "border-2 border-dashed border-sub-lightgray bg-transparent",
               )}
-              style={{ width: 56, height: 56 }}
             >
               {friend?.imageUrl && (
                 <div className="relative w-full h-full">
