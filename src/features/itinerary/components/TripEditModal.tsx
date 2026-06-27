@@ -58,7 +58,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
           value={name}
           onChange={(event) => setName(event.target.value)}
           placeholder="여행 이름을 입력하세요"
-          className="h-[30px] w-[275px] rounded-lg border border-main-blue text-xs font-medium text-text-primary"
+          className="h-[30px] w-full rounded-lg border border-main-blue text-xs font-medium text-text-primary"
         />
       </div>
 

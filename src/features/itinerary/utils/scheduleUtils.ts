@@ -3,15 +3,9 @@ import type { ItineraryStop, RouteOption } from "../components";
 import { SAMPLE_LOGS } from "../data/sampleLogs";
 import { getScheduleById, getPlaceById } from "@/mocks";
 import type { TravelMode } from "@/shared/types";
+import { getCategoryFromKo } from "@/shared/constants/category";
 
 export const FALLBACK_IMAGE = "https://picsum.photos/seed/busan/300/200";
-
-const CATEGORY_MAP: Record<string, Category> = {
-  "자연·공원": "nature",
-  "역사·문화": "culture",
-  "체험·레저": "experience",
-  "음식·카페": "experience",
-};
 
 const TRAVEL_MODE_MAP: Record<TravelMode, "버스" | "지하철" | "도보" | "택시"> = {
   transit: "버스",
@@ -131,7 +125,7 @@ export function buildDays(scheduleId: string): { days: BaseStop[][]; dates: stri
         time: item.arrivalTime,
         placeName: item.spotName,
         imageUrl: place?.thumbnailUrl || FALLBACK_IMAGE,
-        category: CATEGORY_MAP[place?.category ?? ""] ?? "nature",
+        category: getCategoryFromKo(place?.category ?? ""),
         status: "verify",
         transport,
       };

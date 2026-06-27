@@ -21,3 +21,4 @@ export { AiOptimizeLoadingModal } from "./AiOptimizeLoadingModal";
 export { SlidingTimeline } from "./SlidingTimeline";
 export { ItineraryModals } from "./ItineraryModals";
 export type { ModalType } from "./ItineraryModals";
+export { PlaceSearchPanel } from "./PlaceSearchPanel";

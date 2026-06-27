@@ -214,7 +214,7 @@ function ItineraryMain() {
           allDayStops={allDayStops}
           currentDay={currentDay}
           tripDates={tripDates}
-          onAdd={() => router.push("/itinerary/search")}
+          onAdd={() => {}}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         />
