@@ -67,7 +67,7 @@ export function TripReceipt({ tripId }: TripReceiptProps) {
 
       <div className=" my-3 border-t border-dashed border-sub-darkgray" />
 
-      {/* JOURNEY OVERVOEW */}
+      {/* JOURNEY OVERVIEW */}
       <section className="px-3">
         <h3 className="mb-2 font-bold text-md italic tracking-[0.04em] text-sub-darkgray">
           JOURNEY OVERVIEW
