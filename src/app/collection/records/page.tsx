@@ -4,6 +4,7 @@ import Image from "next/image";
 
 import { useMemo, useState, useCallback } from "react";
 import { RecordDeleteModal } from "@/features/collection/components/RecordDeleteModal";
+import { TripReceiptModal } from "@/features/collection/components/TripReceiptModal";
 
 import bookIcon from "@/assets/icons/collection/book.png";
 import { Card, CategoryChip, PageCard, Toast } from "@/components";
@@ -31,26 +32,35 @@ export default function CollectionRecordsPage() {
   }, [collectedPlaces]);
 
   const [records, setRecords] = useState(TRIP_RECORDS);
-  const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
+  const [selectedDeleteTripId, setSelectedDeleteTripId] = useState<number | null>(null);
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
   // 삭제 모달 open/close
   const openDeleteModal = useCallback((tripId: number) => {
-    setSelectedTripId(tripId);
+    setSelectedDeleteTripId(tripId);
   }, []);
 
   const closeDeleteModal = useCallback(() => {
-    setSelectedTripId(null);
+    setSelectedDeleteTripId(null);
+  }, []);
+
+  const openReceiptModal = useCallback(() => {
+    setIsReceiptOpen(true);
+  }, []);
+
+  const closeReceiptModal = useCallback(() => {
+    setIsReceiptOpen(false);
   }, []);
 
   // 현재 선택된 여행 기록 (모달에 전달)
-  const selectedTrip = records.find((record) => record.id === selectedTripId) ?? null;
+  const selectedDeleteTrip = records.find((record) => record.id === selectedDeleteTripId) ?? null;
 
   // 여행 기록 삭제
   const handleDelete = () => {
-    if (selectedTripId === null) return;
+    if (selectedDeleteTripId === null) return;
 
-    setRecords((prevRecords) => prevRecords.filter((record) => record.id !== selectedTripId));
+    setRecords((prevRecords) => prevRecords.filter((record) => record.id !== selectedDeleteTripId));
     closeDeleteModal();
     setToastMessage("여행 기록이 삭제되었어요.");
   };
@@ -110,18 +120,20 @@ export default function CollectionRecordsPage() {
               title={record.title}
               period={record.period}
               onDelete={openDeleteModal}
+              onTitleClick={openReceiptModal}
             />
           ))}
         </div>
       </PageCard>
 
       <RecordDeleteModal
-        isOpen={selectedTrip !== null}
-        tripName={selectedTrip?.title ?? ""}
-        period={selectedTrip?.period ?? ""}
+        isOpen={selectedDeleteTrip !== null}
+        tripName={selectedDeleteTrip?.title ?? ""}
+        period={selectedDeleteTrip?.period ?? ""}
         onClose={closeDeleteModal}
         onConfirm={handleDelete}
       />
+      <TripReceiptModal isOpen={isReceiptOpen} onClose={closeReceiptModal} />
 
       <Toast
         isVisible={toastMessage !== ""}

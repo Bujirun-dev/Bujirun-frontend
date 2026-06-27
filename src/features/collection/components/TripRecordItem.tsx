@@ -3,6 +3,7 @@ interface TripRecordItemProps {
   title: string;
   period: string;
   onDelete: (id: number) => void;
+  onTitleClick: () => void;
 }
 
 // 영수증 아이콘
@@ -29,15 +30,19 @@ function TrashIcon() {
   );
 }
 
-export function TripRecordItem({ id, title, period, onDelete }: TripRecordItemProps) {
+export function TripRecordItem({ id, title, period, onDelete, onTitleClick }: TripRecordItemProps) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex min-w-0 items-start gap-2">
         <ReceiptIcon />
         <div className="min-w-0">
-          <p className="cursor-pointer text-md font-semibold text-text-primary underline underline-offset-2">
+          <button
+            type="button"
+            onClick={onTitleClick}
+            className="cursor-pointer text-left text-md font-semibold text-text-primary underline underline-offset-2"
+          >
             {title}
-          </p>
+          </button>
           <p className="mt-1 text-sm font-medium text-sub-darkgray">{period}</p>
         </div>
       </div>

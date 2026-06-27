@@ -122,14 +122,6 @@
   font-display: swap;
 }
 
-@font-face {
-  font-family: "Joseon100Years";
-  src: url("https://gcore.jsdelivr.net/gh/projectnoonnu/noonfonts_2206-02@1.0/ChosunCentennial.woff2")
-    format("woff2");
-  font-weight: normal;
-  font-display: swap;
-}
-
 @theme inline {
   /* Main */
   --color-main-blue: #97c1ff;
@@ -149,6 +141,8 @@
   /* Text */
   --color-text-primary: #1e293b;
   --color-text-heading: #0f172a;
+  --color-text-receipt-main: #000000;
+  --color-text-receipt-sub: #6b6b6b;
 
   /* System */
   --color-system-whitebg: rgba(255, 255, 255, 0.4);
@@ -179,6 +173,7 @@
   --text-lg: 16px;
   --text-xl: 18px;
   --text-2xl: 20px;
+  --text-3xl: 24px;
 
   /* Spacing */
   --spacing-screen-x: 24px;
@@ -189,7 +184,6 @@
   --font-proup: "Cafe24ProUp", sans-serif;
   --font-laundrygothic: "LaundryGothic", sans-serif;
   --font-courierprime: "Courier Prime", monospace;
-  --font-joseon: "Joseon100Years", sans-serif;
 }
 
 *,
