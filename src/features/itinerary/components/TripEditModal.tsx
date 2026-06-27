@@ -39,9 +39,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      icon={
-        <PencilIcon width={25} height={25} className="icon-deepblue" aria-hidden />
-      }
+      icon={<PencilIcon width={25} height={25} className="icon-deepblue" aria-hidden />}
       title="일정 정보 수정"
       titleClassName="font-bold text-xl text-text-heading"
       className="gap-6 px-8 py-10"

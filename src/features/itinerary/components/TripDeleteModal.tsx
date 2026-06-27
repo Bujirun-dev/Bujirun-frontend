@@ -15,14 +15,7 @@ export function TripDeleteModal({ isOpen, tripName, onClose, onConfirm }: TripDe
       isOpen={isOpen}
       onClose={onClose}
       icon={
-        <Image
-          src={removeIcon}
-          alt=""
-          width={25}
-          height={25}
-          className="icon-coral"
-          aria-hidden
-        />
+        <Image src={removeIcon} alt="" width={25} height={25} className="icon-coral" aria-hidden />
       }
       iconClassName="size-[48px] bg-system-navbg"
       title="여행 삭제"

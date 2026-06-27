@@ -120,9 +120,7 @@ export function PlaceDetailSheet({
               <svg width="16" height="18" viewBox="0 0 20 24" fill="none">
                 <path
                   d="M2 2H18C19.1 2 20 2.9 20 4V22L10 18L0 22V4C0 2.9 0.9 2 2 2Z"
-                  stroke={
-                    isBookmarked ? "var(--color-sub-coral)" : "var(--color-sub-lightgray)"
-                  }
+                  stroke={isBookmarked ? "var(--color-sub-coral)" : "var(--color-sub-lightgray)"}
                   strokeWidth="1.8"
                   strokeLinejoin="round"
                   fill={isBookmarked ? "var(--color-sub-coral)" : "none"}
