@@ -22,7 +22,7 @@ function TagChip({ label, isLight }: { label: string; isLight?: boolean }) {
       }`}
     >
       <span
-        className={`font-paperlogy font-normal text-xs text-center tracking-[0.16px] ${
+        className={`font-normal text-xs text-center tracking-[0.16px] ${
           isLight ? "text-text-primary" : "text-white"
         }`}
       >
@@ -49,7 +49,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
   if (!log) {
     return (
       <PageCard>
-        <div className="flex flex-1 items-center justify-center text-sub-gray font-paperlogy text-sm">
+        <div className="flex flex-1 items-center justify-center text-sub-gray text-sm">
           로그를 찾을 수 없습니다.
         </div>
       </PageCard>
@@ -87,13 +87,13 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
       <div className="shrink-0 mb-5 backdrop-blur-[15px] bg-gradient-to-b from-system-glassfrom to-system-glassto border border-system-glassborder rounded-2xl h-[67px] flex flex-col justify-center px-5 gap-2">
         <div className="flex items-center gap-1">
           <span className="text-md shrink-0">📍</span>
-          <span className="font-paperlogy font-medium text-md text-text-primary tracking-[0.28px]">
+          <span className="font-medium text-md text-text-primary tracking-[0.28px]">
             {summaryPlace}
           </span>
         </div>
         <div className="flex items-center gap-1">
           <span className="text-sm shrink-0">📅</span>
-          <span className="font-paperlogy font-medium text-sm text-sub-darkgray tracking-[0.24px]">
+          <span className="font-medium text-sm text-sub-darkgray tracking-[0.24px]">
             {log.duration} · {log.date}
           </span>
         </div>
@@ -130,7 +130,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
                   {/* 시간 + 도트 */}
                   <div className="flex items-center shrink-0">
                     <div className="w-10 text-right pr-2.5">
-                      <span className="font-paperlogy font-medium text-sm text-sub-deepblue tracking-[0.6px]">
+                      <span className="font-medium text-sm text-sub-deepblue tracking-[0.6px]">
                         {stop.time}
                       </span>
                     </div>
@@ -142,7 +142,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
                     {/* 장소명 */}
                     <div className="flex items-center gap-1">
                       <span className="text-md shrink-0">📍</span>
-                      <span className="font-paperlogy font-medium text-md text-text-primary tracking-[0.42px]">
+                      <span className="font-medium text-md text-text-primary tracking-[0.42px]">
                         {stop.place}
                       </span>
                     </div>
@@ -193,7 +193,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
           if (!isImporting) setShowAddModal(false);
         }}
       >
-        <p className="font-paperlogy font-medium text-sm text-sub-darkgray text-center">
+        <p className="font-medium text-sm text-sub-darkgray text-center">
           * 다른 사람의 일정을 불러오면 현재 일정은 사라져요.
         </p>
       </Modal>

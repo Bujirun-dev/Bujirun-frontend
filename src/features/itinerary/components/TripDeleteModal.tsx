@@ -26,13 +26,13 @@ export function TripDeleteModal({ isOpen, tripName, onClose, onConfirm }: TripDe
       onConfirm={onConfirm}
     >
       <div className="flex w-full flex-col items-center gap-7">
-        <p className="text-center font-paperlogy text-lg font-semibold leading-relaxed text-text-primary">
+        <p className="text-center text-lg font-semibold leading-relaxed text-text-primary">
           {`'${tripName}' 여행을`}
           <br />
           삭제하시겠어요?
         </p>
         <Card variant="glass-sm" className="w-full rounded-lg px-3 py-2">
-          <p className="text-center font-paperlogy text-sm font-medium text-sub-darkgray">
+          <p className="text-center text-sm font-medium text-sub-darkgray">
             * 삭제한 여행은 복구할 수 없어요.
           </p>
         </Card>

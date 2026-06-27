@@ -44,9 +44,7 @@ export function PlaceCard({
         <div className="flex flex-col gap-1">
           <div className="flex min-w-0 items-center gap-1 pr-5">
             <Image src={markerBlueIcon} alt="위치" width={13} height={13} className="shrink-0" />
-            <span className="font-paperlogy font-medium text-md text-text-heading truncate">
-              {name}
-            </span>
+            <span className="font-medium text-md text-text-heading truncate">{name}</span>
           </div>
           <CategoryChip category={category} className="self-start" />
         </div>

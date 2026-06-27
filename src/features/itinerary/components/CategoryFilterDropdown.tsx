@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import triangleIcon from "@/assets/icons/itinerary/triangle.png";
 import { cn } from "@/shared/utils";
@@ -32,12 +32,22 @@ interface CategoryFilterDropdownProps {
 
 export function CategoryFilterDropdown({ value, onChange }: CategoryFilterDropdownProps) {
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [open]);
 
   return (
-    <div className="relative">
+    <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex h-[19px] items-center gap-3.5 rounded-lg border-[0.5px] border-main-blue bg-system-navbg pl-[15px] pr-1.5 font-paperlogy text-xs font-normal text-text-primary"
+        className="flex h-[19px] items-center gap-3.5 rounded-lg border-[0.5px] border-main-blue bg-system-navbg pl-[15px] pr-1.5 text-xs font-normal text-text-primary"
       >
         {CATEGORY_OPTIONS.find((c) => c.value === value)?.label ?? "전체"}
         <Image
@@ -59,7 +69,7 @@ export function CategoryFilterDropdown({ value, onChange }: CategoryFilterDropdo
                 setOpen(false);
               }}
               className={cn(
-                "flex w-full items-center gap-1.5 whitespace-nowrap px-2 py-1 text-left font-paperlogy text-xs text-text-primary",
+                "flex w-full items-center gap-1.5 whitespace-nowrap px-2 py-1 text-left text-xs text-text-primary",
                 value === opt.value &&
                   "rounded-md border-[0.5px] border-main-blue bg-system-navbg font-semibold",
               )}

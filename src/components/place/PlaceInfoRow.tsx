@@ -21,11 +21,9 @@ export function PlaceInfoRow({ items, className }: PlaceInfoRowProps) {
             <div className="w-[36px] h-[36px] rounded bg-system-navbg flex items-center justify-center">
               <span className="text-sm">{item.icon}</span>
             </div>
-            <span className="font-paperlogy font-medium text-xs text-text-primary">
-              {item.label}
-            </span>
+            <span className="font-medium text-xs text-text-primary">{item.label}</span>
           </div>
-          <span className="font-paperlogy font-medium text-xs text-text-primary">{item.value}</span>
+          <span className="font-medium text-xs text-text-primary">{item.value}</span>
         </div>
       ))}
     </Card>

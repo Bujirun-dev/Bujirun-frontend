@@ -17,12 +17,10 @@ export function TimelineSearchTrigger({ time, isActive, onOpen }: TimelineSearch
       >
         {isActive ? (
           <div className="flex items-center justify-center rounded-md border border-dashed border-sub-gray p-1">
-            <span className="font-paperlogy text-xs font-medium text-sub-gray">{time}</span>
+            <span className="text-xs font-medium text-sub-gray">{time}</span>
           </div>
         ) : (
-          <span className="font-paperlogy text-xs font-medium tracking-[0.6px] text-sub-deepblue">
-            {time}
-          </span>
+          <span className="text-xs font-medium tracking-[0.6px] text-sub-deepblue">{time}</span>
         )}
       </button>
 

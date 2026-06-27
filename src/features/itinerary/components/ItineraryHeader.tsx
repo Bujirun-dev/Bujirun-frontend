@@ -25,7 +25,7 @@ export function ItineraryHeader({
           day {currentDay + 1}
         </span>
       </div>
-      <span className="flex-1 font-paperlogy text-lg font-bold text-sub-deepblue">{tripName}</span>
+      <span className="flex-1 text-lg font-bold text-sub-deepblue">{tripName}</span>
       <div className="flex items-center gap-1">
         <button
           className="size-[28px] rounded-lg bg-system-scroll border border-main-blue/30 flex items-center justify-center"

@@ -25,7 +25,7 @@ export function CategoryChip({ category, className }: CategoryChipProps) {
         className,
       )}
     >
-      <span className="font-paperlogy text-text-primary tracking-[0.16px]">{label}</span>
+      <span className="text-text-primary tracking-[0.16px]">{label}</span>
     </div>
   );
 }

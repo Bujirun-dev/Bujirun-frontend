@@ -92,7 +92,7 @@ export function AiOptimizeLoadingModal({
         </div>
       }
     >
-      <p className="flex items-center justify-center gap-1.5 font-paperlogy text-sm font-medium text-sub-darkgray">
+      <p className="flex items-center justify-center gap-1.5 text-sm font-medium text-sub-darkgray">
         <Image src={freepassBlueIcon} alt="" width={12} height={12} />
         여행 동선을 계산하는 중...
       </p>

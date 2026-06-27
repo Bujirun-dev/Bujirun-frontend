@@ -40,9 +40,7 @@ export function PlaceSearchItem({
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 pt-1">
         <div className="flex min-w-0 items-center gap-1">
           <Image src={markerIcon} alt="위치" width={11} height={11} className="shrink-0" />
-          <span className="min-w-0 truncate font-paperlogy text-sm font-medium text-text-heading">
-            {name}
-          </span>
+          <span className="min-w-0 truncate text-sm font-medium text-text-heading">{name}</span>
         </div>
         <CategoryChip category={category} className="self-start" />
       </div>

@@ -47,7 +47,7 @@ export default function LogAddConfirmPage() {
         >
           <Image src={angleLeftIcon} alt="뒤로" width={16} height={16} />
         </button>
-        <span className="flex-1 text-center font-paperlogy font-bold text-base text-text-heading">
+        <span className="flex-1 text-center font-bold text-base text-text-heading">
           내 일정에 추가
         </span>
         <div className="size-[28px]" />
@@ -55,17 +55,13 @@ export default function LogAddConfirmPage() {
 
       {/* 로그 요약 */}
       <div className="mb-5 rounded-2xl bg-system-searchbg px-4 py-3 flex flex-col gap-1">
-        <p className="font-paperlogy font-bold text-md text-text-heading">해운대 해수욕장 외 3곳</p>
-        <p className="font-paperlogy text-sm text-sub-gray">
-          by 여행자123 · 바다 · 2026.05.10 ~ 05.12
-        </p>
+        <p className="font-bold text-md text-text-heading">해운대 해수욕장 외 3곳</p>
+        <p className="text-sm text-sub-gray">by 여행자123 · 바다 · 2026.05.10 ~ 05.12</p>
       </div>
 
       {/* 여행 선택 */}
       <div className="flex flex-col gap-2 flex-1 overflow-y-auto overflow-x-hidden pb-6">
-        <p className="font-paperlogy text-sm text-text-primary font-semibold mb-1">
-          추가할 여행을 선택해주세요
-        </p>
+        <p className="text-sm text-text-primary font-semibold mb-1">추가할 여행을 선택해주세요</p>
         {SAMPLE_TRIPS.map((trip) => {
           const isSelected = selectedTrip === trip.id;
           return (
@@ -78,21 +74,19 @@ export default function LogAddConfirmPage() {
             >
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="font-paperlogy font-bold text-md text-text-heading">
-                    {trip.name}
-                  </span>
+                  <span className="font-bold text-md text-text-heading">{trip.name}</span>
                   {trip.isActive && (
-                    <span className="bg-main-blue text-white text-xs font-paperlogy font-semibold px-1.5 py-0.5 rounded-full">
+                    <span className="bg-main-blue text-white text-xs font-semibold px-1.5 py-0.5 rounded-full">
                       진행 중
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1 font-paperlogy text-xs text-sub-gray">
+                  <span className="flex items-center gap-1 text-xs text-sub-gray">
                     <Image src={calendarIcon} alt="날짜" width={11} height={11} />
                     {trip.startDate} ~ {trip.endDate}
                   </span>
-                  <span className="flex items-center gap-1 font-paperlogy text-xs text-sub-gray">
+                  <span className="flex items-center gap-1 text-xs text-sub-gray">
                     <Image src={friendsIcon} alt="인원" width={11} height={11} />
                     {trip.memberCount}명
                   </span>

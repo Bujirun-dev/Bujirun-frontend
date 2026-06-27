@@ -73,7 +73,7 @@ export default function PlaceSearchPage() {
           <button
             key={opt}
             onClick={() => setSortBy(opt)}
-            className={`h-[26px] px-3 rounded-full font-paperlogy text-xs font-semibold transition-colors ${
+            className={`h-[26px] px-3 rounded-full text-xs font-semibold transition-colors ${
               sortBy === opt ? "bg-main-blue text-white" : "bg-system-searchbg text-text-primary"
             }`}
           >
@@ -85,7 +85,7 @@ export default function PlaceSearchPage() {
       {/* 관광지 목록 */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-2">
         {filtered.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center text-sub-gray font-paperlogy text-sm pt-20">
+          <div className="flex flex-1 items-center justify-center text-sub-gray text-sm pt-20">
             검색 결과가 없습니다.
           </div>
         ) : (

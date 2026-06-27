@@ -35,10 +35,8 @@ function ItineraryEmptyState() {
       <div className="flex-1 flex flex-col items-center justify-center gap-6 pb-10 px-5">
         <Image src={travelImg} alt="여행" width={160} height={160} />
         <div className="flex flex-col items-center gap-2 text-center">
-          <p className="font-paperlogy font-bold text-xl text-text-heading">
-            아직 여행 일정이 없어요
-          </p>
-          <p className="font-paperlogy text-sm text-sub-gray">
+          <p className="font-bold text-xl text-text-heading">아직 여행 일정이 없어요</p>
+          <p className="text-sm text-sub-gray">
             부지런즈와 함께
             <br />
             여행을 시작해볼까요?

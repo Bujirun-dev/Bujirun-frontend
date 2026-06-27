@@ -40,7 +40,7 @@ export default function LoginPage() {
         {/* 하단 버튼 영역 */}
         <div className="mt-auto w-full ">
           <KakaoLoginButton />
-          <p className="mt-3 text-center text-sm text-sub-darkgray font-paperlogy font-medium pb-[150px]">
+          <p className="mt-3 text-center text-sm text-sub-darkgray font-medium pb-[150px]">
             * 로그인하면 서비스 이용약관 및 개인정보 처리방침에
             <br />
             동의한 것으로 간주합니다.

@@ -73,14 +73,14 @@ export function TransportCard({
           </div>
           <div className="flex flex-col gap-0.5 min-w-0 flex-1">
             <div className="flex min-w-0 items-center justify-between gap-2">
-              <span className="min-w-0 truncate font-paperlogy font-semibold text-md text-text-heading leading-none">
+              <span className="min-w-0 truncate font-semibold text-md text-text-heading leading-none">
                 {leg.routeName}
               </span>
-              <span className="shrink-0 font-paperlogy font-semibold text-xs text-sub-darkgray whitespace-nowrap -mt-2">
+              <span className="shrink-0 font-semibold text-xs text-sub-darkgray whitespace-nowrap -mt-2">
                 {metaText}
               </span>
             </div>
-            <span className="font-paperlogy font-normal text-xs text-sub-darkgray truncate">
+            <span className="font-normal text-xs text-sub-darkgray truncate">
               {leg.from} → {leg.to}
             </span>
           </div>
@@ -123,9 +123,7 @@ export function TransportCard({
               }}
             />
           </div>
-          <span className="truncate font-paperlogy font-semibold text-md text-text-heading">
-            {from}
-          </span>
+          <span className="truncate font-semibold text-md text-text-heading">{from}</span>
         </div>
 
         {legs.map((leg, index) => (
@@ -141,16 +139,16 @@ export function TransportCard({
             <div className="flex flex-1 items-center justify-between min-w-0 gap-2">
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <div className="flex min-w-0 items-center justify-between gap-2">
-                  <span className="min-w-0 truncate font-paperlogy font-semibold text-md text-text-heading leading-none">
+                  <span className="min-w-0 truncate font-semibold text-md text-text-heading leading-none">
                     {leg.routeName}
                   </span>
                   {index === 0 && (
-                    <span className="shrink-0 font-paperlogy font-semibold text-xs text-sub-darkgray whitespace-nowrap">
+                    <span className="shrink-0 font-semibold text-xs text-sub-darkgray whitespace-nowrap">
                       {metaText}
                     </span>
                   )}
                 </div>
-                <span className="font-paperlogy font-normal text-xs text-sub-darkgray truncate">
+                <span className="font-normal text-xs text-sub-darkgray truncate">
                   {leg.from} → {leg.to}
                 </span>
               </div>
@@ -171,9 +169,7 @@ export function TransportCard({
               }}
             />
           </div>
-          <span className="truncate font-paperlogy font-semibold text-md text-text-heading">
-            {to}
-          </span>
+          <span className="truncate font-semibold text-md text-text-heading">{to}</span>
         </div>
       </div>
     </div>

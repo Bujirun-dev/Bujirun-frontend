@@ -20,7 +20,7 @@ export function MenuItem({ icon, label, onClick, className }: MenuItemProps) {
     >
       <div className="flex items-center gap-3">
         <span className="text-xl">{icon}</span>
-        <span className="font-paperlogy text-md text-text-primary">{label}</span>
+        <span className="text-md text-text-primary">{label}</span>
       </div>
       <span className="text-sub-gray text-md">›</span>
     </button>
