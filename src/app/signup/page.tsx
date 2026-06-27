@@ -74,14 +74,14 @@ export default function SignUpPage() {
               {nicknameState.isTaken ? (
                 <div className="flex items-center gap-[4px]">
                   <Image src={noIcon} alt="사용 불가" width={12} height={12} />
-                  <span className="font-paperlogy font-semibold text-sm text-sub-coral">
+                  <span className=" font-semibold text-sm text-sub-coral">
                     이미 사용중인 닉네임이에요.
                   </span>
                 </div>
               ) : (
                 <span />
               )}
-              <span className="font-paperlogy font-semibold text-sm text-sub-gray">
+              <span className=" font-semibold text-sm text-sub-gray">
                 {nicknameState.value.length} /10
               </span>
             </div>
@@ -89,9 +89,7 @@ export default function SignUpPage() {
 
           {/* 프로필 사진 선택 */}
           <section className="flex flex-col gap-[10px]">
-            <label className="font-paperlogy font-semibold text-md text-text-primary">
-              프로필 사진
-            </label>
+            <label className=" font-semibold text-md text-text-primary">프로필 사진</label>
             <ProfileImageSelector
               images={PROFILE_IMAGES}
               selectedId={selectedProfile}
