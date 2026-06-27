@@ -20,7 +20,7 @@ export function CategoryChip({ category, className }: CategoryChipProps) {
   return (
     <div
       className={cn(
-        "inline-flex items-center justify-center py-0.5 px-1 rounded-md text-xs",
+        "inline-flex items-center justify-center py-0.5 px-1 rounded-md text-2xs",
         bg,
         className,
       )}

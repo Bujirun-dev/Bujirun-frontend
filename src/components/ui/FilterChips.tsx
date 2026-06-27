@@ -20,7 +20,7 @@ export function FilterChips<T extends string>({
           key={option}
           onClick={() => onChange(option)}
           className={cn(
-            "shrink-0 w-[56px] h-[25px] rounded-lg px-3.5 py-1 flex items-center justify-center font-paperlogy text-md font-medium transition-colors",
+            "shrink-0 h-[25px] rounded-lg px-3.5 py-1 flex items-center justify-center font-paperlogy text-md font-medium transition-colors",
             selected === option
               ? "bg-main-blue text-white"
               : "bg-system-searchbg border-[0.3px] border-main-blue text-sub-deepblue",
