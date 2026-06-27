@@ -18,9 +18,9 @@ export function DogamProgressBar({ collectedCount, totalCount, className }: Doga
         />
       </div>
       <div className="shrink-0 flex items-center gap-0.5">
-        <span className="font-paperlogy font-bold text-md text-sub-deepblue">{collectedCount}</span>
-        <span className="font-paperlogy text-xs text-sub-gray">/</span>
-        <span className="font-paperlogy text-xs text-sub-gray">{totalCount}</span>
+        <span className="font-bold text-md text-sub-deepblue">{collectedCount}</span>
+        <span className="text-xs text-sub-gray">/</span>
+        <span className="text-xs text-sub-gray">{totalCount}</span>
       </div>
     </div>
   );

@@ -38,7 +38,7 @@ const MOCK_FRIENDS = [{ imageUrl: IMG }, { imageUrl: IMG2 }, { imageUrl: IMG }, 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="sticky top-0 bg-system-navbg py-2 z-10">
-      <h2 className="font-paperlogy font-bold text-xl text-main-blue border-b-2 border-main-blue pb-1">
+      <h2 className="font-bold text-xl text-main-blue border-b-2 border-main-blue pb-1">
         {children}
       </h2>
     </div>
@@ -46,7 +46,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 function ComponentLabel({ children }: { children: React.ReactNode }) {
-  return <h3 className="font-paperlogy text-sm text-sub-gray font-semibold">{children}</h3>;
+  return <h3 className="text-sm text-sub-gray font-semibold">{children}</h3>;
 }
 
 export default function TestPage() {
@@ -68,7 +68,7 @@ export default function TestPage() {
 
   return (
     <div className="bg-system-navbg px-5 py-6 flex flex-col gap-8 overflow-y-auto overflow-x-hidden">
-      <h1 className="font-paperlogy font-bold text-2xl text-text-heading">컴포넌트 테스트</h1>
+      <h1 className="font-bold text-2xl text-text-heading">컴포넌트 테스트</h1>
 
       {/* ════════════════════════════════ 공통 UI ════════════════════════════════ */}
       <SectionTitle>공통 UI</SectionTitle>
@@ -88,13 +88,13 @@ export default function TestPage() {
       <div className="flex flex-col gap-2">
         <ComponentLabel>Card</ComponentLabel>
         <Card variant="glass-lg" className="p-4">
-          <p className="font-paperlogy text-md">glass-lg</p>
+          <p className="text-md">glass-lg</p>
         </Card>
         <Card variant="glass-sm" className="p-4">
-          <p className="font-paperlogy text-md">glass-sm</p>
+          <p className="text-md">glass-sm</p>
         </Card>
         <Card variant="white" className="p-4">
-          <p className="font-paperlogy text-md">white</p>
+          <p className="text-md">white</p>
         </Card>
       </div>
 
@@ -354,9 +354,7 @@ export default function TestPage() {
         confirmVariant="warning"
         onConfirm={() => setShowDeleteModal(false)}
       >
-        <span className="font-paperlogy text-sm text-sub-gray text-center">
-          * 삭제한 일정은 복구할 수 없어요.
-        </span>
+        <span className="text-sm text-sub-gray text-center">* 삭제한 일정은 복구할 수 없어요.</span>
       </Modal>
       <Modal
         isOpen={showAIModal}
@@ -368,7 +366,7 @@ export default function TestPage() {
         cancelText="취소"
         onConfirm={() => setShowAIModal(false)}
       >
-        <div className="flex flex-col gap-1 font-paperlogy text-md text-text-primary">
+        <div className="flex flex-col gap-1 text-md text-text-primary">
           <span>✨ 이동 동선 최적화</span>
           <span>⏰ 이동 시간 단축</span>
           <span>🚌 교통비 절약</span>
@@ -384,9 +382,7 @@ export default function TestPage() {
         cancelText="취소"
         onConfirm={() => setShowLogout(false)}
       >
-        <span className="font-paperlogy text-sm text-sub-gray text-center">
-          * 언제든 다시 로그인할 수 있어요.
-        </span>
+        <span className="text-sm text-sub-gray text-center">* 언제든 다시 로그인할 수 있어요.</span>
       </Modal>
       <Toast
         isVisible={showDeleteToast}

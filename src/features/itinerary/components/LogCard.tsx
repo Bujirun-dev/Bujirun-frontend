@@ -1,5 +1,5 @@
 import Image from "next/image";
-import calendarPlusIcon from "@/assets/icons/itinerary/calendar-plus-gray.png";
+import calendarPlusIcon from "@/assets/icons/itinerary/calendar-plus.svg";
 import { cn } from "@/shared/utils";
 
 interface LogCardProps {
@@ -44,23 +44,29 @@ export function LogCard({
       <div className="relative w-full h-[146px] shrink-0">
         <Image src={imageUrl} alt={placeName} fill className="object-cover" />
         <div className="absolute top-[12px] right-[14px] flex items-center justify-center gap-1 px-2 py-1 bg-white rounded-lg shadow-sm">
-          <Image src={calendarPlusIcon} alt="추가 횟수" width={10} height={10} />
-          <span className="font-paperlogy text-xs font-medium text-sub-gray">{downloadCount}</span>
+          <Image
+            src={calendarPlusIcon}
+            alt="추가 횟수"
+            width={10}
+            height={10}
+            className="icon-gray"
+          />
+          <span className="text-xs font-medium text-sub-gray">{downloadCount}</span>
         </div>
       </div>
 
       {/* 정보 */}
       <div className="px-4 py-3 flex flex-col gap-1 flex-1">
-        <p className="font-paperlogy text-sm font-normal text-text-primary flex items-center gap-1.5 tracking-[0.24px]">
+        <p className="text-sm font-normal text-text-primary flex items-center gap-1.5 tracking-[0.24px]">
           <span>📍</span>
           {placeName}
           {extraCount ? ` 외 ${extraCount}곳` : ""}
         </p>
-        <p className="font-paperlogy text-sm font-normal text-text-primary flex items-center gap-1.5 tracking-[0.24px]">
+        <p className="text-sm font-normal text-text-primary flex items-center gap-1.5 tracking-[0.24px]">
           <span>📸</span>
           {author}
         </p>
-        <p className="font-paperlogy text-sm font-normal text-text-primary flex items-center gap-1.5 tracking-[0.24px]">
+        <p className="text-sm font-normal text-text-primary flex items-center gap-1.5 tracking-[0.24px]">
           <span>📅</span>
           {duration} · {date}
         </p>

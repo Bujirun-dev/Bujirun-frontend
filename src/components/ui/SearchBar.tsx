@@ -55,7 +55,7 @@ export function SearchBar({
         placeholder={placeholder}
         className={cn(
           "flex-1 bg-transparent outline-none",
-          "font-paperlogy font-normal text-xs text-text-primary",
+          "font-normal text-xs text-text-primary",
           "placeholder:text-sub-gray",
           inputClassName,
         )}

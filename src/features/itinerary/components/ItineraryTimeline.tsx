@@ -123,7 +123,7 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
   return (
     <div className="relative min-h-full min-w-0" onClick={handleRootClick}>
       {/* 세로 타임라인 선 */}
-      <div className="absolute top-0 bottom-0 left-[46px] w-[2px] rounded-full bg-sub-lightgray" />
+      <div className="absolute top-0 bottom-0 left-[45px] w-[2px] rounded-full bg-sub-lightgray" />
 
       <div className="flex flex-col gap-5" style={{ paddingBottom: searchScrollSpace }}>
         {/* 상단: + 버튼 + 날짜 (검색 중엔 + 버튼만 숨김) */}
@@ -139,7 +139,7 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
             >
               <span className="font-bold leading-none text-main-white text-xs">+</span>
             </button>
-            <span className="font-paperlogy text-xs font-semibold text-sub-gray">{date}</span>
+            <span className="text-xs font-semibold text-sub-gray">{date}</span>
           </div>
         </div>
 

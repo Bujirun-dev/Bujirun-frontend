@@ -11,7 +11,7 @@ import { SignUpSuccessModal } from "@/features/auth/components/SignUpSuccessModa
 
 import yesIcon from "@/assets/icons/login-register/yes.png";
 import noIcon from "@/assets/icons/login-register/no.png";
-import profileHat from "@/assets/character/profile/profile-hat.png"; //프로필 이미지
+import profileHat from "@/assets/character/profile/profile-hat.png";
 
 //TODO: 실제 프로필 이미지 9개로 교체 예정
 const PROFILE_IMAGES = Array.from({ length: 9 }, (_, i) => ({
@@ -43,13 +43,13 @@ export default function SignUpPage() {
         className="absolute bottom-0 left-0 right-0 h-[722px] rounded-t-[28px] rounded-b-none shadow-none p-0 flex flex-col"
       >
         {/* 타이틀 */}
-        <p className="text-center font-ssurround font-bold text-[20px] text-text-heading mt-[20px]">
+        <p className="text-center font-ssurround font-bold text-2xl text-text-heading mt-[20px]">
           회원가입
         </p>
-        <div className="px-[24px] mt-[28px] flex flex-col gap-[20px]">
+        <div className="px-[24px] mt-[40px] flex flex-col gap-[28px]">
           {/* 닉네임 입력 */}
           <section className="flex flex-col gap-[6px]">
-            <label className="font-semibold text-md text-text-primary">닉네임</label>
+            <label className="font-semibold text-lg text-text-primary">닉네임</label>
             <div className="relative">
               <TextInput
                 placeholder="2 - 10자 이내"
@@ -74,14 +74,14 @@ export default function SignUpPage() {
               {nicknameState.isTaken ? (
                 <div className="flex items-center gap-[4px]">
                   <Image src={noIcon} alt="사용 불가" width={12} height={12} />
-                  <span className=" font-semibold text-sm text-sub-coral">
+                  <span className="font-semibold text-sm text-sub-coral">
                     이미 사용중인 닉네임이에요.
                   </span>
                 </div>
               ) : (
                 <span />
               )}
-              <span className=" font-semibold text-sm text-sub-gray">
+              <span className="font-semibold text-sm text-sub-gray">
                 {nicknameState.value.length} /10
               </span>
             </div>
@@ -89,7 +89,7 @@ export default function SignUpPage() {
 
           {/* 프로필 사진 선택 */}
           <section className="flex flex-col gap-[10px]">
-            <label className=" font-semibold text-md text-text-primary">프로필 사진</label>
+            <label className="font-semibold text-lg text-text-primary">프로필 사진</label>
             <ProfileImageSelector
               images={PROFILE_IMAGES}
               selectedId={selectedProfile}
@@ -99,7 +99,7 @@ export default function SignUpPage() {
         </div>
 
         {/* 버튼 영역 */}
-        <div className="px-[24px] pb-[36px] mt-[57px]">
+        <div className="px-[24px] mt-auto mb-[36px]">
           <Button
             variant="primary"
             disabled={!isFormValid}

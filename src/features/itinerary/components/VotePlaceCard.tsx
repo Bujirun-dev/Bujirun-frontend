@@ -26,11 +26,7 @@ export function VotePlaceCard({
       >
         <Image src={imageUrl} alt={name ?? ""} fill className="object-cover" />
       </div>
-      {name && (
-        <p className="font-paperlogy text-xs text-text-primary text-center truncate w-[72px]">
-          {name}
-        </p>
-      )}
+      {name && <p className="text-xs text-text-primary text-center truncate w-[72px]">{name}</p>}
     </div>
   );
 }

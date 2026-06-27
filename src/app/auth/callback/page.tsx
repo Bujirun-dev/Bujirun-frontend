@@ -34,7 +34,7 @@ function CallbackContent() {
 
   return (
     <div className="flex h-screen items-center justify-center">
-      <p className="font-paperlogy text-text-primary">로그인 중...</p>
+      <p className="text-text-primary">로그인 중...</p>
     </div>
   );
 }
@@ -44,7 +44,7 @@ export default function CallbackPage() {
     <Suspense
       fallback={
         <div className="flex h-screen items-center justify-center">
-          <p className="font-paperlogy text-text-primary">로그인 중...</p>
+          <p className="text-text-primary">로그인 중...</p>
         </div>
       }
     >

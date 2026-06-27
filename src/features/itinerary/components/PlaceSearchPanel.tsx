@@ -3,8 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import markerBlueIcon from "@/assets/icons/itinerary/marker-blue.png";
-import markerPinkIcon from "@/assets/icons/itinerary/marker-pink.png";
+import markerIcon from "@/assets/icons/itinerary/marker.svg";
 import { SearchBar } from "@/components";
 import { PlaceSearchItem } from "./PlaceSearchItem";
 import { ConsonantIndexBar } from "./ConsonantIndexBar";
@@ -223,7 +222,7 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
           }}
           placeholder="관광지 검색"
           className="!h-[30px] !w-full !rounded-lg !bg-system-searchbg !py-0"
-          inputClassName="!font-paperlogy !text-xs !font-normal !text-sub-gray placeholder:!text-sub-gray"
+          inputClassName="!!text-xs !font-normal !text-sub-gray placeholder:!text-sub-gray"
           iconSize={11}
         />
       </div>
@@ -238,13 +237,13 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
               if (opt === "이름순") setTimeout(() => scrollToSection("ㄱ"), 0);
             }}
             className={cn(
-              "relative rounded-md px-1.5 py-1 font-paperlogy text-xs font-medium",
+              "relative rounded-md px-1.5 py-1 text-xs font-medium",
               sortBy === opt ? "bg-system-navbg text-sub-deepblue" : "text-sub-gray",
             )}
           >
             {opt}
             {sortBy === opt && (
-              <span className="absolute bottom-0 left-0 right-0 h-[0.5px] rounded-full bg-sub-deepblue" />
+              <span className="absolute bottom-0 left-0.5 right-0.5 h-[0.5px] rounded-full bg-sub-deepblue" />
             )}
           </button>
         ))}
@@ -257,10 +256,10 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
       {/* 목록 */}
       {filtered.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-1 pb-[50%]">
-          <p className="font-paperlogy text-sm text-sub-gray">
+          <p className="text-sm text-sub-gray">
             <span>&quot;{searchValue}&quot;</span>에 대한 검색 결과가 없어요.
           </p>
-          <p className="font-paperlogy text-sm text-sub-gray">관광지 이름을 다시 확인해보세요.</p>
+          <p className="text-sm text-sub-gray">관광지 이름을 다시 확인해보세요.</p>
         </div>
       ) : sortBy === "추천순" ? (
         <div className="flex flex-col gap-2.5 overflow-y-auto overflow-x-hidden">
@@ -293,9 +292,7 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
               >
                 {/* 섹션 헤더 */}
                 <div className="mb-3 flex w-full items-center rounded-md bg-system-searchbg py-0.5 pl-1.5">
-                  <span className="font-paperlogy text-xs font-medium text-sub-deepblue">
-                    {consonant}
-                  </span>
+                  <span className="text-xs font-medium text-sub-deepblue">{consonant}</span>
                 </div>
                 {/* 아이템 목록 */}
                 <div className="pl-1">
@@ -312,13 +309,16 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
                         }} // TODO: API place.id 로 교체
                       >
                         <Image
-                          src={place.status === "completed" ? markerBlueIcon : markerPinkIcon}
+                          src={markerIcon}
                           alt="위치"
                           width={12}
                           height={12}
-                          className="shrink-0"
+                          className={cn(
+                            "shrink-0",
+                            place.status === "completed" ? "icon-deepblue" : "icon-pink",
+                          )}
                         />
-                        <span className="min-w-0 flex-1 truncate font-paperlogy text-sm font-normal text-text-primary">
+                        <span className="min-w-0 flex-1 truncate text-sm font-normal text-text-primary">
                           {place.name}
                         </span>
                       </button>

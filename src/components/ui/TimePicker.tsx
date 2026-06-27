@@ -59,7 +59,7 @@ function ScrollColumn({
             onClick={() => onSelect(v)}
             style={{ height: ITEM_H, scrollSnapAlign: "center" }}
             className={cn(
-              "flex items-center justify-center cursor-pointer font-paperlogy transition-all select-none",
+              "flex items-center justify-center cursor-pointer transition-all select-none",
               v === selected
                 ? "text-2xl font-bold text-text-heading"
                 : "text-lg font-semibold text-sub-gray",
@@ -117,7 +117,7 @@ export function TimePicker({
             />
           </svg>
         </button>
-        <h3 className="font-paperlogy font-bold text-2xl text-text-heading">시간 변경</h3>
+        <h3 className="font-bold text-2xl text-text-heading">시간 변경</h3>
 
         {/* 스크롤 영역 + 하이라이트 */}
         <div className="relative flex items-center gap-2" style={{ height: ITEM_H * VISIBLE }}>
@@ -134,7 +134,7 @@ export function TimePicker({
           <ScrollColumn items={HOURS} selected={hour} onSelect={(h) => onChange(h, minute)} />
 
           <span
-            className="relative z-10 font-paperlogy font-bold text-2xl text-text-heading"
+            className="relative z-10 font-bold text-2xl text-text-heading"
             style={{ lineHeight: 1 }}
           >
             :

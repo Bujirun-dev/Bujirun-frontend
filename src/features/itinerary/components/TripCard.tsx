@@ -1,7 +1,7 @@
 import Image from "next/image";
 import bagIcon from "@/assets/icons/itinerary/bag.svg";
-import pencilWhiteIcon from "@/assets/icons/itinerary/pencil-white.png";
-import removeWhiteIcon from "@/assets/icons/itinerary/remove-white.png";
+import pencilWhiteIcon from "@/assets/icons/itinerary/pencil.svg";
+import removeWhiteIcon from "@/assets/icons/itinerary/remove.svg";
 import { Card } from "@/components";
 
 export interface Trip {
@@ -31,10 +31,8 @@ export function TripCard({ trip, onSelect, onEdit, onDelete }: TripCardProps) {
       >
         <Image src={bagIcon} alt="여행" width={18} height={18} />
         <div className="flex flex-col gap-1">
-          <span className="font-paperlogy font-bold text-md text-text-heading leading-none">
-            {name}
-          </span>
-          <span className="font-paperlogy font-medium text-xs text-sub-gray leading-none">
+          <span className="font-bold text-md text-text-heading leading-none">{name}</span>
+          <span className="font-medium text-xs text-sub-gray leading-none">
             {getDateOnly(startDate)} - {getDateOnly(endDate)}
           </span>
         </div>
@@ -45,13 +43,25 @@ export function TripCard({ trip, onSelect, onEdit, onDelete }: TripCardProps) {
           className="size-[20px] rounded-md bg-main-blue flex items-center justify-center active:opacity-70"
           onClick={() => onEdit(id)}
         >
-          <Image src={pencilWhiteIcon} alt="수정" width={12} height={12} />
+          <Image
+            src={pencilWhiteIcon}
+            alt="수정"
+            width={12}
+            height={12}
+            className="brightness-0 invert"
+          />
         </button>
         <button
           className="size-[20px] rounded-md bg-sub-coral flex items-center justify-center active:opacity-70"
           onClick={() => onDelete(id)}
         >
-          <Image src={removeWhiteIcon} alt="삭제" width={12} height={12} />
+          <Image
+            src={removeWhiteIcon}
+            alt="삭제"
+            width={12}
+            height={12}
+            className="brightness-0 invert"
+          />
         </button>
       </div>
     </Card>
