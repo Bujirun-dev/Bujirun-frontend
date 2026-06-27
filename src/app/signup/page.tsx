@@ -43,14 +43,13 @@ export default function SignUpPage() {
         className="absolute bottom-0 left-0 right-0 h-[722px] rounded-t-[28px] rounded-b-none shadow-none p-0 flex flex-col"
       >
         {/* 타이틀 */}
-        <p className="text-center font-paperlogy font-bold text-[20px] text-text-heading mt-[20px]">
+        <p className="text-center font-ssurround font-bold text-[20px] text-text-heading mt-[20px]">
           회원가입
         </p>
-
         <div className="px-[24px] mt-[28px] flex flex-col gap-[20px]">
           {/* 닉네임 입력 */}
           <section className="flex flex-col gap-[6px]">
-            <label className="font-paperlogy font-semibold text-md text-text-primary">닉네임</label>
+            <label className="font-semibold text-md text-text-primary">닉네임</label>
             <div className="relative">
               <TextInput
                 placeholder="2 - 10자 이내"
