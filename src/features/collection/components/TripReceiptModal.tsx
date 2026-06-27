@@ -4,6 +4,7 @@ import { useCallback, useRef } from "react";
 import { toPng } from "html-to-image";
 import { ReceiptButtons } from "@/features/collection/components/ReceiptButtons";
 import { TripReceipt } from "@/features/collection/components/TripReceipt";
+import { tripReceipts } from "@/features/collection/data/tripReceipts";
 
 type TripReceiptModalProps = {
   isOpen: boolean;
@@ -38,6 +39,10 @@ export function TripReceiptModal({
   onDownloadError,
 }: TripReceiptModalProps) {
   const receiptRef = useRef<HTMLDivElement>(null);
+  const receipt = tripReceipts.find((item) => item.tripId === tripId);
+  const receiptFileName = receipt?.title
+    ? `[bujirun]${receipt.title}.png`
+    : `[bujirun]receipt-${tripId}.png`;
 
   // 영수증.png 다운로드
   const handleDownload = useCallback(async () => {
@@ -54,7 +59,7 @@ export function TripReceiptModal({
       });
 
       const link = document.createElement("a");
-      link.download = `bujirun-receipt-${tripId}.png`;
+      link.download = receiptFileName;
       link.href = dataUrl;
       link.click();
       onDownloadComplete?.();
@@ -62,7 +67,7 @@ export function TripReceiptModal({
       console.error("영수증 다운로드에 실패했어요.", error);
       onDownloadError?.();
     }
-  }, [tripId, onDownloadComplete, onDownloadError]);
+  }, [receiptFileName, onDownloadComplete, onDownloadError]);
 
   if (!isOpen) return null;
 
