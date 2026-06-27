@@ -42,7 +42,7 @@ export function PlaceSearchItem({
           <Image src={markerIcon} alt="위치" width={11} height={11} className="shrink-0" />
           <span className="min-w-0 truncate text-sm font-medium text-text-heading">{name}</span>
         </div>
-        <CategoryChip category={category} className="self-start" />
+        <CategoryChip category={category} size="sm" className="self-start" />
       </div>
 
       {status && (

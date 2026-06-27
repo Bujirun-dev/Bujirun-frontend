@@ -244,7 +244,7 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
           >
             {opt}
             {sortBy === opt && (
-              <span className="absolute bottom-0 left-0 right-0 h-[0.5px] rounded-full bg-sub-deepblue" />
+              <span className="absolute bottom-0 left-1.5 right-1.5 h-[0.5px] rounded-full bg-sub-deepblue" />
             )}
           </button>
         ))}
