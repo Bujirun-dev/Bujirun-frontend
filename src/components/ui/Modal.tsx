@@ -24,6 +24,7 @@ interface ModalProps {
   childrenVariant?: "card" | "plain";
   footer?: React.ReactNode;
   hideActions?: boolean;
+  hideCloseButton?: boolean;
 }
 
 export function Modal({
@@ -45,6 +46,7 @@ export function Modal({
   childrenVariant = "card",
   footer,
   hideActions = false,
+  hideCloseButton = false,
 }: ModalProps) {
   useEffect(() => {
     if (!isOpen) return;
@@ -80,29 +82,33 @@ export function Modal({
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          type="button"
-          aria-label="닫기"
-          className={cn(
-            "absolute right-5 top-5 flex h-5 w-5 cursor-pointer items-center justify-center active:opacity-70",
-            confirmVariant === "warning" ? "text-sub-coral" : "text-main-blue",
-          )}
-          onClick={onClose}
-        >
-          <svg
-            viewBox="0 0 512.021 512.021"
-            className="h-4 w-4"
-            fill="currentColor"
-            aria-hidden="true"
+        {/* x 버튼 — hideCloseButton prop으로 숨길 수 있음 */}
+        {!hideCloseButton && (
+          <button
+            type="button"
+            aria-label="닫기"
+            className={cn(
+              "absolute right-5 top-5 flex h-5 w-5 cursor-pointer items-center justify-center active:opacity-70",
+              confirmVariant === "warning" ? "text-sub-coral" : "text-main-blue",
+            )}
+            onClick={onClose}
           >
-            <path
-              d="M301.258,256.01L502.645,54.645c12.501-12.501,12.501-32.769,0-45.269c-12.501-12.501-32.769-12.501-45.269,0l0,0L256.01,210.762L54.645,9.376c-12.501-12.501-32.769-12.501-45.269,0s-12.501,32.769,0,45.269L210.762,256.01L9.376,457.376c-12.501,12.501-12.501,32.769,0,45.269s32.769,12.501,45.269,0L256.01,301.258l201.365,201.387c12.501,12.501,32.769,12.501,45.269,0c12.501-12.501,12.501-32.769,0-45.269L301.258,256.01z"
-              stroke="currentColor"
-              strokeWidth="18"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+            <svg
+              viewBox="0 0 512.021 512.021"
+              className="h-4 w-4"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                d="M301.258,256.01L502.645,54.645c12.501-12.501,12.501-32.769,0-45.269c-12.501-12.501-32.769-12.501-45.269,0l0,0L256.01,210.762L54.645,9.376c-12.501-12.501-32.769-12.501-45.269,0s-12.501,32.769,0,45.269L210.762,256.01L9.376,457.376c-12.501,12.501-12.501,32.769,0,45.269s32.769,12.501,45.269,0L256.01,301.258l201.365,201.387c12.501,12.501,32.769,12.501,45.269,0c12.501-12.501,12.501-32.769,0-45.269L301.258,256.01z"
+                stroke="currentColor"
+                strokeWidth="18"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        )}
+
         {icon && (
           <div
             className={cn(
