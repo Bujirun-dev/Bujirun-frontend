@@ -49,16 +49,10 @@ export function TripReceipt({ tripId }: TripReceiptProps) {
   ] satisfies [string, string][];
 
   return (
-    <article className="relative isolate w-full overflow-hidden px-3 py-13 font-courierprime text-sm text-text-receipt-main">
-      <Image
-        src={receiptBackground}
-        alt="여행 영수증 배경"
-        fill
-        priority
-        sizes="342px"
-        className="pointer-events-none -z-[1] object-cover"
-      />
-
+    <article
+      className="relative w-full overflow-hidden bg-cover bg-center bg-no-repeat px-3 py-13 font-courierprime text-sm text-text-receipt-main"
+      style={{ backgroundImage: `url(${receiptBackground.src})` }}
+    >
       <header className="text-center">
         <h2 className="text-3xl font-bold tracking-[0.08em]">MEMORY ARCHIVE</h2>
         <p className="mt-2 text-text-receipt-sub tracking-[0.12em]">COLLECTED ALONG THE WAY</p>
@@ -80,6 +74,7 @@ export function TripReceipt({ tripId }: TripReceiptProps) {
               alt="여행 영수증 프로필 사진"
               fill
               sizes="80px"
+              loading="eager"
               className="object-contain"
             />
           </div>
@@ -130,6 +125,7 @@ export function TripReceipt({ tripId }: TripReceiptProps) {
                         alt={`${place.name} 사진`}
                         fill
                         sizes="88px"
+                        loading="eager"
                         className="object-cover"
                       />
                     </div>

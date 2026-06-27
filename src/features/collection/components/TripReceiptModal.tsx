@@ -14,6 +14,21 @@ type TripReceiptModalProps = {
   onDownloadError?: () => void;
 };
 
+const waitForImages = async (element: HTMLElement) => {
+  const images = Array.from(element.querySelectorAll("img"));
+
+  await Promise.all(
+    images.map((image) => {
+      if (image.complete) return Promise.resolve();
+
+      return new Promise<void>((resolve) => {
+        image.onload = () => resolve();
+        image.onerror = () => resolve();
+      });
+    }),
+  );
+};
+
 export function TripReceiptModal({
   isOpen,
   tripId,
@@ -30,10 +45,12 @@ export function TripReceiptModal({
 
     try {
       await document.fonts.ready;
+      await waitForImages(receiptRef.current);
 
       const dataUrl = await toPng(receiptRef.current, {
         cacheBust: true,
         pixelRatio: 2,
+        backgroundColor: "transparent",
       });
 
       const link = document.createElement("a");
