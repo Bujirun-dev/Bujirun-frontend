@@ -49,7 +49,7 @@ export function HomeItineraryItem({
 
       <div className="flex-1 flex flex-col gap-2 pb-5">
         <div className="flex items-center justify-between">
-          <span className="font-paperlogy text-md text-text-heading">{placeName}</span>
+          <span className="text-md text-text-heading">{placeName}</span>
           {status && <StatusBadge status={status} />}
         </div>
 
@@ -63,7 +63,7 @@ export function HomeItineraryItem({
                 borderRight: "7px solid var(--color-sub-green)",
               }}
             />
-            <span className="font-paperlogy text-xs font-semibold text-main-blue bg-white/80 px-1.5 h-[19px] rounded-full inline-flex items-center justify-center gap-0.5">
+            <span className="text-xs font-semibold text-main-blue bg-white/80 px-1.5 h-[19px] rounded-full inline-flex items-center justify-center gap-0.5">
               {TRANSPORT_ICONS[transport.type] && (
                 <Image
                   src={TRANSPORT_ICONS[transport.type]}
@@ -74,14 +74,10 @@ export function HomeItineraryItem({
               )}
               {transport.type}
             </span>
-            <span className="font-paperlogy text-xs text-text-primary">{transport.routeName}</span>
-            <span className="font-paperlogy text-xs text-text-primary">
-              {transport.durationMin}min
-            </span>
+            <span className="text-xs text-text-primary">{transport.routeName}</span>
+            <span className="text-xs text-text-primary">{transport.durationMin}min</span>
             {transport.nextStop && (
-              <span className="font-paperlogy text-xs font-semibold text-sub-coral">
-                {transport.nextStop}
-              </span>
+              <span className="text-xs font-semibold text-sub-coral">{transport.nextStop}</span>
             )}
           </div>
         )}

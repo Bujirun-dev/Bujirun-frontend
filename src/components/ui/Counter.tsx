@@ -19,14 +19,14 @@ export function Counter({ value, onChange, min = 1, max = 99, className }: Count
         className={cn(
           "w-[24px] h-[24px] rounded-full bg-sub-lightblue",
           "flex items-center justify-center",
-          "font-paperlogy font-bold text-lg text-sub-deepblue",
+          "font-bold text-lg text-sub-deepblue",
           "transition-opacity disabled:opacity-30",
         )}
       >
         −
       </button>
       <div className="mx-1 w-[32px] h-[32px] rounded-full bg-main-blue flex items-center justify-center">
-        <span className="font-paperlogy font-bold text-md text-white">{value}</span>
+        <span className="font-bold text-md text-white">{value}</span>
       </div>
       <button
         onClick={() => onChange(Math.min(max, value + 1))}
@@ -34,7 +34,7 @@ export function Counter({ value, onChange, min = 1, max = 99, className }: Count
         className={cn(
           "w-[24px] h-[24px] rounded-full bg-sub-lightblue",
           "flex items-center justify-center",
-          "font-paperlogy font-bold text-lg text-sub-deepblue",
+          "font-bold text-lg text-sub-deepblue",
           "transition-opacity disabled:opacity-30",
         )}
       >

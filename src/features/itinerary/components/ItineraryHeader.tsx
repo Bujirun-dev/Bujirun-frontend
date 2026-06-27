@@ -1,7 +1,8 @@
 import Image from "next/image";
-import mapMagnifierIcon from "@/assets/icons/itinerary/map-magnifier.png";
-import magicWandIcon from "@/assets/icons/itinerary/magic-wand.png";
-import listIcon from "@/assets/icons/itinerary/list.png";
+import mapMagnifierIcon from "@/assets/icons/itinerary/map-magnifier.svg";
+import magicWandIcon from "@/assets/icons/itinerary/magic-wand.svg";
+import listIcon from "@/assets/icons/itinerary/list.svg";
+import { DayBadge } from "./DayBadge";
 
 interface ItineraryHeaderProps {
   currentDay: number;
@@ -20,12 +21,8 @@ export function ItineraryHeader({
 }: ItineraryHeaderProps) {
   return (
     <div className="flex items-center gap-2.5 px-2.5 pb-3.5">
-      <div className="flex items-center rounded-lg bg-main-blue px-2.5 py-1 shrink-0">
-        <span className="font-ssurround text-md font-bold text-white tracking-[0.5px] leading-[18px]">
-          day {currentDay + 1}
-        </span>
-      </div>
-      <span className="flex-1 font-paperlogy text-lg font-bold text-sub-deepblue">{tripName}</span>
+      <DayBadge day={currentDay + 1} />
+      <span className="flex-1 text-lg font-bold text-sub-deepblue">{tripName}</span>
       <div className="flex items-center gap-1">
         <button
           className="size-[28px] rounded-lg bg-system-scroll border border-main-blue/30 flex items-center justify-center"

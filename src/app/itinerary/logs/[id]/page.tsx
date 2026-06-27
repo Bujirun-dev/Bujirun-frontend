@@ -4,8 +4,10 @@ import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
-import calendarPlusDarkIcon from "@/assets/icons/itinerary/calendar-plus-dark.png";
+import calendarPlusDarkIcon from "@/assets/icons/itinerary/calendar-plus.svg";
 import { PageCard, Modal } from "@/components";
+import { cn } from "@/shared/utils";
+import { DayBadge } from "@/features/itinerary";
 import {
   SAMPLE_LOGS,
   type DaySchedule,
@@ -17,14 +19,16 @@ const IMPORT_NAVIGATION_DELAY_MS = 600;
 function TagChip({ label, isLight }: { label: string; isLight?: boolean }) {
   return (
     <div
-      className={`rounded-md inline-flex items-center justify-center px-1.5 py-1 ${
-        isLight ? "bg-category-sea" : "bg-main-blue"
-      }`}
+      className={cn(
+        "rounded-md inline-flex items-center justify-center px-1.5 py-1",
+        isLight ? "bg-category-sea" : "bg-main-blue",
+      )}
     >
       <span
-        className={`font-paperlogy font-normal text-xs text-center tracking-[0.16px] ${
-          isLight ? "text-text-primary" : "text-white"
-        }`}
+        className={cn(
+          "font-normal text-xs text-center tracking-[0.16px]",
+          isLight ? "text-text-primary" : "text-white",
+        )}
       >
         {label}
       </span>
@@ -49,7 +53,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
   if (!log) {
     return (
       <PageCard>
-        <div className="flex flex-1 items-center justify-center text-sub-gray font-paperlogy text-sm">
+        <div className="flex flex-1 items-center justify-center text-sub-gray text-sm">
           로그를 찾을 수 없습니다.
         </div>
       </PageCard>
@@ -64,13 +68,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
       {/* 헤더 */}
       <div className="flex items-center gap-4 pb-4 shrink-0">
         <button onClick={() => router.back()} className="flex items-center justify-center shrink-0">
-          <Image
-            src={angleLeftIcon}
-            alt="뒤로"
-            width={16}
-            height={16}
-            style={{ filter: "invert(53%)" }}
-          />
+          <Image src={angleLeftIcon} alt="뒤로" width={16} height={16} className="icon-gray" />
         </button>
         <span className="font-ssurround font-bold text-lg text-text-heading flex-1">
           {log.title}
@@ -87,13 +85,13 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
       <div className="shrink-0 mb-5 backdrop-blur-[15px] bg-gradient-to-b from-system-glassfrom to-system-glassto border border-system-glassborder rounded-2xl h-[67px] flex flex-col justify-center px-5 gap-2">
         <div className="flex items-center gap-1">
           <span className="text-md shrink-0">📍</span>
-          <span className="font-paperlogy font-medium text-md text-text-primary tracking-[0.28px]">
+          <span className="font-medium text-md text-text-primary tracking-[0.28px]">
             {summaryPlace}
           </span>
         </div>
         <div className="flex items-center gap-1">
           <span className="text-sm shrink-0">📅</span>
-          <span className="font-paperlogy font-medium text-sm text-sub-darkgray tracking-[0.24px]">
+          <span className="font-medium text-sm text-sub-darkgray tracking-[0.24px]">
             {log.duration} · {log.date}
           </span>
         </div>
@@ -105,11 +103,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
           <div key={daySchedule.day} className="flex flex-col">
             {/* Day 헤더 */}
             <div className="flex items-center gap-2 mb-3.5">
-              <div className="bg-main-blue rounded-lg h-[28px] w-[62px] flex items-center justify-center">
-                <span className="font-ssurround font-bold text-md text-white tracking-[0.5px]">
-                  day {daySchedule.day}
-                </span>
-              </div>
+              <DayBadge day={daySchedule.day} />
               <span className="font-ssurround font-bold text-xs text-sub-gray">
                 {daySchedule.date}
               </span>
@@ -118,19 +112,16 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
             {/* 타임라인 */}
             <div className="relative flex flex-col pb-1.5">
               {/* 세로 선 */}
-              <div
-                className="absolute top-[6px] bottom-[6px] w-[2px] bg-sub-lightgray rounded-full"
-                style={{ left: "46px", transform: "translateX(-50%)" }}
-              />
+              <div className="absolute top-[6px] bottom-[6px] left-[45px] w-[2px] bg-sub-lightgray rounded-full" />
               {daySchedule.stops.map((stop: ScheduleStop, idx: number) => (
                 <div
                   key={idx}
-                  className={`flex items-start ${idx < daySchedule.stops.length - 1 ? "pb-5" : ""}`}
+                  className={cn("flex items-start", idx < daySchedule.stops.length - 1 && "pb-5")}
                 >
                   {/* 시간 + 도트 */}
                   <div className="flex items-center shrink-0">
                     <div className="w-10 text-right pr-2.5">
-                      <span className="font-paperlogy font-medium text-sm text-sub-deepblue tracking-[0.6px]">
+                      <span className="font-medium text-sm text-sub-deepblue tracking-[0.6px]">
                         {stop.time}
                       </span>
                     </div>
@@ -142,7 +133,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
                     {/* 장소명 */}
                     <div className="flex items-center gap-1">
                       <span className="text-md shrink-0">📍</span>
-                      <span className="font-paperlogy font-medium text-md text-text-primary tracking-[0.42px]">
+                      <span className="font-medium text-md text-text-primary tracking-[0.42px]">
                         {stop.place}
                       </span>
                     </div>
@@ -193,7 +184,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
           if (!isImporting) setShowAddModal(false);
         }}
       >
-        <p className="font-paperlogy font-medium text-sm text-sub-darkgray text-center">
+        <p className="font-medium text-sm text-sub-darkgray text-center">
           * 다른 사람의 일정을 불러오면 현재 일정은 사라져요.
         </p>
       </Modal>

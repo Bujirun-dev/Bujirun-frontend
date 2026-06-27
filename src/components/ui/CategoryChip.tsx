@@ -4,6 +4,7 @@ export type Category = "sea" | "nature" | "culture" | "experience";
 
 interface CategoryChipProps {
   category: Category;
+  size?: "sm" | "md";
   className?: string;
 }
 
@@ -14,18 +15,24 @@ const CATEGORY_CONFIG: Record<Category, { label: string; bg: string }> = {
   experience: { label: "#체험", bg: "bg-category-experience" },
 };
 
-export function CategoryChip({ category, className }: CategoryChipProps) {
+const SIZE_CLASS = {
+  sm: "py-[3px] px-[5px] text-3xs",
+  md: "py-[4px] px-[6px] text-xs",
+};
+
+export function CategoryChip({ category, size = "md", className }: CategoryChipProps) {
   const { label, bg } = CATEGORY_CONFIG[category];
 
   return (
     <div
       className={cn(
-        "inline-flex items-center justify-center py-0.5 px-1 rounded-md text-2xs",
+        "inline-flex items-center justify-center rounded-lg",
+        SIZE_CLASS[size],
         bg,
         className,
       )}
     >
-      <span className="font-paperlogy text-text-primary tracking-[0.16px]">{label}</span>
+      <span className="text-text-primary tracking-[0.16px]">{label}</span>
     </div>
   );
 }

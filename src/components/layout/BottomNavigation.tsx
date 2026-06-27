@@ -82,7 +82,7 @@ export function BottomNavigation() {
               <div className="relative flex translate-y-0.5 flex-col items-center justify-center gap-1.5">
                 <NavIcon href={item.href} isActive={isActive} />
                 <span
-                  className={`font-paperlogy text-xs font-semibold leading-none transition-all duration-500 ease-out ${
+                  className={`text-xs font-semibold leading-none transition-all duration-500 ease-out ${
                     isActive ? "text-sub-deepblue" : "text-text-primary"
                   }`}
                 >

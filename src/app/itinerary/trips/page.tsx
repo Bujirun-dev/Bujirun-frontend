@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import plusSmallIcon from "@/assets/icons/itinerary/plus-small-gray.png";
+import plusSmallIcon from "@/assets/icons/itinerary/plus-small.svg";
 import { PageCard } from "@/components";
 import { TripCard, TripEditModal, TripDeleteModal, TripDeleteToast } from "@/features/itinerary";
 import type { Trip } from "@/features/itinerary";

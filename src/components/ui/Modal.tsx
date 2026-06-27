@@ -124,7 +124,7 @@ export function Modal({
               </h2>
             )}
             {description && (
-              <p className="font-paperlogy text-lg font-semibold text-text-primary leading-relaxed whitespace-pre-line">
+              <p className="text-lg font-semibold text-text-primary leading-relaxed whitespace-pre-line">
                 {description}
               </p>
             )}
