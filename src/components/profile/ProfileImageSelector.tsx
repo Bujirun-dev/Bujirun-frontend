@@ -2,6 +2,7 @@
 
 import Image, { StaticImageData } from "next/image";
 import { cn } from "@/shared/utils";
+import { Card } from "@/components/ui/Card";
 
 interface ProfileImage {
   id: number;
@@ -27,14 +28,7 @@ export function ProfileImageSelector({
   className,
 }: ProfileImageSelectorProps) {
   return (
-    <div
-      className={cn("rounded-[20px] p-[16px] backdrop-blur-[15px]", className)}
-      style={{
-        background:
-          "linear-gradient(180deg, var(--color-system-glassfrom) 0%, var(--color-system-glassto) 100%)",
-        border: "1px solid var(--color-system-glassborder)",
-      }}
-    >
+    <Card variant="glass-lg" className={cn("rounded-[20px] p-[16px]", className)}>
       <div className="grid grid-cols-3 gap-[21px]">
         {images.map(({ id, src }) => (
           <button
@@ -52,6 +46,6 @@ export function ProfileImageSelector({
           </button>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }
