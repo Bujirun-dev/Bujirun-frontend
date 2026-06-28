@@ -104,7 +104,7 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
 
           {/* 소개 */}
           <div className="flex flex-col gap-1.5">
-            <h2 className="font-ssurround font-bold text-sm text-text-heading">소개</h2>
+            <h2 className=" font-bold text-sm text-text-heading">소개</h2>
             <p className="text-xs text-text-primary leading-[2.5]">{place.description}</p>
           </div>
 
@@ -113,7 +113,7 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
           {/* 위치 */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
-              <h2 className="font-ssurround font-bold text-sm text-text-heading">위치</h2>
+              <h2 className=" font-bold text-sm text-text-heading">위치</h2>
               <button className="active:opacity-70">
                 <Image
                   src={kakaoMapIcon}
@@ -131,7 +131,7 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
 
           {/* 정보 + 문의 */}
           <div className="flex flex-col gap-2">
-            <h2 className="font-ssurround font-bold text-sm text-text-heading">정보</h2>
+            <h2 className=" font-bold text-sm text-text-heading">정보</h2>
             <Card variant="glass-sm" className="w-[316px] flex flex-col gap-2 !p-[12px_19px]">
               <InfoRow icon={clockIcon} label="운영시간" value={place.hours} />
               <InfoRow icon={feeIcon} label="입장료" value={place.fee} />
@@ -145,7 +145,7 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
           {/* 관련 로그 */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <h2 className="font-ssurround font-bold text-sm text-text-heading">관련 로그</h2>
+              <h2 className=" font-bold text-sm text-text-heading">관련 로그</h2>
               <button
                 className="flex items-center gap-1 active:opacity-70"
                 onClick={() => {
