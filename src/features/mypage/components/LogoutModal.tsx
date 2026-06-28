@@ -20,13 +20,13 @@ export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
       icon={<Image src={logoutIcon} alt="로그아웃" width={25} height={25} />}
       title="로그아웃"
       titleClassName="tracking-[0.5px]"
-      className="h-[435px] gap-0 pt-[60px] pb-[48px]"
+      className="h-[435px] gap-3 pt-[48px] pb-[48px]"
       childrenVariant="plain"
       confirmVariant="warning"
       childrenClassName="mt-[20px]"
       hideActions
       footer={
-        <div className="flex w-full justify-center gap-[25px] mt-auto">
+        <div className="flex w-full justify-center gap-[25px] mt-auto mb-[1px]">
           <Button variant="secondary" onClick={onClose} className="w-[125px] h-[40px]">
             취소
           </Button>
@@ -42,7 +42,7 @@ export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
         </p>
         <Card
           variant="glass-sm"
-          className="w-[275px] h-[31px] flex items-center justify-center rounded-lg p-0 mt-[20px]"
+          className="w-[275px] h-[31px] flex items-center justify-center rounded-lg p-0 mt-[35px]"
         >
           <p className="text-center text-sm font-medium text-sub-darkgray">
             * 언제든 다시 로그인할 수 있어요.
