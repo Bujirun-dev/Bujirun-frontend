@@ -9,6 +9,7 @@ import ClockIcon from "@/assets/icons/itinerary/clock.svg?svgr";
 import FeeIcon from "@/assets/icons/itinerary/fee.svg?svgr";
 import kakaoMapIcon from "@/assets/icons/itinerary/kakaomap_horizontal_ko.png";
 import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
+import PlusIcon from "@/assets/icons/itinerary/plus-small.svg?svgr";
 import ParkingIcon from "@/assets/icons/itinerary/parking.svg?svgr";
 import rightIcon from "@/assets/icons/itinerary/right-gray.svg?url";
 import { Card, CategoryChip, StatusBadge } from "@/components";
@@ -42,9 +43,10 @@ function getFallbackRelatedLogs(placeName: string) {
 interface PlaceDetailContentProps {
   stop: ItineraryStop;
   onClose: () => void;
+  onAdd?: () => void;
 }
 
-export function PlaceDetailContent({ stop, onClose }: PlaceDetailContentProps) {
+export function PlaceDetailContent({ stop, onClose, onAdd }: PlaceDetailContentProps) {
   const [bookmarked, setBookmarked] = useState(Boolean(stop.isBookmarked));
   const isCollected = stop.status === "completed";
   const description =
@@ -64,11 +66,11 @@ export function PlaceDetailContent({ stop, onClose }: PlaceDetailContentProps) {
 
   return (
     <>
-      <div className="mb-1.5 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between">
         <button
           type="button"
           onClick={onClose}
-          className="relative -left-1 -top-1 flex size-6 items-center justify-center"
+          className="flex items-center justify-center"
           aria-label="관광지 상세 닫기"
         >
           <Image
@@ -80,21 +82,32 @@ export function PlaceDetailContent({ stop, onClose }: PlaceDetailContentProps) {
             aria-hidden
           />
         </button>
-        <button
-          type="button"
-          onClick={() => setBookmarked((prev) => !prev)}
-          className="relative -right-1 -top-1 flex size-6 items-center justify-center"
-          aria-label={bookmarked ? "북마크 해제" : "북마크"}
-        >
-          <Image
-            src={bookmarked ? bookmarkOnIcon : bookmarkOffIcon}
-            alt=""
-            width={12}
-            height={12}
-            className={bookmarked ? "icon-deepblue" : "icon-darkgray"}
-            aria-hidden
-          />
-        </button>
+        {onAdd ? (
+          <button
+            type="button"
+            onClick={onAdd}
+            className="flex size-[18px] shrink-0 items-center justify-center rounded-md bg-sub-coral active:opacity-70"
+            aria-label="내 일정에 추가"
+          >
+            <PlusIcon width={12} height={12} className="text-main-white" aria-hidden />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setBookmarked((prev) => !prev)}
+            className="relative -right-1 -top-1 flex size-6 items-center justify-center"
+            aria-label={bookmarked ? "북마크 해제" : "북마크"}
+          >
+            <Image
+              src={bookmarked ? bookmarkOnIcon : bookmarkOffIcon}
+              alt=""
+              width={12}
+              height={12}
+              className={bookmarked ? "icon-deepblue" : "icon-darkgray"}
+              aria-hidden
+            />
+          </button>
+        )}
       </div>
 
       <div className="relative h-[145px] w-full shrink-0 overflow-hidden rounded-[10px]">
@@ -104,12 +117,29 @@ export function PlaceDetailContent({ stop, onClose }: PlaceDetailContentProps) {
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center border-b-[0.3px] border-sub-lightgray pb-2.5 pt-3">
+      <div className="flex shrink-0 items-center justify-between border-b-[0.3px] border-sub-lightgray pb-2.5 pt-3">
         <div className="flex min-w-0 items-center">
           <MarkerIcon width={12} height={12} className="mr-1 shrink-0 fill-sub-pink" aria-hidden />
           <h2 className="mr-3 truncate text-md font-medium text-text-heading">{stop.placeName}</h2>
           <CategoryChip category={stop.category} size="sm" className="shrink-0" />
         </div>
+        {onAdd && (
+          <button
+            type="button"
+            onClick={() => setBookmarked((prev) => !prev)}
+            className="relative ml-2 flex size-6 shrink-0 items-center justify-center"
+            aria-label={bookmarked ? "북마크 해제" : "북마크"}
+          >
+            <Image
+              src={bookmarked ? bookmarkOnIcon : bookmarkOffIcon}
+              alt=""
+              width={12}
+              height={12}
+              className={bookmarked ? "icon-deepblue" : "icon-darkgray"}
+              aria-hidden
+            />
+          </button>
+        )}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-1">

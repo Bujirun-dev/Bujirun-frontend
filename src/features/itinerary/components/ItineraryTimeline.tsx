@@ -10,6 +10,7 @@ import { TimelineSearchTrigger } from "./TimelineSearchTrigger";
 import { TimelineTimePicker } from "./TimelineTimePicker";
 import { cn } from "@/shared/utils";
 import type { Category } from "@/components";
+import type { SearchPlace } from "./PlaceSearchPanel";
 
 type PlaceStatus = "completed" | "verify";
 
@@ -45,6 +46,7 @@ export interface ItineraryStop {
   onTimeConfirm?: (time: string) => void;
   onTransportClick?: () => void;
   onVerify?: () => void;
+  onAddPlace?: (place: SearchPlace) => void;
 }
 
 interface ItineraryTimelineProps {
@@ -252,7 +254,13 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
                 </div>
 
                 {/* 검색 카드 */}
-                {isSearchActive && <TimelineSearchPopup ref={searchCardRef} onClose={closeSearch} />}
+                {isSearchActive && (
+                  <TimelineSearchPopup
+                    ref={searchCardRef}
+                    onClose={closeSearch}
+                    onAddToItinerary={stop.onAddPlace}
+                  />
+                )}
 
                 {/* 관광지 상세 카드 */}
                 {isDetailActive && (
