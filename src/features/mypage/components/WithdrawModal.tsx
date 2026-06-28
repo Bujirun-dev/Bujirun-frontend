@@ -28,7 +28,7 @@ export function WithdrawModal({ isOpen, onClose, onConfirm }: WithdrawModalProps
       title="회원 탈퇴"
       titleClassName="tracking-[0.5px]"
       confirmVariant="warning"
-      className="h-[435px] gap-0 pt-[60px] pb-[41px]"
+      className="h-[435px] gap-0 pt-[50px] pb-[41px]"
       childrenVariant="plain"
       childrenClassName="mt-[1px]"
       hideActions
@@ -56,12 +56,12 @@ export function WithdrawModal({ isOpen, onClose, onConfirm }: WithdrawModalProps
         {/* 체크리스트 */}
         <Card
           variant="glass-sm"
-          className="w-[275px] h-[114px] flex flex-col justify-center gap-1 rounded-lg !p-[11px_18px] mt-[16px]"
+          className="w-[275px] h-[114px] flex flex-col justify-center gap-2 rounded-lg !p-[11px_18px] mt-[16px]"
         >
           {WITHDRAW_ITEMS.map((item) => (
-            <div key={item} className="flex items-start gap-1 -ml-[1px]">
-              <span className="text-sub-coral shrink-0">✅</span>
-              <p className="text-2xs font-medium text-text-primary tracking-[-0.3px] leading-tight">
+            <div key={item} className="flex items-start gap-1 -ml-[13px]">
+              <span className="text-[11px] text-sub-coral shrink-0">✅</span>
+              <p className="text-xs font-medium text-text-primary tracking-[-0.3px] leading-tight">
                 {item}
               </p>
             </div>
