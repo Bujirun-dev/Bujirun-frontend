@@ -1,9 +1,9 @@
 import { useState } from "react";
 import Image from "next/image";
-import pencilBlueIcon from "@/assets/icons/itinerary/pencil.svg";
-import titleIcon from "@/assets/icons/itinerary/title.svg";
-import calendarIcon from "@/assets/icons/itinerary/calendar.svg";
-import clockDarkIcon from "@/assets/icons/itinerary/clock.svg";
+import calendarIcon from "@/assets/icons/itinerary/calendar.svg?url";
+import clockIcon from "@/assets/icons/itinerary/clock.svg?url";
+import PencilIcon from "@/assets/icons/itinerary/pencil.svg?svgr";
+import titleIcon from "@/assets/icons/itinerary/title.svg?url";
 import { Card, Modal, TextInput } from "@/components";
 import { formatTripDateTime, parseTripDateTime, TripDateTimePicker } from "./TripDateTimePicker";
 import type { Trip } from "./TripCard";
@@ -39,9 +39,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      icon={
-        <Image src={pencilBlueIcon} alt="수정" width={25} height={25} className="icon-deepblue" />
-      }
+      icon={<PencilIcon width={25} height={25} className="icon-deepblue" aria-hidden />}
       title="일정 정보 수정"
       titleClassName="font-bold text-xl text-text-heading"
       className="gap-6 px-8 py-10"
@@ -53,7 +51,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
     >
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-1.5">
-          <Image src={titleIcon} alt="여행명" width={16} height={16} />
+          <Image src={titleIcon} alt="" width={16} height={16} aria-hidden />
           <span className="text-lg font-semibold text-text-heading">여행명</span>
         </div>
         <TextInput
@@ -66,7 +64,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
 
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-1.5">
-          <Image src={calendarIcon} alt="여행 기간" width={16} height={16} />
+          <Image src={calendarIcon} alt="" width={16} height={16} aria-hidden />
           <span className="text-lg font-semibold text-text-heading">여행 기간</span>
         </div>
         <div className="flex flex-col gap-2.5">
@@ -93,7 +91,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
 function DateTimeLabel({ label }: { label: string }) {
   return (
     <div className="flex shrink-0 items-center gap-1">
-      <Image src={clockDarkIcon} alt="" width={11} height={11} />
+      <Image src={clockIcon} alt="" width={11} height={11} aria-hidden />
       <span className="text-sm font-semibold text-text-primary">{label}</span>
     </div>
   );

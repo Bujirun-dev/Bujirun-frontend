@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap");
 @import "tailwindcss";
 
 @font-face {
@@ -140,6 +141,8 @@
   /* Text */
   --color-text-primary: #1e293b;
   --color-text-heading: #0f172a;
+  --color-text-receipt-main: #000000;
+  --color-text-receipt-sub: #6b6b6b;
 
   /* System */
   --color-system-whitebg: rgba(255, 255, 255, 0.4);
@@ -171,6 +174,7 @@
   --text-lg: 16px;
   --text-xl: 18px;
   --text-2xl: 20px;
+  --text-3xl: 24px;
 
   /* Spacing */
   --spacing-screen-x: 24px;
@@ -180,6 +184,7 @@
   --font-ssurround: "Cafe24Ssurround", sans-serif;
   --font-proup: "Cafe24ProUp", sans-serif;
   --font-laundrygothic: "LaundryGothic", sans-serif;
+  --font-courierprime: "Courier Prime", monospace;
 }
 
 /* SVG 아이콘 색상 필터 유틸리티 */

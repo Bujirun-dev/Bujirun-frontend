@@ -1,5 +1,5 @@
 import Image from "next/image";
-import markerIcon from "@/assets/icons/itinerary/marker.svg";
+import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
 import { cn } from "@/shared/utils";
 import { CategoryChip, StatusBadge } from "@/components";
 import type { Category } from "@/components";
@@ -26,7 +26,7 @@ export function PlaceSearchItem({
   return (
     <div
       className={cn(
-        "relative flex h-[81px] w-full cursor-pointer items-start gap-1.5 rounded-xl bg-white px-2.5 py-2 active:opacity-80",
+        "relative flex h-[81px] w-full cursor-pointer items-start gap-1.5 rounded-xl bg-main-white px-2.5 py-2 active:opacity-80",
         className,
       )}
       onClick={onClick}
@@ -39,13 +39,7 @@ export function PlaceSearchItem({
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 pt-1">
         <div className="flex min-w-0 items-center gap-1">
-          <Image
-            src={markerIcon}
-            alt="위치"
-            width={11}
-            height={11}
-            className="shrink-0 icon-pink"
-          />
+          <MarkerIcon width={11} height={11} className="shrink-0 fill-sub-pink" aria-hidden />
           <span className="min-w-0 truncate text-sm font-medium text-text-heading">{name}</span>
         </div>
         <CategoryChip category={category} size="sm" className="self-start" />
