@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import { cn } from "@/shared/utils";
 import Image from "next/image";
 import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
 import { ProfileImageSelectModal, NicknameEditModal } from "@/features/mypage/components";
@@ -30,7 +31,8 @@ export function MypageProfile() {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  const nicknameEditBtnRef = useRef<HTMLButtonElement>(null);
+  // 닉네임 span 기준으로 모달 위치 잡기
+  const nicknameRef = useRef<HTMLSpanElement>(null);
 
   const currentImage = PROFILE_IMAGES.find((img) => img.id === currentImageId) ?? PROFILE_IMAGES[0];
   const progressPercent = Math.round((collectedCount / totalCount) * 100);
@@ -73,9 +75,16 @@ export function MypageProfile() {
           <div className="flex flex-1 flex-col gap-2">
             {/* 닉네임 + 편집 버튼 */}
             <div className="flex items-center gap-1.5">
-              <span className="text-lg font-bold text-text-heading">{nickname}</span>
+              <span
+                ref={nicknameRef}
+                className={cn(
+                  "text-lg font-bold relative z-50",
+                  isNicknameModalOpen ? "text-white" : "text-text-heading",
+                )}
+              >
+                {nickname}
+              </span>
               <button
-                ref={nicknameEditBtnRef}
                 type="button"
                 aria-label="닉네임 편집"
                 onClick={() => setIsNicknameModalOpen(true)}
@@ -128,9 +137,10 @@ export function MypageProfile() {
         isOpen={isNicknameModalOpen}
         onClose={() => setIsNicknameModalOpen(false)}
         currentNickname={nickname}
-        anchorRef={nicknameEditBtnRef}
+        anchorRef={nicknameRef}
         onConfirm={(newNickname) => {
           setNickname(newNickname);
+          showToast("닉네임이 변경되었어요");
           // TODO: API 연결 시 mutation으로 서버에 반영
         }}
       />
