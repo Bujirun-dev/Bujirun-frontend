@@ -4,13 +4,12 @@ import type { LucideProps } from "lucide-react";
 import type { ComponentType } from "react";
 
 interface MenuItemProps {
-  icon: ComponentType<LucideProps>; // LucideIcon → ComponentType<LucideProps>
+  icon: ComponentType<LucideProps>;
   label: string;
-  isDanger?: boolean;
   onClick?: () => void;
 }
 
-export function MenuItem({ icon: Icon, label, isDanger = false, onClick }: MenuItemProps) {
+export function MenuItem({ icon: Icon, label, onClick }: MenuItemProps) {
   return (
     <button
       type="button"
@@ -24,17 +23,8 @@ export function MenuItem({ icon: Icon, label, isDanger = false, onClick }: MenuI
         active:scale-[0.98] transition-transform duration-100
       "
     >
-      <Icon
-        size={18}
-        strokeWidth={2}
-        className={isDanger ? "text-sub-coral" : "text-main-blue"}
-        aria-hidden="true"
-      />
-      <span
-        className={`font-ssurround font-bold text-lg ${isDanger ? "text-sub-coral" : "text-text-primary"}`}
-      >
-        {label}
-      </span>
+      <Icon size={18} strokeWidth={2} className="text-text-primary" aria-hidden="true" />
+      <span className="font-ssurround font-bold text-lg text-text-primary">{label}</span>
     </button>
   );
 }
