@@ -291,11 +291,7 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
                 <div className="mt-5 flex min-w-0">
                   <div className="w-16 shrink-0" />
                   <button className="min-w-0 flex-1 text-left" onClick={stop.onTransportClick}>
-                    <TransportCard
-                      {...stop.transport}
-                      disableShadow
-                      className="border-[0.3px] border-main-blue"
-                    />
+                    <TransportCard {...stop.transport} />
                   </button>
                 </div>
               )}

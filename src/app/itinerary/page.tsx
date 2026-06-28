@@ -241,7 +241,7 @@ function ItineraryMain() {
 
   return (
     <div className="relative h-full">
-      <PageCard>
+      <PageCard className="pr-6">
         <ItineraryHeader
           currentDay={currentDay}
           tripName={schedule?.title ?? "부지렁즈"}

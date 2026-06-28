@@ -20,7 +20,7 @@ export function ItineraryHeader({
   onTripsClick,
 }: ItineraryHeaderProps) {
   return (
-    <div className="flex items-center gap-2.5 px-2.5 pb-3.5">
+    <div className="flex items-center gap-2.5 pb-3.5">
       <DayBadge day={currentDay + 1} />
       <span className="flex-1 text-lg font-bold text-sub-deepblue">{tripName}</span>
       <div className="flex items-center gap-1">
