@@ -54,7 +54,7 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
     <PageCard className="px-0 pt-0">
       {/* 타이틀 + 뒤로가기 - 이미지 위 별도 영역 */}
       <div className="flex items-center gap-3  py-4 shrink-0">
-        <BackButton onClick={() => router.back()} />
+        <BackButton className="bg-transparent" onClick={() => router.back()} />
         <h1 className="font-ssurround font-bold text-lg text-text-heading">북마크 목록</h1>
       </div>
 

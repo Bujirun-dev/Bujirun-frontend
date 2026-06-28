@@ -8,7 +8,7 @@ export default function BookmarksPage() {
       <div className="flex flex-col gap-5 h-full">
         {/* 헤더 - 뒤로가기 + 타이틀 */}
         <div className="flex items-center gap-3 shrink-0">
-          <BackButton />
+          <BackButton className="bg-transparent" />
           <h1 className="font-ssurround font-bold text-lg text-text-heading">북마크 목록</h1>
         </div>
 
