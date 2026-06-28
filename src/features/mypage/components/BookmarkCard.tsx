@@ -34,12 +34,10 @@ export function BookmarkCard({
       className="relative flex h-[117px] w-full cursor-pointer items-start gap-3 rounded-[20px] border-[0.3px] border-sub-lightblue bg-main-white px-[14px] py-[13px] shadow-[2px_2px_6px_#ECF5FF] active:opacity-80"
       onClick={onClick}
     >
-      {/* 썸네일 */}
-      {imageUrl && (
-        <div className="relative h-[91px] w-[136px] shrink-0 overflow-hidden rounded-[15px] border-[0.3px] border-system-glassborder">
-          <Image src={imageUrl} alt={name} fill className="object-cover" />
-        </div>
-      )}
+      {/* 썸네일 - 이미지 없으면 placeholder */}
+      <div className="relative h-[91px] w-[136px] shrink-0 overflow-hidden rounded-[15px] border-[0.3px] border-system-glassborder bg-system-navbg">
+        {imageUrl && <Image src={imageUrl} alt={name} fill className="object-cover" />}
+      </div>
 
       <div className="flex flex-1 flex-col justify-between h-[91px]">
         {/* 상단: 관광지명 + 북마크 */}

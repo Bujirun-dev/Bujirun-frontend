@@ -1,78 +1,30 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { BookmarkCard } from "./BookmarkCard";
+import { PLACES } from "@/features/collection/data/places";
 import type { Category } from "@/components";
-import place1 from "@/assets/place/place1.png";
-import place2 from "@/assets/place/place2.png";
-import place3 from "@/assets/place/place3.png";
-import place4 from "@/assets/place/place4.png";
-import place5 from "@/assets/place/place5.png";
-import place6 from "@/assets/place/place6.png";
-import place7 from "@/assets/place/place7.png";
 
-// TODO: API 연결 시 useQuery로 교체
-const MOCK_BOOKMARKS = [
-  {
-    id: "1",
-    name: "송도 해수욕장",
-    category: "sea" as Category,
-    imageUrl: place1,
+// StatusBadge의 StatusType과 동일한 타입 로컬 선언
+type StatusType = "completed" | "verify" | "pending" | "uncollected" | "collected";
+
+// TODO: API 연결 시 useQuery로 교체 (isCollected → 실제 북마크 여부로 변경)
+const MOCK_BOOKMARKS = PLACES.filter((p) => p.isCollected)
+  .slice(0, 7)
+  .map((p) => ({
+    ...p,
+    category: p.category as Category,
     isBookmarked: true,
-    status: "uncollected" as const,
-  },
-  {
-    id: "2",
-    name: "감천 문화마을",
-    category: "culture" as Category,
-    imageUrl: place2,
-    isBookmarked: true,
-    status: "collected" as const,
-  },
-  {
-    id: "3",
-    name: "태종대",
-    category: "nature" as Category,
-    imageUrl: place3,
-    isBookmarked: true,
-    status: "uncollected" as const,
-  },
-  {
-    id: "4",
-    name: "해동 용궁사",
-    category: "culture" as Category,
-    imageUrl: place4,
-    isBookmarked: true,
-    status: "collected" as const,
-  },
-  {
-    id: "5",
-    name: "광안리 해수욕장",
-    category: "sea" as Category,
-    imageUrl: place5,
-    isBookmarked: true,
-    status: "uncollected" as const,
-  },
-  {
-    id: "6",
-    name: "오륙도",
-    category: "nature" as Category,
-    imageUrl: place6,
-    isBookmarked: true,
-    status: "collected" as const,
-  },
-  {
-    id: "7",
-    name: "부산 시민공원",
-    category: "experience" as Category,
-    imageUrl: place7,
-    isBookmarked: true,
-    status: "uncollected" as const,
-  },
-];
+    status: (p.isCollected ? "collected" : "uncollected") as StatusType,
+  }));
 
 export function BookmarkList() {
+  const router = useRouter();
+
+  // TODO: API 연결 시 useQuery로 북마크 목록 fetch
   const bookmarks = MOCK_BOOKMARKS;
 
+  // 북마크 목록이 비어있을 때 빈 상태 표시
   if (bookmarks.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -86,17 +38,16 @@ export function BookmarkList() {
       {bookmarks.map((item) => (
         <BookmarkCard
           key={item.id}
-          imageUrl={item.imageUrl}
           name={item.name}
           category={item.category}
           status={item.status}
           isBookmarked={item.isBookmarked}
           onBookmarkToggle={() => {
             // TODO: 북마크 on/off API 연결
+            // ex) apiClient.delete(`/bookmarks/${item.id}`) 또는 apiClient.post(`/bookmarks/${item.id}`)
           }}
-          onClick={() => {
-            // TODO: 관광지 상세 페이지 이동
-          }}
+          // TODO: API 연결 시 item.id를 실제 contentId로 교체
+          onClick={() => router.push(`/mypage/bookmarks/${item.id}`)}
         />
       ))}
     </div>
