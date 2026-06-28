@@ -19,11 +19,10 @@ export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
       onClose={onClose}
       icon={<Image src={logoutIcon} alt="로그아웃" width={25} height={25} />}
       title="로그아웃"
-      description={`\n정말 로그아웃 하시겠어요?\n다음 여행도 함께 할게요!`}
       titleClassName="tracking-[0.5px]"
-      className="h-[435px] gap-0 pt-[60px] py-[48px]"
+      className="h-[435px] gap-0 pt-[60px] pb-[48px]"
       childrenVariant="plain"
-      childrenClassName="mt-[1px]"
+      childrenClassName="mt-[20px]"
       hideActions
       footer={
         <div className="flex w-full justify-center gap-[25px] mt-auto">
@@ -36,14 +35,19 @@ export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
         </div>
       }
     >
-      <Card
-        variant="glass-sm"
-        className="w-[275px] h-[31px] flex items-center justify-center rounded-lg p-0 mt-[25px]"
-      >
-        <p className="text-center text-sm font-medium text-sub-darkgray">
-          * 언제든 다시 로그인할 수 있어요.
+      <div className="flex flex-col items-center gap-4">
+        <p className="text-lg font-semibold text-text-primary text-center leading-relaxed whitespace-pre-line">
+          {`정말 로그아웃 하시겠어요?\n다음 여행도 함께 할게요!`}
         </p>
-      </Card>
+        <Card
+          variant="glass-sm"
+          className="w-[275px] h-[31px] flex items-center justify-center rounded-lg p-0 mt-[20px]"
+        >
+          <p className="text-center text-sm font-medium text-sub-darkgray">
+            * 언제든 다시 로그인할 수 있어요.
+          </p>
+        </Card>
+      </div>
     </Modal>
   );
 }
