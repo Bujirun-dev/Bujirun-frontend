@@ -3,31 +3,22 @@
 import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
-import { ProfileImageSelectModal } from "@/features/mypage/components";
-import { NicknameEditModal } from "@/features/mypage/components";
+import { ProfileImageSelectModal, NicknameEditModal } from "@/features/mypage/components";
 import { PROFILE_IMAGES } from "@/components/profile/profileImages";
 import { Toast } from "@/components/ui/Toast";
+import { Card } from "@/components/ui/Card";
+import { CategoryChip } from "@/components/ui/CategoryChip";
+import type { Category } from "@/components/ui/CategoryChip";
 import SuccessIcon from "@/assets/icons/mypage/success.svg?svgr";
 
 // TODO: API 연결 시 useQuery로 교체
 const MOCK_USER = {
   nickname: "은지미",
   profileImageId: 1,
-  tags: ["#바다", "#문화"],
+  tags: ["sea", "culture"] as Category[],
   collectedCount: 24,
   totalCount: 34,
 };
-
-const TAG_COLOR_MAP: Record<string, string> = {
-  "#바다": "bg-category-sea text-sub-deepblue",
-  "#문화": "bg-category-culture text-sub-pink",
-  "#자연": "bg-category-nature text-[#5a8a3c]",
-  "#체험": "bg-category-experience text-sub-violet",
-};
-
-function getTagColor(tag: string) {
-  return TAG_COLOR_MAP[tag] ?? "bg-sub-lightblue text-sub-deepblue";
-}
 
 export function MypageProfile() {
   const { tags, collectedCount, totalCount } = MOCK_USER;
@@ -36,8 +27,6 @@ export function MypageProfile() {
   const [currentImageId, setCurrentImageId] = useState(MOCK_USER.profileImageId);
   const [isProfileImageModalOpen, setIsProfileImageModalOpen] = useState(false);
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
-
-  // 토스트 상태
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
@@ -56,7 +45,7 @@ export function MypageProfile() {
   return (
     <>
       {/* 프로필 카드 */}
-      <div className="w-full rounded-2xl bg-main-white p-[20px] shadow-sm">
+      <Card variant="white" className="w-full p-[20px]">
         <div className="flex items-center gap-4">
           {/* 프로필 사진 */}
           <div className="relative shrink-0">
@@ -84,7 +73,7 @@ export function MypageProfile() {
           <div className="flex flex-1 flex-col gap-2">
             {/* 닉네임 + 편집 버튼 */}
             <div className="flex items-center gap-1.5">
-              <span className="font-paperlogy text-lg font-bold text-text-heading">{nickname}</span>
+              <span className="text-lg font-bold text-text-heading">{nickname}</span>
               <button
                 ref={nicknameEditBtnRef}
                 type="button"
@@ -99,12 +88,7 @@ export function MypageProfile() {
             {/* 태그 칩 */}
             <div className="flex flex-wrap gap-1.5">
               {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className={`rounded-lg px-2.5 py-0.5 font-paperlogy text-xs font-medium ${getTagColor(tag)}`}
-                >
-                  {tag}
-                </span>
+                <CategoryChip key={tag} category={tag} />
               ))}
             </div>
 
@@ -117,7 +101,7 @@ export function MypageProfile() {
                 />
               </div>
               <div className="flex justify-end">
-                <span className="font-paperlogy text-xs text-sub-darkgray">
+                <span className="text-xs text-sub-darkgray">
                   <span className="font-bold text-sub-deepblue">{collectedCount}</span>
                   {" / "}
                   {totalCount}
@@ -126,7 +110,7 @@ export function MypageProfile() {
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       <ProfileImageSelectModal
         isOpen={isProfileImageModalOpen}
@@ -135,7 +119,7 @@ export function MypageProfile() {
         currentId={currentImageId}
         onConfirm={(id) => {
           setCurrentImageId(id);
-          showToast("프로필 사진이 변경되었어요.");
+          showToast("프로필 사진이 변경되었어요");
           // TODO: API 연결 시 mutation으로 서버에 반영
         }}
       />
@@ -145,9 +129,8 @@ export function MypageProfile() {
         onClose={() => setIsNicknameModalOpen(false)}
         currentNickname={nickname}
         anchorRef={nicknameEditBtnRef}
-        onConfirm={(newNickname: string) => {
+        onConfirm={(newNickname) => {
           setNickname(newNickname);
-          // TODO: 닉네임 토스트는 추후 추가
           // TODO: API 연결 시 mutation으로 서버에 반영
         }}
       />
