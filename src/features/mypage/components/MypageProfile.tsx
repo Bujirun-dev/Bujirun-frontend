@@ -5,21 +5,7 @@ import Image from "next/image";
 import pencilIcon from "@/assets/icons/mypage/pencil.svg";
 import { ProfileImageSelectModal } from "@/features/mypage/components";
 import { NicknameEditModal } from "@/features/mypage/components";
-import profileHat from "@/assets/character/profile/profile-hat.png";
-import profileHeart from "@/assets/character/profile/profile-heart.png";
-import profileParty from "@/assets/character/profile/profile-party.png";
-import profileSleepy from "@/assets/character/profile/profile-sleepy.png";
-import profileSunglass from "@/assets/character/profile/profile-sunglass.png";
-import profileV from "@/assets/character/profile/profile-v.png";
-
-const PROFILE_IMAGES = [
-  { id: 1, src: profileHat },
-  { id: 2, src: profileHeart },
-  { id: 3, src: profileParty },
-  { id: 4, src: profileSleepy },
-  { id: 5, src: profileSunglass },
-  { id: 6, src: profileV },
-];
+import { PROFILE_IMAGES } from "@/components/profile/profileImages";
 
 // TODO: API 연결 시 useQuery로 교체
 const MOCK_USER = {
@@ -46,7 +32,7 @@ export function MypageProfile() {
 
   const [nickname, setNickname] = useState(MOCK_USER.nickname);
   const [currentImageId, setCurrentImageId] = useState(MOCK_USER.profileImageId);
-  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const [isProfileImageModalOpen, setIsProfileImageModalOpen] = useState(false);
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
 
   const currentImage = PROFILE_IMAGES.find((img) => img.id === currentImageId) ?? PROFILE_IMAGES[0];
@@ -57,12 +43,12 @@ export function MypageProfile() {
       {/* 프로필 카드 */}
       <div className="w-full rounded-2xl bg-main-white p-[20px] shadow-sm">
         <div className="flex items-center gap-4">
-          {/* 아바타 */}
+          {/* 프로필 사진 */}
           <div className="relative shrink-0">
             <button
               type="button"
               aria-label="프로필 사진 변경"
-              onClick={() => setIsAvatarModalOpen(true)}
+              onClick={() => setIsProfileImageModalOpen(true)}
               className="relative h-[72px] w-[72px] transition-opacity active:opacity-70"
             >
               <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-system-navbg">
@@ -127,8 +113,8 @@ export function MypageProfile() {
       </div>
 
       <ProfileImageSelectModal
-        isOpen={isAvatarModalOpen}
-        onClose={() => setIsAvatarModalOpen(false)}
+        isOpen={isProfileImageModalOpen}
+        onClose={() => setIsProfileImageModalOpen(false)}
         images={PROFILE_IMAGES}
         currentId={currentImageId}
         onConfirm={(id) => {
@@ -141,7 +127,7 @@ export function MypageProfile() {
         isOpen={isNicknameModalOpen}
         onClose={() => setIsNicknameModalOpen(false)}
         currentNickname={nickname}
-        onConfirm={(newNickname) => {
+        onConfirm={(newNickname: string) => {
           setNickname(newNickname);
           // TODO: API 연결 시 mutation으로 서버에 반영
         }}

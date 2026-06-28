@@ -45,7 +45,6 @@ export function ProfileImageSelectModal({
       cancelText="취소"
       onConfirm={handleConfirm}
       childrenVariant="plain"
-      hideCloseButton
     >
       <ProfileImageSelector images={images} selectedId={selectedId} onSelect={setSelectedId} />
     </Modal>
