@@ -1,28 +1,40 @@
-import { cn } from "@/shared/utils";
+"use client";
+
+import type { LucideProps } from "lucide-react";
+import type { ComponentType } from "react";
 
 interface MenuItemProps {
-  icon: React.ReactNode;
+  icon: ComponentType<LucideProps>; // LucideIcon → ComponentType<LucideProps>
   label: string;
+  isDanger?: boolean;
   onClick?: () => void;
-  className?: string;
 }
 
-export function MenuItem({ icon, label, onClick, className }: MenuItemProps) {
+export function MenuItem({ icon: Icon, label, isDanger = false, onClick }: MenuItemProps) {
   return (
     <button
-      className={cn(
-        "w-full flex items-center justify-between",
-        "bg-white/60 rounded-2xl px-5 py-4",
-        "transition-opacity active:opacity-70",
-        className,
-      )}
+      type="button"
       onClick={onClick}
+      className="
+        w-full flex flex-row items-center gap-[12px]
+        px-[20px] h-[55px]
+        rounded-[15px] border-[0.5px] border-main-blue
+        bg-main-white backdrop-blur-[15px]
+        text-left
+        active:scale-[0.98] transition-transform duration-100
+      "
     >
-      <div className="flex items-center gap-3">
-        <span className="text-xl">{icon}</span>
-        <span className="text-md text-text-primary">{label}</span>
-      </div>
-      <span className="text-sub-gray text-md">›</span>
+      <Icon
+        size={18}
+        strokeWidth={2}
+        className={isDanger ? "text-sub-coral" : "text-main-blue"}
+        aria-hidden="true"
+      />
+      <span
+        className={`font-ssurround font-bold text-lg ${isDanger ? "text-sub-coral" : "text-text-primary"}`}
+      >
+        {label}
+      </span>
     </button>
   );
 }
