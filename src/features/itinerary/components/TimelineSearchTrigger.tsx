@@ -4,7 +4,6 @@ interface TimelineSearchTriggerProps {
   time: string;
   isActive: boolean;
   isTimeActive: boolean;
-  onOpen: () => void;
   onTimeClick?: () => void;
 }
 
@@ -12,7 +11,6 @@ export function TimelineSearchTrigger({
   time,
   isActive,
   isTimeActive,
-  onOpen,
   onTimeClick,
 }: TimelineSearchTriggerProps) {
   return (

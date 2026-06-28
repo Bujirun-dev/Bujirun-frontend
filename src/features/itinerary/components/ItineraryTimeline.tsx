@@ -237,7 +237,6 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
                   time={stop.time}
                   isActive={isSearchActive}
                   isTimeActive={isTimeActive}
-                  onOpen={() => openSearch(stop.id)}
                   onTimeClick={() => openTimePicker(stop)}
                 />
 
