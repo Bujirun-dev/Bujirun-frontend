@@ -8,10 +8,10 @@ export const CATEGORY_LABEL: Record<Category, string> = {
 };
 
 export const CATEGORY_LABEL_KO: Record<string, Category> = {
-  "자연·공원": "nature",
-  "역사·문화": "culture",
-  "체험·레저": "experience",
-  "음식·카페": "experience",
+  바다: "sea",
+  자연: "nature",
+  문화: "culture",
+  체험: "experience",
 };
 
 export function getCategoryLabel(category: Category): string {
