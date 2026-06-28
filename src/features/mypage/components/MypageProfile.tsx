@@ -134,6 +134,7 @@ export function MypageProfile() {
       />
 
       <NicknameEditModal
+        key={isNicknameModalOpen ? "open" : "closed"}
         isOpen={isNicknameModalOpen}
         onClose={() => setIsNicknameModalOpen(false)}
         currentNickname={nickname}
@@ -141,7 +142,6 @@ export function MypageProfile() {
         onConfirm={(newNickname) => {
           setNickname(newNickname);
           showToast("닉네임이 변경되었어요");
-          // TODO: API 연결 시 mutation으로 서버에 반영
         }}
       />
 

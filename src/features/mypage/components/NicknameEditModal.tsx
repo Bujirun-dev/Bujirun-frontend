@@ -32,10 +32,6 @@ export function NicknameEditModal({
   const isValid = value.length >= 2 && value.length <= 10 && !isTaken;
 
   useEffect(() => {
-    if (isOpen) setValue(currentNickname);
-  }, [isOpen, currentNickname]);
-
-  useEffect(() => {
     if (isOpen && anchorRef.current) {
       const rect = anchorRef.current.getBoundingClientRect();
       const appRoot = document.getElementById("app-root");
