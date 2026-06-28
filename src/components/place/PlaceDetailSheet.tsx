@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { createPortal } from "react-dom";
-import bookmarkOffIcon from "@/assets/icons/itinerary/bookmark-off.svg?url";
-import bookmarkOnIcon from "@/assets/icons/itinerary/bookmark-on.svg?url";
+import BookmarkOffIcon from "@/assets/icons/itinerary/bookmark-off.svg?svgr";
+import BookmarkOnIcon from "@/assets/icons/itinerary/bookmark-on.svg?svgr";
 import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
 import { cn } from "@/shared/utils";
 import { CategoryChip, StatusBadge, PlaceInfoRow } from "@/components";
@@ -113,14 +113,12 @@ export function PlaceDetailSheet({
               </div>
               <CategoryChip category={category} />
             </div>
-            <button onClick={onBookmark} className="shrink-0">
-              <Image
-                src={isBookmarked ? bookmarkOnIcon : bookmarkOffIcon}
-                alt={isBookmarked ? "북마크 해제" : "북마크"}
-                width={16}
-                height={18}
-                className={isBookmarked ? "icon-deepblue" : "icon-darkgray"}
-              />
+            <button onClick={onBookmark} className="shrink-0" aria-label={isBookmarked ? "북마크 해제" : "북마크"}>
+              {isBookmarked ? (
+                <BookmarkOnIcon width={16} height={18} className="fill-main-blue" aria-hidden />
+              ) : (
+                <BookmarkOffIcon width={16} height={18} className="fill-sub-darkgray" aria-hidden />
+              )}
             </button>
           </div>
 

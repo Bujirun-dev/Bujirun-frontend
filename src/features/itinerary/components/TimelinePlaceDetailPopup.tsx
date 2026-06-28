@@ -2,8 +2,8 @@ import { forwardRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?url";
-import bookmarkOffIcon from "@/assets/icons/itinerary/bookmark-off.svg?url";
-import bookmarkOnIcon from "@/assets/icons/itinerary/bookmark-on.svg?url";
+import BookmarkOffIcon from "@/assets/icons/itinerary/bookmark-off.svg?svgr";
+import BookmarkOnIcon from "@/assets/icons/itinerary/bookmark-on.svg?svgr";
 import CallIcon from "@/assets/icons/itinerary/call.svg?svgr";
 import ClockIcon from "@/assets/icons/itinerary/clock.svg?svgr";
 import FeeIcon from "@/assets/icons/itinerary/fee.svg?svgr";
@@ -70,7 +70,7 @@ export function PlaceDetailContent({ stop, onClose, onAdd }: PlaceDetailContentP
         <button
           type="button"
           onClick={onClose}
-          className="flex items-center justify-center"
+          className="flex items-center justify-center -translate-y-0.5"
           aria-label="관광지 상세 닫기"
         >
           <Image
@@ -89,7 +89,7 @@ export function PlaceDetailContent({ stop, onClose, onAdd }: PlaceDetailContentP
             className="flex size-[18px] shrink-0 items-center justify-center rounded-md bg-sub-coral active:opacity-70"
             aria-label="내 일정에 추가"
           >
-            <PlusIcon width={12} height={12} className="text-main-white" aria-hidden />
+            <PlusIcon width={16} height={16} className="text-main-white" aria-hidden />
           </button>
         ) : (
           <button
@@ -98,14 +98,11 @@ export function PlaceDetailContent({ stop, onClose, onAdd }: PlaceDetailContentP
             className="relative -right-1 -top-1 flex size-6 items-center justify-center"
             aria-label={bookmarked ? "북마크 해제" : "북마크"}
           >
-            <Image
-              src={bookmarked ? bookmarkOnIcon : bookmarkOffIcon}
-              alt=""
-              width={12}
-              height={12}
-              className={bookmarked ? "icon-deepblue" : "icon-darkgray"}
-              aria-hidden
-            />
+            {bookmarked ? (
+              <BookmarkOnIcon width={12} height={12} className="fill-main-blue" aria-hidden />
+            ) : (
+              <BookmarkOffIcon width={12} height={12} className="fill-sub-darkgray" aria-hidden />
+            )}
           </button>
         )}
       </div>
@@ -130,14 +127,11 @@ export function PlaceDetailContent({ stop, onClose, onAdd }: PlaceDetailContentP
             className="relative ml-2 flex size-6 shrink-0 items-center justify-center"
             aria-label={bookmarked ? "북마크 해제" : "북마크"}
           >
-            <Image
-              src={bookmarked ? bookmarkOnIcon : bookmarkOffIcon}
-              alt=""
-              width={12}
-              height={12}
-              className={bookmarked ? "icon-deepblue" : "icon-darkgray"}
-              aria-hidden
-            />
+            {bookmarked ? (
+              <BookmarkOnIcon width={12} height={12} className="fill-main-blue" aria-hidden />
+            ) : (
+              <BookmarkOffIcon width={12} height={12} className="fill-sub-darkgray" aria-hidden />
+            )}
           </button>
         )}
       </div>
