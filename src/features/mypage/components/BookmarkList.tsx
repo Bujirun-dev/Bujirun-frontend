@@ -9,15 +9,14 @@ import type { Category } from "@/components";
 type StatusType = "completed" | "verify" | "pending" | "uncollected" | "collected";
 
 // TODO: API 연결 시 useQuery로 교체 (isCollected → 실제 북마크 여부로 변경)
-const MOCK_BOOKMARKS = PLACES.filter((p) => p.isCollected)
-  .slice(0, 7)
-  .map((p) => ({
-    ...p,
-    category: p.category as Category,
-    isBookmarked: true,
-    status: (p.isCollected ? "collected" : "uncollected") as StatusType,
-  }));
-
+const MOCK_BOOKMARKS = PLACES.slice(0, 7).map((p) => ({
+  ...p,
+  category: p.category as Category,
+  isBookmarked: true,
+  status: (p.isCollected ? "collected" : "uncollected") as StatusType,
+  // TODO: API 연결 시 실제 이미지 URL로 교체
+  imageUrl: `https://picsum.photos/seed/${p.id}/136/91`,
+}));
 export function BookmarkList() {
   const router = useRouter();
 
@@ -42,11 +41,10 @@ export function BookmarkList() {
           category={item.category}
           status={item.status}
           isBookmarked={item.isBookmarked}
+          imageUrl={item.imageUrl} // 이거 빠져있었어요!
           onBookmarkToggle={() => {
             // TODO: 북마크 on/off API 연결
-            // ex) apiClient.delete(`/bookmarks/${item.id}`) 또는 apiClient.post(`/bookmarks/${item.id}`)
           }}
-          // TODO: API 연결 시 item.id를 실제 contentId로 교체
           onClick={() => router.push(`/mypage/bookmarks/${item.id}`)}
         />
       ))}
