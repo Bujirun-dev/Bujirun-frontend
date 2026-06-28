@@ -1,0 +1,151 @@
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import pencilIcon from "@/assets/icons/mypage/pencil.svg";
+import { ProfileImageSelectModal } from "@/features/mypage/components";
+import { NicknameEditModal } from "@/features/mypage/components";
+import profileHat from "@/assets/character/profile/profile-hat.png";
+import profileHeart from "@/assets/character/profile/profile-heart.png";
+import profileParty from "@/assets/character/profile/profile-party.png";
+import profileSleepy from "@/assets/character/profile/profile-sleepy.png";
+import profileSunglass from "@/assets/character/profile/profile-sunglass.png";
+import profileV from "@/assets/character/profile/profile-v.png";
+
+const PROFILE_IMAGES = [
+  { id: 1, src: profileHat },
+  { id: 2, src: profileHeart },
+  { id: 3, src: profileParty },
+  { id: 4, src: profileSleepy },
+  { id: 5, src: profileSunglass },
+  { id: 6, src: profileV },
+];
+
+// TODO: API 연결 시 useQuery로 교체
+const MOCK_USER = {
+  nickname: "은지미",
+  profileImageId: 1,
+  tags: ["#바다", "#문화"],
+  collectedCount: 24,
+  totalCount: 34,
+};
+
+const TAG_COLOR_MAP: Record<string, string> = {
+  "#바다": "bg-category-sea text-sub-deepblue",
+  "#문화": "bg-category-culture text-sub-pink",
+  "#자연": "bg-category-nature text-[#5a8a3c]",
+  "#체험": "bg-category-experience text-sub-violet",
+};
+
+function getTagColor(tag: string) {
+  return TAG_COLOR_MAP[tag] ?? "bg-sub-lightblue text-sub-deepblue";
+}
+
+export function MypageProfile() {
+  const { tags, collectedCount, totalCount } = MOCK_USER;
+
+  const [nickname, setNickname] = useState(MOCK_USER.nickname);
+  const [currentImageId, setCurrentImageId] = useState(MOCK_USER.profileImageId);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
+
+  const currentImage = PROFILE_IMAGES.find((img) => img.id === currentImageId) ?? PROFILE_IMAGES[0];
+  const progressPercent = Math.round((collectedCount / totalCount) * 100);
+
+  return (
+    <>
+      {/* 프로필 카드 */}
+      <div className="w-full rounded-2xl bg-main-white p-[20px] shadow-sm">
+        <div className="flex items-center gap-4">
+          {/* 아바타 */}
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              aria-label="프로필 사진 변경"
+              onClick={() => setIsAvatarModalOpen(true)}
+              className="relative h-[72px] w-[72px] transition-opacity active:opacity-70"
+            >
+              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-system-navbg">
+                <Image
+                  src={currentImage.src}
+                  alt={`${nickname} 프로필 이미지`}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            </button>
+            {/* 연필 아이콘 */}
+            <div className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-lg bg-system-navbg pointer-events-none">
+              <Image src={pencilIcon} alt="사진 변경" width={10} height={10} />
+            </div>
+          </div>
+
+          <div className="flex flex-1 flex-col gap-2">
+            {/* 닉네임 + 편집 버튼 */}
+            <div className="flex items-center gap-1.5">
+              <span className="font-paperlogy text-lg font-bold text-text-heading">{nickname}</span>
+              <button
+                type="button"
+                aria-label="닉네임 편집"
+                onClick={() => setIsNicknameModalOpen(true)}
+                className="flex h-5 w-5 items-center justify-center rounded-lg bg-system-navbg transition-opacity active:opacity-60"
+              >
+                <Image src={pencilIcon} alt="닉네임 편집" width={10} height={10} />
+              </button>
+            </div>
+
+            {/* 태그 칩 */}
+            <div className="flex flex-wrap gap-1.5">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className={`rounded-lg px-2.5 py-0.5 font-paperlogy text-xs font-medium ${getTagColor(tag)}`}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+
+            {/* 도감 진행 바 */}
+            <div className="flex flex-col gap-1">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-system-navbg">
+                <div
+                  className="h-full rounded-full bg-main-blue transition-all duration-500"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+              <div className="flex justify-end">
+                <span className="font-paperlogy text-xs text-sub-darkgray">
+                  <span className="font-bold text-sub-deepblue">{collectedCount}</span>
+                  {" / "}
+                  {totalCount}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ProfileImageSelectModal
+        isOpen={isAvatarModalOpen}
+        onClose={() => setIsAvatarModalOpen(false)}
+        images={PROFILE_IMAGES}
+        currentId={currentImageId}
+        onConfirm={(id) => {
+          setCurrentImageId(id);
+          // TODO: API 연결 시 mutation으로 서버에 반영
+        }}
+      />
+
+      <NicknameEditModal
+        isOpen={isNicknameModalOpen}
+        onClose={() => setIsNicknameModalOpen(false)}
+        currentNickname={nickname}
+        onConfirm={(newNickname) => {
+          setNickname(newNickname);
+          // TODO: API 연결 시 mutation으로 서버에 반영
+        }}
+      />
+    </>
+  );
+}
