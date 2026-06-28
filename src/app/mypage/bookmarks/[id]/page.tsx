@@ -44,35 +44,32 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
   const [isBookmarked, setIsBookmarked] = useState(place.isBookmarked);
 
   return (
-    <PageCard className="px-0 pt-0 relative">
-      {/* 북마크 목록 타이틀 + 뒤로가기 - 이미지 위 오버레이 */}
-      <div className="absolute top-8 left-5 z-10 flex items-center gap-3">
-        <BackButton
-          onClick={() => router.back()}
-          className="bg-main-white/80 shadow-[0_2px_8px_0_var(--color-system-scroll)]"
-        />
+    <PageCard className="px-0 pt-0">
+      {/* 타이틀 + 뒤로가기 - 이미지 위 별도 영역 */}
+      <div className="flex items-center gap-3  py-4 shrink-0">
+        <BackButton onClick={() => router.back()} />
         <h1 className="font-ssurround font-bold text-lg text-text-heading">북마크 목록</h1>
       </div>
 
       {/* 스크롤 영역 - 이미지 포함 */}
       <div className="flex-1 overflow-y-auto">
-        {/* 대표 이미지 */}
+        {/* 대표 이미지 - TODO: API 연결 시 place.imageUrl로 교체 */}
         <div className="relative w-full h-[211px] shrink-0">
           <Image
             src={`https://picsum.photos/seed/${id}/400/300`}
             alt={place.name}
             fill
-            className="object-cover rounded-t-[40px]"
+            className="object-cover rounded-2xl"
           />
         </div>
 
         {/* 상세 정보 */}
-        <div className="px-5 py-4 flex flex-col gap-4">
+        <div className="px-2 py-4 flex flex-col gap-4">
           {/* 관광지명 + 카테고리칩 + 북마크 */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <Image src={markerPinkIcon} alt="" width={13} height={13} aria-hidden />
-              <span className="text-md font-medium text-text-heading tracking-[-0.3px]">
+              <Image src={markerPinkIcon} alt="" width={16} height={16} aria-hidden />
+              <span className="text-lg font-medium text-text-heading tracking-[-0.3px]">
                 {place.name}
               </span>
               <CategoryChip category={place.category} size="sm" />
@@ -96,21 +93,20 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
             </button>
           </div>
 
-          <hr className="border-[0.3px] border-sub-lightgray" />
+          <hr className="w-[316px] border-[0.3px] border-sub-lightgray" />
 
           {/* 소개 */}
           <div className="flex flex-col gap-1.5">
             <h2 className="font-ssurround font-bold text-sm text-text-heading">소개</h2>
-            <p className="text-xs text-text-primary leading-loose">{place.description}</p>
+            <p className="text-xs text-text-primary leading-[2.5]">{place.description}</p>
           </div>
 
-          <hr className="border-[0.3px] border-sub-lightgray" />
+          <hr className="w-[316px] border-[0.3px] border-sub-lightgray" />
 
           {/* 위치 */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
               <h2 className="font-ssurround font-bold text-sm text-text-heading">위치</h2>
-              {/* TODO: 카카오맵 연동 */}
               <button className="active:opacity-70">
                 <Image
                   src={kakaoMapIcon}
@@ -124,7 +120,7 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
             <p className="text-xs text-text-primary">{place.address}</p>
           </div>
 
-          <hr className="border-[0.3px] border-sub-lightgray" />
+          <hr className="w-[316px] border-[0.3px] border-sub-lightgray" />
 
           {/* 정보 + 문의 */}
           <div className="flex flex-col gap-2">
@@ -137,7 +133,7 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
             </Card>
           </div>
 
-          <hr className="border-[0.3px] border-sub-lightgray" />
+          <hr className="w-[316px] border-[0.3px] border-sub-lightgray" />
 
           {/* 관련 로그 */}
           <div className="flex flex-col gap-2">
