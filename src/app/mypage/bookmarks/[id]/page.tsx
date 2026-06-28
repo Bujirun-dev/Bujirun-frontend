@@ -14,6 +14,7 @@ import feeIcon from "@/assets/icons/itinerary/fee.png";
 import parkingIcon from "@/assets/icons/itinerary/parking.png";
 import callIcon from "@/assets/icons/itinerary/call.png";
 import type { Category } from "@/components";
+import { PLACES } from "@/features/collection/data/places";
 
 // TODO: API 연결 시 useQuery로 교체
 const MOCK_PLACE = {
@@ -39,7 +40,13 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
   const router = useRouter();
 
   // TODO: API 연결 시 id로 관광지 상세 fetch
-  const place = MOCK_PLACE;
+  // PLACES에서 id로 관광지 이름, 카테고리만 가져옴
+  const placeInfo = PLACES.find((p) => p.id === Number(id));
+  const place = {
+    ...MOCK_PLACE,
+    name: placeInfo?.name ?? MOCK_PLACE.name,
+    category: (placeInfo?.category ?? MOCK_PLACE.category) as Category,
+  };
 
   const [isBookmarked, setIsBookmarked] = useState(place.isBookmarked);
 
