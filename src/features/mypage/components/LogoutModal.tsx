@@ -22,6 +22,7 @@ export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
       titleClassName="tracking-[0.5px]"
       className="h-[435px] gap-0 pt-[60px] pb-[48px]"
       childrenVariant="plain"
+      confirmVariant="warning"
       childrenClassName="mt-[20px]"
       hideActions
       footer={
