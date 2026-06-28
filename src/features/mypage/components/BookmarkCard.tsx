@@ -1,16 +1,20 @@
 "use client";
 
 import Image from "next/image";
+import type { StaticImageData } from "next/image";
 import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
 import bookmarkOnIcon from "@/assets/icons/mypage/bookmark-on.png";
 import bookmarkOffIcon from "@/assets/icons/mypage/bookmark-off.png";
-import { CategoryChip } from "@/components";
+import { CategoryChip, StatusBadge } from "@/components";
 import type { Category } from "@/components";
 
+type StatusType = "completed" | "verify" | "pending" | "uncollected" | "collected";
+
 interface BookmarkCardProps {
-  imageUrl?: string;
+  imageUrl?: StaticImageData | string;
   name: string;
   category: Category;
+  status?: StatusType;
   isBookmarked?: boolean;
   onBookmarkToggle?: () => void;
   onClick?: () => void;
@@ -20,13 +24,14 @@ export function BookmarkCard({
   imageUrl,
   name,
   category,
+  status,
   isBookmarked = true,
   onBookmarkToggle,
   onClick,
 }: BookmarkCardProps) {
   return (
     <div
-      className="relative flex h-[117px] w-full cursor-pointer items-start gap-3 rounded-2xl border-[0.3px] border-sub-lightblue bg-main-white px-[14px] py-[13px] shadow-[2px_2px_6px_#ECF5FF] active:opacity-80"
+      className="relative flex h-[117px] w-full cursor-pointer items-start gap-3 rounded-[20px] border-[0.3px] border-sub-lightblue bg-main-white px-[14px] py-[13px] shadow-[2px_2px_6px_#ECF5FF] active:opacity-80"
       onClick={onClick}
     >
       {/* 썸네일 */}
@@ -36,8 +41,8 @@ export function BookmarkCard({
         </div>
       )}
 
-      <div className="flex flex-1 flex-col gap-2 pt-1">
-        {/* 관광지명 + 북마크 아이콘 */}
+      <div className="flex flex-1 flex-col justify-between h-[91px]">
+        {/* 상단: 관광지명 + 북마크 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
             <MarkerIcon width={13} height={13} className="shrink-0 fill-sub-pink" aria-hidden />
@@ -62,8 +67,11 @@ export function BookmarkCard({
           </button>
         </div>
 
-        {/* 카테고리 칩 */}
+        {/* 중간: 카테고리 칩 */}
         <CategoryChip category={category} size="sm" className="self-start" />
+
+        {/* 하단: 수집 상태 */}
+        <div className="flex justify-end">{status && <StatusBadge status={status} />}</div>
       </div>
     </div>
   );

@@ -12,9 +12,21 @@ export default function BookmarksPage() {
           <h1 className="font-ssurround font-bold text-lg text-text-heading">북마크 목록</h1>
         </div>
 
-        {/* 목록 - 스크롤 영역 */}
-        <div className="flex-1 overflow-y-auto">
-          <BookmarkList />
+        {/* 스크롤 영역 */}
+        <div className="flex-1 overflow-hidden flex gap-2">
+          {/* 스크롤 콘텐츠 */}
+          <div
+            className="flex-1 overflow-y-auto"
+            style={{
+              scrollbarWidth: "thin",
+              scrollbarColor: "var(--color-sub-lightblue) transparent",
+            }}
+          >
+            <BookmarkList />
+          </div>
+
+          {/* 스크롤바 우측 여백 */}
+          <div className="w-[2px] shrink-0" />
         </div>
       </div>
     </PageCard>
