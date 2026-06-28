@@ -280,7 +280,13 @@ export function PlaceSearchPanel({ onClose, onPlaceSelect }: PlaceSearchPanelPro
               imageUrl={place.imageUrl}
               onClick={() => {
                 if (onPlaceSelect) {
-                  onPlaceSelect({ id: place.id, name: place.name, category: place.category, status: place.status, imageUrl: place.imageUrl });
+                  onPlaceSelect({
+                    id: place.id,
+                    name: place.name,
+                    category: place.category,
+                    status: place.status,
+                    imageUrl: place.imageUrl,
+                  });
                 } else {
                   onClose?.();
                   router.push(`/itinerary/place/${place.id}`);
@@ -317,7 +323,13 @@ export function PlaceSearchPanel({ onClose, onPlaceSelect }: PlaceSearchPanelPro
                         )}
                         onClick={() => {
                           if (onPlaceSelect) {
-                            onPlaceSelect({ id: place.id, name: place.name, category: place.category, status: place.status, imageUrl: place.imageUrl });
+                            onPlaceSelect({
+                              id: place.id,
+                              name: place.name,
+                              category: place.category,
+                              status: place.status,
+                              imageUrl: place.imageUrl,
+                            });
                           } else {
                             onClose?.();
                             router.push(`/itinerary/place/${place.id}`);

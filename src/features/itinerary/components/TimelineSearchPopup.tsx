@@ -32,7 +32,14 @@ export const TimelineSearchPopup = forwardRef<HTMLDivElement, TimelineSearchPopu
             <PlaceDetailContent
               stop={syntheticStop}
               onClose={() => setSelectedPlace(null)}
-              onAdd={onAddToItinerary ? () => { onAddToItinerary(selectedPlace!); onClose(); } : undefined}
+              onAdd={
+                onAddToItinerary
+                  ? () => {
+                      onAddToItinerary(selectedPlace!);
+                      onClose();
+                    }
+                  : undefined
+              }
             />
           ) : (
             <PlaceSearchPanel onClose={onClose} onPlaceSelect={setSelectedPlace} />

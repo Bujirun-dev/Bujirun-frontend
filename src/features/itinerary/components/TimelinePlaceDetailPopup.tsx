@@ -203,7 +203,12 @@ export function PlaceDetailContent({ stop, onClose, onAdd }: PlaceDetailContentP
                 href={`/itinerary/logs/${log.id}`}
                 className="relative h-[67px] w-[106px] shrink-0 overflow-hidden rounded-lg"
               >
-                <Image src={log.imageUrl} alt={`${log.userName} 로그`} fill className="object-cover" />
+                <Image
+                  src={log.imageUrl}
+                  alt={`${log.userName} 로그`}
+                  fill
+                  className="object-cover"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-text-heading/55 to-transparent" />
                 <span className="absolute bottom-2 left-2 rounded-[5px] bg-system-blackbg px-2 py-1 text-3xs font-medium text-main-white">
                   {log.userName}

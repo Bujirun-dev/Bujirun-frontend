@@ -108,12 +108,21 @@ export function PlaceDetailSheet({
           <div className="flex items-center justify-between pt-2.5 pb-2.5">
             <div className="flex items-center gap-2.5">
               <div className="flex items-center gap-1">
-                <MarkerIcon width={13} height={15} className="shrink-0 fill-sub-coral" aria-hidden />
+                <MarkerIcon
+                  width={13}
+                  height={15}
+                  className="shrink-0 fill-sub-coral"
+                  aria-hidden
+                />
                 <span className="font-medium text-md text-text-heading">{name}</span>
               </div>
               <CategoryChip category={category} />
             </div>
-            <button onClick={onBookmark} className="shrink-0" aria-label={isBookmarked ? "북마크 해제" : "북마크"}>
+            <button
+              onClick={onBookmark}
+              className="shrink-0"
+              aria-label={isBookmarked ? "북마크 해제" : "북마크"}
+            >
               {isBookmarked ? (
                 <BookmarkOnIcon width={16} height={18} className="fill-main-blue" aria-hidden />
               ) : (
@@ -136,7 +145,12 @@ export function PlaceDetailSheet({
               <div className="flex items-center gap-2 mb-2.5">
                 <h3 className="font-semibold text-sm text-text-heading">위치</h3>
                 <div className="flex items-center gap-1 bg-sub-lightblue px-2 py-0.5 rounded-full">
-                  <MarkerIcon width={10} height={11} className="shrink-0 fill-sub-coral" aria-hidden />
+                  <MarkerIcon
+                    width={10}
+                    height={11}
+                    className="shrink-0 fill-sub-coral"
+                    aria-hidden
+                  />
                   <span className="text-xs text-sub-deepblue font-medium">카카오맵</span>
                 </div>
               </div>

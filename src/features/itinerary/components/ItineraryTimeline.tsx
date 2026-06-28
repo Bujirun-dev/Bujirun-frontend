@@ -263,11 +263,7 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
 
                 {/* 관광지 상세 카드 */}
                 {isDetailActive && (
-                  <TimelinePlaceDetailPopup
-                    ref={detailCardRef}
-                    stop={stop}
-                    onClose={closeDetail}
-                  />
+                  <TimelinePlaceDetailPopup ref={detailCardRef} stop={stop} onClose={closeDetail} />
                 )}
 
                 {/* 시간 변경 카드 */}

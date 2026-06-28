@@ -70,7 +70,12 @@ export function ArrivalVerifyModal({
   const renderBody = () => {
     switch (step) {
       case "arrival":
-        return <ArrivalStage placeName={placeName} characterImageUrl={characterImageUrl ?? mapCharacter} />;
+        return (
+          <ArrivalStage
+            placeName={placeName}
+            characterImageUrl={characterImageUrl ?? mapCharacter}
+          />
+        );
       case "gps-permission":
         return <GpsPermissionStage />;
       case "gps-loading":
@@ -108,7 +113,9 @@ export function ArrivalVerifyModal({
         return (
           <div className="flex w-full flex-col gap-2">
             {/* TODO: navigator.geolocation 권한 요청 결과에 따라 성공/실패 분기 */}
-            <PermissionButton onClick={() => setStep("gps-loading")}>앱을 사용하는 동안 허용</PermissionButton>
+            <PermissionButton onClick={() => setStep("gps-loading")}>
+              앱을 사용하는 동안 허용
+            </PermissionButton>
             <PermissionButton onClick={() => setStep("gps-loading")}>항상 허용</PermissionButton>
             <PermissionButton onClick={() => setStep("gps-fail")}>허용 안 함</PermissionButton>
           </div>
@@ -129,7 +136,11 @@ export function ArrivalVerifyModal({
               </Button>
             }
             right={
-              <Button variant="primary" className="w-full" onClick={() => setStep("gps-permission")}>
+              <Button
+                variant="primary"
+                className="w-full"
+                onClick={() => setStep("gps-permission")}
+              >
                 다시 확인
               </Button>
             }
@@ -151,7 +162,11 @@ export function ArrivalVerifyModal({
               </Button>
             }
             right={
-              <Button variant="primary" className="w-full" onClick={() => setStep("camera-permission")}>
+              <Button
+                variant="primary"
+                className="w-full"
+                onClick={() => setStep("camera-permission")}
+              >
                 사진 찍기
               </Button>
             }
@@ -161,7 +176,9 @@ export function ArrivalVerifyModal({
         return (
           <div className="flex w-full flex-col gap-2">
             {/* TODO: navigator.mediaDevices.getUserMedia 권한 결과에 따라 촬영 화면/이전 화면 분기 */}
-            <PermissionButton onClick={() => setStep("camera-capture")}>앱을 사용하는 동안 허용</PermissionButton>
+            <PermissionButton onClick={() => setStep("camera-capture")}>
+              앱을 사용하는 동안 허용
+            </PermissionButton>
             <PermissionButton onClick={() => setStep("camera-capture")}>항상 허용</PermissionButton>
             <PermissionButton onClick={() => setStep("gps-success")}>허용 안 함</PermissionButton>
           </div>
@@ -170,7 +187,11 @@ export function ArrivalVerifyModal({
         return (
           <BasicTwoButtonFooter
             left={
-              <Button variant="secondary" className="w-full" onClick={() => setStep("camera-capture")}>
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => setStep("camera-capture")}
+              >
                 다시 찍기
               </Button>
             }

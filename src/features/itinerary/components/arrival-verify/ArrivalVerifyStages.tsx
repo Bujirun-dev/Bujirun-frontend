@@ -32,7 +32,10 @@ type CommonProps = {
 
 const MOCK_LOADING_DURATION_MS = 3000;
 
-export function ArrivalStage({ placeName, characterImageUrl }: Pick<CommonProps, "placeName" | "characterImageUrl">) {
+export function ArrivalStage({
+  placeName,
+  characterImageUrl,
+}: Pick<CommonProps, "placeName" | "characterImageUrl">) {
   return (
     <>
       <CharacterImage
@@ -42,7 +45,9 @@ export function ArrivalStage({ placeName, characterImageUrl }: Pick<CommonProps,
       />
       <div className="mb-3 flex flex-col items-center gap-2 text-center">
         <PlaceBadge placeName={placeName} />
-        <h2 className="font-paperlogy text-lg font-semibold text-text-primary">이곳에 도착하셨나요?</h2>
+        <h2 className="font-paperlogy text-lg font-semibold text-text-primary">
+          이곳에 도착하셨나요?
+        </h2>
       </div>
       <div className="mb-[30px] w-full">
         <Notice>* GPS 위치 확인 후 관광지를 수집해주세요.</Notice>
@@ -100,10 +105,16 @@ export function GpsLoadingStage({}: Pick<CommonProps, never>) {
 export function GpsFailStage({ placeName }: Pick<CommonProps, "placeName">) {
   return (
     <>
-      <CharacterImage src={failCharacter} alt="위치 확인 실패" className="mb-5 h-[150px] w-[150px]" />
+      <CharacterImage
+        src={failCharacter}
+        alt="위치 확인 실패"
+        className="mb-5 h-[150px] w-[150px]"
+      />
       <div className="mb-5 flex flex-col items-center gap-2 text-center">
         <PlaceBadge placeName={placeName} />
-        <h2 className="font-paperlogy text-lg font-bold text-text-heading">위치를 확인할 수 없어요!</h2>
+        <h2 className="font-paperlogy text-lg font-bold text-text-heading">
+          위치를 확인할 수 없어요!
+        </h2>
       </div>
       <div className="mb-7 w-full">
         <Notice>* 관광지 근처에서 다시 시도해주세요.</Notice>
@@ -115,10 +126,16 @@ export function GpsFailStage({ placeName }: Pick<CommonProps, "placeName">) {
 export function GpsSuccessStage({ placeName }: Pick<CommonProps, "placeName">) {
   return (
     <>
-      <CharacterImage src={cameraCharacter} alt="사진 촬영 안내" className="mb-5 h-[150px] w-[150px]" />
+      <CharacterImage
+        src={cameraCharacter}
+        alt="사진 촬영 안내"
+        className="mb-5 h-[150px] w-[150px]"
+      />
       <div className="mb-5 flex flex-col items-center gap-2 text-center">
         <PlaceBadge placeName={placeName} />
-        <h2 className="font-paperlogy text-lg font-bold text-text-heading">관광지 확인이 완료되었어요!</h2>
+        <h2 className="font-paperlogy text-lg font-bold text-text-heading">
+          관광지 확인이 완료되었어요!
+        </h2>
       </div>
       <div className="mb-7 w-full">
         <Notice>* 사진을 찍어 기록을 남겨주세요.</Notice>
@@ -168,7 +185,9 @@ export function CameraCaptureStage({
 export function PhotoConfirmStage({ placeName }: Pick<CommonProps, "placeName">) {
   return (
     <>
-      <h2 className="mb-6 text-lg font-ssurround font-bold text-text-heading">사진 촬영이 완료되었어요.</h2>
+      <h2 className="mb-6 text-lg font-ssurround font-bold text-text-heading">
+        사진 촬영이 완료되었어요.
+      </h2>
       <div className="relative mb-6 h-[164px] w-full overflow-hidden rounded-[10px]">
         <Image src={samplePlaceImage} alt={placeName} fill className="object-cover" />
       </div>
@@ -211,11 +230,7 @@ export function ArrivalStageFooter({
 }) {
   return (
     <div className="flex w-full gap-6">
-      <Button
-        variant="secondary"
-        className="flex-1"
-        onClick={onLater}
-      >
+      <Button variant="secondary" className="flex-1" onClick={onLater}>
         나중에 하기
       </Button>
       <Button variant="primary" className="flex-1" onClick={onNext}>
@@ -225,13 +240,7 @@ export function ArrivalStageFooter({
   );
 }
 
-export function BasicTwoButtonFooter({
-  left,
-  right,
-}: {
-  left: ReactNode;
-  right: ReactNode;
-}) {
+export function BasicTwoButtonFooter({ left, right }: { left: ReactNode; right: ReactNode }) {
   return (
     <div className="flex w-full gap-6">
       <div className="flex-1">{left}</div>
