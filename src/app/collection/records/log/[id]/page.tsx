@@ -1,52 +1,24 @@
 "use client";
 
-import { use, useEffect, useRef, useState } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import AngleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?svgr";
-import calendarPlusIcon from "@/assets/icons/itinerary/calendar-plus.svg?url";
 import { PageCard } from "@/components";
 import { cn } from "@/shared/utils";
-import { DayBadge } from "@/features/itinerary";
+import { SwitchButton } from "@/features/collection/components/SwitchButton";
+import { DayBadge } from "@/features/collection/components/DayBadge";
+import { TagChips } from "@/features/collection/components/TagChips";
 import {
   SAMPLE_LOGS,
   type DaySchedule,
   type ScheduleStop,
-} from "@/features/itinerary/data/sampleLogs";
-
-function TagChip({ label, isLight }: { label: string; isLight?: boolean }) {
-  return (
-    <div
-      className={cn(
-        "rounded-md inline-flex items-center justify-center px-1.5 py-1",
-        isLight ? "bg-category-sea" : "bg-main-blue",
-      )}
-    >
-      <span
-        className={cn(
-          "font-normal text-xs text-center tracking-[0.16px]",
-          isLight ? "text-text-primary" : "text-main-white",
-        )}
-      >
-        {label}
-      </span>
-    </div>
-  );
-}
+} from "@/features/collection/data/sampleLogs";
 
 export default function LogDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
-  const importTimerRef = useRef<number | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
   const log = SAMPLE_LOGS.find((l) => l.id === id);
-
-  useEffect(() => {
-    return () => {
-      if (importTimerRef.current) window.clearTimeout(importTimerRef.current);
-    };
-  }, []);
 
   if (!log) {
     return (
@@ -58,25 +30,36 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
     );
   }
 
+  const handleVisibilityToggle = () => {
+    setIsVisible((prev) => !prev);
+  };
+
   const summaryPlace =
     log.extraCount > 0 ? `${log.placeName} 외 ${log.extraCount}곳` : log.placeName;
+
+  const currentIsVisible = isVisible || log.isVisible;
 
   return (
     <PageCard>
       {/* 헤더 */}
       <div className="flex items-center gap-4 pb-4 shrink-0">
         <button onClick={() => router.back()} className="flex items-center justify-center shrink-0">
-          <AngleLeftIcon width={16} height={16} className="fill-sub-gray" aria-hidden />
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 25 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="fill-sub-gray"
+            aria-hidden="true"
+          >
+            <path d="M17.17,24a1,1,0,0,1-.71-.29L8.29,15.54a5,5,0,0,1,0-7.08L16.46.29a1,1,0,1,1,1.42,1.42L9.71,9.88a3,3,0,0,0,0,4.24l8.17,8.17a1,1,0,0,1,0,1.42A1,1,0,0,1,17.17,24Z" />
+          </svg>
         </button>
         <span className="font-ssurround font-bold text-lg text-text-heading flex-1">
           {log.title}
         </span>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="size-[28px] rounded-lg bg-system-scroll border-[0.5px] border-main-blue flex items-center justify-center shrink-0"
-        >
-          <Image src={calendarPlusIcon} alt="" width={16} height={16} aria-hidden />
-        </button>
+        <SwitchButton isPublic={currentIsVisible} onClick={handleVisibilityToggle} />
       </div>
 
       {/* 요약 정보 카드 */}
@@ -144,11 +127,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
                     )}
 
                     {/* 태그 */}
-                    <div className="flex items-center gap-1 flex-wrap">
-                      {stop.tags.map((tag, tagIdx) => (
-                        <TagChip key={tag} label={tag} isLight={tagIdx === 0} />
-                      ))}
-                    </div>
+                    <TagChips category={stop.category} tags={stop.tags} />
                   </div>
                 </div>
               ))}

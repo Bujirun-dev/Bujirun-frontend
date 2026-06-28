@@ -1,14 +1,20 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import turtleIcon from "@/assets/icons/collection/turtle.png";
 import { Card, SpeechBubble } from "@/components";
+import { FilterChips } from "@/components/ui/FilterChips";
 import { PLACES } from "@/features/collection/data/places";
 
 export default function CollectionPage() {
   const router = useRouter();
+
+  const CATEGORY_OPTIONS = ["전체", "바다", "자연", "문화", "체험"] as const;
+  const [selectedCategory, setSelectedCategory] =
+    useState<(typeof CATEGORY_OPTIONS)[number]>("전체");
 
   const handleRecordClick = () => {
     router.push("/collection/records");
@@ -36,7 +42,12 @@ export default function CollectionPage() {
         <p className="pb-[2px] font-laundrygothic text-md">부산 곳곳에 남긴 나의 여행 발자국 🐾</p>
       </div>
 
-      {/* TODO: CategoryMenu 컴포넌트 생성 후 연결 */}
+      <FilterChips
+        className="mt-5 w-full [&>button]:flex-1 [&>button]:shrink [&>button]:px-0"
+        options={CATEGORY_OPTIONS}
+        selected={selectedCategory}
+        onChange={setSelectedCategory}
+      />
 
       {/* 수집 현황 카드 -> 클릭 시 여행 기록 화면으로 이동 */}
       <button
