@@ -14,10 +14,20 @@ export function MypageMenuList() {
     router.push("/mypage/bookmarks");
   };
 
-  const handleLogout = () => {
-    // TODO: API 연결 시 로그아웃 처리 (세션/토큰 삭제 후 리다이렉트)
-    console.log("로그아웃");
-    setIsLogoutOpen(false);
+  //로그아웃
+  const handleLogout = async () => {
+    try {
+      await fetch("http://localhost:8080/api/auth/logout", {
+        method: "POST",
+        credentials: "include", // ← 쿠키 포함해서 전송
+      });
+    } catch (e) {
+      console.error("로그아웃 실패:", e);
+    } finally {
+      localStorage.removeItem("accessToken");
+      setIsLogoutOpen(false);
+      router.replace("/login");
+    }
   };
 
   const handleWithdraw = () => {
