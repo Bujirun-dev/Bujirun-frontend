@@ -14,13 +14,7 @@ export default function BookmarksPage() {
 
         {/* 스크롤 영역 */}
         <div className="flex-1 overflow-hidden flex">
-          <div
-            className="flex-1 overflow-y-auto pr-1"
-            style={{
-              scrollbarWidth: "thin",
-              scrollbarColor: "var(--color-sub-lightblue) transparent",
-            }}
-          >
+          <div className="flex-1 overflow-y-auto">
             <BookmarkList />
           </div>
           <div className="w-[2px] shrink-0" />
