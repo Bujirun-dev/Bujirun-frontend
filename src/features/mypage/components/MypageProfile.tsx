@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
-import pencilIcon from "@/assets/icons/mypage/pencil.svg";
+import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
 import { ProfileImageSelectModal } from "@/features/mypage/components";
 import { NicknameEditModal } from "@/features/mypage/components";
 import { PROFILE_IMAGES } from "@/components/profile/profileImages";
+import { Toast } from "@/components/ui/Toast";
+import SuccessIcon from "@/assets/icons/mypage/success.svg?svgr";
 
 // TODO: API 연결 시 useQuery로 교체
 const MOCK_USER = {
@@ -35,8 +37,21 @@ export function MypageProfile() {
   const [isProfileImageModalOpen, setIsProfileImageModalOpen] = useState(false);
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
 
+  // 토스트 상태
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+
+  const nicknameEditBtnRef = useRef<HTMLButtonElement>(null);
+
   const currentImage = PROFILE_IMAGES.find((img) => img.id === currentImageId) ?? PROFILE_IMAGES[0];
   const progressPercent = Math.round((collectedCount / totalCount) * 100);
+
+  const showToast = useCallback((message: string) => {
+    setToastMessage(message);
+    setToastVisible(true);
+  }, []);
+
+  const hideToast = useCallback(() => setToastVisible(false), []);
 
   return (
     <>
@@ -71,6 +86,7 @@ export function MypageProfile() {
             <div className="flex items-center gap-1.5">
               <span className="font-paperlogy text-lg font-bold text-text-heading">{nickname}</span>
               <button
+                ref={nicknameEditBtnRef}
                 type="button"
                 aria-label="닉네임 편집"
                 onClick={() => setIsNicknameModalOpen(true)}
@@ -119,6 +135,7 @@ export function MypageProfile() {
         currentId={currentImageId}
         onConfirm={(id) => {
           setCurrentImageId(id);
+          showToast("프로필 사진이 변경되었어요.");
           // TODO: API 연결 시 mutation으로 서버에 반영
         }}
       />
@@ -127,10 +144,20 @@ export function MypageProfile() {
         isOpen={isNicknameModalOpen}
         onClose={() => setIsNicknameModalOpen(false)}
         currentNickname={nickname}
+        anchorRef={nicknameEditBtnRef}
         onConfirm={(newNickname: string) => {
           setNickname(newNickname);
+          // TODO: 닉네임 토스트는 추후 추가
           // TODO: API 연결 시 mutation으로 서버에 반영
         }}
+      />
+
+      {/* 토스트 */}
+      <Toast
+        isVisible={toastVisible}
+        message={toastMessage}
+        onHide={hideToast}
+        icon={<SuccessIcon width={12} height={12} className="fill-white" />}
       />
     </>
   );
