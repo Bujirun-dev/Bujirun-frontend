@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import AngleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?svgr";
 import calendarPlusIcon from "@/assets/icons/itinerary/calendar-plus.svg?url";
-import { PageCard, Modal } from "@/components";
+import { PageCard } from "@/components";
 import { cn } from "@/shared/utils";
 import { DayBadge } from "@/features/itinerary";
 import {
@@ -13,8 +13,6 @@ import {
   type DaySchedule,
   type ScheduleStop,
 } from "@/features/itinerary/data/sampleLogs";
-
-const IMPORT_NAVIGATION_DELAY_MS = 600;
 
 function TagChip({ label, isLight }: { label: string; isLight?: boolean }) {
   return (
@@ -158,36 +156,6 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
           </div>
         ))}
       </div>
-      <Modal
-        isOpen={showAddModal}
-        onClose={() => {
-          if (!isImporting) setShowAddModal(false);
-        }}
-        icon={
-          <div className="size-[52px] rounded-full bg-system-searchbg flex items-center justify-center">
-            <Image src={calendarPlusIcon} alt="" width={24} height={24} aria-hidden />
-          </div>
-        }
-        title="내 일정에 추가"
-        description={`'${log.author}'님의 여행 일정을\n내 일정에 추가하시겠어요?`}
-        confirmText={isImporting ? "추가 중" : "추가하기"}
-        cancelText="취소"
-        confirmVariant="primary"
-        onConfirm={() => {
-          if (isImporting) return;
-          setIsImporting(true);
-          importTimerRef.current = window.setTimeout(() => {
-            router.replace(`/itinerary?importedLogId=${encodeURIComponent(id)}`);
-          }, IMPORT_NAVIGATION_DELAY_MS);
-        }}
-        onCancel={() => {
-          if (!isImporting) setShowAddModal(false);
-        }}
-      >
-        <p className="font-medium text-sm text-sub-darkgray text-center">
-          * 다른 사람의 일정을 불러오면 현재 일정은 사라져요.
-        </p>
-      </Modal>
     </PageCard>
   );
 }

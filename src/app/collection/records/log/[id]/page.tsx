@@ -127,7 +127,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
                     )}
 
                     {/* 태그 */}
-                    <TagChips tags={stop.tags} />
+                    <TagChips category={stop.category} tags={stop.tags} />
                   </div>
                 </div>
               ))}

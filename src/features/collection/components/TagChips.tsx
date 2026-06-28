@@ -6,32 +6,53 @@ import { cn } from "@/shared/utils";
 
 import { TagAddChip } from "./TagAddChip";
 
+import type { Category } from "@/shared/types/category";
+import { getCategoryLabel } from "@/shared/constants/category";
+
+const CATEGORY_BG: Record<Category, string> = {
+  sea: "bg-category-sea",
+  nature: "bg-category-nature",
+  culture: "bg-category-culture",
+  experience: "bg-category-experience",
+};
+
 interface TagChipProps {
   label: string;
-  isLight?: boolean;
+  className?: string;
   onClick?: () => void;
+  isCategory?: boolean;
+}
+
+interface TagInputChipProps {
+  value: string;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
 }
 
 interface TagChipsProps {
+  category: Category;
   tags: string[];
   onAdd?: (tag: string) => void;
   onDelete?: (tag: string) => void;
 }
 
-export function TagChip({ label, isLight = false, onClick }: TagChipProps) {
+export function TagChip({ label, className, onClick, isCategory = false }: TagChipProps) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={isCategory}
       className={cn(
         "inline-flex items-center justify-center rounded-md px-1.5 py-1",
-        isLight ? "bg-category-sea" : "bg-main-blue",
+        isCategory ? "cursor-default" : "cursor-pointer",
+        className ?? "bg-main-blue",
       )}
     >
       <span
         className={cn(
           "text-center text-xs tracking-[0.16px]",
-          isLight ? "text-text-primary" : "text-main-white",
+          isCategory ? "text-text-primary" : "text-main-white",
         )}
       >
         {label}
@@ -40,17 +61,7 @@ export function TagChip({ label, isLight = false, onClick }: TagChipProps) {
   );
 }
 
-function TagInputChip({
-  value,
-  onChange,
-  onSubmit,
-  onCancel,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  onSubmit: () => void;
-  onCancel: () => void;
-}) {
+function TagInputChip({ value, onChange, onSubmit, onCancel }: TagInputChipProps) {
   return (
     <div className="inline-flex items-center justify-center rounded-md bg-main-blue px-1.5 py-1">
       <span className="text-center text-xs tracking-[0.16px] text-main-white">#</span>
@@ -75,8 +86,10 @@ function TagInputChip({
   );
 }
 
-export function TagChips({ tags, onAdd, onDelete }: TagChipsProps) {
-  const [localTags, setLocalTags] = useState(tags);
+export function TagChips({ category, tags, onAdd, onDelete }: TagChipsProps) {
+  const categoryLabel = getCategoryLabel(category);
+  const categoryBg = CATEGORY_BG[category];
+  const [editableTags, setEditableTags] = useState(tags);
   const [isAdding, setIsAdding] = useState(false);
   const [newTag, setNewTag] = useState("");
 
@@ -90,9 +103,9 @@ export function TagChips({ tags, onAdd, onDelete }: TagChipsProps) {
   };
 
   const handleDelete = (index: number) => {
-    const deletedTag = localTags[index];
+    const deletedTag = editableTags[index];
 
-    setLocalTags((prevTags) => prevTags.filter((_, i) => i !== index));
+    setEditableTags((prevTags) => prevTags.filter((_, i) => i !== index));
     onDelete?.(deletedTag);
   };
 
@@ -106,20 +119,16 @@ export function TagChips({ tags, onAdd, onDelete }: TagChipsProps) {
 
     const nextTag = `#${trimmedTag}`;
 
-    setLocalTags((prevTags) => [...prevTags, nextTag]);
+    setEditableTags((prevTags) => [...prevTags, nextTag]);
     onAdd?.(nextTag);
     handleCancel();
   };
 
   return (
     <div className="flex flex-wrap items-center gap-1">
-      {localTags.map((tag, tagIdx) => (
-        <TagChip
-          key={`${tag}-${tagIdx}`}
-          label={tag}
-          isLight={tagIdx === 0}
-          onClick={() => handleDelete(tagIdx)}
-        />
+      <TagChip label={categoryLabel} className={categoryBg} isCategory />
+      {editableTags.map((tag, tagIdx) => (
+        <TagChip key={`${tag}-${tagIdx}`} label={tag} onClick={() => handleDelete(tagIdx)} />
       ))}
 
       {isAdding ? (
