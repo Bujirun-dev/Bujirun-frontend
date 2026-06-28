@@ -210,7 +210,7 @@ function ItineraryMain() {
       );
       return next;
     });
-    setToastMessage("관광지가 변경되었어요.");
+    setToastMessage("관광지가 추가되었어요.");
   };
 
   const confirmTimeInline = (dayIdx: number, stopId: string, time: string) => {
