@@ -19,7 +19,7 @@ export function SlidingTimeline({
   onTouchEnd,
 }: SlidingTimelineProps) {
   return (
-    <div className="-ml-4 flex-1 overflow-hidden">
+    <div className="-ml-6 flex-1 overflow-hidden">
       <div
         className="flex h-full transition-transform duration-300 ease-in-out will-change-transform"
         style={{ transform: `translateX(-${currentDay * 100}%)` }}

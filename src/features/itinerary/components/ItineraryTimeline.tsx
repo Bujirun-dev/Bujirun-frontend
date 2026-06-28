@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import PlusIcon from "@/assets/icons/itinerary/plus-small.svg?svgr";
 import type { TransportLeg } from "./TransportCard";
 import { PlaceCard } from "@/components";
 import { TransportCard } from "./TransportCard";
@@ -207,13 +208,15 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
           <div className="w-10 shrink-0" />
           <div className="relative z-10 -ml-0.5 flex items-center gap-2.5">
             <button
+              type="button"
               className={cn(
-                "flex size-[18px] shrink-0 items-center justify-center rounded-md bg-sub-coral",
+                "flex size-[18px] shrink-0 items-center justify-center rounded-md bg-sub-coral active:opacity-70",
                 activeSearchStopId && "invisible",
               )}
               onClick={() => stops[0] && openSearch(stops[0].id)}
+              aria-label="장소 추가"
             >
-              <span className="font-bold leading-none text-main-white text-xs">+</span>
+              <PlusIcon width={16} height={16} className="text-main-white" aria-hidden />
             </button>
             <span className="text-xs font-semibold text-sub-gray">{date}</span>
           </div>
