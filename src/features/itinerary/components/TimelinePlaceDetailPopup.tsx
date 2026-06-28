@@ -86,7 +86,7 @@ export function PlaceDetailContent({ stop, onClose, onAdd }: PlaceDetailContentP
           <button
             type="button"
             onClick={onAdd}
-            className="flex size-[18px] shrink-0 items-center justify-center rounded-md bg-sub-coral active:opacity-70"
+            className="flex size-[18px] shrink-0 -translate-y-0.5 items-center justify-center rounded-md bg-sub-coral active:opacity-70"
             aria-label="내 일정에 추가"
           >
             <PlusIcon width={16} height={16} className="text-main-white" aria-hidden />
