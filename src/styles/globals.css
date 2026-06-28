@@ -204,6 +204,10 @@
   filter: brightness(0) saturate(100%) invert(63%) sepia(0%) saturate(17%) hue-rotate(326deg)
     brightness(96%) contrast(90%);
 }
+@utility icon-darkgray {
+  filter: brightness(0) saturate(100%) invert(55%) sepia(0%) saturate(0%) hue-rotate(0deg)
+    brightness(100%) contrast(90%);
+}
 
 *,
 *::before,

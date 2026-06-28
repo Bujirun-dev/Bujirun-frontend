@@ -63,7 +63,7 @@ export function PlaceDetailSheet({
     >
       <div
         className={cn(
-          "w-full max-w-[335px] h-[470px] max-h-[80dvh] rounded-2xl bg-main-white shadow-[0_2px_8px_0_var(--color-system-scroll)] flex flex-col overflow-hidden",
+          "w-full max-w-[320px] h-[470px] max-h-[80dvh] rounded-2xl bg-main-white shadow-[0_2px_8px_0_var(--color-system-scroll)] flex flex-col overflow-hidden",
           className,
         )}
         onClick={(e) => e.stopPropagation()}

@@ -1,6 +1,6 @@
 "use client";
 
-import characterImg from "@/assets/character/face.png";
+import characterImg from "@/assets/character/map.png";
 import { Modal, TimePicker } from "@/components";
 import { TransportSelectSheet } from "./TransportSelectSheet";
 import { ArrivalVerifyModal } from "./ArrivalVerifyModal";
