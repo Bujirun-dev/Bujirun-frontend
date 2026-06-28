@@ -9,10 +9,19 @@ const nextConfig: NextConfig = {
   },
   turbopack: {
     rules: {
-      "*.svg": {
-        loaders: ["@svgr/webpack"],
-        as: "*.tsx",
-      },
+      "*.svg": [
+        {
+          condition: { query: /[?&]url(?=&|$)/ },
+          type: "asset",
+        },
+        {
+          condition: {
+            any: [{ query: /[?&]svgr(?=&|$)/ }, { not: { query: /[?&]url(?=&|$)/ } }],
+          },
+          loaders: ["@svgr/webpack"],
+          as: "*.tsx",
+        },
+      ],
     },
   },
   webpack(config) {
@@ -23,6 +32,13 @@ const nextConfig: NextConfig = {
 
     config.module.rules.push({
       test: /\.svg$/i,
+      resourceQuery: /url/,
+      type: "asset/resource",
+    });
+
+    config.module.rules.push({
+      test: /\.svg$/i,
+      resourceQuery: { not: [/url/] },
       issuer: /\.[jt]sx?$/,
       use: ["@svgr/webpack"],
     });

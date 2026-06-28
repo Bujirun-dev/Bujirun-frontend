@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import magicWandIcon from "@/assets/icons/itinerary/magic-wand.svg";
-import freepassBlueIcon from "@/assets/icons/itinerary/freepass.svg";
+import FreepassIcon from "@/assets/icons/itinerary/freepass.svg?svgr";
+import magicWandIcon from "@/assets/icons/itinerary/magic-wand.svg?url";
 import seaCharacter from "@/assets/character/sea.png";
 import { Modal } from "@/components";
 
@@ -71,7 +71,14 @@ export function AiOptimizeLoadingModal({
       isOpen={isOpen}
       onClose={onClose}
       icon={
-        <Image src={magicWandIcon} alt="AI 최적화" width={28} height={28} className="icon-coral" />
+        <Image
+          src={magicWandIcon}
+          alt=""
+          width={25}
+          height={25}
+          className="block icon-coral"
+          aria-hidden
+        />
       }
       iconClassName="bg-sub-coral/10"
       title="AI가 최적 경로를 찾고 있어요"
@@ -96,7 +103,7 @@ export function AiOptimizeLoadingModal({
       }
     >
       <p className="flex items-center justify-center gap-1.5 text-sm font-medium text-sub-darkgray">
-        <Image src={freepassBlueIcon} alt="" width={12} height={12} className="icon-deepblue" />
+        <FreepassIcon width={12} height={12} className="fill-sub-deepblue" aria-hidden />
         여행 동선을 계산하는 중...
       </p>
     </Modal>

@@ -4,7 +4,7 @@ import { Suspense, useRef, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import travelImg from "@/assets/character/travel.png";
-import successIcon from "@/assets/icons/mypage/success.svg";
+import SuccessIcon from "@/assets/icons/mypage/success.svg";
 import { PageCard, Button, Toast } from "@/components";
 import {
   ItineraryHeader,
@@ -241,15 +241,7 @@ function ItineraryMain() {
         isVisible={toastMessage !== null}
         onHide={() => setToastMessage(null)}
         message={toastMessage ?? ""}
-        icon={
-          <Image
-            src={successIcon}
-            alt="완료"
-            width={12}
-            height={12}
-            className="brightness-0 invert"
-          />
-        }
+        icon={<SuccessIcon width={12} height={12} className="brightness-0 invert" aria-hidden />}
       />
     </div>
   );

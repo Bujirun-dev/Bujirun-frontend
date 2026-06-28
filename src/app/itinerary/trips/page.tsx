@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
-import plusSmallIcon from "@/assets/icons/itinerary/plus-small.svg";
+import { useRouter } from "next/navigation";
+import plusSmallIcon from "@/assets/icons/itinerary/plus-small.svg?url";
 import { PageCard } from "@/components";
 import { TripCard, TripEditModal, TripDeleteModal, TripDeleteToast } from "@/features/itinerary";
 import type { Trip } from "@/features/itinerary";
@@ -73,10 +73,11 @@ export default function TripsPage() {
       >
         <Image
           src={plusSmallIcon}
-          alt="여행 추가"
+          alt=""
           width={24}
           height={24}
           className="brightness-0 invert"
+          aria-hidden
         />
       </button>
 

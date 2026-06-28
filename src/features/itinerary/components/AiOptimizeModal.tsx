@@ -1,5 +1,5 @@
 import Image from "next/image";
-import magicWandIcon from "@/assets/icons/itinerary/magic-wand.svg";
+import magicWandIcon from "@/assets/icons/itinerary/magic-wand.svg?url";
 import { Modal } from "@/components";
 
 interface AiOptimizeModalProps {
@@ -14,7 +14,14 @@ export function AiOptimizeModal({ isOpen, onClose, onConfirm }: AiOptimizeModalP
       isOpen={isOpen}
       onClose={onClose}
       icon={
-        <Image src={magicWandIcon} alt="AI 최적화" width={28} height={28} className="icon-coral" />
+        <Image
+          src={magicWandIcon}
+          alt=""
+          width={25}
+          height={25}
+          className="block icon-coral"
+          aria-hidden
+        />
       }
       iconClassName="bg-sub-coral/10"
       title="AI 일정 최적화"

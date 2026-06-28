@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import triangleIcon from "@/assets/icons/itinerary/triangle.svg";
+import triangleIcon from "@/assets/icons/itinerary/triangle.svg?url";
 import { cn } from "@/shared/utils";
 import { CATEGORY_LABEL } from "@/shared/constants/category";
 import type { Category } from "@/components";
@@ -52,15 +52,16 @@ export function CategoryFilterDropdown({ value, onChange }: CategoryFilterDropdo
         {CATEGORY_OPTIONS.find((c) => c.value === value)?.label ?? "전체"}
         <Image
           src={triangleIcon}
-          alt="드롭다운"
+          alt=""
           width={6}
           height={6}
           className={cn("shrink-0 transition-transform", open && "rotate-180")}
+          aria-hidden
         />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[22px] z-20 w-full overflow-hidden rounded-lg border-[0.5px] border-main-blue bg-main-white px-1 py-1.5 shadow-md">
+        <div className="absolute right-0 top-[22px] z-20 w-full overflow-hidden rounded-lg border-[0.5px] border-main-blue bg-main-white px-1 py-1.5 shadow-[0_2px_8px_0_var(--color-system-scroll)]">
           {CATEGORY_OPTIONS.map((opt) => (
             <button
               key={opt.value}

@@ -2,8 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import markerIcon from "@/assets/icons/itinerary/marker.svg";
+import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
 import { SearchBar } from "@/components";
 import { PlaceSearchItem } from "./PlaceSearchItem";
 import { ConsonantIndexBar } from "./ConsonantIndexBar";
@@ -308,15 +307,14 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
                           router.push(`/itinerary/place/${place.id}`);
                         }} // TODO: API place.id 로 교체
                       >
-                        <Image
-                          src={markerIcon}
-                          alt="위치"
+                        <MarkerIcon
                           width={12}
                           height={12}
                           className={cn(
                             "shrink-0",
-                            place.status === "completed" ? "icon-deepblue" : "icon-pink",
+                            place.status === "completed" ? "fill-sub-deepblue" : "fill-sub-pink",
                           )}
+                          aria-hidden
                         />
                         <span className="min-w-0 flex-1 truncate text-sm font-normal text-text-primary">
                           {place.name}

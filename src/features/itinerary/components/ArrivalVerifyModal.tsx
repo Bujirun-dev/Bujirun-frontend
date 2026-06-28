@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { createPortal } from "react-dom";
-import markerIcon from "@/assets/icons/itinerary/marker.svg";
+import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
 import { Button, Card } from "@/components";
 
 interface ArrivalVerifyModalProps {
@@ -38,11 +38,11 @@ export function ArrivalVerifyModal({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-3xl px-5 pt-10 pb-6 flex flex-col items-center gap-4"
+        className="relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-main-white rounded-3xl px-5 pt-10 pb-6 flex flex-col items-center gap-4"
         onClick={(e) => e.stopPropagation()}
       >
         {userAvatarUrl && (
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[56px] h-[56px] rounded-full border-4 border-white overflow-hidden shadow-md">
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[56px] h-[56px] rounded-full border-4 border-main-white overflow-hidden shadow-[0_2px_8px_0_var(--color-system-scroll)]">
             <Image src={userAvatarUrl} alt="avatar" fill className="object-cover" />
           </div>
         )}
@@ -55,7 +55,7 @@ export function ArrivalVerifyModal({
 
         <div className="flex flex-col items-center gap-2 text-center">
           <div className="flex items-center gap-1 bg-sub-lightblue px-3 py-1 rounded-full">
-            <Image src={markerIcon} alt="위치" width={14} height={14} className="icon-deepblue" />
+            <MarkerIcon width={14} height={14} className="fill-sub-deepblue" aria-hidden />
             <span className="font-semibold text-md text-sub-deepblue">{placeName}</span>
           </div>
           <h2 className="font-bold text-xl text-text-heading">이곳에 도착하셨나요?</h2>
