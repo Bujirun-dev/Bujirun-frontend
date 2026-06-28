@@ -36,8 +36,8 @@ export function MypageMenuList() {
   const handleWithdraw = () => {
     // TODO: 회원탈퇴 API 연결
     setIsWithdrawOpen(false);
+    router.replace("/login");
   };
-
   return (
     <>
       <div className="flex flex-col gap-[9px]">
