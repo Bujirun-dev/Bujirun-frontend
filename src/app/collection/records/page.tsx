@@ -3,6 +3,8 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 
+import { useRouter } from "next/navigation";
+
 import { useMemo, useState, useCallback } from "react";
 import { RecordDeleteModal } from "@/features/collection/components/RecordDeleteModal";
 import { TripReceiptModal } from "@/features/collection/components/TripReceiptModal";
@@ -15,6 +17,7 @@ import { PLACES } from "@/features/collection/data/places";
 import { TRIP_RECORDS } from "@/features/collection/data/tripRecords";
 
 export default function CollectionRecordsPage() {
+  const router = useRouter();
   // 수집된 장소 목록
   const collectedPlaces = useMemo(() => PLACES.filter((place) => place.isCollected), []);
   const collectedPlaceCount = collectedPlaces.length;
@@ -174,6 +177,11 @@ export default function CollectionRecordsPage() {
             icon: failureToastIcon,
           })
         }
+        onDetail={() => {
+          if (selectedTripId !== null) {
+            router.push(`/collection/records/log/${selectedTripId}`);
+          }
+        }}
         onClose={closeReceiptModal}
       />
 
