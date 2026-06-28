@@ -19,6 +19,7 @@ import {
   type BaseStop,
   buildDays,
   buildDaysFromLog,
+  rebuildTransport,
 } from "@/features/itinerary/utils/scheduleUtils";
 import type { RouteOption } from "@/features/itinerary";
 
@@ -135,9 +136,10 @@ function ItineraryMain() {
     const timeStr = `${String(timeValue.hour).padStart(2, "0")}:${String(timeValue.minute).padStart(2, "0")}`;
     setStopsPerDay((prev) => {
       const next = [...prev];
-      next[activeDayIdx] = [...next[activeDayIdx]]
+      const sorted = [...next[activeDayIdx]]
         .map((s) => (s.id === activeStopId ? { ...s, time: timeStr } : s))
         .sort((a, b) => a.time.localeCompare(b.time));
+      next[activeDayIdx] = rebuildTransport(sorted);
       return next;
     });
     closeModal();
@@ -185,12 +187,23 @@ function ItineraryMain() {
     if (diff < 0 && currentDay > 0) setCurrentDay((d) => d - 1);
   };
 
+  const confirmTimeInline = (dayIdx: number, stopId: string, time: string) => {
+    setStopsPerDay((prev) => {
+      const next = [...prev];
+      const sorted = [...next[dayIdx]]
+        .map((s) => (s.id === stopId ? { ...s, time } : s))
+        .sort((a, b) => a.time.localeCompare(b.time));
+      next[dayIdx] = rebuildTransport(sorted);
+      return next;
+    });
+  };
+
   const allDayStops: ItineraryStop[][] = stopsPerDay.map((dayStops, dayIdx) =>
     dayStops.map((stop) => ({
       ...stop,
-      onClick: () => router.push(`/itinerary/place/${stop.id}`),
       onDelete: () => openDelete(dayIdx, stop.id),
       onTimeClick: () => openTime(dayIdx, stop.id, stop.time),
+      onTimeConfirm: (time: string) => confirmTimeInline(dayIdx, stop.id, time),
       onTransportClick: stop.transport ? () => openTransport(dayIdx, stop.id) : undefined,
       onVerify: stop.status === "verify" ? () => openVerify(dayIdx, stop.id) : undefined,
     })),

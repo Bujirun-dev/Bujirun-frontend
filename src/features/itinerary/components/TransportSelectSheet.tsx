@@ -102,7 +102,6 @@ export function TransportSelectSheet({
   return createPortal(
     <div
       className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6"
-      style={{ backgroundColor: "var(--color-system-blackbg)" }}
       onClick={onClose}
     >
       <div
