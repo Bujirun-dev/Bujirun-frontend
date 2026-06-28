@@ -1,15 +1,18 @@
 "use client";
 
+import Image from "next/image";
+import type { StaticImageData } from "next/image";
 import type { LucideProps } from "lucide-react";
 import type { ComponentType } from "react";
 
 interface MenuItemProps {
-  icon: ComponentType<LucideProps>;
+  icon?: ComponentType<LucideProps>;
+  iconSrc?: StaticImageData | string;
   label: string;
   onClick?: () => void;
 }
 
-export function MenuItem({ icon: Icon, label, onClick }: MenuItemProps) {
+export function MenuItem({ icon: Icon, iconSrc, label, onClick }: MenuItemProps) {
   return (
     <button
       type="button"
@@ -23,7 +26,11 @@ export function MenuItem({ icon: Icon, label, onClick }: MenuItemProps) {
         active:scale-[0.98] transition-transform duration-100
       "
     >
-      <Icon size={18} strokeWidth={2} className="text-text-primary" aria-hidden="true" />
+      {iconSrc ? (
+        <Image src={iconSrc} alt="" width={18} height={18} aria-hidden />
+      ) : Icon ? (
+        <Icon size={18} strokeWidth={2} className="text-text-primary" aria-hidden />
+      ) : null}
       <span className="font-ssurround font-bold text-lg text-text-primary">{label}</span>
     </button>
   );

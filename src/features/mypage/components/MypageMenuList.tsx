@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bookmark, LogOut, UserX } from "lucide-react";
+import { Bookmark } from "lucide-react";
+import logoutDarkIcon from "@/assets/icons/mypage/logout-dark.png";
+import leaveDarkIcon from "@/assets/icons/mypage/leave-dark.png";
 import { MenuItem } from "./MenuItem";
 import { LogoutModal } from "./LogoutModal";
 import { WithdrawModal } from "./WithdrawModal";
@@ -40,8 +42,12 @@ export function MypageMenuList() {
     <>
       <div className="flex flex-col gap-[9px]">
         <MenuItem icon={Bookmark} label="북마크 목록" onClick={handleBookmark} />
-        <MenuItem icon={LogOut} label="로그아웃" onClick={() => setIsLogoutOpen(true)} />
-        <MenuItem icon={UserX} label="회원 탈퇴" onClick={() => setIsWithdrawOpen(true)} />
+        <MenuItem iconSrc={logoutDarkIcon} label="로그아웃" onClick={() => setIsLogoutOpen(true)} />
+        <MenuItem
+          iconSrc={leaveDarkIcon}
+          label="회원 탈퇴"
+          onClick={() => setIsWithdrawOpen(true)}
+        />
       </div>
 
       <LogoutModal
