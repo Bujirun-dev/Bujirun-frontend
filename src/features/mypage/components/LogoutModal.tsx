@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Modal } from "@/components/ui/Modal";
 import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import logoutIcon from "@/assets/icons/mypage/logout-blue.png";
 
 interface LogoutModalProps {
@@ -26,20 +27,12 @@ export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
       hideActions
       footer={
         <div className="flex w-full justify-center gap-[25px] mt-auto">
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-[125px] h-[40px] rounded-lg border border-main-blue font-ssurround text-md font-bold text-sub-deepblue active:opacity-70"
-          >
+          <Button variant="secondary" onClick={onClose} className="w-[125px] h-[40px]">
             취소
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="w-[125px] h-[40px] rounded-lg bg-main-blue font-ssurround text-md font-bold text-main-white active:opacity-70"
-          >
+          </Button>
+          <Button variant="primary" onClick={onConfirm} className="w-[125px] h-[40px]">
             로그아웃
-          </button>
+          </Button>
         </div>
       }
     >
