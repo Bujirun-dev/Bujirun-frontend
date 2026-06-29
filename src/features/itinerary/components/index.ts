@@ -11,6 +11,8 @@ export { DayNavigator } from "./DayNavigator";
 export { TransportSelectSheet } from "./TransportSelectSheet";
 export type { RouteOption } from "./TransportSelectSheet";
 export { TripCard } from "./TripCard";
+export { TripSetupForm } from "./TripSetupForm";
+export { StaircaseGlassCard } from "./StaircaseGlassCard";
 export type { Trip } from "./TripCard";
 export { TripEditModal } from "./TripEditModal";
 export { TripDateTimePicker } from "./TripDateTimePicker";

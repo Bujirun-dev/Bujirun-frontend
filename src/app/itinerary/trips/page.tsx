@@ -69,7 +69,7 @@ export default function TripsPage() {
       {/* + 버튼 */}
       <button
         className="absolute top-[28px] right-[32px] size-[28px] rounded-lg bg-sub-coral flex items-center justify-center active:opacity-80 z-10"
-        onClick={() => {}}
+        onClick={() => router.push("/itinerary/trips/new")}
       >
         <Image
           src={plusSmallIcon}
