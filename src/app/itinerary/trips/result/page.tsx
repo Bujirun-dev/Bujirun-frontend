@@ -158,10 +158,9 @@ function TripResultContent() {
   };
 
   return (
-    <div className="relative flex h-full flex-col">
-      {/* 스크롤 영역 */}
-      <div className="flex-1 overflow-y-auto px-4 pt-4 pb-6 space-y-3">
-        {/* 공통 취향 카드 (glass) */}
+    <div className="flex h-full flex-col">
+      {/* 공통 취향 glass 카드 */}
+      <div className="shrink-0 pt-4 pb-3">
         <div className="w-full rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-[30px] py-[30px] backdrop-blur-[15px] flex flex-col items-center gap-4">
           <p className="font-ssurround font-bold text-xl text-text-heading text-center">
             우리의 공통 취향은...
@@ -172,9 +171,12 @@ function TripResultContent() {
             ))}
           </div>
         </div>
+      </div>
 
-        {/* 투표 카드 (white) */}
-        <div className="w-full rounded-[30px] bg-white px-5 py-5 flex flex-col">
+      {/* 투표 섹션 - PageCard 스타일 */}
+      <div className="-mx-6 flex flex-1 flex-col overflow-hidden rounded-tl-[40px] rounded-tr-[40px] bg-white">
+        {/* 스크롤 영역 */}
+        <div className="flex-1 overflow-y-auto px-8 pt-8 pb-4">
           {/* 헤더 */}
           <div className="flex items-center gap-1.5">
             <span className="font-ssurround font-bold text-lg text-text-heading">
@@ -272,24 +274,24 @@ function TripResultContent() {
             {hasVoted ? "투표 완료! 일정 보러가기 →" : "이 일정에 투표하기 ♥"}
           </button>
         </div>
-      </div>
 
-      {/* 프리패스 버튼 (방장만 활성화) */}
-      <div className="shrink-0 px-4 pb-6 pt-2">
-        <button
-          type="button"
-          onClick={IS_HOST ? handleFreepass : undefined}
-          disabled={!IS_HOST}
-          className={cn(
-            "flex h-[48px] w-full items-center justify-center gap-2 rounded-[14px] font-ssurround font-bold text-lg transition-opacity",
-            IS_HOST
-              ? "bg-text-heading text-white"
-              : "bg-text-heading/30 text-white/50 cursor-not-allowed",
-          )}
-        >
-          <Image src={freepassWhiteIcon} alt="" width={18} height={18} aria-hidden />
-          <span>방장 마음대로 프리패스!</span>
-        </button>
+        {/* 프리패스 버튼 (방장만 활성화) */}
+        <div className="shrink-0 px-8 pb-6 pt-2">
+          <button
+            type="button"
+            onClick={IS_HOST ? handleFreepass : undefined}
+            disabled={!IS_HOST}
+            className={cn(
+              "flex h-[48px] w-full items-center justify-center gap-2 rounded-[14px] font-ssurround font-bold text-lg transition-opacity",
+              IS_HOST
+                ? "bg-text-heading text-white"
+                : "bg-text-heading/30 text-white/50 cursor-not-allowed",
+            )}
+          >
+            <Image src={freepassWhiteIcon} alt="" width={18} height={18} aria-hidden />
+            <span>방장 마음대로 프리패스!</span>
+          </button>
+        </div>
       </div>
     </div>
   );
