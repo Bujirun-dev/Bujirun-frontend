@@ -93,24 +93,28 @@ export function MypageProfile() {
                 <Image src={pencilIcon} alt="닉네임 편집" width={10} height={10} />
               </button>
             </div>
-
             {/* 태그 칩 */}
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 ">
               {tags.map((tag) => (
                 <CategoryChip key={tag} category={tag} />
               ))}
             </div>
-
             {/* 도감 진행 바 */}
-            <div className="flex flex-col gap-1">
-              <div className="h-2 w-full overflow-hidden rounded-full bg-system-navbg">
+            <div className="flex flex-col gap-1 mt-2">
+              {/* 바 + 이모지 */}
+              <div className="relative h-3 w-full rounded-full bg-system-navbg overflow-visible">
                 <div
-                  className="h-full rounded-full bg-main-blue transition-all duration-500"
+                  className="h-full rounded-full bg-gradient-to-r from-sub-deepblue to-main-blue transition-all duration-500"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
-              <div className="flex justify-end">
-                <span className="text-xs text-sub-darkgray">
+              {/* 수치 */}
+              <div className="flex justify-between items-center mt-1">
+                <span className="text-2xs text-sub-gray">
+                  현재 <span className="font-bold text-sub-deepblue">{progressPercent}%</span>{" "}
+                  수집했어요!
+                </span>
+                <span className="text-2xs text-sub-darkgray">
                   <span className="font-bold text-sub-deepblue">{collectedCount}</span>
                   {" / "}
                   {totalCount}
@@ -121,6 +125,7 @@ export function MypageProfile() {
         </div>
       </Card>
 
+      {/* 프로필 수정 */}
       <ProfileImageSelectModal
         isOpen={isProfileImageModalOpen}
         onClose={() => setIsProfileImageModalOpen(false)}
@@ -132,7 +137,7 @@ export function MypageProfile() {
           // TODO: API 연결 시 mutation으로 서버에 반영
         }}
       />
-
+      {/* 닉네임 수정 */}
       <NicknameEditModal
         key={isNicknameModalOpen ? "open" : "closed"}
         isOpen={isNicknameModalOpen}
