@@ -1,29 +1,15 @@
 import Image from "next/image";
 import { KakaoLoginButton } from "@/components/ui/KakaoLoginButton";
-import { Card } from "@/components/ui/Card";
 import characterImg from "@/assets/character/primary.png";
+import { StaircaseGlassCard } from "@/components";
 
 export default function LoginPage() {
   return (
     <main className="relative flex flex-col items-center w-full h-full">
       <div className="flex flex-col items-center w-full h-full">
         {/* 말풍선 영역 */}
-        <div className="mt-[120px] w-full flex flex-col gap-0">
-          {/* 첫 번째 말풍선 */}
-          <Card
-            variant="glass-sm"
-            className="ml-[24px] w-[130px] h-[44px] flex items-center justify-center p-0 rounded-[24px]"
-          >
-            <span className="font-proup text-text-heading text-lg">반가워요!</span>
-          </Card>
-
-          {/* 두 번째 말풍선 */}
-          <Card
-            variant="glass-sm"
-            className="ml-[55px] w-[261px] h-[44px] flex items-center justify-center p-0 rounded-[24px] -mt-[3px]"
-          >
-            <span className="font-proup text-text-heading text-lg">부산 여행을 떠나볼까요?</span>
-          </Card>
+        <div className="mt-[120px] w-full pl-[24px]">
+          <StaircaseGlassCard line1="반가워요!" line2="부산 여행을 떠나볼까요?" />
         </div>
 
         {/* 캐릭터 */}
