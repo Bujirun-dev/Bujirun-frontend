@@ -167,7 +167,7 @@ function TripResultContent() {
           </p>
           <div className="flex items-center gap-2">
             {COMMON_CATEGORIES.map((cat) => (
-              <CategoryChip key={cat} category={cat} size="md" />
+              <CategoryChip key={cat} category={cat} size="lg" />
             ))}
           </div>
         </div>
