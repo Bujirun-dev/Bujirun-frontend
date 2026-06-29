@@ -10,8 +10,9 @@ import { PLACES } from "@/features/collection/data/places";
 // TODO: API 연결 시 useQuery로 교체 — GET /tour-spots/:spotId/logs
 // 해당 관광지를 방문한 로그 목록을 반환하는 API
 function getRelatedLogs(placeName: string) {
-  return SAMPLE_LOGS.filter((log) =>
-    log.days.some((day) => day.stops.some((stop) => stop.place === placeName)),
+  return SAMPLE_LOGS.filter(
+    (log) =>
+      log.isVisible && log.days.some((day) => day.stops.some((stop) => stop.place === placeName)),
   );
 }
 
