@@ -55,7 +55,7 @@ export function MypageProfile() {
               type="button"
               aria-label="프로필 사진 변경"
               onClick={() => setIsProfileImageModalOpen(true)}
-              className="relative h-[72px] w-[72px] transition-opacity active:opacity-70"
+              className="relative h-[86px] w-[86px] transition-opacity active:opacity-70"
             >
               <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-system-navbg">
                 <Image
