@@ -62,7 +62,7 @@ function TripWaitingContent() {
   useEffect(() => {
     if (doneCount < totalSlots) return;
     const timer = setTimeout(() => {
-      router.push("/itinerary");
+      router.push(`/itinerary/trips/result?count=${totalSlots}`);
     }, 1000);
     return () => clearTimeout(timer);
   }, [doneCount, totalSlots, router]);
