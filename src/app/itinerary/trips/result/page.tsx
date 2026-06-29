@@ -191,9 +191,6 @@ function TripResultContent() {
                   {plan.id}
                 </button>
               ))}
-              <span className="ml-1 font-paperlogy text-sm text-text-secondary">
-                {PLAN_LABELS[activePlan]}
-              </span>
               <div className="ml-auto flex items-center gap-1">
                 <span className="font-paperlogy text-sm text-sub-deepblue">♥</span>
                 <span className="font-paperlogy font-bold text-sm text-sub-deepblue">
