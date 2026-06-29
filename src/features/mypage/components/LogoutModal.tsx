@@ -17,7 +17,7 @@ export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      icon={<Image src={logoutIcon} alt="로그아웃" width={25} height={25} />}
+      icon={<Image src={logoutIcon} alt="로그아웃" width={25} height={25} className="icon-coral" />}
       title="로그아웃"
       titleClassName="tracking-[0.5px]"
       className="h-[435px] gap-3 pt-[48px] pb-[48px]"
@@ -27,10 +27,14 @@ export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
       hideActions
       footer={
         <div className="flex w-full justify-center gap-[25px] mt-auto mb-[1px]">
-          <Button variant="secondary" onClick={onClose} className="w-[125px] h-[40px]">
+          <Button
+            variant="secondary"
+            onClick={onClose}
+            className="w-[125px] h-[40px] border-sub-coral !text-sub-coral"
+          >
             취소
           </Button>
-          <Button variant="primary" onClick={onConfirm} className="w-[125px] h-[40px]">
+          <Button variant="warning" onClick={onConfirm} className="w-[125px] h-[40px]">
             로그아웃
           </Button>
         </div>
