@@ -1,5 +1,11 @@
-import { FeaturePlaceholder } from "@/components";
+import { MypageProfile } from "@/features/mypage/components";
+import { MypageMenuList } from "@/features/mypage/components";
 
-export default function MyPage() {
-  return <FeaturePlaceholder title="마이페이지 탭입니다." />;
+export default function MypagePage() {
+  return (
+    <div className="flex flex-col gap-5 pt-[24px] pb-[24px]">
+      <MypageProfile />
+      <MypageMenuList />
+    </div>
+  );
 }
