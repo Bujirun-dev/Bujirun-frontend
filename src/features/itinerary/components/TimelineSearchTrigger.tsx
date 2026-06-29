@@ -22,11 +22,11 @@ export function TimelineSearchTrigger({
         onClick={onTimeClick}
       >
         {isTimeActive ? (
-          <div className="flex items-center justify-center rounded-md border border-dashed border-sub-gray p-1">
+          <div className="flex items-center justify-center rounded-md border border-dashed border-sub-gray p-[2px]">
             <span className="text-xs font-medium text-sub-gray">{time}</span>
           </div>
         ) : isActive ? (
-          <div className="flex items-center justify-center rounded-md border border-dashed border-sub-gray p-1">
+          <div className="flex items-center justify-center rounded-md border border-dashed border-sub-gray p-[2px]">
             <span className="text-xs font-medium text-sub-gray">{time}</span>
           </div>
         ) : (

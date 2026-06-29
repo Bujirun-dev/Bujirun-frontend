@@ -3,14 +3,16 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Image, { type StaticImageData } from "next/image";
 import CheckCircleIcon from "@/assets/icons/itinerary/check-circle.svg?svgr";
+import AntennaIcon from "@/assets/icons/itinerary/antenna.svg?svgr";
 import cameraCharacter from "@/assets/character/camera.png";
 import congsCharacter from "@/assets/character/congs.png";
 import failCharacter from "@/assets/character/fail.png";
 import mapCharacter from "@/assets/character/map.png";
 import seaCharacter from "@/assets/character/sea.png";
-import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
+import LandLayerLocationIcon from "@/assets/icons/itinerary/land-layer-location.svg?svgr";
 import samplePlaceImage from "@/assets/place/place1.png";
 import { Button } from "@/components";
+import { LoadingProgressBar } from "../LoadingProgressBar";
 import { CharacterImage, MapPreview, Notice, PlaceBadge } from "./ArrivalVerifyShared";
 
 export type VerifyStep =
@@ -83,18 +85,30 @@ export function GpsLoadingStage({}: Pick<CommonProps, never>) {
   return (
     <>
       <div className="mb-5 flex size-[76px] items-center justify-center rounded-full bg-system-navbg">
-        <MarkerIcon width={28} height={28} className="fill-sub-deepblue" aria-hidden />
+        <LandLayerLocationIcon width={42} height={42} className="fill-sub-deepblue" aria-hidden />
       </div>
       <h2 className="mb-2 text-center text-xl font-ssurround font-bold text-text-heading">
         현재 위치를 확인하고 있어요.
       </h2>
       <div className="mb-6 w-full">
-        <Notice>GPS 신호를 확인하는 중...</Notice>
+        <Notice
+          icon={
+            <AntennaIcon
+              width={18}
+              height={18}
+              className="shrink-0 fill-sub-deepblue"
+              aria-hidden
+            />
+          }
+        >
+          GPS 신호를 확인하는 중...
+        </Notice>
       </div>
-      <div className="mb-5 h-[8px] w-full overflow-hidden rounded-full bg-system-scroll">
-        <div
-          className="h-full rounded-full bg-main-blue transition-all ease-in-out"
-          style={{ width: `${progress}%`, transitionDuration: `${MOCK_LOADING_DURATION_MS}ms` }}
+      <div className="mb-5 w-full">
+        <LoadingProgressBar
+          progress={progress}
+          durationMs={MOCK_LOADING_DURATION_MS}
+          className="w-full"
         />
       </div>
       <CharacterImage src={seaCharacter} alt="위치 확인 중" className="h-[187px] w-[250px]" />
@@ -129,15 +143,15 @@ export function GpsSuccessStage({ placeName }: Pick<CommonProps, "placeName">) {
       <CharacterImage
         src={cameraCharacter}
         alt="사진 촬영 안내"
-        className="mb-5 h-[150px] w-[150px]"
+        className="-mb-1 h-[200px] w-[200px]"
       />
-      <div className="mb-5 flex flex-col items-center gap-2 text-center">
+      <div className="mb-3 flex flex-col items-center gap-2 text-center">
         <PlaceBadge placeName={placeName} />
-        <h2 className="font-paperlogy text-lg font-bold text-text-heading">
+        <h2 className="font-paperlogy text-lg font-semibold text-text-primary">
           관광지 확인이 완료되었어요!
         </h2>
       </div>
-      <div className="mb-7 w-full">
+      <div className="mb-[30px] w-full">
         <Notice>* 사진을 찍어 기록을 남겨주세요.</Notice>
       </div>
     </>
@@ -185,14 +199,14 @@ export function CameraCaptureStage({
 export function PhotoConfirmStage({ placeName }: Pick<CommonProps, "placeName">) {
   return (
     <>
-      <h2 className="mb-6 text-lg font-ssurround font-bold text-text-heading">
+      <h2 className="mb-[25px] text-lg font-ssurround font-bold text-text-heading">
         사진 촬영이 완료되었어요.
       </h2>
-      <div className="relative mb-6 h-[164px] w-full overflow-hidden rounded-[10px]">
+      <div className="relative mb-[22px] h-[153px] w-[273px] overflow-hidden rounded-[10px]">
         <Image src={samplePlaceImage} alt={placeName} fill className="object-cover" />
       </div>
-      <p className="mb-5 flex items-center justify-center gap-1.5 text-sm font-medium text-text-heading">
-        <CheckCircleIcon width={12} height={12} className="fill-sub-deepblue" aria-hidden />
+      <p className="mb-5 flex items-center justify-center gap-1 font-paperlogy text-sm font-medium text-text-primary">
+        <CheckCircleIcon width={14} height={14} className="fill-main-blue" aria-hidden />
         관광지가 잘 보이나요?
       </p>
       <div className="mb-7 w-full">
@@ -205,17 +219,19 @@ export function PhotoConfirmStage({ placeName }: Pick<CommonProps, "placeName">)
 export function CompleteStage({ placeName }: Pick<CommonProps, "placeName">) {
   return (
     <>
-      <CharacterImage src={congsCharacter} alt="인증 완료" className="mb-2 h-[92px] w-[120px]" />
-      <div className="mb-4 flex flex-col items-center gap-2 text-center">
+      <CharacterImage src={congsCharacter} alt="인증 완료" className="mb-3 h-[120px] w-[140px]" />
+      <div className="mb-5 flex flex-col items-center gap-2 text-center">
         <PlaceBadge placeName={placeName} />
-        <h2 className="text-lg font-ssurround font-bold text-text-heading">인증이 완료되었어요!</h2>
+        <h2 className="text-xl font-ssurround font-bold text-text-heading">인증이 완료되었어요!</h2>
       </div>
-      <div className="relative mb-4 h-[164px] w-full overflow-hidden rounded-[10px]">
+      <div className="relative mb-5 h-[153px] w-[273px] overflow-hidden rounded-[10px]">
         <Image src={samplePlaceImage} alt={placeName} fill className="object-cover" />
       </div>
-      <div className="mb-5 flex h-[74px] w-full flex-col items-center justify-center gap-1 rounded-xl border-[0.5px] border-system-scroll bg-main-white text-center">
-        <span className="text-sm font-medium text-text-heading">📖 도감 등록 완료!</span>
-        <span className="text-xs font-medium text-sub-deepblue">새로운 관광지 + 1</span>
+      <div className="mb-7 flex h-[74px] w-[273px] flex-col items-center justify-center gap-1 rounded-xl border-[0.5px] border-system-scroll bg-main-white text-center">
+        <span className="font-paperlogy text-sm font-medium text-text-heading">
+          📖 도감 등록 완료!
+        </span>
+        <span className="font-ssurround text-md font-bold text-main-blue">새로운 관광지 + 1</span>
       </div>
     </>
   );
