@@ -177,17 +177,15 @@ function TripResultContent() {
           {/* 글래스 카드 - 투표 정보 */}
           <div className="mt-4 w-full rounded-[20px] border border-system-navbg bg-gradient-to-b from-system-glassfrom to-system-glassto px-5 py-5 backdrop-blur-[15px] flex flex-col">
             {/* 안 선택 탭 + 투표 수 */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-[5px]">
               {MOCK_PLANS.map((plan) => (
                 <button
                   key={plan.id}
                   type="button"
                   onClick={() => setActivePlan(plan.id)}
                   className={cn(
-                    "size-9 rounded-full font-ssurround font-bold text-lg flex items-center justify-center transition-colors",
-                    activePlan === plan.id
-                      ? "bg-main-blue text-white"
-                      : "bg-sub-lightblue text-sub-deepblue",
+                    "rounded-[10px] px-[14px] py-[2px] font-paperlogy font-normal text-md text-main-white flex items-center justify-center transition-colors",
+                    activePlan === plan.id ? "bg-main-blue" : "bg-sub-lightblue",
                   )}
                 >
                   {plan.id}
