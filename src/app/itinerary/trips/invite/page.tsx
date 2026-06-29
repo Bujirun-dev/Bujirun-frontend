@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import faceImg from "@/assets/character/face.png";
 import { Toast } from "@/components";
@@ -46,6 +46,14 @@ function AvatarSlot({ joined }: { joined: boolean }) {
 }
 
 export default function TripInvitePage() {
+  return (
+    <Suspense fallback={null}>
+      <TripInviteContent />
+    </Suspense>
+  );
+}
+
+function TripInviteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const totalSlots = Math.min(6, Math.max(2, Number(searchParams.get("count")) || 6));

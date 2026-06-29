@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import faceImg from "@/assets/character/face.png";
 import swipeRightIcon from "@/assets/icons/itinerary/swipe-right.png";
@@ -21,6 +22,14 @@ function SmallAvatar() {
 }
 
 export default function TripPersonalityPage() {
+  return (
+    <Suspense fallback={null}>
+      <TripPersonalityContent />
+    </Suspense>
+  );
+}
+
+function TripPersonalityContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const totalSlots = Math.min(6, Math.max(2, Number(searchParams.get("count")) || TOTAL_SLOTS));

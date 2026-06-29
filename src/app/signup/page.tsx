@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { cn } from "@/shared/utils";
 import { Button } from "@/components/ui/Button";
 import { TextInput } from "@/components/ui/TextInput";
@@ -9,8 +8,8 @@ import { Card } from "@/components/ui/Card";
 import { ProfileImageSelector } from "@/components/profile/ProfileImageSelector";
 import { SignUpSuccessModal } from "@/features/auth/components/SignUpSuccessModal";
 
-import yesIcon from "@/assets/icons/login-register/yes.png";
-import noIcon from "@/assets/icons/login-register/no.png";
+import YesIcon from "@/assets/icons/login-register/yes.svg?svgr";
+import NoIcon from "@/assets/icons/login-register/no.svg?svgr";
 import profileHat from "@/assets/character/profile/profile-hat.png";
 
 //TODO: 실제 프로필 이미지 9개로 교체 예정
@@ -65,7 +64,7 @@ export default function SignUpPage() {
               />
               {isNicknameValid && (
                 <div className="absolute right-3 top-[12px]">
-                  <Image src={yesIcon} alt="사용 가능" width={16} height={16} />
+                  <YesIcon width={16} height={16} aria-hidden />
                 </div>
               )}
             </div>
@@ -73,7 +72,7 @@ export default function SignUpPage() {
             <div className="flex items-center justify-between pr-2.5">
               {nicknameState.isTaken ? (
                 <div className="flex items-center gap-[4px]">
-                  <Image src={noIcon} alt="사용 불가" width={12} height={12} />
+                  <NoIcon width={12} height={12} aria-hidden />
                   <span className="font-semibold text-sm text-sub-coral">
                     이미 사용중인 닉네임이에요.
                   </span>

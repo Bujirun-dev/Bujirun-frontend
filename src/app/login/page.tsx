@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { KakaoLoginButton } from "@/components/ui/KakaoLoginButton";
 import characterImg from "@/assets/character/primary.png";
-import { StaircaseGlassCard } from "@/features/itinerary/components/StaircaseGlassCard";
+import { StaircaseGlassCard } from "@/components";
 
 export default function LoginPage() {
   return (

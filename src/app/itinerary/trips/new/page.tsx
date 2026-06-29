@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import travelImg from "@/assets/character/travel.png";
-import { TripSetupForm, StaircaseGlassCard } from "@/features/itinerary/components";
+import { TripSetupForm } from "@/features/itinerary/components";
+import { StaircaseGlassCard } from "@/components";
 
 export default function TripNewPage() {
   return (
