@@ -256,9 +256,7 @@ function TripResultContent() {
             disabled={!IS_HOST}
             className={cn(
               "flex h-[40px] w-full items-center justify-center gap-2 rounded-[14px] font-ssurround font-bold text-md text-main-white transition-opacity",
-              IS_HOST
-                ? "bg-text-heading text-white"
-                : "bg-text-heading/30 text-white/50 cursor-not-allowed",
+              IS_HOST ? "bg-main-blue" : "bg-sub-gray cursor-not-allowed",
             )}
           >
             <Image src={freepassWhiteIcon} alt="" width={18} height={18} aria-hidden />
