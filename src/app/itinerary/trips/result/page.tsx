@@ -184,7 +184,7 @@ function TripResultContent() {
                   type="button"
                   onClick={() => setActivePlan(plan.id)}
                   className={cn(
-                    "rounded-[10px] px-[14px] py-[2px] font-paperlogy font-normal text-md text-main-white flex items-center justify-center transition-colors",
+                    "rounded-[10px] px-[14px] py-[3px] font-proup text-md text-main-white flex items-center justify-center transition-colors",
                     activePlan === plan.id ? "bg-main-blue" : "bg-sub-lightblue",
                   )}
                 >
