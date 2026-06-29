@@ -71,7 +71,7 @@ function TripWaitingContent() {
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pb-16">
-      <div className="w-full rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-6 py-[40px] backdrop-blur-[15px] flex flex-col items-center">
+      <div className="w-full rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-[30px] py-[50px] backdrop-blur-[15px] flex flex-col items-center">
         {/* 안내 문구 */}
         <p
           className="font-paperlogy font-medium text-xl text-text-heading text-center"
