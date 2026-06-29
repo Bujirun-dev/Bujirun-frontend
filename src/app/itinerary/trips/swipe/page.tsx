@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import pawIcon from "@/assets/icons/itinerary/paw-print.png";
 
 // TODO: API 연동 후 실제 관광지 데이터로 교체
@@ -22,7 +22,17 @@ const MOCK_PLACES = [
 const SWIPE_THRESHOLD = 80;
 
 export default function TripSwipePage() {
+  return (
+    <Suspense fallback={null}>
+      <TripSwipeContent />
+    </Suspense>
+  );
+}
+
+function TripSwipeContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const count = searchParams.get("count") ?? "6";
   const [currentIndex, setCurrentIndex] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -37,7 +47,7 @@ export default function TripSwipePage() {
     setTimeout(() => {
       const nextIndex = currentIndex + 1;
       if (nextIndex >= total) {
-        router.push("/itinerary/trips/waiting");
+        router.push(`/itinerary/trips/waiting?count=${count}`);
         return;
       }
       setCurrentIndex(nextIndex);
