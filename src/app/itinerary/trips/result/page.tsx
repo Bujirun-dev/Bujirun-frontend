@@ -259,7 +259,7 @@ function TripResultContent() {
               IS_HOST ? "bg-main-blue" : "bg-sub-gray cursor-not-allowed",
             )}
           >
-            <Image src={freepassWhiteIcon} alt="" width={15} height={15} aria-hidden />
+            <Image src={freepassWhiteIcon} alt="" width={15} height={15} aria-hidden className="-translate-y-0.5" />
             <span>방장 마음대로 프리패스!</span>
           </button>
         </div>
