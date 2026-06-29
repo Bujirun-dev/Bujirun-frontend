@@ -185,94 +185,97 @@ function TripResultContent() {
             <Image src={infoIcon} alt="안내" width={14} height={14} />
           </div>
 
-          {/* 안 선택 탭 + 투표 수 */}
-          <div className="mt-4 flex items-center gap-2">
-            {MOCK_PLANS.map((plan) => (
-              <button
-                key={plan.id}
-                type="button"
-                onClick={() => setActivePlan(plan.id)}
-                className={cn(
-                  "size-9 rounded-full font-ssurround font-bold text-lg flex items-center justify-center transition-colors",
-                  activePlan === plan.id
-                    ? "bg-main-blue text-white"
-                    : "bg-sub-lightblue text-sub-deepblue",
-                )}
-              >
-                {plan.id}
-              </button>
-            ))}
-            <span className="ml-1 font-paperlogy text-sm text-text-secondary">
-              {PLAN_LABELS[activePlan]}
-            </span>
-            <div className="ml-auto flex items-center gap-1">
-              <span className="font-paperlogy text-sm text-sub-deepblue">♥</span>
-              <span className="font-paperlogy font-bold text-sm text-sub-deepblue">
-                {currentPlan.voteCount + (myVote === activePlan ? 1 : 0)}
+          {/* 글래스 카드 - 투표 정보 */}
+          <div className="mt-4 w-full rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-5 py-5 backdrop-blur-[15px] flex flex-col">
+            {/* 안 선택 탭 + 투표 수 */}
+            <div className="flex items-center gap-2">
+              {MOCK_PLANS.map((plan) => (
+                <button
+                  key={plan.id}
+                  type="button"
+                  onClick={() => setActivePlan(plan.id)}
+                  className={cn(
+                    "size-9 rounded-full font-ssurround font-bold text-lg flex items-center justify-center transition-colors",
+                    activePlan === plan.id
+                      ? "bg-main-blue text-white"
+                      : "bg-sub-lightblue text-sub-deepblue",
+                  )}
+                >
+                  {plan.id}
+                </button>
+              ))}
+              <span className="ml-1 font-paperlogy text-sm text-text-secondary">
+                {PLAN_LABELS[activePlan]}
               </span>
-            </div>
-          </div>
-
-          {/* 타임라인 */}
-          <div className="relative mt-5 pl-5">
-            {/* 세로 점선 */}
-            <div className="absolute left-[8px] top-0 bottom-0 w-[1.5px] border-l-2 border-dashed border-sub-lightblue" />
-
-            {/* 출발 */}
-            <div className="relative mb-3 flex items-center gap-2">
-              <div className="relative z-10 flex size-[18px] shrink-0 items-center justify-center rounded-full bg-white">
-                <Image src={fromIcon} alt="" width={14} height={14} aria-hidden />
-              </div>
-              <div className="rounded-[8px] bg-sub-lightblue px-2.5 py-1">
-                <span className="font-paperlogy text-sm text-text-primary">10:00 여행 시작!</span>
+              <div className="ml-auto flex items-center gap-1">
+                <span className="font-paperlogy text-sm text-sub-deepblue">♥</span>
+                <span className="font-paperlogy font-bold text-sm text-sub-deepblue">
+                  {currentPlan.voteCount + (myVote === activePlan ? 1 : 0)}
+                </span>
               </div>
             </div>
 
-            {/* 각 Day */}
-            {currentPlan.days.map((day) => (
-              <div key={day.day} className="mb-3">
-                <div className="relative mb-2 flex items-center gap-2">
-                  <div className="relative z-10 flex size-[18px] shrink-0 items-center justify-center rounded-full bg-white">
-                    <Image src={flagIcon} alt="" width={12} height={12} aria-hidden />
-                  </div>
-                  <span className="font-paperlogy font-bold text-sm text-text-heading">
-                    {day.label}
-                  </span>
+            {/* 타임라인 */}
+            <div className="relative mt-5 pl-5">
+              {/* 세로 점선 */}
+              <div className="absolute left-[8px] top-0 bottom-0 w-[1.5px] border-l-2 border-dashed border-sub-lightblue" />
+
+              {/* 출발 */}
+              <div className="relative mb-3 flex items-center gap-2">
+                <div className="relative z-10 flex size-[18px] shrink-0 items-center justify-center rounded-full bg-white">
+                  <Image src={fromIcon} alt="" width={14} height={14} aria-hidden />
                 </div>
-                <div className="flex gap-2 overflow-x-auto pb-1 pl-7">
-                  {day.places.map((place) => (
-                    <div key={place.id} className="shrink-0">
-                      <VotePlaceCard imageUrl={place.image} name={place.name} />
+                <div className="rounded-[8px] bg-sub-lightblue px-2.5 py-1">
+                  <span className="font-paperlogy text-sm text-text-primary">10:00 여행 시작!</span>
+                </div>
+              </div>
+
+              {/* 각 Day */}
+              {currentPlan.days.map((day) => (
+                <div key={day.day} className="mb-3">
+                  <div className="relative mb-2 flex items-center gap-2">
+                    <div className="relative z-10 flex size-[18px] shrink-0 items-center justify-center rounded-full bg-white">
+                      <Image src={flagIcon} alt="" width={12} height={12} aria-hidden />
                     </div>
-                  ))}
+                    <span className="font-paperlogy font-bold text-sm text-text-heading">
+                      {day.label}
+                    </span>
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-1 pl-7">
+                    {day.places.map((place) => (
+                      <div key={place.id} className="shrink-0">
+                        <VotePlaceCard imageUrl={place.image} name={place.name} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {/* 도착 */}
+              <div className="relative flex items-center gap-2">
+                <div className="relative z-10 flex size-[18px] shrink-0 items-center justify-center rounded-full bg-white">
+                  <Image src={toIcon} alt="" width={14} height={14} aria-hidden />
+                </div>
+                <div className="rounded-[8px] bg-sub-lightblue px-2.5 py-1">
+                  <span className="font-paperlogy text-sm text-text-primary">15:00 여행 끝!</span>
                 </div>
               </div>
-            ))}
-
-            {/* 도착 */}
-            <div className="relative flex items-center gap-2">
-              <div className="relative z-10 flex size-[18px] shrink-0 items-center justify-center rounded-full bg-white">
-                <Image src={toIcon} alt="" width={14} height={14} aria-hidden />
-              </div>
-              <div className="rounded-[8px] bg-sub-lightblue px-2.5 py-1">
-                <span className="font-paperlogy text-sm text-text-primary">15:00 여행 끝!</span>
-              </div>
             </div>
-          </div>
 
-          {/* 투표 버튼 */}
-          <button
-            type="button"
-            onClick={hasVoted ? handleVoteComplete : handleVote}
-            className={cn(
-              "mt-5 h-[42px] w-full rounded-[12px] font-ssurround font-bold text-lg transition-colors",
-              hasVoted
-                ? "bg-main-blue text-white"
-                : "bg-sub-lightblue text-sub-deepblue opacity-50",
-            )}
-          >
-            {hasVoted ? "투표 완료! 일정 보러가기 →" : "이 일정에 투표하기 ♥"}
-          </button>
+            {/* 투표 버튼 */}
+            <button
+              type="button"
+              onClick={hasVoted ? handleVoteComplete : handleVote}
+              className={cn(
+                "mt-5 h-[42px] w-full rounded-[12px] font-ssurround font-bold text-lg transition-colors",
+                hasVoted
+                  ? "bg-main-blue text-white"
+                  : "bg-sub-lightblue text-sub-deepblue opacity-50",
+              )}
+            >
+              {hasVoted ? "투표 완료! 일정 보러가기 →" : "이 일정에 투표하기 ♥"}
+            </button>
+          </div>
         </div>
 
         {/* 프리패스 버튼 (방장만 활성화) */}
