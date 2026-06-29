@@ -6,6 +6,7 @@ import FreepassIcon from "@/assets/icons/itinerary/freepass.svg?svgr";
 import magicWandIcon from "@/assets/icons/itinerary/magic-wand.svg?url";
 import seaCharacter from "@/assets/character/sea.png";
 import { Modal } from "@/components";
+import { LoadingProgressBar } from "./LoadingProgressBar";
 
 interface AiOptimizeLoadingModalProps {
   isOpen: boolean;
@@ -86,12 +87,7 @@ export function AiOptimizeLoadingModal({
       childrenVariant="card"
       footer={
         <div className="flex flex-col items-center gap-3 w-full">
-          <div className="w-[248px] h-[8px] rounded-lg bg-system-scroll overflow-hidden">
-            <div
-              className="h-full bg-sub-deepblue rounded-lg transition-all duration-[3000ms] ease-in-out"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+          <LoadingProgressBar progress={progress} />
           <Image
             src={seaCharacter}
             alt="캐릭터"
