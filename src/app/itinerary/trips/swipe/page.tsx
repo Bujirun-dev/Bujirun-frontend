@@ -30,7 +30,7 @@ export default function TripSwipePage() {
   const startXRef = useRef(0);
   const total = MOCK_PLACES.length;
   const place = MOCK_PLACES[currentIndex];
-  const progress = currentIndex / total;
+  const progress = (currentIndex + 1) / total;
 
   const handleSwipe = (direction: "left" | "right") => {
     setIsAnimatingOut(direction);
@@ -86,28 +86,24 @@ export default function TripSwipePage() {
       </div>
 
       {/* 프로그레스 바 */}
-      <div className="relative mt-[18px] w-full">
-        <div className="h-[3px] w-full rounded-full bg-sub-lightblue">
-          <div
-            className="h-[3px] rounded-full bg-text-heading transition-all duration-300"
-            style={{ width: `${progress * 100}%` }}
-          />
-        </div>
+      <div className="mt-5 flex w-full items-center gap-0">
         <div
-          className="absolute -top-[8.5px] transition-all duration-300"
-          style={{ left: `calc(${progress * 100}% - 10px)` }}
-        >
+          className="h-[3px] rounded-full bg-text-heading transition-all duration-300"
+          style={{ width: `calc(${progress * 100}% - 10px)` }}
+        />
+        <div className="shrink-0 transition-all duration-300">
           <Image src={pawIcon} alt="" width={20} height={20} aria-hidden />
         </div>
+        <div className="h-[3px] flex-1 rounded-full bg-sub-lightblue" />
       </div>
 
       {/* 카운터 */}
-      <p className="mt-4 font-paperlogy font-bold text-md text-text-heading">
+      <p className="mt-3 font-paperlogy font-bold text-md text-text-heading">
         {currentIndex + 1}/{total}
       </p>
 
       {/* 스와이프 카드 */}
-      <div className="relative mt-4 flex w-full flex-1 items-center justify-center">
+      <div className="relative mt-5 flex w-full flex-1 items-center justify-center">
         {/* 카드 */}
         <div
           className="relative h-full w-full cursor-grab rounded-[30px] overflow-hidden shadow-lg select-none active:cursor-grabbing"
@@ -129,20 +125,26 @@ export default function TripSwipePage() {
           />
         </div>
 
-        {/* 별로에요 힌트 - 카드 왼쪽 테두리 세로 중간 */}
+        {/* 별로에요 힌트 - 고정, 왼쪽 드래그 시 강조 / 오른쪽 드래그 시 흐려짐 */}
         <div
-          className="pointer-events-none absolute left-0 top-1/2 z-20 flex size-[30px] items-center justify-center rounded-[10px] bg-system-whitebg transition-opacity duration-150"
-          style={{ opacity: 0.5 + nopeOpacity * 0.5, transform: "translate(-50%, -50%)" }}
+          className="pointer-events-none absolute left-0 top-1/2 z-20 flex size-[26px] items-center justify-center rounded-[10px] bg-white/80 transition-opacity duration-150"
+          style={{
+            opacity: Math.max(0.3, 0.8 - likeOpacity * 0.5) + nopeOpacity * 0.2,
+            transform: "translate(-50%, -50%)",
+          }}
         >
-          <span className="text-[20px] leading-none">☹️</span>
+          <span className="text-[16px] leading-none">☹️</span>
         </div>
 
-        {/* 좋아요 힌트 - 카드 오른쪽 테두리 세로 중간 */}
+        {/* 좋아요 힌트 - 고정, 오른쪽 드래그 시 강조 / 왼쪽 드래그 시 흐려짐 */}
         <div
-          className="pointer-events-none absolute right-0 top-1/2 z-20 flex size-[30px] items-center justify-center rounded-[10px] bg-system-whitebg transition-opacity duration-150"
-          style={{ opacity: 0.5 + likeOpacity * 0.5, transform: "translate(50%, -50%)" }}
+          className="pointer-events-none absolute right-0 top-1/2 z-20 flex size-[26px] items-center justify-center rounded-[10px] bg-white/80 transition-opacity duration-150"
+          style={{
+            opacity: Math.max(0.3, 0.8 - nopeOpacity * 0.5) + likeOpacity * 0.2,
+            transform: "translate(50%, -50%)",
+          }}
         >
-          <span className="text-[20px] leading-none">❣️</span>
+          <span className="text-[16px] leading-none">❣️</span>
         </div>
       </div>
     </div>
