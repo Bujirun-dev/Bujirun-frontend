@@ -176,7 +176,7 @@ function TripResultContent() {
       {/* 투표 섹션 - PageCard 스타일 */}
       <div className="-mx-6 flex flex-1 flex-col overflow-hidden rounded-tl-[40px] rounded-tr-[40px] bg-white">
         {/* 스크롤 영역 */}
-        <div className="flex-1 overflow-y-auto px-8 pt-8 pb-4">
+        <div className="flex-1 overflow-y-auto px-5 pt-5 pb-4">
           {/* 헤더 */}
           <div className="flex items-center gap-1.5">
             <span className="font-ssurround font-bold text-lg text-text-heading">
@@ -276,7 +276,7 @@ function TripResultContent() {
         </div>
 
         {/* 프리패스 버튼 (방장만 활성화) */}
-        <div className="shrink-0 px-8 pb-6 pt-2">
+        <div className="shrink-0 px-5 pb-5 pt-2">
           <button
             type="button"
             onClick={IS_HOST ? handleFreepass : undefined}
