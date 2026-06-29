@@ -27,14 +27,14 @@ export default function RelatedLogsPage({ params }: { params: Promise<{ id: stri
   return (
     <PageCard className="px-0 pt-0">
       {/* 헤더 */}
-      <div className="flex items-center gap-3 px-6 py-4 shrink-0">
+      <div className="flex items-center gap-3 py-4 shrink-0">
         <BackButton className="bg-transparent" onClick={() => router.back()} />
         <h1 className="font-ssurround font-bold text-lg text-text-heading">관련 로그</h1>
       </div>
 
       {/* 관광지명 */}
       {placeName && (
-        <div className="px-6 pb-3 shrink-0">
+        <div className="pb-3 shrink-0">
           <span className="text-xs text-sub-gray">
             <span className="font-semibold text-sub-deepblue">{placeName}</span>을(를) 방문한 로그
           </span>
@@ -42,7 +42,7 @@ export default function RelatedLogsPage({ params }: { params: Promise<{ id: stri
       )}
 
       {/* 로그 목록 */}
-      <div className="flex-1 overflow-y-auto px-6 pb-6">
+      <div className="flex-1 overflow-y-auto pb-6">
         {relatedLogs.length === 0 ? (
           // 빈 상태
           <div className="flex flex-col items-center justify-center h-full gap-2 pt-20">
