@@ -249,7 +249,7 @@ function TripResultContent() {
         </div>
 
         {/* 프리패스 버튼 (방장만 활성화) */}
-        <div className="shrink-0 px-[28px] pb-[28px] pt-2">
+        <div className="shrink-0 px-[28px] py-[10px]">
           <button
             type="button"
             onClick={IS_HOST ? handleFreepass : undefined}
@@ -259,7 +259,7 @@ function TripResultContent() {
               IS_HOST ? "bg-main-blue" : "bg-sub-gray cursor-not-allowed",
             )}
           >
-            <Image src={freepassWhiteIcon} alt="" width={18} height={18} aria-hidden />
+            <Image src={freepassWhiteIcon} alt="" width={15} height={15} aria-hidden />
             <span>방장 마음대로 프리패스!</span>
           </button>
         </div>
