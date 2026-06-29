@@ -140,20 +140,9 @@ function TripResultContent() {
   const count = searchParams.get("count") ?? "6";
 
   const [activePlan, setActivePlan] = useState<string>("A");
-  const [myVote, setMyVote] = useState<string | null>(null);
-
   const currentPlan = MOCK_PLANS.find((p) => p.id === activePlan) ?? MOCK_PLANS[0];
-  const hasVoted = myVote !== null;
-
-  const handleVote = () => {
-    setMyVote(activePlan);
-  };
 
   const handleFreepass = () => {
-    router.push(`/itinerary?count=${count}`);
-  };
-
-  const handleVoteComplete = () => {
     router.push(`/itinerary?count=${count}`);
   };
 
@@ -210,7 +199,7 @@ function TripResultContent() {
               <div className="ml-auto flex items-center gap-1">
                 <span className="font-paperlogy text-sm text-sub-deepblue">♥</span>
                 <span className="font-paperlogy font-bold text-sm text-sub-deepblue">
-                  {currentPlan.voteCount + (myVote === activePlan ? 1 : 0)}
+                  {currentPlan.voteCount}
                 </span>
               </div>
             </div>
@@ -261,20 +250,6 @@ function TripResultContent() {
                 </div>
               </div>
             </div>
-
-            {/* 투표 버튼 */}
-            <button
-              type="button"
-              onClick={hasVoted ? handleVoteComplete : handleVote}
-              className={cn(
-                "mt-5 h-[42px] w-full rounded-[12px] font-ssurround font-bold text-lg transition-colors",
-                hasVoted
-                  ? "bg-main-blue text-white"
-                  : "bg-sub-lightblue text-sub-deepblue opacity-50",
-              )}
-            >
-              {hasVoted ? "투표 완료! 일정 보러가기 →" : "이 일정에 투표하기 ♥"}
-            </button>
           </div>
         </div>
 
