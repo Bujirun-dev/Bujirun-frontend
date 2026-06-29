@@ -1,18 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import calendarIcon from "@/assets/icons/itinerary/calendar.svg?url";
-import friendsIcon from "@/assets/icons/itinerary/friends.svg?url";
-import titleIcon from "@/assets/icons/itinerary/title.svg?url";
-import noIcon from "@/assets/icons/login-register/no.svg?url";
-import yesIcon from "@/assets/icons/login-register/yes.svg?url";
+import CalendarIcon from "@/assets/icons/itinerary/calendar.svg?svgr";
+import ClockIcon from "@/assets/icons/itinerary/clock.svg?svgr";
+import FriendsIcon from "@/assets/icons/itinerary/friends.svg?svgr";
+import TitleIcon from "@/assets/icons/itinerary/title.svg?svgr";
+import NoIcon from "@/assets/icons/login-register/no.svg?svgr";
+import YesIcon from "@/assets/icons/login-register/yes.svg?svgr";
 import { Counter } from "@/components";
 import { TripDateTimePicker, formatTripDateTime } from "./TripDateTimePicker";
 import { cn } from "@/shared/utils";
-
-const pad = (n: number) => String(n).padStart(2, "0");
 
 function getDefaultDates() {
   const now = new Date();
@@ -37,15 +35,15 @@ export function TripSetupForm() {
   const handleInvite = () => {
     if (!isNameValid) return;
     // TODO: API 연동 - trip 생성 후 친구 초대 페이지로 이동
-    router.push("/itinerary/trips/invite");
+    router.push(`/itinerary/trips/invite?count=${friendCount}`);
   };
 
   return (
-    <div className="-mx-6 bg-white rounded-tl-[40px] rounded-tr-[40px] px-8 pt-9 pb-4 flex flex-col gap-5">
+    <div className="-mx-6 flex flex-col gap-5 rounded-tl-[40px] rounded-tr-[40px] bg-white px-8 pt-9 pb-6">
       {/* 여행명 */}
       <section>
         <div className="flex items-center gap-1.5 mb-[10px]">
-          <Image src={titleIcon} alt="" width={16} height={16} className="-translate-y-[2px]" aria-hidden />
+          <TitleIcon width={16} height={16} className="-translate-y-[1px]" aria-hidden />
           <span className="font-ssurround font-bold text-lg text-text-heading">여행명</span>
         </div>
         <div className="relative">
@@ -55,7 +53,7 @@ export function TripSetupForm() {
             onChange={(e) => setTripName(e.target.value.slice(0, 15))}
             placeholder="2-15글자 입력 가능"
             className={cn(
-              "w-full py-[10px] pl-[15px] pr-14 rounded-[10px] border",
+              "w-full rounded-[10px] border py-[10px] pl-[15px] pr-14",
               "font-paperlogy font-medium text-xs text-sub-gray",
               "placeholder:font-paperlogy placeholder:font-medium placeholder:text-xs placeholder:text-sub-gray",
               "outline-none transition-colors",
@@ -63,56 +61,64 @@ export function TripSetupForm() {
             )}
           />
           {hasName && (
-            <div className="absolute right-2 top-1/2 -translate-y-1/2">
+            <div className="absolute right-[8px] top-1/2 -translate-y-1/2">
               {isNameValid ? (
-                <Image src={yesIcon} alt="유효" width={14} height={14} className="icon-deepblue" aria-hidden />
+                <YesIcon width={14} height={14} className="fill-sub-deepblue" aria-hidden />
               ) : (
                 <button type="button" onClick={() => setTripName("")} aria-label="지우기">
-                  <Image src={noIcon} alt="" width={14} height={14} className="icon-coral" aria-hidden />
+                  <NoIcon width={14} height={14} className="fill-sub-coral" aria-hidden />
                 </button>
               )}
             </div>
           )}
         </div>
-        {hasName && (
-          <p className="text-right font-paperlogy font-semibold text-sm text-sub-gray mt-[4px] pr-1">
-            {nameLength}/15
-          </p>
-        )}
+        <p
+          className={cn(
+            "mt-[6px] h-[17px] pr-[8px] text-right font-paperlogy text-sm font-semibold text-sub-gray",
+            !hasName && "opacity-0",
+          )}
+        >
+          {nameLength}/15
+        </p>
       </section>
 
       {/* 여행기간 */}
-      <section>
+      <section className="-mt-1">
         <div className="flex items-center gap-1.5 mb-[10px]">
-          <Image src={calendarIcon} alt="" width={16} height={16} aria-hidden />
+          <CalendarIcon width={16} height={16} aria-hidden />
           <span className="font-ssurround font-bold text-lg text-text-heading">여행기간</span>
         </div>
-        <div className="rounded-[20px] border border-main-blue/20 bg-gradient-to-b from-white/50 to-[#EAF4FF]/40 px-6 py-3 flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px]">⏰</span>
-              <span className="text-xs font-semibold text-text-primary tracking-[0.36px]">
+        <div className="rounded-[20px] border border-main-blue/20 bg-gradient-to-b from-white/50 to-[#EAF4FF]/40 px-[28px] py-[16px] flex flex-col gap-3">
+          <div className="flex items-center gap-[14px]">
+            <div className="flex items-center gap-[4px]">
+              <ClockIcon width={12} height={12} aria-hidden />
+              <span className="font-paperlogy font-semibold text-sm text-text-primary">
                 시작 시간
               </span>
             </div>
-            <TripDateTimePicker value={startDate} onChange={setStartDate} />
+            <TripDateTimePicker value={startDate} onChange={setStartDate} className="flex-1" />
           </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px]">⏰</span>
-              <span className="text-xs font-semibold text-text-primary tracking-[0.36px]">
+          <div className="flex items-center gap-[14px]">
+            <div className="flex items-center gap-[4px]">
+              <ClockIcon width={12} height={12} aria-hidden />
+              <span className="font-paperlogy font-semibold text-sm text-text-primary">
                 종료 시간
               </span>
             </div>
-            <TripDateTimePicker value={endDate} onChange={setEndDate} minValue={startDate} />
+            <TripDateTimePicker
+              value={endDate}
+              onChange={setEndDate}
+              minValue={startDate}
+              className="flex-1"
+            />
           </div>
         </div>
       </section>
 
       {/* 친구 수 */}
-      <section className="flex items-center justify-between">
+      <section className="mt-1 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <Image src={friendsIcon} alt="" width={16} height={16} aria-hidden />
+          <FriendsIcon width={16} height={16} aria-hidden />
           <span className="font-ssurround font-bold text-lg text-text-heading">친구 수</span>
         </div>
         <Counter value={friendCount} onChange={setFriendCount} min={2} max={6} />
@@ -124,7 +130,7 @@ export function TripSetupForm() {
         onClick={handleInvite}
         disabled={!isNameValid}
         className={cn(
-          "w-full h-[40px] rounded-[10px] font-ssurround font-bold text-sm transition-colors",
+          "mt-1 h-[40px] w-full rounded-[10px] font-ssurround font-bold text-sm transition-colors",
           isNameValid
             ? "bg-main-blue text-white active:opacity-80"
             : "border-2 border-main-blue text-main-blue bg-transparent",
