@@ -25,6 +25,7 @@ export function WithdrawModal({ isOpen, onClose, onConfirm }: WithdrawModalProps
       isOpen={isOpen}
       onClose={onClose}
       icon={<Image src={leaveIcon} alt="회원탈퇴" width={25} height={25} />}
+      iconClassName="!bg-system-coralbg"
       title="회원 탈퇴"
       titleClassName="tracking-[0.5px]"
       confirmVariant="warning"

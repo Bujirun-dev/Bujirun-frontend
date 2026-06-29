@@ -18,6 +18,7 @@ export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
       isOpen={isOpen}
       onClose={onClose}
       icon={<Image src={logoutIcon} alt="로그아웃" width={25} height={25} className="icon-coral" />}
+      iconClassName="!bg-system-coralbg"
       title="로그아웃"
       titleClassName="tracking-[0.5px]"
       className="h-[435px] gap-3 pt-[48px] pb-[48px]"

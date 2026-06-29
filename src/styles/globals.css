@@ -147,6 +147,7 @@
   /* System */
   --color-system-whitebg: rgba(255, 255, 255, 0.4);
   --color-system-blackbg: rgba(0, 0, 0, 0.4);
+  --color-system-coralbg: rgba(255, 127, 80, 0.1);
   --color-system-navbg: #ecf5ff;
   --color-system-scroll: #d5e6ff;
   --color-system-searchbg: #f2f5fa;
