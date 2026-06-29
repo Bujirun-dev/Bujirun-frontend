@@ -94,7 +94,7 @@ function TripPersonalityContent() {
           </button>
           <button
             type="button"
-            onClick={() => router.push("/itinerary/trips/swipe")}
+            onClick={() => router.push(`/itinerary/trips/swipe?count=${totalSlots}`)}
             className="flex-1 h-[40px] rounded-[10px] bg-main-blue font-ssurround font-bold text-sm text-white"
           >
             취향분석 할래!

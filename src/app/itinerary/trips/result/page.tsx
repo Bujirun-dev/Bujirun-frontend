@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/shared/utils";
 import { CategoryChip } from "@/components";
@@ -141,15 +141,6 @@ function TripResultContent() {
 
   const [activePlan, setActivePlan] = useState<string>("A");
   const [myVote, setMyVote] = useState<string | null>(null);
-  const routerRef = useRef(router);
-
-  // TODO: API 연동 후 모두 투표 완료 시 이동으로 교체
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      routerRef.current.push("/itinerary");
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
 
   const currentPlan = MOCK_PLANS.find((p) => p.id === activePlan) ?? MOCK_PLANS[0];
   const hasVoted = myVote !== null;
