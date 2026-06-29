@@ -15,12 +15,13 @@ export function PlaceBadge({ placeName }: { placeName: string }) {
   );
 }
 
-export function Notice({ children }: { children: ReactNode }) {
+export function Notice({ children, icon }: { children: ReactNode; icon?: ReactNode }) {
   return (
     <Card
       variant="glass-sm"
-      className="flex h-[34px] w-full items-center justify-center rounded-xl border-[0.5px] border-system-scroll px-3 py-0 text-center"
+      className="flex h-[34px] w-full items-center justify-center gap-2 rounded-xl border-[0.5px] border-system-scroll px-3 py-0 text-center"
     >
+      {icon}
       <span className="text-sm font-medium text-sub-darkgray">{children}</span>
     </Card>
   );

@@ -178,7 +178,6 @@ function ItineraryMain() {
       );
       return next;
     });
-    closeModal();
     setToastMessage("방문이 인증되었어요.");
   };
 

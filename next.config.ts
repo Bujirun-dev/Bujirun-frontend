@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
             any: [{ query: /[?&]svgr(?=&|$)/ }, { not: { query: /[?&]url(?=&|$)/ } }],
           },
           loaders: ["@svgr/webpack"],
-          as: "*.tsx",
+          as: "*.js",
         },
       ],
     },

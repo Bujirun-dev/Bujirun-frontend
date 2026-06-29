@@ -82,7 +82,7 @@ export function PlaceDetailContent({ stop, onClose, onAdd }: PlaceDetailContentP
             aria-hidden
           />
         </button>
-        {onAdd ? (
+        {onAdd && (
           <button
             type="button"
             onClick={onAdd}
@@ -90,19 +90,6 @@ export function PlaceDetailContent({ stop, onClose, onAdd }: PlaceDetailContentP
             aria-label="내 일정에 추가"
           >
             <PlusIcon width={16} height={16} className="text-main-white" aria-hidden />
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setBookmarked((prev) => !prev)}
-            className="relative -right-1 -top-1 flex size-6 items-center justify-center"
-            aria-label={bookmarked ? "북마크 해제" : "북마크"}
-          >
-            {bookmarked ? (
-              <BookmarkOnIcon width={12} height={12} className="fill-main-blue" aria-hidden />
-            ) : (
-              <BookmarkOffIcon width={12} height={12} className="fill-sub-darkgray" aria-hidden />
-            )}
           </button>
         )}
       </div>
@@ -120,20 +107,18 @@ export function PlaceDetailContent({ stop, onClose, onAdd }: PlaceDetailContentP
           <h2 className="mr-3 truncate text-md font-medium text-text-heading">{stop.placeName}</h2>
           <CategoryChip category={stop.category} size="sm" className="shrink-0" />
         </div>
-        {onAdd && (
-          <button
-            type="button"
-            onClick={() => setBookmarked((prev) => !prev)}
-            className="relative ml-2 flex size-6 shrink-0 items-center justify-center"
-            aria-label={bookmarked ? "북마크 해제" : "북마크"}
-          >
-            {bookmarked ? (
-              <BookmarkOnIcon width={12} height={12} className="fill-main-blue" aria-hidden />
-            ) : (
-              <BookmarkOffIcon width={12} height={12} className="fill-sub-darkgray" aria-hidden />
-            )}
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => setBookmarked((prev) => !prev)}
+          className="relative ml-2 flex size-6 shrink-0 items-center justify-center"
+          aria-label={bookmarked ? "북마크 해제" : "북마크"}
+        >
+          {bookmarked ? (
+            <BookmarkOnIcon width={12} height={12} className="fill-main-blue" aria-hidden />
+          ) : (
+            <BookmarkOffIcon width={12} height={12} className="fill-sub-darkgray" aria-hidden />
+          )}
+        </button>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-1">
