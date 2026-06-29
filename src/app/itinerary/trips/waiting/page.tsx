@@ -59,13 +59,13 @@ function TripWaitingContent() {
   const doneCount = Math.ceil(totalSlots / 2);
   const rows = buildRows(totalSlots);
 
+  // TODO: API 연동 후 모두 완료 조건으로 교체
   useEffect(() => {
-    if (doneCount < totalSlots) return;
     const timer = setTimeout(() => {
       router.push(`/itinerary/trips/result?count=${totalSlots}`);
-    }, 1000);
+    }, 3000);
     return () => clearTimeout(timer);
-  }, [doneCount, totalSlots, router]);
+  }, [router, totalSlots]);
 
   let slotIdx = 0;
 
