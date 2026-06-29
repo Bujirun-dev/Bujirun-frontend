@@ -161,8 +161,8 @@ function TripResultContent() {
     <div className="flex h-full flex-col">
       {/* 공통 취향 glass 카드 */}
       <div className="shrink-0 pt-4 pb-3">
-        <div className="w-full rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-[24px] py-[28px] backdrop-blur-[15px] flex flex-col items-start gap-2.5">
-          <p className="font-ssurround font-bold text-lg text-text-heading">
+        <div className="w-full rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-[24px] py-[28px] backdrop-blur-[15px] flex flex-col items-center gap-2.5">
+          <p className="font-ssurround font-bold text-lg text-text-heading text-center">
             우리의 공통 취향은...
           </p>
           <div className="flex items-center gap-2">
