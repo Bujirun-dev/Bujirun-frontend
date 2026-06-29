@@ -31,19 +31,19 @@ export function PlaceCard({
   return (
     <div
       className={cn(
-        "w-full min-w-0 h-[98px] flex bg-main-white rounded-2xl overflow-hidden shadow-[0_2px_8px_0_var(--color-system-scroll)] cursor-pointer",
+        "w-full min-w-0 h-[98px] flex bg-main-white rounded-2xl overflow-hidden border-[0.5px] border-system-glassborder shadow-[2px_2px_10px_0px_var(--color-system-glassborder)] cursor-pointer",
         className,
       )}
       onClick={onClick}
     >
-      <div className="relative w-[115px] h-[80px] shrink-0 self-center ml-2 rounded-xl overflow-hidden">
+      <div className="relative w-[108px] h-[80px] shrink-0 self-center ml-2 rounded-xl overflow-hidden">
         <Image src={imageUrl} alt={name} fill className="object-cover" />
       </div>
 
       <div className="min-w-0 flex-1 flex flex-col justify-between px-2.5 py-2.5 overflow-hidden relative">
         <div className="flex flex-col gap-1">
           <div className="flex min-w-0 items-center gap-1 pr-5">
-            <MarkerIcon width={13} height={13} className="shrink-0 fill-sub-deepblue" aria-hidden />
+            <MarkerIcon width={13} height={13} className="shrink-0 fill-main-blue" aria-hidden />
             <span className="font-medium text-md text-text-heading truncate">{name}</span>
           </div>
           <CategoryChip category={category} className="self-start" />

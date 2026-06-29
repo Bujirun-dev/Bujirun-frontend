@@ -75,7 +75,7 @@ export function TripReceiptModal({
     <div className="fixed left-1/2 top-0 z-50 h-[844px] max-h-dvh w-full max-w-[390px] -translate-x-1/2 overflow-hidden bg-system-blackbg">
       <div className="h-full overflow-y-auto">
         <div className="mx-auto flex min-h-full w-full justify-center px-5 py-13">
-          <div className="relative w-full max-w-[343px]">
+          <div className="relative w-full max-w-[320px]">
             {/* 다운로드되는 영수증 */}
             <div ref={receiptRef}>
               <TripReceipt tripId={tripId} />

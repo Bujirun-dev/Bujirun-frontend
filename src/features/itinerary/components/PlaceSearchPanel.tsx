@@ -141,11 +141,20 @@ function getInitial(name: string): string {
   return CONSONANT_NORMALIZE[raw] ?? raw;
 }
 
+export type SearchPlace = {
+  id: string;
+  name: string;
+  category: Category;
+  status: "uncollected" | "completed";
+  imageUrl: string;
+};
+
 interface PlaceSearchPanelProps {
   onClose?: () => void;
+  onPlaceSelect?: (place: SearchPlace) => void;
 }
 
-export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
+export function PlaceSearchPanel({ onClose, onPlaceSelect }: PlaceSearchPanelProps) {
   const router = useRouter();
   const [searchValue, setSearchValue] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("추천순");
@@ -270,9 +279,19 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
               status={place.status}
               imageUrl={place.imageUrl}
               onClick={() => {
-                onClose?.();
-                router.push(`/itinerary/place/${place.id}`);
-              }} // TODO: API place.id 로 교체
+                if (onPlaceSelect) {
+                  onPlaceSelect({
+                    id: place.id,
+                    name: place.name,
+                    category: place.category,
+                    status: place.status,
+                    imageUrl: place.imageUrl,
+                  });
+                } else {
+                  onClose?.();
+                  router.push(`/itinerary/place/${place.id}`);
+                }
+              }}
               className="rounded-2xl border border-system-glassborder shadow-[2px_2px_6px_0px_var(--color-system-glassborder)]"
             />
           ))}
@@ -303,9 +322,19 @@ export function PlaceSearchPanel({ onClose }: PlaceSearchPanelProps) {
                           idx === 0 ? "pt-0 pb-2.5" : "py-2.5",
                         )}
                         onClick={() => {
-                          onClose?.();
-                          router.push(`/itinerary/place/${place.id}`);
-                        }} // TODO: API place.id 로 교체
+                          if (onPlaceSelect) {
+                            onPlaceSelect({
+                              id: place.id,
+                              name: place.name,
+                              category: place.category,
+                              status: place.status,
+                              imageUrl: place.imageUrl,
+                            });
+                          } else {
+                            onClose?.();
+                            router.push(`/itinerary/place/${place.id}`);
+                          }
+                        }}
                       >
                         <MarkerIcon
                           width={12}

@@ -19,7 +19,9 @@ import {
   type BaseStop,
   buildDays,
   buildDaysFromLog,
+  rebuildTransport,
 } from "@/features/itinerary/utils/scheduleUtils";
+import type { SearchPlace } from "@/features/itinerary/components/PlaceSearchPanel";
 import type { RouteOption } from "@/features/itinerary";
 
 // TODO: 실제 API 연동 시 교체
@@ -130,17 +132,20 @@ function ItineraryMain() {
       return next;
     });
     closeModal();
+    setToastMessage("장소가 삭제되었어요.");
   };
   const confirmTime = () => {
     const timeStr = `${String(timeValue.hour).padStart(2, "0")}:${String(timeValue.minute).padStart(2, "0")}`;
     setStopsPerDay((prev) => {
       const next = [...prev];
-      next[activeDayIdx] = [...next[activeDayIdx]]
+      const sorted = [...next[activeDayIdx]]
         .map((s) => (s.id === activeStopId ? { ...s, time: timeStr } : s))
         .sort((a, b) => a.time.localeCompare(b.time));
+      next[activeDayIdx] = rebuildTransport(sorted);
       return next;
     });
     closeModal();
+    setToastMessage("시간이 변경되었어요.");
   };
   const confirmTransport = (option: RouteOption) => {
     setSelectedRouteOptionId(option.id);
@@ -163,6 +168,7 @@ function ItineraryMain() {
       return next;
     });
     closeModal();
+    setToastMessage("교통수단이 변경되었어요.");
   };
   const confirmVerify = () => {
     setStopsPerDay((prev) => {
@@ -173,6 +179,7 @@ function ItineraryMain() {
       return next;
     });
     closeModal();
+    setToastMessage("방문이 인증되었어요.");
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -185,12 +192,46 @@ function ItineraryMain() {
     if (diff < 0 && currentDay > 0) setCurrentDay((d) => d - 1);
   };
 
+  const replaceStop = (dayIdx: number, stopId: string, place: SearchPlace) => {
+    setStopsPerDay((prev) => {
+      const next = [...prev];
+      next[dayIdx] = rebuildTransport(
+        next[dayIdx].map((s) =>
+          s.id === stopId
+            ? {
+                ...s,
+                placeName: place.name,
+                imageUrl: place.imageUrl,
+                category: place.category,
+                status: place.status === "completed" ? ("completed" as const) : ("verify" as const),
+              }
+            : s,
+        ),
+      );
+      return next;
+    });
+    setToastMessage("관광지가 추가되었어요.");
+  };
+
+  const confirmTimeInline = (dayIdx: number, stopId: string, time: string) => {
+    setStopsPerDay((prev) => {
+      const next = [...prev];
+      const sorted = [...next[dayIdx]]
+        .map((s) => (s.id === stopId ? { ...s, time } : s))
+        .sort((a, b) => a.time.localeCompare(b.time));
+      next[dayIdx] = rebuildTransport(sorted);
+      return next;
+    });
+    setToastMessage("시간이 변경되었어요.");
+  };
+
   const allDayStops: ItineraryStop[][] = stopsPerDay.map((dayStops, dayIdx) =>
     dayStops.map((stop) => ({
       ...stop,
-      onClick: () => router.push(`/itinerary/place/${stop.id}`),
       onDelete: () => openDelete(dayIdx, stop.id),
       onTimeClick: () => openTime(dayIdx, stop.id, stop.time),
+      onTimeConfirm: (time: string) => confirmTimeInline(dayIdx, stop.id, time),
+      onAddPlace: (place: SearchPlace) => replaceStop(dayIdx, stop.id, place),
       onTransportClick: stop.transport ? () => openTransport(dayIdx, stop.id) : undefined,
       onVerify: stop.status === "verify" ? () => openVerify(dayIdx, stop.id) : undefined,
     })),
@@ -200,7 +241,7 @@ function ItineraryMain() {
 
   return (
     <div className="relative h-full">
-      <PageCard>
+      <PageCard className="pr-6">
         <ItineraryHeader
           currentDay={currentDay}
           tripName={schedule?.title ?? "부지렁즈"}

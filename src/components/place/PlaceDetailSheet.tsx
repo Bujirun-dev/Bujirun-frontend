@@ -2,6 +2,9 @@
 
 import Image from "next/image";
 import { createPortal } from "react-dom";
+import BookmarkOffIcon from "@/assets/icons/itinerary/bookmark-off.svg?svgr";
+import BookmarkOnIcon from "@/assets/icons/itinerary/bookmark-on.svg?svgr";
+import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
 import { cn } from "@/shared/utils";
 import { CategoryChip, StatusBadge, PlaceInfoRow } from "@/components";
 import type { Category } from "@/components";
@@ -63,7 +66,7 @@ export function PlaceDetailSheet({
     >
       <div
         className={cn(
-          "w-full max-w-[335px] h-[470px] max-h-[80dvh] rounded-2xl bg-main-white shadow-[0_2px_8px_0_var(--color-system-scroll)] flex flex-col overflow-hidden",
+          "w-full max-w-[320px] h-[470px] max-h-[80dvh] rounded-2xl bg-main-white shadow-[0_2px_8px_0_var(--color-system-scroll)] flex flex-col overflow-hidden",
           className,
         )}
         onClick={(e) => e.stopPropagation()}
@@ -105,27 +108,26 @@ export function PlaceDetailSheet({
           <div className="flex items-center justify-between pt-2.5 pb-2.5">
             <div className="flex items-center gap-2.5">
               <div className="flex items-center gap-1">
-                <svg width="13" height="15" viewBox="0 0 14 16" fill="none">
-                  <path
-                    d="M7 0C4.24 0 2 2.24 2 5C2 8.75 7 15 7 15C7 15 12 8.75 12 5C12 2.24 9.76 0 7 0Z"
-                    fill="var(--color-sub-coral)"
-                  />
-                  <circle cx="7" cy="5" r="2" fill="var(--color-main-white)" />
-                </svg>
+                <MarkerIcon
+                  width={13}
+                  height={15}
+                  className="shrink-0 fill-sub-coral"
+                  aria-hidden
+                />
                 <span className="font-medium text-md text-text-heading">{name}</span>
               </div>
               <CategoryChip category={category} />
             </div>
-            <button onClick={onBookmark} className="shrink-0">
-              <svg width="16" height="18" viewBox="0 0 20 24" fill="none">
-                <path
-                  d="M2 2H18C19.1 2 20 2.9 20 4V22L10 18L0 22V4C0 2.9 0.9 2 2 2Z"
-                  stroke={isBookmarked ? "var(--color-sub-coral)" : "var(--color-sub-lightgray)"}
-                  strokeWidth="1.8"
-                  strokeLinejoin="round"
-                  fill={isBookmarked ? "var(--color-sub-coral)" : "none"}
-                />
-              </svg>
+            <button
+              onClick={onBookmark}
+              className="shrink-0"
+              aria-label={isBookmarked ? "북마크 해제" : "북마크"}
+            >
+              {isBookmarked ? (
+                <BookmarkOnIcon width={16} height={18} className="fill-main-blue" aria-hidden />
+              ) : (
+                <BookmarkOffIcon width={16} height={18} className="fill-sub-darkgray" aria-hidden />
+              )}
             </button>
           </div>
 
@@ -143,13 +145,12 @@ export function PlaceDetailSheet({
               <div className="flex items-center gap-2 mb-2.5">
                 <h3 className="font-semibold text-sm text-text-heading">위치</h3>
                 <div className="flex items-center gap-1 bg-sub-lightblue px-2 py-0.5 rounded-full">
-                  <svg width="10" height="11" viewBox="0 0 14 16" fill="none">
-                    <path
-                      d="M7 0C4.24 0 2 2.24 2 5C2 8.75 7 15 7 15C7 15 12 8.75 12 5C12 2.24 9.76 0 7 0Z"
-                      fill="var(--color-sub-coral)"
-                    />
-                    <circle cx="7" cy="5" r="2" fill="var(--color-main-white)" />
-                  </svg>
+                  <MarkerIcon
+                    width={10}
+                    height={11}
+                    className="shrink-0 fill-sub-coral"
+                    aria-hidden
+                  />
                   <span className="text-xs text-sub-deepblue font-medium">카카오맵</span>
                 </div>
               </div>

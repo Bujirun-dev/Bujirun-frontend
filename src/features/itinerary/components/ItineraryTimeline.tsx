@@ -1,13 +1,17 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import PlusIcon from "@/assets/icons/itinerary/plus-small.svg?svgr";
 import type { TransportLeg } from "./TransportCard";
 import { PlaceCard } from "@/components";
 import { TransportCard } from "./TransportCard";
+import { TimelinePlaceDetailPopup } from "./TimelinePlaceDetailPopup";
 import { TimelineSearchPopup } from "./TimelineSearchPopup";
 import { TimelineSearchTrigger } from "./TimelineSearchTrigger";
+import { TimelineTimePicker } from "./TimelineTimePicker";
 import { cn } from "@/shared/utils";
 import type { Category } from "@/components";
+import type { SearchPlace } from "./PlaceSearchPanel";
 
 type PlaceStatus = "completed" | "verify";
 
@@ -27,12 +31,23 @@ export interface ItineraryStop {
   imageUrl: string;
   category: Category;
   status: PlaceStatus;
+  description?: string;
+  address?: string;
+  operatingHours?: string;
+  fee?: string;
+  parking?: string;
+  phone?: string;
+  mapUrl?: string;
+  isBookmarked?: boolean;
+  relatedLogs?: { id: string; imageUrl: string; userName: string }[];
   transport?: TransportInfo;
   onDelete?: () => void;
   onClick?: () => void;
   onTimeClick?: () => void;
+  onTimeConfirm?: (time: string) => void;
   onTransportClick?: () => void;
   onVerify?: () => void;
+  onAddPlace?: (place: SearchPlace) => void;
 }
 
 interface ItineraryTimelineProps {
@@ -42,24 +57,72 @@ interface ItineraryTimelineProps {
 }
 
 export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
-  const [activeStopId, setActiveStopId] = useState<string | null>(null);
-  const [searchScrollSpace, setSearchScrollSpace] = useState(0);
+  const [activeSearchStopId, setActiveSearchStopId] = useState<string | null>(null);
+  const [activeDetailStopId, setActiveDetailStopId] = useState<string | null>(null);
+  const [activeTimeStopId, setActiveTimeStopId] = useState<string | null>(null);
+  const [inlineTimeValue, setInlineTimeValue] = useState({ hour: 12, minute: 0 });
+  const [popupScrollSpace, setPopupScrollSpace] = useState(0);
   const searchCardRef = useRef<HTMLDivElement>(null);
+  const detailCardRef = useRef<HTMLDivElement>(null);
+  const timePickerRef = useRef<HTMLDivElement>(null);
   const stopRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const isAutoScrollingRef = useRef(false);
+  const activePopupStopId = activeSearchStopId ?? activeDetailStopId;
 
   const openSearch = (stopId: string) => {
-    setSearchScrollSpace(0);
-    setActiveStopId(stopId);
+    setActiveTimeStopId(null);
+    setActiveDetailStopId(null);
+    setPopupScrollSpace(0);
+    setActiveSearchStopId(stopId);
   };
   const closeSearch = () => {
-    setActiveStopId(null);
-    setSearchScrollSpace(0);
+    setActiveSearchStopId(null);
+    setPopupScrollSpace(0);
+  };
+  const openDetail = (stop: ItineraryStop) => {
+    setActiveTimeStopId(null);
+    setActiveSearchStopId(null);
+    setPopupScrollSpace(0);
+    setActiveDetailStopId(stop.id);
+    stop.onClick?.();
+  };
+  const closeDetail = () => {
+    setActiveDetailStopId(null);
+    setPopupScrollSpace(0);
+  };
+  const [pickerPosition, setPickerPosition] = useState({ top: 0, left: 0 });
+
+  const openTimePicker = (stop: ItineraryStop) => {
+    closeSearch();
+    closeDetail();
+    const [h, m] = stop.time.split(":").map(Number);
+    setInlineTimeValue({ hour: h, minute: m });
+
+    const el = stopRefs.current.get(stop.id);
+    const appRoot = document.getElementById("app-root");
+    if (el && appRoot) {
+      const elRect = el.getBoundingClientRect();
+      const rootRect = appRoot.getBoundingClientRect();
+      const rawTop = elRect.top - rootRect.top;
+      const safeTop = Math.min(rawTop, rootRect.height - 228);
+      setPickerPosition({
+        top: Math.max(8, safeTop),
+        left: elRect.left - rootRect.left + 52 + 12,
+      });
+    }
+
+    setActiveTimeStopId(stop.id);
+  };
+  const closeTimePicker = () => setActiveTimeStopId(null);
+  const confirmInlineTime = (stop: ItineraryStop) => {
+    const timeStr = `${String(inlineTimeValue.hour).padStart(2, "0")}:${String(inlineTimeValue.minute).padStart(2, "0")}`;
+    stop.onTimeConfirm?.(timeStr);
+    closeTimePicker();
   };
 
   useEffect(() => {
-    if (!activeStopId) return;
-    const el = stopRefs.current.get(activeStopId);
+    if (!activePopupStopId) return;
+    const el = stopRefs.current.get(activePopupStopId);
     if (!el) return;
     const firstStopEl = stops[0] ? stopRefs.current.get(stops[0].id) : null;
     let scrollParent: HTMLElement | null = el.parentElement;
@@ -80,13 +143,13 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
       : 40;
     const targetScrollTop = Math.max(0, activeTop - firstStopTop);
     const maxScrollTop = Math.max(0, scrollParent.scrollHeight - scrollParent.clientHeight);
-    const maxScrollTopWithoutDynamicSpace = Math.max(0, maxScrollTop - searchScrollSpace);
-    const nextSearchScrollSpace = Math.ceil(
+    const maxScrollTopWithoutDynamicSpace = Math.max(0, maxScrollTop - popupScrollSpace);
+    const nextPopupScrollSpace = Math.ceil(
       Math.max(0, targetScrollTop - maxScrollTopWithoutDynamicSpace),
     );
 
-    if (nextSearchScrollSpace !== searchScrollSpace) {
-      setSearchScrollSpace(nextSearchScrollSpace);
+    if (nextPopupScrollSpace !== popupScrollSpace) {
+      setPopupScrollSpace(nextPopupScrollSpace);
       return;
     }
 
@@ -102,7 +165,10 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
       if (isAutoScrollingRef.current) return;
       if (Math.abs(scrollParent.scrollTop - targetScrollTop) < 90) return;
       window.clearTimeout(closeTimer);
-      closeTimer = window.setTimeout(closeSearch, 250);
+      closeTimer = window.setTimeout(() => {
+        closeSearch();
+        closeDetail();
+      }, 250);
     };
 
     scrollParent.addEventListener("scroll", handleScroll, { passive: true });
@@ -111,13 +177,24 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
       window.clearTimeout(closeTimer);
       scrollParent.removeEventListener("scroll", handleScroll);
     };
-  }, [activeStopId, searchScrollSpace, stops]);
+  }, [activePopupStopId, popupScrollSpace, stops]);
 
   const handleRootClick = (e: React.MouseEvent) => {
-    if (!activeStopId) return;
-    if (searchCardRef.current?.contains(e.target as Node)) return;
-    if ((e.target as Element).closest("[data-time-btn]")) return;
-    closeSearch();
+    const target = e.target as Element;
+    if (activeSearchStopId) {
+      if (searchCardRef.current?.contains(target)) return;
+      if (target.closest("[data-time-btn]")) return;
+      closeSearch();
+    }
+    if (activeDetailStopId) {
+      if (detailCardRef.current?.contains(target)) return;
+      closeDetail();
+    }
+    if (activeTimeStopId) {
+      if (timePickerRef.current?.contains(target)) return;
+      if (target.closest("[data-time-btn]")) return;
+      closeTimePicker();
+    }
   };
 
   return (
@@ -125,26 +202,30 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
       {/* 세로 타임라인 선 */}
       <div className="absolute top-0 bottom-0 left-[45px] w-[2px] rounded-full bg-sub-lightgray" />
 
-      <div className="flex flex-col gap-5" style={{ paddingBottom: searchScrollSpace }}>
+      <div className="flex flex-col gap-5" style={{ paddingBottom: popupScrollSpace }}>
         {/* 상단: + 버튼 + 날짜 (검색 중엔 + 버튼만 숨김) */}
         <div className="flex items-center">
           <div className="w-10 shrink-0" />
           <div className="relative z-10 -ml-0.5 flex items-center gap-2.5">
             <button
+              type="button"
               className={cn(
-                "flex size-[18px] shrink-0 items-center justify-center rounded-md bg-sub-coral",
-                activeStopId && "invisible",
+                "flex size-[18px] shrink-0 items-center justify-center rounded-md bg-sub-coral active:opacity-70",
+                activeSearchStopId && "invisible",
               )}
               onClick={() => stops[0] && openSearch(stops[0].id)}
+              aria-label="장소 추가"
             >
-              <span className="font-bold leading-none text-main-white text-xs">+</span>
+              <PlusIcon width={16} height={16} className="text-main-white" aria-hidden />
             </button>
             <span className="text-xs font-semibold text-sub-gray">{date}</span>
           </div>
         </div>
 
         {stops.map((stop) => {
-          const isActive = activeStopId === stop.id;
+          const isSearchActive = activeSearchStopId === stop.id;
+          const isDetailActive = activeDetailStopId === stop.id;
+          const isTimeActive = activeTimeStopId === stop.id;
           return (
             <div
               key={stop.id}
@@ -157,8 +238,9 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
               <div className="relative flex min-w-0 items-center">
                 <TimelineSearchTrigger
                   time={stop.time}
-                  isActive={isActive}
-                  onOpen={() => openSearch(stop.id)}
+                  isActive={isSearchActive}
+                  isTimeActive={isTimeActive}
+                  onTimeClick={() => openTimePicker(stop)}
                 />
 
                 <div className="min-w-0 flex-1 pl-3">
@@ -168,13 +250,38 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
                     category={stop.category}
                     status={stop.status}
                     onDelete={stop.onDelete}
-                    onClick={stop.onClick}
+                    onClick={() => openDetail(stop)}
                     onVerify={stop.onVerify}
                   />
                 </div>
 
                 {/* 검색 카드 */}
-                {isActive && <TimelineSearchPopup ref={searchCardRef} onClose={closeSearch} />}
+                {isSearchActive && (
+                  <TimelineSearchPopup
+                    ref={searchCardRef}
+                    onClose={closeSearch}
+                    onAddToItinerary={stop.onAddPlace}
+                  />
+                )}
+
+                {/* 관광지 상세 카드 */}
+                {isDetailActive && (
+                  <TimelinePlaceDetailPopup ref={detailCardRef} stop={stop} onClose={closeDetail} />
+                )}
+
+                {/* 시간 변경 카드 */}
+                {isTimeActive && (
+                  <TimelineTimePicker
+                    ref={timePickerRef}
+                    hour={inlineTimeValue.hour}
+                    minute={inlineTimeValue.minute}
+                    top={pickerPosition.top}
+                    left={pickerPosition.left}
+                    onChange={(h, m) => setInlineTimeValue({ hour: h, minute: m })}
+                    onConfirm={() => confirmInlineTime(stop)}
+                    onClose={closeTimePicker}
+                  />
+                )}
               </div>
 
               {/* 교통수단 카드 */}
@@ -182,11 +289,7 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
                 <div className="mt-5 flex min-w-0">
                   <div className="w-16 shrink-0" />
                   <button className="min-w-0 flex-1 text-left" onClick={stop.onTransportClick}>
-                    <TransportCard
-                      {...stop.transport}
-                      disableShadow
-                      className="border-[0.3px] border-main-blue"
-                    />
+                    <TransportCard {...stop.transport} />
                   </button>
                 </div>
               )}

@@ -1,9 +1,27 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { createPortal } from "react-dom";
-import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
-import { Button, Card } from "@/components";
+import { useRouter } from "next/navigation";
+import mapCharacter from "@/assets/character/map.png";
+import { Button, Modal } from "@/components";
+import type { VerifyStep } from "./arrival-verify/ArrivalVerifyStages";
+import { PermissionButton } from "./arrival-verify/ArrivalVerifyShared";
+import {
+  ArrivalStage,
+  ArrivalStageFooter,
+  BasicTwoButtonFooter,
+  CameraCaptureStage,
+  CameraPermissionStage,
+  CompleteStage,
+  GpsFailStage,
+  GpsLoadingStage,
+  GpsPermissionStage,
+  GpsSuccessStage,
+  PhotoConfirmStage,
+} from "./arrival-verify/ArrivalVerifyStages";
+
+const MOCK_GPS_LOADING_DURATION_MS = 3000;
 
 interface ArrivalVerifyModalProps {
   isOpen: boolean;
@@ -24,71 +42,213 @@ export function ArrivalVerifyModal({
   onVerify,
   onLater,
 }: ArrivalVerifyModalProps) {
-  if (!isOpen) return null;
+  const router = useRouter();
+  const [step, setStep] = useState<VerifyStep>("arrival");
+  const [isVerified, setIsVerified] = useState(false);
 
-  if (typeof document === "undefined") return null;
+  useEffect(() => {
+    if (step !== "gps-loading") return;
+    // TODO: 실제 GPS 검증 API 응답에 따라 gps-success/gps-fail로 분기
+    const timer = window.setTimeout(() => setStep("gps-success"), MOCK_GPS_LOADING_DURATION_MS);
+    return () => window.clearTimeout(timer);
+  }, [step]);
 
-  const appRoot = document.getElementById("app-root");
-  if (!appRoot) return null;
+  const closeAndReset = () => {
+    setStep("arrival");
+    setIsVerified(false);
+    onClose();
+  };
 
-  return createPortal(
-    <div
-      className="absolute inset-0 z-50 flex items-center justify-center px-5 py-6"
-      style={{ backgroundColor: "var(--color-system-blackbg)" }}
-      onClick={onClose}
+  const finishVerification = () => {
+    if (!isVerified) {
+      onVerify();
+      setIsVerified(true);
+    }
+    setStep("complete");
+  };
+
+  const renderBody = () => {
+    switch (step) {
+      case "arrival":
+        return (
+          <ArrivalStage
+            placeName={placeName}
+            characterImageUrl={characterImageUrl ?? mapCharacter}
+          />
+        );
+      case "gps-permission":
+        return <GpsPermissionStage />;
+      case "gps-loading":
+        return <GpsLoadingStage />;
+      case "gps-fail":
+        return <GpsFailStage placeName={placeName} />;
+      case "gps-success":
+        return <GpsSuccessStage placeName={placeName} />;
+      case "camera-permission":
+        return <CameraPermissionStage placeName={placeName} />;
+      case "camera-capture":
+        return <CameraCaptureStage placeName={placeName} setStep={setStep} />;
+      case "photo-confirm":
+        return <PhotoConfirmStage placeName={placeName} />;
+      case "complete":
+        return <CompleteStage placeName={placeName} />;
+      default:
+        return null;
+    }
+  };
+
+  const renderFooter = () => {
+    switch (step) {
+      case "arrival":
+        return (
+          <ArrivalStageFooter
+            onLater={() => {
+              onLater();
+              closeAndReset();
+            }}
+            onNext={() => setStep("gps-permission")}
+          />
+        );
+      case "gps-permission":
+        return (
+          <div className="flex w-full flex-col gap-2">
+            {/* TODO: navigator.geolocation 권한 요청 결과에 따라 성공/실패 분기 */}
+            <PermissionButton onClick={() => setStep("gps-loading")}>
+              앱을 사용하는 동안 허용
+            </PermissionButton>
+            <PermissionButton onClick={() => setStep("gps-loading")}>항상 허용</PermissionButton>
+            <PermissionButton onClick={() => setStep("gps-fail")}>허용 안 함</PermissionButton>
+          </div>
+        );
+      case "gps-fail":
+        return (
+          <BasicTwoButtonFooter
+            left={
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => {
+                  onLater();
+                  closeAndReset();
+                }}
+              >
+                나중에 하기
+              </Button>
+            }
+            right={
+              <Button
+                variant="primary"
+                className="w-full"
+                onClick={() => setStep("gps-permission")}
+              >
+                다시 확인
+              </Button>
+            }
+          />
+        );
+      case "gps-success":
+        return (
+          <BasicTwoButtonFooter
+            left={
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => {
+                  onLater();
+                  closeAndReset();
+                }}
+              >
+                나중에 하기
+              </Button>
+            }
+            right={
+              <Button
+                variant="primary"
+                className="w-full"
+                onClick={() => setStep("camera-permission")}
+              >
+                사진 찍기
+              </Button>
+            }
+          />
+        );
+      case "camera-permission":
+        return (
+          <div className="flex w-full flex-col gap-2">
+            {/* TODO: navigator.mediaDevices.getUserMedia 권한 결과에 따라 촬영 화면/이전 화면 분기 */}
+            <PermissionButton onClick={() => setStep("camera-capture")}>
+              앱을 사용하는 동안 허용
+            </PermissionButton>
+            <PermissionButton onClick={() => setStep("camera-capture")}>항상 허용</PermissionButton>
+            <PermissionButton onClick={() => setStep("gps-success")}>허용 안 함</PermissionButton>
+          </div>
+        );
+      case "photo-confirm":
+        return (
+          <BasicTwoButtonFooter
+            left={
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => setStep("camera-capture")}
+              >
+                다시 찍기
+              </Button>
+            }
+            right={
+              <Button variant="primary" className="w-full" onClick={finishVerification}>
+                인증하기
+              </Button>
+            }
+          />
+        );
+      case "complete":
+        return (
+          <BasicTwoButtonFooter
+            left={
+              <Button variant="secondary" className="w-full" onClick={closeAndReset}>
+                계속 여행하기
+              </Button>
+            }
+            right={
+              <Button
+                variant="primary"
+                className="w-full"
+                onClick={() => {
+                  closeAndReset();
+                  router.push("/collection");
+                }}
+              >
+                도감 보러가기
+              </Button>
+            }
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={closeAndReset}
+      hideActions
+      childrenVariant="plain"
+      className="rounded-[28px] px-8 pb-8 pt-12 gap-0"
+      childrenClassName="flex w-full flex-col items-center"
     >
-      <div
-        className="relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-main-white rounded-3xl px-5 pt-10 pb-6 flex flex-col items-center gap-4"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="relative flex w-full flex-col items-center">
         {userAvatarUrl && (
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[56px] h-[56px] rounded-full border-4 border-main-white overflow-hidden shadow-[0_2px_8px_0_var(--color-system-scroll)]">
+          <div className="absolute -top-6 left-1/2 size-[56px] -translate-x-1/2 overflow-hidden rounded-full border-4 border-main-white shadow-[0_2px_8px_0_var(--color-system-scroll)]">
             <Image src={userAvatarUrl} alt="avatar" fill className="object-cover" />
           </div>
         )}
 
-        {characterImageUrl && (
-          <div className="w-[120px] h-[120px] relative">
-            <Image src={characterImageUrl} alt="character" fill className="object-contain" />
-          </div>
-        )}
-
-        <div className="flex flex-col items-center gap-2 text-center">
-          <div className="flex items-center gap-1 bg-sub-lightblue px-3 py-1 rounded-full">
-            <MarkerIcon width={14} height={14} className="fill-sub-deepblue" aria-hidden />
-            <span className="font-semibold text-md text-sub-deepblue">{placeName}</span>
-          </div>
-          <h2 className="font-bold text-xl text-text-heading">이곳에 도착하셨나요?</h2>
-        </div>
-
-        <Card variant="glass-sm" className="w-full rounded-lg px-4 py-3 text-center">
-          <span className="text-sm text-sub-gray">* GPS 위치 확인 후 관광지를 수집해주세요.</span>
-        </Card>
-
-        <div className="w-full flex gap-3">
-          <Button
-            variant="secondary"
-            className="flex-1"
-            onClick={() => {
-              onLater();
-              onClose();
-            }}
-          >
-            나중에 하기
-          </Button>
-          <Button
-            variant="primary"
-            className="flex-1"
-            onClick={() => {
-              onVerify();
-              onClose();
-            }}
-          >
-            인증하기
-          </Button>
-        </div>
+        {renderBody()}
       </div>
-    </div>,
-    appRoot,
+
+      {renderFooter()}
+    </Modal>
   );
 }

@@ -52,8 +52,8 @@ export function TransportCard({
   className,
 }: TransportCardProps) {
   const cardBase = cn(
-    "w-full min-w-0 overflow-hidden rounded-2xl py-3.5 px-2.5",
-    !disableShadow && "shadow-[0_2px_8px_0_var(--color-system-scroll)]",
+    "w-full min-w-0 overflow-hidden rounded-2xl border-[0.5px] border-system-glassborder py-3.5 px-2.5",
+    !disableShadow && "shadow-[2px_2px_10px_0px_var(--color-system-glassborder)]",
     selected === false ? "bg-main-white" : "bg-system-navbg",
     className,
   );

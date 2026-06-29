@@ -77,7 +77,7 @@ export function Modal({
     >
       <div
         className={cn(
-          "relative w-full max-w-[343px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-3xl px-8 py-10 flex flex-col items-center gap-6",
+          "relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-3xl px-8 py-10 flex flex-col items-center gap-6",
           className,
         )}
         onClick={(e) => e.stopPropagation()}
