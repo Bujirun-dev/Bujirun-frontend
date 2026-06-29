@@ -255,7 +255,7 @@ function TripResultContent() {
             onClick={IS_HOST ? handleFreepass : undefined}
             disabled={!IS_HOST}
             className={cn(
-              "flex h-[48px] w-full items-center justify-center gap-2 rounded-[14px] font-ssurround font-bold text-lg transition-opacity",
+              "flex h-[40px] w-full items-center justify-center gap-2 rounded-[14px] font-ssurround font-bold text-md text-main-white transition-opacity",
               IS_HOST
                 ? "bg-text-heading text-white"
                 : "bg-text-heading/30 text-white/50 cursor-not-allowed",
