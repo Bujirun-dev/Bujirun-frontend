@@ -146,11 +146,10 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <h2 className=" font-bold text-sm text-text-heading">관련 로그</h2>
+              {/*관련로그 더보기*/}
               <button
                 className="flex items-center gap-1 active:opacity-70"
-                onClick={() => {
-                  // TODO: 관련 로그 더보기 페이지 이동
-                }}
+                onClick={() => router.push(`/mypage/bookmarks/${id}/related-logs`)}
               >
                 <span className="text-3xs font-semibold text-sub-gray">더보기</span>
                 <span className="text-3xs text-sub-gray">›</span>
