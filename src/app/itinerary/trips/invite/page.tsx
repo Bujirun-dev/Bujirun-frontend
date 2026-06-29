@@ -120,7 +120,6 @@ function TripInviteContent() {
         </button>
 
         <Toast isVisible={copied} message="링크가 복사되었어요 !" onHide={() => setCopied(false)} />
-
       </div>
     </div>
   );

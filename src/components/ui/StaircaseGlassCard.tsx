@@ -56,9 +56,7 @@ export function StaircaseGlassCard({ line1, line2 }: StaircaseGlassCardProps) {
 
   const totalW = dims ? OFFSET_X + dims.w2 : undefined;
   const totalH = dims ? dims.h1 - OVERLAP + dims.h2 : undefined;
-  const clipPath = dims
-    ? `path('${buildPath(dims.w1, dims.h1, dims.w2, dims.h2)}')`
-    : undefined;
+  const clipPath = dims ? `path('${buildPath(dims.w1, dims.h1, dims.w2, dims.h2)}')` : undefined;
 
   return (
     <div className="relative" style={{ width: totalW, height: totalH }}>

@@ -222,9 +222,7 @@ export function CompleteStage({ placeName }: Pick<CommonProps, "placeName">) {
       <CharacterImage src={congsCharacter} alt="인증 완료" className="mb-3 h-[120px] w-[140px]" />
       <div className="mb-5 flex flex-col items-center gap-2 text-center">
         <PlaceBadge placeName={placeName} />
-        <h2 className="text-xl font-ssurround font-bold text-text-heading">
-          인증이 완료되었어요!
-        </h2>
+        <h2 className="text-xl font-ssurround font-bold text-text-heading">인증이 완료되었어요!</h2>
       </div>
       <div className="relative mb-5 h-[153px] w-[273px] overflow-hidden rounded-[10px]">
         <Image src={samplePlaceImage} alt={placeName} fill className="object-cover" />

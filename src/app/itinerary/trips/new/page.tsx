@@ -14,7 +14,10 @@ export default function TripNewPage() {
           <StaircaseGlassCard line1="친구와 함께" line2="부산으로 떠나볼까요?" />
         </div>
 
-        <p className="absolute left-[16px] top-[118px] font-dxsubtitles font-medium text-lg text-text-primary text-left" style={{ lineHeight: "23px" }}>
+        <p
+          className="absolute left-[16px] top-[118px] font-dxsubtitles font-medium text-lg text-text-primary text-left"
+          style={{ lineHeight: "23px" }}
+        >
           멋진 추억을 만들 수 있게
           <br />
           부지런이 도와줄게요!

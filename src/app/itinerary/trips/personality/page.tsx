@@ -7,7 +7,6 @@ import faceImg from "@/assets/character/face.png";
 import swipeRightIcon from "@/assets/icons/itinerary/swipe-right.png";
 import swipeLeftIcon from "@/assets/icons/itinerary/swipe-left.png";
 import { SpeechBubble } from "@/components";
-import { cn } from "@/shared/utils";
 
 const TOTAL_SLOTS = 6; // mock - 실제로는 searchParams 또는 API
 
@@ -37,7 +36,6 @@ function TripPersonalityContent() {
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 pb-8">
       <div className="w-full rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-[30px] py-[35px] backdrop-blur-[15px] flex flex-col items-center">
-
         {/* 말풍선 */}
         <SpeechBubble variant="white" tailDirection="bottom" tailCenter>
           <span className="font-dxsubtitles text-md text-text-primary px-2 whitespace-nowrap">
@@ -53,7 +51,10 @@ function TripPersonalityContent() {
         </div>
 
         {/* 타이틀 */}
-        <p className="mt-5 font-ssurround font-bold text-xl text-black text-center" style={{ lineHeight: "30px" }}>
+        <p
+          className="mt-5 font-ssurround font-bold text-xl text-black text-center"
+          style={{ lineHeight: "30px" }}
+        >
           그럼 이제부터
           <br />
           여행일정을 짜러 가볼까요?
@@ -69,11 +70,15 @@ function TripPersonalityContent() {
           <div className="mt-1 flex flex-col items-start gap-1">
             <div className="flex items-center gap-[5px]">
               <Image src={swipeRightIcon} alt="" width={15} height={15} aria-hidden />
-              <span className="font-paperlogy font-normal text-md text-text-primary">오른쪽: 좋아요</span>
+              <span className="font-paperlogy font-normal text-md text-text-primary">
+                오른쪽: 좋아요
+              </span>
             </div>
             <div className="flex items-center gap-[5px]">
               <Image src={swipeLeftIcon} alt="" width={15} height={15} aria-hidden />
-              <span className="font-paperlogy font-normal text-md text-text-primary">왼쪽 : 별로에요</span>
+              <span className="font-paperlogy font-normal text-md text-text-primary">
+                왼쪽 : 별로에요
+              </span>
             </div>
           </div>
         </div>
@@ -95,7 +100,6 @@ function TripPersonalityContent() {
             취향분석 할래!
           </button>
         </div>
-
       </div>
     </div>
   );
