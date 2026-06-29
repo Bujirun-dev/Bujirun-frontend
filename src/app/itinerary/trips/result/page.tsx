@@ -161,7 +161,7 @@ function TripResultContent() {
     <div className="flex h-full flex-col">
       {/* 공통 취향 glass 카드 */}
       <div className="shrink-0 pt-4 pb-[30px]">
-        <div className="w-full rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-[24px] py-[28px] backdrop-blur-[15px] flex flex-col items-center gap-2.5">
+        <div className="w-full rounded-[20px] border border-system-navbg bg-gradient-to-b from-system-glassfrom to-system-glassto px-[24px] py-[28px] backdrop-blur-[15px] flex flex-col items-center gap-2.5">
           <p className="font-ssurround font-bold text-lg text-text-heading text-center">
             우리의 공통 취향은...
           </p>
@@ -186,7 +186,7 @@ function TripResultContent() {
           </div>
 
           {/* 글래스 카드 - 투표 정보 */}
-          <div className="mt-4 w-full rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-5 py-5 backdrop-blur-[15px] flex flex-col">
+          <div className="mt-4 w-full rounded-[20px] border border-system-navbg bg-gradient-to-b from-system-glassfrom to-system-glassto px-5 py-5 backdrop-blur-[15px] flex flex-col">
             {/* 안 선택 탭 + 투표 수 */}
             <div className="flex items-center gap-2">
               {MOCK_PLANS.map((plan) => (
