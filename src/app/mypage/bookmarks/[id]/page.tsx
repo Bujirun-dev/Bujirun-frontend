@@ -69,6 +69,7 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
         }}
         relatedLogs={relatedLogs}
         onViewMoreLogs={() => router.push(`/mypage/bookmarks/${id}/related-logs`)}
+        getRelatedLogHref={(logId) => `/itinerary/logs/${logId}`}
         onLogClick={(logId) => router.push(`/itinerary/logs/${logId}`)}
       />
     </PageCard>

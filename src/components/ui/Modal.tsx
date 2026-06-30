@@ -155,7 +155,7 @@ export function Modal({
         {footer}
 
         {!hideActions && (
-          <div className="mt-1 flex w-full justify-center gap-6">
+          <div className="flex w-full justify-center gap-6">
             <button
               className={cn(
                 "py-2.5 min-w-[100px] px-5 cursor-pointer rounded-lg border font-ssurround text-md font-bold active:opacity-70",

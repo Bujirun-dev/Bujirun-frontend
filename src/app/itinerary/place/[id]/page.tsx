@@ -4,35 +4,18 @@ import bookmarkOffIcon from "@/assets/icons/itinerary/bookmark-off.svg?url";
 import bookmarkOnIcon from "@/assets/icons/itinerary/bookmark-on.svg?url";
 import { BackButton, Button, PageCard } from "@/components";
 import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
-import { getPlaceById, getPlaces, getSchedules } from "@/mocks";
+import { getRelatedLogsByPlaceName } from "@/features/mypage/data/relatedLogs";
 import { getCategoryFromKo } from "@/shared/constants/category";
 import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
-import type { Place } from "@/shared/types";
-
-function resolvePlace(id: string): Place | undefined {
-  const directPlace = getPlaceById(id) ?? getPlaces().find((place) => place.contentId === id);
-  if (directPlace) return directPlace;
-
-  for (const schedule of getSchedules()) {
-    for (const day of schedule.days) {
-      const item = day.items.find((scheduleItem) => scheduleItem.id === id);
-      if (item) return getPlaceById(item.spotId);
-    }
-  }
-
-  return undefined;
-}
-
-function getPlaceDescription(placeName: string): string {
-  return `${placeName}은(는) 부산 여행 일정에서 방문하기 좋은 관광지입니다. 주변 관광지와 함께 둘러보기 좋고, 일정 중 잠시 머물며 분위기를 느끼기 좋은 장소예요.`;
-}
+import { getPlaceDescription, resolveItineraryPlace } from "@/features/itinerary/utils/placeDetail";
 
 export default async function PlaceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const place = resolvePlace(id);
+  const place = resolveItineraryPlace(id);
   if (!place) notFound();
 
   const mapUrl = `https://map.kakao.com/link/map/${encodeURIComponent(place.name)},${place.lat},${place.lng}`;
+  const relatedLogs = getRelatedLogsByPlaceName(place.name);
 
   return (
     <PageCard>
@@ -67,6 +50,9 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ id
             </div>
           </div>
         }
+        relatedLogs={relatedLogs}
+        relatedLogsHref={`/itinerary/place/${id}/related-logs`}
+        getRelatedLogHref={(logId) => `/itinerary/logs/${logId}`}
         footer={<Button variant="primary">+ 일정에 추가</Button>}
       />
     </PageCard>

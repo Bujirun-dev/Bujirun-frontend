@@ -211,6 +211,116 @@ const RELATED_LOGS: RelatedLog[] = [
     downloadCount: 14,
     imageUrl: "https://picsum.photos/seed/log18/400/300",
   },
+  {
+    id: "19",
+    title: "기장 드라이브 로그 🚗",
+    placeName: "오시리아 해안산책로",
+    extraCount: 2,
+    author: "드라이브러버",
+    duration: "1박2일",
+    date: "2026.06.14 ~ 06.15",
+    downloadCount: 47,
+    imageUrl: "https://picsum.photos/seed/log19/400/300",
+  },
+  {
+    id: "20",
+    title: "해양박물관 가족 로그 ⚓",
+    placeName: "국립해양박물관",
+    extraCount: 1,
+    author: "가족여행자",
+    duration: "당일치기",
+    date: "2026.06.20",
+    downloadCount: 26,
+    imageUrl: "https://picsum.photos/seed/log20/400/300",
+  },
+  {
+    id: "21",
+    title: "낙동강 노을 로그 🌾",
+    placeName: "삼락생태공원",
+    extraCount: 2,
+    author: "노을수집가",
+    duration: "1박2일",
+    date: "2026.07.03 ~ 07.04",
+    downloadCount: 31,
+    imageUrl: "https://picsum.photos/seed/log21/400/300",
+  },
+  {
+    id: "22",
+    title: "기장시장 먹방 로그 🦀",
+    placeName: "기장시장",
+    extraCount: 1,
+    author: "먹방탐험가",
+    duration: "당일치기",
+    date: "2026.07.11",
+    downloadCount: 63,
+    imageUrl: "https://picsum.photos/seed/log22/400/300",
+  },
+  {
+    id: "23",
+    title: "어린이대공원 산책 로그 🎠",
+    placeName: "부산어린이대공원",
+    extraCount: 0,
+    author: "초록산책러",
+    duration: "당일치기",
+    date: "2026.07.19",
+    downloadCount: 22,
+    imageUrl: "https://picsum.photos/seed/log23/400/300",
+  },
+  {
+    id: "24",
+    title: "요트 야경 로그 ⛵",
+    placeName: "부산요트투어",
+    extraCount: 1,
+    author: "야경항해자",
+    duration: "당일치기",
+    date: "2026.08.02",
+    downloadCount: 72,
+    imageUrl: "https://picsum.photos/seed/log24/400/300",
+  },
+  {
+    id: "25",
+    title: "청사포 전망대 로그 🌊",
+    placeName: "청사포 다릿돌전망대",
+    extraCount: 1,
+    author: "청사포단골",
+    duration: "당일치기",
+    date: "2026.07.06",
+    downloadCount: 36,
+    imageUrl: "https://picsum.photos/seed/log25/400/300",
+  },
+  {
+    id: "26",
+    title: "상상마당 전시 로그 🎧",
+    placeName: "KT&G 상상마당 부산",
+    extraCount: 1,
+    author: "서면문화러",
+    duration: "당일치기",
+    date: "2026.07.08",
+    downloadCount: 18,
+    imageUrl: "https://picsum.photos/seed/log26/400/300",
+  },
+  {
+    id: "27",
+    title: "감지해변 산책 로그 🪨",
+    placeName: "감지해변",
+    extraCount: 1,
+    author: "영도산책러",
+    duration: "당일치기",
+    date: "2026.07.13",
+    downloadCount: 11,
+    imageUrl: "https://picsum.photos/seed/log27/400/300",
+  },
+  {
+    id: "28",
+    title: "절영해안 산책 로그 🚶",
+    placeName: "절영해안산책로",
+    extraCount: 1,
+    author: "바다산책러",
+    duration: "당일치기",
+    date: "2026.07.16",
+    downloadCount: 24,
+    imageUrl: "https://picsum.photos/seed/log28/400/300",
+  },
 ];
 
 // PLACES id 기준으로 관련 로그 매핑
@@ -219,7 +329,7 @@ const RELATED_LOG_IDS_BY_PLACE: Record<number, string[]> = {
   1: ["1", "5"], // 해운대해수욕장
   2: ["11"], // 동백섬
   3: ["12"], // 더베이101
-  5: ["14"], // 청사포
+  5: ["14", "25"], // 청사포
   6: ["13"], // 블루라인파크
   7: ["10"], // 송정해수욕장
   12: ["5", "9"], // 광안리
@@ -234,9 +344,37 @@ const RELATED_LOG_IDS_BY_PLACE: Record<number, string[]> = {
   36: ["2"], // 감천문화마을
   37: ["16"], // 오륙도
   38: ["18"], // 암남공원
+  39: ["21"], // 을숙도
+  51: ["19"], // 오시리아 해안산책로
+  52: ["20"], // 국립해양박물관
+  53: ["21"], // 부산현대미술관
+  54: ["23"], // 회동수원지
+  55: ["19"], // 죽성성당
+  56: ["22"], // 기장시장
+  57: ["19"], // 아난티 코브
+  58: ["23"], // 부산어린이대공원
+  59: ["21"], // 삼락생태공원
+  60: ["24"], // 부산요트투어
 };
+
+function normalizePlaceName(name: string) {
+  return name.replace(/\s/g, "");
+}
 
 export function getRelatedLogs(placeId: number) {
   const ids = RELATED_LOG_IDS_BY_PLACE[placeId] ?? [];
   return RELATED_LOGS.filter((log) => ids.includes(log.id));
+}
+
+export function getRelatedLogsByPlaceName(placeName: string) {
+  const normalizedPlaceName = normalizePlaceName(placeName);
+
+  return RELATED_LOGS.filter((log) => {
+    const normalizedLogPlaceName = normalizePlaceName(log.placeName);
+    return (
+      normalizedLogPlaceName === normalizedPlaceName ||
+      normalizedLogPlaceName.includes(normalizedPlaceName) ||
+      normalizedPlaceName.includes(normalizedLogPlaceName)
+    );
+  });
 }
