@@ -21,13 +21,13 @@ export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
       iconClassName="!bg-system-coralbg"
       title="로그아웃"
       titleClassName="tracking-[0.5px]"
-      className="h-[435px] gap-0 pt-[48px] pb-[48px]"
+      className="gap-0 pt-[48px] pb-[40px]"
       childrenVariant="plain"
       confirmVariant="warning"
       childrenClassName="mt-[20px]"
       hideActions
       footer={
-        <div className="flex w-full justify-center gap-[25px] mt-auto -mb-[8px]">
+        <div className="flex w-full justify-center gap-[25px] mt-[24px]">
           <Button
             variant="secondary"
             onClick={onClose}

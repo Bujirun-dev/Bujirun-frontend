@@ -77,7 +77,7 @@ export function Modal({
     >
       <div
         className={cn(
-          "relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-3xl px-7 py-9 flex flex-col items-center gap-5",
+          "relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-3xl px-7 py-9 flex flex-col items-center gap-8",
           className,
         )}
         onClick={(e) => e.stopPropagation()}
@@ -149,7 +149,7 @@ export function Modal({
               {children}
             </Card>
           ) : (
-            <div className={cn("w-full", childrenClassName)}>{children}</div>
+            <div className={cn("w-full flex flex-col items-center gap-6", childrenClassName)}>{children}</div>
           ))}
 
         {footer}

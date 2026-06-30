@@ -51,21 +51,19 @@ export function ImportLogModal({
         </div>
       }
     >
-      <div className="flex flex-col items-center gap-4">
-        <p className="text-lg font-semibold text-text-primary text-center leading-relaxed whitespace-pre-line">
-          {authorNickname
-            ? `'${authorNickname}'님의 여행 일정을\n내 일정에 추가하시겠어요?`
-            : `이 여행 일정을\n내 일정에 추가하시겠어요?`}
+      <p className="text-lg font-semibold text-text-primary text-center leading-relaxed whitespace-pre-line">
+        {authorNickname
+          ? `'${authorNickname}'님의 여행 일정을\n내 일정에 추가하시겠어요?`
+          : `이 여행 일정을\n내 일정에 추가하시겠어요?`}
+      </p>
+      <Card
+        variant="glass-sm"
+        className="w-full flex items-center justify-center px-[10px] py-[8px]"
+      >
+        <p className="text-center text-sm font-medium text-sub-darkgray">
+          * 다른 사람의 일정을 불러오면 현재 일정은 사라져요.
         </p>
-        <Card
-          variant="glass-sm"
-          className="w-full flex items-center justify-center px-[10px] py-[8px]"
-        >
-          <p className="text-center text-sm font-medium text-sub-darkgray">
-            * 다른 사람의 일정을 불러오면 현재 일정은 사라져요.
-          </p>
-        </Card>
-      </div>
+      </Card>
     </Modal>
   );
 }
