@@ -17,7 +17,7 @@ export default function LoginPage() {
           <Image
             src={characterImg}
             alt="부지런 캐릭터"
-            width={360}
+            width={320}
             height={360}
             className="object-contain"
           />
