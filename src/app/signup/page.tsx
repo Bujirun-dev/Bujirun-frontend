@@ -74,7 +74,7 @@ export default function SignUpPage() {
               ) : (
                 <span />
               )}
-              <span className="font-semibold text-sm text-sub-gray">{nickname.length} /10</span>
+              <span className="font-semibold text-sm text-sub-gray">{nickname.length} / 6</span>
             </div>
           </section>
 
