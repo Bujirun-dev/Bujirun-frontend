@@ -22,7 +22,8 @@ export default function SignUpPage() {
 
   const trimmedNickname = nickname.trim();
   const isNicknameTaken = TAKEN_NICKNAMES.includes(trimmedNickname);
-  const isNicknameValid = trimmedNickname.length >= 2 && !isNicknameTaken;
+  const isNicknameValid =
+    trimmedNickname.length >= 2 && trimmedNickname.length <= 6 && !isNicknameTaken;
   const isFormValid = isNicknameValid && selectedProfile !== null;
 
   // 회원가입 완료 버튼 클릭 — TODO: API 연결 시 서버 요청으로 교체
@@ -47,11 +48,11 @@ export default function SignUpPage() {
             <label className="font-semibold text-lg text-text-primary">닉네임</label>
             <div className="relative">
               <TextInput
-                placeholder="2 - 10자 이내"
+                placeholder="2 - 6자 이내"
                 value={nickname}
                 onChange={(e) => {
                   const value = e.target.value;
-                  if (value.length > 10) return;
+                  if (value.length > 6) return;
                   setNickname(value);
                 }}
               />
