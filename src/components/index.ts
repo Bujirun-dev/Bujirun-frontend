@@ -15,6 +15,12 @@ export type { Category } from "./ui/CategoryChip";
 export { FilterChips } from "./ui/FilterChips";
 export { BackButton } from "./ui/BackButton";
 export { PlaceCard } from "./place/PlaceCard";
+export { PlaceDetailContent } from "./place/PlaceDetailContent";
+export type {
+  PlaceDetailData,
+  PlaceDetailInfoItem,
+  PlaceDetailRelatedLog,
+} from "./place/PlaceDetailContent";
 export { PlaceDetailSheet } from "./place/PlaceDetailSheet";
 export { PlaceInfoRow } from "./place/PlaceInfoRow";
 export { AppHeader } from "./layout/AppHeader";
