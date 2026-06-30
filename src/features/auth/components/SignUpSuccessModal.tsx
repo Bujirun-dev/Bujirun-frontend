@@ -29,19 +29,15 @@ export function SignUpSuccessModal({ isOpen, onClose }: SignUpSuccessModalProps)
       onClose={onClose}
       hideCloseButton
       hideActions
-      icon={<Image src={congsImg} alt="회원가입 성공" width={120} height={80} />}
-      iconClassName="bg-transparent w-auto h-auto"
       className="h-[435px]"
-      title="회원가입 성공"
-      titleClassName="font-ssurround text-xl tracking-[0.5px]"
-      description={`회원가입이 완료되었어요.\n같이 여행을 떠나볼까요?`}
+      childrenVariant="plain"
       footer={
         <div className="w-full flex flex-col items-center">
           <Card
             variant="glass-sm"
             className="mt-[30px] w-[275px] h-[31px] flex items-center justify-center py-0 px-3 rounded-[10px]"
           >
-            <p className="font-medium text-sm text-sub-gray text-center">
+            <p className="font-medium text-sm text-sub-darkgray text-center">
               친구들과 여행의 추억을 기록해보세요!
             </p>
           </Card>
@@ -56,6 +52,18 @@ export function SignUpSuccessModal({ isOpen, onClose }: SignUpSuccessModalProps)
           </div>
         </div>
       }
-    />
+    >
+      <div className="flex flex-col items-center gap-[10px] text-center">
+        <Image src={congsImg} alt="회원가입 성공" width={120} height={80} />
+        <div className="flex flex-col items-center gap-[36px]">
+          <h2 className="font-ssurround text-xl font-bold tracking-[0.5px] text-text-heading">
+            회원가입 성공
+          </h2>
+          <p className="text-lg font-semibold text-text-primary leading-relaxed whitespace-pre-line">
+            {`회원가입이 완료되었어요.\n같이 여행을 떠나볼까요?`}
+          </p>
+        </div>
+      </div>
+    </Modal>
   );
 }
