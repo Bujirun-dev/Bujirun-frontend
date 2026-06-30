@@ -58,7 +58,7 @@ export default function SignUpPage() {
               />
               {isNicknameValid && (
                 <div className="absolute right-3 top-[12px]">
-                  <YesIcon width={16} height={16} aria-hidden />
+                  <YesIcon width={16} height={16} aria-hidden className="fill-main-blue" />
                 </div>
               )}
             </div>
@@ -66,7 +66,7 @@ export default function SignUpPage() {
             <div className="flex items-center justify-between pr-2.5">
               {isNicknameTaken ? (
                 <div className="flex items-center gap-[4px]">
-                  <NoIcon width={12} height={12} aria-hidden />
+                  <NoIcon width={12} height={12} aria-hidden className="fill-sub-coral" />
                   <span className="font-semibold text-sm text-sub-coral">
                     이미 사용중인 닉네임이에요.
                   </span>
