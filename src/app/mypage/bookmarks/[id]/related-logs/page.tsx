@@ -21,11 +21,11 @@ export default function RelatedLogsPage({ params }: { params: Promise<{ id: stri
   const relatedLogs = getRelatedLogs(placeId);
 
   return (
-    <PageCard className="px-0 pt-0">
+    <PageCard>
       {/* 헤더 */}
-      <div className="flex items-center gap-3 py-4 shrink-0">
+      <div className="flex items-center gap-3 pb-4 shrink-0">
         <BackButton className="bg-transparent" onClick={() => router.back()} />
-        <h1 className="font-ssurround font-bold text-lg text-text-heading">관련로그 둘러보기</h1>
+        <h1 className="font-ssurround font-bold text-lg text-text-heading">관련 로그 둘러보기</h1>
       </div>
 
       {/* 관광지명 칩 */}
@@ -36,7 +36,7 @@ export default function RelatedLogsPage({ params }: { params: Promise<{ id: stri
             <span className="text-md font-semibold text-sub-deepblue">{placeName}</span>
           </div>
           {placeInfo?.category && (
-            <CategoryChip category={placeInfo.category as Category} size="md" />
+            <CategoryChip category={placeInfo.category as Category} size="lg" />
           )}
         </div>
       )}

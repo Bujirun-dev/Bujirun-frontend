@@ -137,7 +137,7 @@ export default function CollectionRecordsPage() {
       </Card>
 
       {/* 하단 여행 기록 */}
-      <PageCard className="px-6 pt-8 pb-4">
+      <PageCard>
         <div className="flex flex-col gap-5">
           {records.map((record) => (
             <TripRecordItem

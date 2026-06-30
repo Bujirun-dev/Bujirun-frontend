@@ -78,7 +78,7 @@ export function MypageProfile() {
               <span
                 ref={nicknameRef}
                 className={cn(
-                  "text-lg font-bold relative z-50",
+                  "relative z-50 text-lg font-bold",
                   isNicknameModalOpen ? "text-white" : "text-text-heading",
                 )}
               >

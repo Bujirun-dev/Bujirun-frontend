@@ -17,6 +17,7 @@ interface NicknameEditModalProps {
 
 // TODO: API 연결 시 중복 확인 API로 교체
 const TAKEN_NICKNAMES = ["유리", "성빈", "은진"];
+const MAX_NICKNAME_LENGTH = 6;
 
 export function NicknameEditModal({
   isOpen,
@@ -29,24 +30,30 @@ export function NicknameEditModal({
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
   const isTaken = TAKEN_NICKNAMES.includes(value.trim());
-  const isValid = value.length >= 2 && value.length <= 10 && !isTaken;
+  const isValid =
+    value.trim().length >= 2 && value.trim().length <= MAX_NICKNAME_LENGTH && !isTaken;
 
   useEffect(() => {
-    if (isOpen && anchorRef.current) {
-      const rect = anchorRef.current.getBoundingClientRect();
-      const appRoot = document.getElementById("app-root");
-      const rootRect = appRoot?.getBoundingClientRect();
+    if (!isOpen || !anchorRef.current) return;
 
-      setPosition({
-        top: rect.bottom - (rootRect?.top ?? 0) + 8,
-        left: rect.left - (rootRect?.left ?? 0),
-      });
-    }
+    const rect = anchorRef.current.getBoundingClientRect();
+    const appRoot = document.getElementById("app-root");
+    const rootRect = appRoot?.getBoundingClientRect();
+    const modalWidth = 200;
+    const rootLeft = rootRect?.left ?? 0;
+    const rootTop = rootRect?.top ?? 0;
+    const rootWidth = rootRect?.width ?? 390;
+    const left = Math.min(rect.left - rootLeft, rootWidth - modalWidth - 18);
+
+    setPosition({
+      top: rect.bottom - rootTop + 12,
+      left: Math.max(18, left),
+    });
   }, [isOpen, anchorRef]);
 
   const handleConfirm = () => {
     if (!isValid) return;
-    onConfirm(value);
+    onConfirm(value.trim());
     onClose();
   };
 
@@ -67,13 +74,10 @@ export function NicknameEditModal({
 
       {/* 모달 */}
       <div
-        className="absolute z-50 bg-white flex flex-col gap-4 px-[18px] pt-[20px] pb-[18px]"
+        className="absolute z-50 flex w-[200px] flex-col gap-4 rounded-[18px] bg-main-white px-[18px] pb-5 pt-7 shadow-[0_0_8px_var(--color-system-blackbg)]"
         style={{
           top: position.top,
           left: position.left,
-          width: 163,
-          borderRadius: 13,
-          boxShadow: "0px 0px 6px rgba(0, 0, 0, 0.4)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -82,33 +86,35 @@ export function NicknameEditModal({
           type="button"
           aria-label="닫기"
           onClick={onClose}
-          className="absolute top-2 right-2 active:opacity-60"
+          className="absolute right-4 top-4 active:opacity-60"
         >
           <Image src={closeIcon} alt="닫기" width={20} height={20} />
         </button>
 
         {/* 제목 */}
-        <h3 className="font-ssurround font-bold text-md text-text-heading text-center tracking-[0.5px]">
+        <h3 className="text-center font-ssurround text-md font-bold tracking-[0.5px] text-text-heading">
           닉네임 변경
         </h3>
 
         {/* input */}
         <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between pb-1 border-b border-sub-lightgray">
+          <div className="flex items-center justify-between border-b border-sub-lightgray pb-2">
             <input
               value={value}
-              maxLength={10}
+              maxLength={MAX_NICKNAME_LENGTH}
               placeholder="닉네임 입력"
               autoFocus
               onChange={(e) => setValue(e.target.value)}
-              className="flex-1 text-xs text-text-primary placeholder:text-sub-gray outline-none bg-transparent"
+              className="min-w-0 flex-1 bg-transparent text-sm font-medium text-text-primary outline-none placeholder:text-sub-gray"
             />
-            <span className="text-[9px] text-sub-gray shrink-0 ml-1">{value.length}/10</span>
+            <span className="ml-2 shrink-0 text-[10px] text-sub-gray">
+              {value.length}/{MAX_NICKNAME_LENGTH}
+            </span>
           </div>
           {isTaken && (
             <div className="flex items-center gap-1">
-              <Image src={noIcon} alt="" width={10} height={10} aria-hidden />
-              <span className="text-[9px] text-sub-coral font-semibold">
+              <Image src={noIcon} alt="" width={12} height={12} aria-hidden />
+              <span className="text-[10px] font-semibold text-sub-coral">
                 이미 사용중인 닉네임이에요.
               </span>
             </div>
@@ -116,8 +122,8 @@ export function NicknameEditModal({
         </div>
 
         {/* 안내 문구 */}
-        <p className="text-[9px] text-sub-gray text-center leading-relaxed whitespace-pre-line">
-          {"* 닉네임은 2~10자 이내로\n입력해주세요."}
+        <p className="whitespace-pre-line text-center text-xs font-medium leading-relaxed text-sub-gray">
+          {`* 닉네임은 2~${MAX_NICKNAME_LENGTH}자 이내로\n입력해주세요.`}
         </p>
 
         {/* 완료 버튼 */}
@@ -126,8 +132,8 @@ export function NicknameEditModal({
           disabled={!isValid}
           onClick={handleConfirm}
           className={cn(
-            "w-full h-[27px] rounded-[7px] font-ssurround text-sm font-bold text-white transition-opacity",
-            isValid ? "bg-main-blue active:opacity-70" : "bg-sub-gray cursor-not-allowed",
+            "h-9 w-full rounded-lg font-ssurround text-sm font-bold text-white transition-opacity",
+            isValid ? "bg-main-blue active:opacity-70" : "cursor-not-allowed bg-sub-gray",
           )}
         >
           완료
