@@ -211,6 +211,7 @@ function TripResultContent() {
                 <button
                   key={plan.id}
                   type="button"
+                  aria-label={`${PLAN_LABELS[plan.id]} ${plan.id}안`}
                   onClick={() => setActivePlan(plan.id)}
                   className={cn(
                     "rounded-[10px] px-[12px] pt-[4px] pb-[2px] font-proup text-md text-main-white flex items-center justify-center transition-colors",

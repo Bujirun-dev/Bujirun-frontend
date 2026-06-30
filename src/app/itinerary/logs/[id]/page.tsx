@@ -44,9 +44,27 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
 
   useEffect(() => {
     return () => {
-      if (importTimerRef.current) window.clearTimeout(importTimerRef.current);
+      const timerId = importTimerRef.current;
+      if (timerId) window.clearTimeout(timerId);
     };
   }, []);
+
+  const handleCloseAddModal = () => {
+    const timerId = importTimerRef.current;
+    if (timerId) window.clearTimeout(timerId);
+    importTimerRef.current = null;
+    setIsImporting(false);
+    setShowAddModal(false);
+  };
+
+  const handleImportLog = () => {
+    setIsImporting(true);
+    importTimerRef.current = window.setTimeout(() => {
+      setIsImporting(false);
+      setShowAddModal(false);
+      router.push("/itinerary");
+    }, 600);
+  };
 
   if (!log) {
     return (
@@ -156,6 +174,41 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
           </div>
         ))}
       </div>
+
+      {showAddModal && (
+        <div
+          className="absolute inset-0 z-50 flex items-center justify-center bg-system-blackbg px-6"
+          onClick={handleCloseAddModal}
+        >
+          <div
+            className="flex w-full max-w-[300px] flex-col items-center rounded-2xl bg-main-white px-6 py-7 shadow-[0_2px_8px_0_var(--color-system-scroll)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="font-ssurround text-lg font-bold text-text-heading">일정에 추가</p>
+            <p className="mt-4 text-center text-sm font-medium leading-relaxed text-text-primary">
+              이 여행 로그를 내 일정으로 가져올까요?
+            </p>
+            <div className="mt-7 flex w-full gap-3">
+              <button
+                type="button"
+                onClick={handleCloseAddModal}
+                disabled={isImporting}
+                className="h-10 flex-1 rounded-lg border border-main-blue font-ssurround text-sm font-bold text-sub-deepblue active:opacity-70 disabled:opacity-60"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleImportLog}
+                disabled={isImporting}
+                className="h-10 flex-1 rounded-lg bg-main-blue font-ssurround text-sm font-bold text-main-white active:opacity-70 disabled:opacity-60"
+              >
+                {isImporting ? "추가 중" : "가져오기"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PageCard>
   );
 }
