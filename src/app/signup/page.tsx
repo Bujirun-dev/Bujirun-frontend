@@ -15,11 +15,13 @@ import NoIcon from "@/assets/icons/login-register/no.svg?svgr";
 // 닉네임 중복 확인용 — TODO: API 연결 시 제거
 const TAKEN_NICKNAMES = ["유리", "성빈", "은진"];
 export default function SignUpPage() {
-  const [nicknameState, setNicknameState] = useState({ value: "", isTaken: false });
+  const [nickname, setNickname] = useState("");
   const [selectedProfile, setSelectedProfile] = useState<number | null>(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
-  const isNicknameValid = nicknameState.value.trim().length >= 2 && !nicknameState.isTaken;
+  const trimmedNickname = nickname.trim();
+  const isNicknameTaken = TAKEN_NICKNAMES.includes(trimmedNickname);
+  const isNicknameValid = trimmedNickname.length >= 2 && !isNicknameTaken;
   const isFormValid = isNicknameValid && selectedProfile !== null;
 
   // 회원가입 완료 버튼 클릭 — TODO: API 연결 시 서버 요청으로 교체
@@ -45,14 +47,11 @@ export default function SignUpPage() {
             <div className="relative">
               <TextInput
                 placeholder="2 - 10자 이내"
-                value={nicknameState.value}
+                value={nickname}
                 onChange={(e) => {
                   const value = e.target.value;
                   if (value.length > 10) return;
-                  setNicknameState({
-                    value,
-                    isTaken: TAKEN_NICKNAMES.includes(value.trim()),
-                  });
+                  setNickname(value);
                 }}
               />
               {isNicknameValid && (
@@ -63,7 +62,7 @@ export default function SignUpPage() {
             </div>
 
             <div className="flex items-center justify-between pr-2.5">
-              {nicknameState.isTaken ? (
+              {isNicknameTaken ? (
                 <div className="flex items-center gap-[4px]">
                   <NoIcon width={12} height={12} aria-hidden />
                   <span className="font-semibold text-sm text-sub-coral">
@@ -73,9 +72,7 @@ export default function SignUpPage() {
               ) : (
                 <span />
               )}
-              <span className="font-semibold text-sm text-sub-gray">
-                {nicknameState.value.length} /10
-              </span>
+              <span className="font-semibold text-sm text-sub-gray">{nickname.length} /10</span>
             </div>
           </section>
 
