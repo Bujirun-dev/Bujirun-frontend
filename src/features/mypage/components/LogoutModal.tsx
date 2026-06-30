@@ -21,13 +21,13 @@ export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
       iconClassName="!bg-system-coralbg"
       title="로그아웃"
       titleClassName="tracking-[0.5px]"
-      className="h-[435px] gap-3 pt-[48px] pb-[48px]"
+      className="h-[435px] gap-0 pt-[48px] pb-[48px]"
       childrenVariant="plain"
       confirmVariant="warning"
       childrenClassName="mt-[20px]"
       hideActions
       footer={
-        <div className="flex w-full justify-center gap-[25px] mt-auto mb-[1px]">
+        <div className="flex w-full justify-center gap-[25px] mt-auto -mb-[8px]">
           <Button
             variant="secondary"
             onClick={onClose}
@@ -41,7 +41,7 @@ export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
         </div>
       }
     >
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex flex-col items-center gap-4 mt-[8px]">
         <p className="text-lg font-semibold text-text-primary text-center leading-relaxed whitespace-pre-line">
           {`정말 로그아웃 하시겠어요?\n다음 여행도 함께 할게요!`}
         </p>

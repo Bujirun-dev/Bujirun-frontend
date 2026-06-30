@@ -6,6 +6,8 @@ import { PageCard, BackButton } from "@/components";
 import { LogCard } from "@/features/itinerary";
 import { getRelatedLogs } from "@/features/mypage/data/relatedLogs";
 import { PLACES } from "@/features/collection/data/places";
+import { CategoryChip } from "@/components";
+import type { Category } from "@/components";
 
 // TODO: API 연결 시 useQuery로 교체 — GET /tour-spots/:spotId/logs
 
@@ -23,23 +25,26 @@ export default function RelatedLogsPage({ params }: { params: Promise<{ id: stri
       {/* 헤더 */}
       <div className="flex items-center gap-3 py-4 shrink-0">
         <BackButton className="bg-transparent" onClick={() => router.back()} />
-        <h1 className="font-ssurround font-bold text-lg text-text-heading">관련 로그</h1>
+        <h1 className="font-ssurround font-bold text-lg text-text-heading">관련로그 둘러보기</h1>
       </div>
 
-      {/* 관광지명 */}
+      {/* 관광지명 칩 */}
       {placeName && (
-        <div className="pb-3 shrink-0">
-          <span className="text-xs text-sub-gray">
-            <span className="font-semibold text-sub-deepblue">{placeName}</span>을(를) 방문한 로그
-          </span>
+        <div className="flex items-center gap-2 pb-4 shrink-0">
+          <div className="flex items-center gap-1.5 bg-system-selected border border-main-blue/30 rounded-full px-3 py-1.5">
+            <span className="text-sm">📍</span>
+            <span className="text-md font-semibold text-sub-deepblue">{placeName}</span>
+          </div>
+          {placeInfo?.category && (
+            <CategoryChip category={placeInfo.category as Category} size="md" />
+          )}
         </div>
       )}
-
       {/* 로그 목록 */}
       <div className="flex-1 overflow-y-auto pb-6">
         {relatedLogs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-2 pt-20">
-            <span className="text-2xl">📭</span>
+          <div className="flex flex-col items-center justify-center h-full gap-3 pt-20">
+            <span className="text-4xl">📭</span>
             <p className="text-sm text-sub-gray font-medium">아직 관련 로그가 없어요</p>
           </div>
         ) : (

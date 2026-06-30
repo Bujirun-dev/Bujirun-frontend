@@ -28,15 +28,15 @@ export function ProfileImageSelector({
   className,
 }: ProfileImageSelectorProps) {
   return (
-    <Card variant="glass-lg" className={cn("rounded-[20px] p-[16px]", className)}>
-      <div className="grid grid-cols-3 gap-[21px]">
+    <Card variant="glass-lg" className={cn("rounded-[20px] py-[16px] px-[8px]", className)}>
+      <div className="grid grid-cols-3 gap-[12px]">
         {images.map(({ id, src }) => (
           <button
             key={id}
             type="button"
             onClick={() => onSelect(id)}
             className={cn(
-              "relative w-[80px] h-[80px] rounded-full overflow-hidden transition-all active:scale-97",
+              "relative w-[74px] h-[74px] rounded-full overflow-hidden transition-all active:scale-97",
               selectedId === id
                 ? "bg-main-blue outline outline-[2.5px] outline-main-blue"
                 : "bg-system-navbg outline outline-[2.5px] outline-transparent",
