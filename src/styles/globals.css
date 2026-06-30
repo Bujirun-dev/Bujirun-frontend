@@ -1,17 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap");
+@import url("https://cdn.jsdelivr.net/gh/MonadABXY/mona-font/web/mona.css");
 @import "tailwindcss";
 
 @font-face {
   font-family: "DXSubtitles";
   src: url("/fonts/DXMSubtitlesM-KSCpc-EUC-H.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Mona";
-  src: url("/fonts/Mona10.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -203,7 +196,7 @@
   --font-laundrygothic: "LaundryGothic", sans-serif;
   --font-courierprime: "Courier Prime", monospace;
   --font-dxsubtitles: "DXSubtitles", sans-serif;
-  --font-mona: "Mona", sans-serif;
+  --font-mona: "Mona12", sans-serif;
 }
 
 /* SVG 아이콘 색상 필터 유틸리티 */

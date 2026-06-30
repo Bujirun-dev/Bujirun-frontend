@@ -39,7 +39,7 @@ export default function CollectionPage() {
     <section className="pb-[24px]">
       <div className="flex items-end gap-[10px]">
         <h1 className="font-ssurround text-2xl text-text-heading">부산 도감</h1>
-        <p className="pb-[2px] font-laundrygothic text-md">부산 곳곳에 남긴 나의 여행 발자국 🐾</p>
+        <p className="pb-[2px] font-dxsubtitles text-md">부산 곳곳에 남긴 나의 여행 발자국 🐾</p>
       </div>
 
       <FilterChips
