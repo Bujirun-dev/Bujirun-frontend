@@ -42,7 +42,6 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
       icon={<PencilIcon width={25} height={25} className="icon-deepblue" aria-hidden />}
       title="일정 정보 수정"
       titleClassName="font-bold text-xl text-text-heading"
-      className="gap-6 px-8 py-10"
       childrenVariant="plain"
       childrenClassName="flex flex-col gap-6"
       cancelText="취소"

@@ -11,7 +11,7 @@ import mapCharacter from "@/assets/character/map.png";
 import seaCharacter from "@/assets/character/sea.png";
 import LandLayerLocationIcon from "@/assets/icons/itinerary/land-layer-location.svg?svgr";
 import samplePlaceImage from "@/assets/place/place1.png";
-import { Button } from "@/components";
+import { Button, Card } from "@/components";
 import { LoadingProgressBar } from "../LoadingProgressBar";
 import { CharacterImage, MapPreview, Notice, PlaceBadge } from "./ArrivalVerifyShared";
 
@@ -219,20 +219,24 @@ export function PhotoConfirmStage({ placeName }: Pick<CommonProps, "placeName">)
 export function CompleteStage({ placeName }: Pick<CommonProps, "placeName">) {
   return (
     <>
-      <CharacterImage src={congsCharacter} alt="인증 완료" className="mb-3 h-[120px] w-[140px]" />
+      <CharacterImage src={congsCharacter} alt="인증 완료" className="-mb-[14px] h-[160px] w-[180px]" />
       <div className="mb-5 flex flex-col items-center gap-2 text-center">
         <PlaceBadge placeName={placeName} />
-        <h2 className="text-xl font-ssurround font-bold text-text-heading">인증이 완료되었어요!</h2>
+        <h2 className="text-lg font-paperlogy font-bold text-text-heading">인증이 완료되었어요!</h2>
       </div>
-      <div className="relative mb-5 h-[153px] w-[273px] overflow-hidden rounded-[10px]">
+      <div className="relative mb-[14px] h-[153px] w-full overflow-hidden rounded-[10px]">
         <Image src={samplePlaceImage} alt={placeName} fill className="object-cover" />
       </div>
-      <div className="mb-7 flex h-[74px] w-[273px] flex-col items-center justify-center gap-1 rounded-xl border-[0.5px] border-system-scroll bg-main-white text-center">
-        <span className="font-paperlogy text-sm font-medium text-text-heading">
-          📖 도감 등록 완료!
+      <Card
+        variant="glass-sm"
+        className="mb-[15px] w-full flex flex-col items-center justify-center gap-[12px] py-[12px] text-center"
+      >
+        <span className="flex items-center gap-[3px] font-paperlogy text-md font-medium text-text-heading">
+          <span>📖</span>
+          <span>도감 등록 완료!</span>
         </span>
-        <span className="font-ssurround text-md font-bold text-main-blue">새로운 관광지 + 1</span>
-      </div>
+        <span className="font-mona font-normal text-sm text-sub-deepblue">도감 +1</span>
+      </Card>
     </>
   );
 }

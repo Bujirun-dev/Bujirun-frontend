@@ -77,7 +77,7 @@ export function Modal({
     >
       <div
         className={cn(
-          "relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-3xl px-8 py-10 flex flex-col items-center gap-6",
+          "relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-3xl px-7 py-9 flex flex-col items-center gap-5",
           className,
         )}
         onClick={(e) => e.stopPropagation()}
@@ -121,7 +121,7 @@ export function Modal({
         )}
 
         {(title || description) && (
-          <div className="flex flex-col items-center gap-5 text-center">
+          <div className="flex flex-col items-center gap-4 text-center">
             {title && (
               <h2
                 className={cn("font-ssurround text-xl font-bold text-text-heading", titleClassName)}

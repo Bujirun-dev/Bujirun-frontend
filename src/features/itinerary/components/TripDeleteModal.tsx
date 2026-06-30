@@ -20,14 +20,13 @@ export function TripDeleteModal({ isOpen, tripName, onClose, onConfirm }: TripDe
       iconClassName="size-[48px] bg-system-navbg"
       title="여행 삭제"
       titleClassName="font-bold text-xl text-text-heading"
-      className="px-8 py-10 gap-6"
       childrenVariant="plain"
       cancelText="취소"
       confirmText="삭제하기"
       confirmVariant="warning"
       onConfirm={onConfirm}
     >
-      <div className="flex w-full flex-col items-center gap-7">
+      <div className="flex w-full flex-col items-center gap-4">
         <p className="text-center text-lg font-semibold leading-relaxed text-text-primary">
           {`'${tripName}' 여행을`}
           <br />
