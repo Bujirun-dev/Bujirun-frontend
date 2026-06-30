@@ -7,20 +7,13 @@ import { TextInput } from "@/components/ui/TextInput";
 import { Card } from "@/components/ui/Card";
 import { ProfileImageSelector } from "@/components/profile/ProfileImageSelector";
 import { SignUpSuccessModal } from "@/features/auth/components/SignUpSuccessModal";
+import { PROFILE_IMAGES } from "@/components/profile/profileImages";
 
 import YesIcon from "@/assets/icons/login-register/yes.svg?svgr";
 import NoIcon from "@/assets/icons/login-register/no.svg?svgr";
-import profileHat from "@/assets/character/profile/profile-hat.png";
-
-//TODO: 실제 프로필 이미지 9개로 교체 예정
-const PROFILE_IMAGES = Array.from({ length: 9 }, (_, i) => ({
-  id: i + 1,
-  src: profileHat,
-}));
 
 // 닉네임 중복 확인용 — TODO: API 연결 시 제거
 const TAKEN_NICKNAMES = ["유리", "성빈", "은진"];
-
 export default function SignUpPage() {
   const [nicknameState, setNicknameState] = useState({ value: "", isTaken: false });
   const [selectedProfile, setSelectedProfile] = useState<number | null>(null);
