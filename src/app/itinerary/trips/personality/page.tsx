@@ -34,7 +34,7 @@ function TripPersonalityContent() {
   const totalSlots = Math.min(6, Math.max(2, Number(searchParams.get("count")) || TOTAL_SLOTS));
 
   return (
-    <div className="flex h-full flex-col items-center justify-center px-6 pb-8">
+    <div className="flex h-full flex-col items-center justify-center px-4 pb-8">
       <div className="w-full rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-[30px] py-[35px] backdrop-blur-[15px] flex flex-col items-center">
         {/* 말풍선 */}
         <SpeechBubble variant="white" tailDirection="bottom" tailCenter>
@@ -94,7 +94,7 @@ function TripPersonalityContent() {
           </button>
           <button
             type="button"
-            onClick={() => router.push("/itinerary/trips/swipe")}
+            onClick={() => router.push(`/itinerary/trips/swipe?count=${totalSlots}`)}
             className="flex-1 h-[40px] rounded-[10px] bg-main-blue font-ssurround font-bold text-sm text-white"
           >
             취향분석 할래!

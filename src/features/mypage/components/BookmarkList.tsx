@@ -43,7 +43,7 @@ export function BookmarkList() {
   }
 
   return (
-    <div className="flex flex-col gap-[30px]">
+    <div className="flex flex-col gap-4">
       {bookmarks.map((item) => (
         <BookmarkCard
           key={item.id}

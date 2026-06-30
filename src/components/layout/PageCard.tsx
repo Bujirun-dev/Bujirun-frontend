@@ -11,7 +11,7 @@ export function PageCard({ children, className }: PageCardProps) {
     <div className="flex h-full flex-col relative -mx-6">
       <div
         className={cn(
-          "flex flex-1 flex-col overflow-hidden rounded-tl-[40px] rounded-tr-[40px] bg-white px-8 pt-8 pb-4",
+          "flex flex-1 flex-col overflow-hidden rounded-tl-[40px] rounded-tr-[40px] bg-white px-6 pt-8 pb-4",
           className,
         )}
       >
