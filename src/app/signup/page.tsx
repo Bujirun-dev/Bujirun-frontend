@@ -14,6 +14,7 @@ import NoIcon from "@/assets/icons/login-register/no.svg?svgr";
 
 // 닉네임 중복 확인용 — TODO: API 연결 시 제거
 const TAKEN_NICKNAMES = ["유리", "성빈", "은진"];
+
 export default function SignUpPage() {
   const [nickname, setNickname] = useState("");
   const [selectedProfile, setSelectedProfile] = useState<number | null>(null);
@@ -34,15 +35,15 @@ export default function SignUpPage() {
     <>
       <Card
         variant="white"
-        className="absolute bottom-0 left-0 right-0 h-[722px] rounded-t-[28px] rounded-b-none shadow-none p-0 flex flex-col"
+        className="absolute bottom-0 left-0 right-0 h-[722px] rounded-t-[40px] rounded-b-none shadow-none p-0 flex flex-col"
       >
         {/* 타이틀 */}
-        <p className="text-center font-ssurround font-bold text-2xl text-text-heading mt-[20px]">
+        <p className="text-center font-ssurround font-bold text-xl text-text-heading mt-[35px]">
           회원가입
         </p>
         <div className="px-[24px] mt-[40px] flex flex-col gap-[28px]">
           {/* 닉네임 입력 */}
-          <section className="flex flex-col gap-[6px]">
+          <section className="flex flex-col gap-[11px]">
             <label className="font-semibold text-lg text-text-primary">닉네임</label>
             <div className="relative">
               <TextInput
@@ -83,12 +84,13 @@ export default function SignUpPage() {
               images={PROFILE_IMAGES}
               selectedId={selectedProfile}
               onSelect={setSelectedProfile}
+              variant="signup"
             />
           </section>
         </div>
 
         {/* 버튼 영역 */}
-        <div className="px-[24px] mt-auto mb-[36px]">
+        <div className="px-[24px] mt-auto mb-[53px]">
           <Button
             variant="primary"
             disabled={!isFormValid}
