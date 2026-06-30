@@ -198,15 +198,7 @@ export function PlaceDetailContent({
   );
 }
 
-function InfoRow({
-  icon,
-  label,
-  value,
-}: {
-  icon: StaticImageData;
-  label: string;
-  value: string;
-}) {
+function InfoRow({ icon, label, value }: { icon: StaticImageData; label: string; value: string }) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">

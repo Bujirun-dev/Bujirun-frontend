@@ -46,7 +46,11 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ id
           mapUrl,
           isBookmarked: place.isCollected,
           infoItems: [
-            { type: "clock", label: "운영", value: place.operatingHours || "운영 정보가 없습니다." },
+            {
+              type: "clock",
+              label: "운영",
+              value: place.operatingHours || "운영 정보가 없습니다.",
+            },
             { type: "call", label: "문의", value: "문의처 정보가 없습니다." },
           ],
         }}
