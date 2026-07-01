@@ -1,19 +1,7 @@
-import Image from "next/image";
-import busIcon from "@/assets/icons/home/bus.png";
-import subwayIcon from "@/assets/icons/home/subway.png";
-import walkIcon from "@/assets/icons/home/walk.png";
-import taxiIcon from "@/assets/icons/home/taxi.png";
 import { cn } from "@/shared/utils";
 import { StatusBadge } from "@/components";
 
 type PlaceStatus = "completed" | "verify" | "pending";
-
-const TRANSPORT_ICONS: Record<string, typeof busIcon> = {
-  버스: busIcon,
-  지하철: subwayIcon,
-  도보: walkIcon,
-  택시: taxiIcon,
-};
 
 interface TransportInfo {
   type: string;
@@ -64,14 +52,6 @@ export function HomeItineraryItem({
               }}
             />
             <span className="text-xs font-semibold text-main-blue bg-white/80 px-1.5 h-[19px] rounded-full inline-flex items-center justify-center gap-0.5">
-              {TRANSPORT_ICONS[transport.type] && (
-                <Image
-                  src={TRANSPORT_ICONS[transport.type]}
-                  alt={transport.type}
-                  width={12}
-                  height={12}
-                />
-              )}
               {transport.type}
             </span>
             <span className="text-xs text-text-primary">{transport.routeName}</span>

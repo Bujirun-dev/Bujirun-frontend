@@ -14,6 +14,7 @@ export interface ScheduleStop {
   category: "sea" | "nature" | "culture" | "experience";
   tags: string[];
   isVerified: boolean;
+  transportId?: string;
 }
 
 export interface DaySchedule {
@@ -382,6 +383,7 @@ export const SAMPLE_LOGS: LogDetail[] = [
             category: "sea",
             tags: ["#야경", "#낭만"],
             isVerified: true,
+            transportId: "gwanganli-to-gwangandaegyo",
           },
           {
             time: "19:00",
@@ -390,6 +392,7 @@ export const SAMPLE_LOGS: LogDetail[] = [
             category: "nature",
             tags: ["#야경명소", "#부산"],
             isVerified: false,
+            transportId: "gwangandaegyo-to-minrak",
           },
           {
             time: "20:30",
