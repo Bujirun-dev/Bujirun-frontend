@@ -44,7 +44,7 @@ export default function SignUpPage() {
         </p>
         <div className="px-[24px] mt-[40px] flex flex-col gap-[28px]">
           {/* 닉네임 입력 */}
-          <section className="flex flex-col gap-[11px]">
+          <section className="flex flex-col gap-[8px]">
             <label className="font-semibold text-lg text-text-primary">닉네임</label>
             <div className="relative">
               <TextInput
@@ -63,7 +63,7 @@ export default function SignUpPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-between pr-2.5">
+            <div className="flex items-center justify-between  px-1 pr-1">
               {isNicknameTaken ? (
                 <div className="flex items-center gap-[4px]">
                   <NoIcon width={12} height={12} aria-hidden className="fill-sub-coral" />
