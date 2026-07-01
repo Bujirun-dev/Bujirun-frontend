@@ -4,6 +4,14 @@ import marineCharacter from "@/assets/character/marine.png";
 import turtleIcon from "@/assets/icons/home/turtle.png";
 import { TodayItinerary } from "@/features/home/components/TodayItinerary";
 import { PlaceSection } from "@/features/home/components/PlaceSection";
+import { PLACES } from "@/features/home/data/places";
+
+const COLLECTION_TOTAL = PLACES.length;
+const COLLECTION_COUNT = PLACES.filter((place) => place.isCollected).length;
+const COLLECTION_RADIUS = 36;
+const COLLECTION_CIRCUMFERENCE = 2 * Math.PI * COLLECTION_RADIUS;
+const COLLECTION_PROGRESS = COLLECTION_COUNT / COLLECTION_TOTAL;
+const COLLECTION_DASH = COLLECTION_CIRCUMFERENCE * COLLECTION_PROGRESS;
 
 function MegaphoneIcon() {
   return (
@@ -63,11 +71,11 @@ export default function HomePage() {
               <circle
                 cx="56"
                 cy="56"
-                r="36"
+                r={COLLECTION_RADIUS}
                 fill="none"
                 className="stroke-main-blue stroke-[40]"
                 strokeLinecap="round"
-                strokeDasharray="186 264"
+                strokeDasharray={`${COLLECTION_DASH} ${COLLECTION_CIRCUMFERENCE}`}
               />
             </svg>
 
@@ -88,8 +96,8 @@ export default function HomePage() {
               />
             </div>
             <p>
-              <span className="text-2xl text-sub-deepblue font-semibold">24</span>
-              <span className="text-md text-sub-darkgray font-medium"> / 34 수집완료</span>
+              <span className="text-2xl font-semibold text-sub-deepblue">{COLLECTION_COUNT}</span>
+              <span className="text-md font-medium text-sub-darkgray">{` / ${COLLECTION_TOTAL} 수집완료`}</span>
             </p>
           </div>
         </div>

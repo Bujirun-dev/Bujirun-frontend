@@ -46,14 +46,14 @@ export const SAMPLE_LOGS: LogDetail[] = [
     extraCount: 2,
     author: "여행자123",
     duration: "2박3일",
-    date: "2026.05.10 ~ 05.12",
+    date: "2026.08.10 ~ 08.12",
     downloadCount: 34,
-    createdAt: "2026-05-10",
+    createdAt: "2026-08-10",
     imageUrl: "https://picsum.photos/seed/log1/400/300",
     days: [
       {
         day: 1,
-        date: "2026.05.10",
+        date: "2026.08.10",
         stops: [
           {
             time: "10:00",
@@ -83,7 +83,7 @@ export const SAMPLE_LOGS: LogDetail[] = [
       },
       {
         day: 2,
-        date: "2026.05.11",
+        date: "2026.08.11",
         stops: [
           {
             time: "10:00",
@@ -113,7 +113,7 @@ export const SAMPLE_LOGS: LogDetail[] = [
       },
       {
         day: 3,
-        date: "2026.05.12",
+        date: "2026.08.12",
         stops: [
           {
             time: "11:00",
@@ -143,14 +143,14 @@ export const SAMPLE_LOGS: LogDetail[] = [
     extraCount: 1,
     author: "여행러버",
     duration: "1박2일",
-    date: "2026.05.08 ~ 05.09",
+    date: "2026.08.08 ~ 08.09",
     downloadCount: 12,
-    createdAt: "2026-05-08",
+    createdAt: "2026-08-08",
     imageUrl: "https://picsum.photos/seed/log2/400/300",
     days: [
       {
         day: 1,
-        date: "2026.05.08",
+        date: "2026.08.08",
         stops: [
           {
             time: "11:00",
@@ -180,7 +180,7 @@ export const SAMPLE_LOGS: LogDetail[] = [
       },
       {
         day: 2,
-        date: "2026.05.09",
+        date: "2026.08.09",
         stops: [
           {
             time: "10:00",
@@ -210,14 +210,14 @@ export const SAMPLE_LOGS: LogDetail[] = [
     extraCount: 0,
     author: "트레커",
     duration: "2박3일",
-    date: "2026.05.01 ~ 05.03",
+    date: "2026.08.01 ~ 08.03",
     downloadCount: 8,
-    createdAt: "2026-05-01",
+    createdAt: "2026-08-01",
     imageUrl: "https://picsum.photos/seed/log3/400/300",
     days: [
       {
         day: 1,
-        date: "2026.05.01",
+        date: "2026.08.01",
         stops: [
           {
             time: "08:00",
@@ -239,7 +239,7 @@ export const SAMPLE_LOGS: LogDetail[] = [
       },
       {
         day: 2,
-        date: "2026.05.02",
+        date: "2026.08.02",
         stops: [
           {
             time: "09:00",
@@ -261,7 +261,7 @@ export const SAMPLE_LOGS: LogDetail[] = [
       },
       {
         day: 3,
-        date: "2026.05.03",
+        date: "2026.08.03",
         stops: [
           {
             time: "10:00",
@@ -291,14 +291,14 @@ export const SAMPLE_LOGS: LogDetail[] = [
     extraCount: 3,
     author: "테마파크매니아",
     duration: "1박2일",
-    date: "2026.04.20 ~ 04.21",
+    date: "2026.08.20 ~ 08.21",
     downloadCount: 56,
-    createdAt: "2026-04-20",
+    createdAt: "2026-08-20",
     imageUrl: "https://picsum.photos/seed/log4/400/300",
     days: [
       {
         day: 1,
-        date: "2026.04.20",
+        date: "2026.08.20",
         stops: [
           {
             time: "10:00",
@@ -328,7 +328,7 @@ export const SAMPLE_LOGS: LogDetail[] = [
       },
       {
         day: 2,
-        date: "2026.04.21",
+        date: "2026.08.21",
         stops: [
           {
             time: "10:00",
@@ -366,14 +366,14 @@ export const SAMPLE_LOGS: LogDetail[] = [
     extraCount: 1,
     author: "바다사랑",
     duration: "2박3일",
-    date: "2026.04.15 ~ 04.17",
+    date: "2026.07.30 ~ 08.01",
     downloadCount: 21,
-    createdAt: "2026-04-15",
+    createdAt: "2026-08-15",
     imageUrl: "https://picsum.photos/seed/log5/400/300",
     days: [
       {
         day: 1,
-        date: "2026.04.15",
+        date: "2026.07.30",
         stops: [
           {
             time: "15:00",
@@ -391,11 +391,19 @@ export const SAMPLE_LOGS: LogDetail[] = [
             tags: ["#야경명소", "#부산"],
             isVerified: false,
           },
+          {
+            time: "20:30",
+            place: "민락수변공원",
+            imageUrl: place7,
+            category: "nature",
+            tags: ["#야경", "#산책", "#회센터"],
+            isVerified: false,
+          },
         ],
       },
       {
         day: 2,
-        date: "2026.04.16",
+        date: "2026.07.31",
         stops: [
           {
             time: "10:00",
@@ -425,7 +433,7 @@ export const SAMPLE_LOGS: LogDetail[] = [
       },
       {
         day: 3,
-        date: "2026.04.17",
+        date: "2026.08.01",
         stops: [
           {
             time: "11:00",

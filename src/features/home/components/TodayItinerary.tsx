@@ -1,14 +1,9 @@
 import { SAMPLE_LOGS } from "@/features/home/data/sampleLogs";
 import { StatusBadge } from "@/components";
+import { getClosestDay } from "@/features/home/utils/getClosestDay";
 
-interface TodayItineraryProps {
-  logIndex?: number;
-  dayIndex?: number;
-}
-
-export function TodayItinerary({ logIndex = 0, dayIndex = 0 }: TodayItineraryProps) {
-  const log = SAMPLE_LOGS[logIndex];
-  const day = log.days[dayIndex];
+export function TodayItinerary() {
+  const { day } = getClosestDay(SAMPLE_LOGS);
   const plans = day.stops;
   return (
     <div>
