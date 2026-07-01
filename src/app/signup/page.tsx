@@ -91,7 +91,7 @@ export default function SignUpPage() {
         </div>
 
         {/* 버튼 영역 */}
-        <div className="px-[24px] mt-auto mb-[53px]">
+        <div className="px-[24px] mt-auto mb-[36px]">
           <Button
             variant="primary"
             disabled={!isFormValid}
