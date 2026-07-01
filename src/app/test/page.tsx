@@ -82,7 +82,7 @@ export default function TestPage() {
 
       <div className="flex flex-col gap-2">
         <ComponentLabel>KakaoLoginButton</ComponentLabel>
-        <KakaoLoginButton onClick={() => {}} />
+        <KakaoLoginButton />
       </div>
 
       <div className="flex flex-col gap-2">
