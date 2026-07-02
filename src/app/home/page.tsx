@@ -79,7 +79,7 @@ export default function HomePage() {
               />
             </svg>
 
-            <div className="relative grid size-[48px] place-items-center rounded-full">
+            <div className="relative grid size-[48px] place-items-center rounded-full translate-y-[2px]">
               <Image src={turtleIcon} alt="거북이 아이콘" className="h-8 w-8 object-contain" />
             </div>
           </div>

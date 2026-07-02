@@ -1,18 +1,17 @@
-import type { Transport } from "@/features/home/data/sampleTransport";
+import type {
+  TransportGroup,
+  TransportOption,
+  TransportType,
+} from "@/features/home/types/transport";
 import { cn } from "@/shared/utils";
-import { TransportIcon, type TransportType } from "@/features/home/components/TransportIcons";
+import { TransportIcon } from "@/features/home/components/TransportIcons";
 import { TransportLegItem } from "@/features/home/components/TransportLegItem";
-
-export interface TransportStep {
-  type: TransportType;
-  routeName: string;
-  from: string;
-  to: string;
-  arrivalText?: string;
-}
+import Image from "next/image";
+import kakaoMapLogo from "@/assets/icons/home/kakaomap_horizontal_ko.png";
 
 interface TransportDetailProps {
-  transport: Transport;
+  transportGroup: TransportGroup;
+  selectedOption: TransportOption;
 }
 
 const TRANSPORT_COLORS: Record<TransportType, string> = {
@@ -22,12 +21,21 @@ const TRANSPORT_COLORS: Record<TransportType, string> = {
   택시: "bg-sub-violet",
 };
 
-export function TransportDetail({ transport }: TransportDetailProps) {
-  const { fromPlace, toPlace, durationText, costText, steps } = transport;
+export function TransportDetail({ transportGroup, selectedOption }: TransportDetailProps) {
+  const { fromPlace, toPlace } = transportGroup;
+  const { durationText, costText, steps } = selectedOption;
+  const metaText = `${durationText ?? "-"} · ${costText ?? "-"}`;
   return (
-    <div className="relative flex min-w-0 flex-col gap-3 py-3">
+    <div className="relative flex min-w-0 flex-col gap-3 py-2">
+      <div className="mb-1 flex min-w-0 items-center justify-between gap-3">
+        <button type="button" className="rounded-lg bg-main-blue px-2 py-1 active:opacity-80">
+          <Image src={kakaoMapLogo} alt="카카오맵" width={60} />
+        </button>
+
+        <span className="min-w-0 truncate text-md font-semibold text-sub-darkgray">{metaText}</span>
+      </div>
       <div
-        className="pointer-events-none absolute bottom-[28px] left-[14px] top-[28px] w-[1.5px]"
+        className="pointer-events-none absolute bottom-[28px] left-[14px] top-[68px] w-[1.5px]"
         aria-hidden="true"
       >
         <div className="h-full w-full bg-[repeating-linear-gradient(to_bottom,var(--color-sub-gray)_0_4px,transparent_4px_9px)]" />
@@ -37,15 +45,9 @@ export function TransportDetail({ transport }: TransportDetailProps) {
         <div className="relative z-10 flex size-7 shrink-0 items-center justify-center">
           <span className="size-3.5 rounded-full bg-sub-gray" />
         </div>
-
-        <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-          <span className="truncate text-lg font-semibold text-text-primary">
-            {fromPlace ?? "출발 장소"}
-          </span>
-          <span className="shrink-0 text-md font-semibold text-sub-darkgray">
-            {durationText ?? "-"} · {costText ?? "-"}
-          </span>
-        </div>
+        <span className="min-w-0 break-words text-lg font-semibold text-text-primary">
+          {fromPlace ?? "출발 장소"}
+        </span>
       </div>
 
       {steps.map((step) => (

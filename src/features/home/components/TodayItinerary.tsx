@@ -6,21 +6,37 @@ import { getClosestDay } from "@/features/home/utils/getClosestDay";
 import { TransportSummaryCard } from "@/features/home/components/TransportSummaryCard";
 import { TransportDetailModal } from "@/features/home/components/TransportDetailModal";
 import {
-  DEFAULT_TRANSPORT,
-  findTransportByPlaces,
-  type Transport,
+  DEFAULT_TRANSPORT_GROUP,
+  findTransportGroupByPlaces,
+  getSelectedTransportOption,
 } from "@/features/home/data/sampleTransport";
+import type { TransportGroup, TransportOption } from "@/features/home/types/transport";
+
+const getTransportRouteKey = (transportGroup: TransportGroup) =>
+  `${transportGroup.fromPlace}-${transportGroup.toPlace}`;
 
 export function TodayItinerary() {
   const { day } = getClosestDay(SAMPLE_LOGS);
   const plans = day.stops;
-  const [selectedTransport, setSelectedTransport] = useState<Transport | null>(null);
+  const [selectedTransportGroup, setSelectedTransportGroup] = useState<TransportGroup | null>(null);
+  const [selectedOptionIdByRoute, setSelectedOptionIdByRoute] = useState<Record<string, string>>(
+    {},
+  );
 
-  const openTransportModal = (transport: Transport) => {
-    setSelectedTransport(transport);
+  const openTransportModal = (transportGroup: TransportGroup) => {
+    setSelectedTransportGroup(transportGroup);
   };
 
-  const closeTransportModal = () => setSelectedTransport(null);
+  const closeTransportModal = () => setSelectedTransportGroup(null);
+
+  const handleChangeTransportOption = (option: TransportOption) => {
+    if (!selectedTransportGroup) return;
+
+    setSelectedOptionIdByRoute((prev) => ({
+      ...prev,
+      [getTransportRouteKey(selectedTransportGroup)]: option.id,
+    }));
+  };
 
   return (
     <div>
@@ -32,8 +48,15 @@ export function TodayItinerary() {
       <ol className="mt-6">
         {plans.map((plan, index) => {
           const nextPlan = plans[index + 1];
-          const transport = nextPlan
-            ? (findTransportByPlaces(plan.place, nextPlan.place) ?? DEFAULT_TRANSPORT)
+          const transportGroup = nextPlan
+            ? findTransportGroupByPlaces(plan.place, nextPlan.place)
+            : null;
+          const selectedOptionId = transportGroup
+            ? (selectedOptionIdByRoute[getTransportRouteKey(transportGroup)] ??
+              transportGroup.selectedOptionId)
+            : undefined;
+          const selectedOption = transportGroup
+            ? getSelectedTransportOption(transportGroup, selectedOptionId)
             : null;
 
           return (
@@ -59,13 +82,13 @@ export function TodayItinerary() {
 
                 <div className="min-w-0 flex-1">
                   <p className="leading-4 text-lg font-medium text-text-primary">{plan.place}</p>
-                  {transport && (
+                  {transportGroup && selectedOption && (
                     <button
                       type="button"
                       className="my-3 w-full text-left"
-                      onClick={() => openTransportModal(transport)}
+                      onClick={() => openTransportModal(transportGroup)}
                     >
-                      <TransportSummaryCard {...transport} />
+                      <TransportSummaryCard {...selectedOption} />
                     </button>
                   )}
                 </div>
@@ -80,10 +103,16 @@ export function TodayItinerary() {
         })}
       </ol>
       <TransportDetailModal
-        isOpen={selectedTransport !== null}
-        transport={selectedTransport ?? DEFAULT_TRANSPORT}
+        isOpen={selectedTransportGroup !== null}
+        transportGroup={selectedTransportGroup ?? DEFAULT_TRANSPORT_GROUP}
+        selectedOptionId={
+          selectedTransportGroup
+            ? (selectedOptionIdByRoute[getTransportRouteKey(selectedTransportGroup)] ??
+              selectedTransportGroup.selectedOptionId)
+            : DEFAULT_TRANSPORT_GROUP.selectedOptionId
+        }
         onClose={closeTransportModal}
-        onChange={closeTransportModal}
+        onChange={handleChangeTransportOption}
       />
     </div>
   );

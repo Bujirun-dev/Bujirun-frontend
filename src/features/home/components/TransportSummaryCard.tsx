@@ -1,8 +1,11 @@
-import type { Transport } from "@/features/home/data/sampleTransport";
 import { cn } from "@/shared/utils";
 import { TransportIcon } from "@/features/home/components/TransportIcons";
+import type { TransportOption } from "@/features/home/types/transport";
 
-interface TransportSummaryCardProps extends Pick<Transport, "durationText" | "costText" | "steps"> {
+interface TransportSummaryCardProps extends Pick<
+  TransportOption,
+  "durationText" | "costText" | "steps"
+> {
   isRecommended?: boolean;
   className?: string;
 }
@@ -14,7 +17,7 @@ export function TransportSummaryCard({
   isRecommended,
   className,
 }: TransportSummaryCardProps) {
-  const metaText = `${isRecommended ? "⭐ " : ""}${durationText} · ${costText}`;
+  const metaText = `${durationText} · ${costText}`;
   const visibleSteps = steps.slice(0, 2);
 
   return (
