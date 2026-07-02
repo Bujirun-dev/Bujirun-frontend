@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { Modal } from "@/components/ui/Modal";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import calendarPlusIcon from "@/assets/icons/itinerary/calendar-plus.svg?url";
 
@@ -27,16 +26,21 @@ export function ImportLogModal({
       onClose={onClose}
       icon={<Image src={calendarPlusIcon} alt="" width={25} height={25} aria-hidden />}
       title="내 일정에 추가"
-      titleClassName="tracking-[0.5px] text-[18px] text-text-primary"
-      childrenVariant="plain"
+      titleClassName="tracking-[0.5px]"
+      description={
+        authorNickname
+          ? `'${authorNickname}'님의 여행 일정을\n내 일정에 추가하시겠어요?`
+          : `이 여행 일정을\n내 일정에 추가하시겠어요?`
+      }
+      childrenVariant="card"
       hideActions
       footer={
-        <div className="flex w-full justify-center gap-[25px]">
+        <div className="flex w-full gap-3">
           <Button
             variant="secondary"
             onClick={onClose}
             disabled={isLoading}
-            className="w-[125px] h-[40px] disabled:opacity-60"
+            className="flex-1 h-[40px] disabled:opacity-60"
           >
             취소
           </Button>
@@ -44,26 +48,16 @@ export function ImportLogModal({
             variant="primary"
             onClick={onConfirm}
             disabled={isLoading}
-            className="w-[125px] h-[40px] disabled:opacity-60"
+            className="flex-1 h-[40px] disabled:opacity-60"
           >
             {isLoading ? "추가 중" : "추가하기"}
           </Button>
         </div>
       }
     >
-      <p className="text-lg font-semibold text-text-primary text-center leading-relaxed whitespace-pre-line">
-        {authorNickname
-          ? `'${authorNickname}'님의 여행 일정을\n내 일정에 추가하시겠어요?`
-          : `이 여행 일정을\n내 일정에 추가하시겠어요?`}
+      <p className="text-center font-medium text-sub-darkgray">
+        * 다른 사람의 일정을 불러오면 현재 일정은 사라져요.
       </p>
-      <Card
-        variant="glass-sm"
-        className="w-full flex items-center justify-center px-[10px] py-[8px]"
-      >
-        <p className="text-center text-sm font-medium text-sub-darkgray">
-          * 다른 사람의 일정을 불러오면 현재 일정은 사라져요.
-        </p>
-      </Card>
     </Modal>
   );
 }

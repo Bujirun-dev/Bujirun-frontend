@@ -51,7 +51,7 @@ export function ArrivalStage({
           이곳에 도착하셨나요?
         </h2>
       </div>
-      <div className="mb-[30px] w-full">
+      <div className="w-full">
         <Notice>* GPS 위치 확인 후 관광지를 수집해주세요.</Notice>
       </div>
     </>
@@ -64,10 +64,10 @@ export function GpsPermissionStage({}: Pick<CommonProps, never>) {
       <h2 className="mb-5 whitespace-pre-line text-center text-xl font-ssurround font-bold text-text-heading">
         “BUJIRUN”이 사용자의{"\n"}위치에 접근하려고 합니다.
       </h2>
-      <div className="mb-6 w-full">
+      <div className="mb-3 w-full">
         <Notice>* 관광지를 수집해서 도감을 채워봐요!</Notice>
       </div>
-      <div className="mb-6 w-full">
+      <div className="w-full">
         <MapPreview />
       </div>
     </>
@@ -84,8 +84,8 @@ export function GpsLoadingStage({}: Pick<CommonProps, never>) {
 
   return (
     <>
-      <div className="mb-5 flex size-[76px] items-center justify-center rounded-full bg-system-navbg">
-        <LandLayerLocationIcon width={42} height={42} className="fill-sub-deepblue" aria-hidden />
+      <div className="mb-5 flex size-[48px] items-center justify-center rounded-full bg-system-navbg">
+        <LandLayerLocationIcon width={25} height={25} className="fill-sub-deepblue" aria-hidden />
       </div>
       <h2 className="mb-2 text-center text-xl font-ssurround font-bold text-text-heading">
         현재 위치를 확인하고 있어요.
@@ -130,7 +130,7 @@ export function GpsFailStage({ placeName }: Pick<CommonProps, "placeName">) {
           위치를 확인할 수 없어요!
         </h2>
       </div>
-      <div className="mb-7 w-full">
+      <div className="w-full">
         <Notice>* 관광지 근처에서 다시 시도해주세요.</Notice>
       </div>
     </>
@@ -151,7 +151,7 @@ export function GpsSuccessStage({ placeName }: Pick<CommonProps, "placeName">) {
           관광지 확인이 완료되었어요!
         </h2>
       </div>
-      <div className="mb-[30px] w-full">
+      <div className="w-full">
         <Notice>* 사진을 찍어 기록을 남겨주세요.</Notice>
       </div>
     </>
@@ -167,7 +167,7 @@ export function CameraPermissionStage({ placeName }: Pick<CommonProps, "placeNam
       <div className="mb-6 w-full">
         <Notice>* 사진을 촬영해서 기록을 남겨봐요!</Notice>
       </div>
-      <div className="relative mb-6 h-[162px] w-full overflow-hidden rounded-[10px]">
+      <div className="relative h-[162px] w-full overflow-hidden rounded-[10px]">
         <Image src={samplePlaceImage} alt={placeName} fill className="object-cover" />
       </div>
     </>
@@ -209,7 +209,7 @@ export function PhotoConfirmStage({ placeName }: Pick<CommonProps, "placeName">)
         <CheckCircleIcon width={14} height={14} className="fill-main-blue" aria-hidden />
         관광지가 잘 보이나요?
       </p>
-      <div className="mb-7 w-full">
+      <div className="w-full">
         <Notice>* 마음에 들지 않는다면 다시 촬영할 수 있어요!</Notice>
       </div>
     </>
@@ -229,7 +229,7 @@ export function CompleteStage({ placeName }: Pick<CommonProps, "placeName">) {
       </div>
       <Card
         variant="glass-sm"
-        className="mb-[15px] w-full flex flex-col items-center justify-center gap-[12px] py-[12px] text-center"
+        className="w-full flex flex-col items-center justify-center gap-[12px] py-[12px] text-center"
       >
         <span className="flex items-center gap-[3px] font-paperlogy text-md font-medium text-text-heading">
           <span>📖</span>

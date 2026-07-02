@@ -132,7 +132,7 @@ type FreepassModalStep = "guide" | "confirm" | null;
 function ResultPlaceNode({ place }: { place: Place }) {
   return (
     <div className="relative flex min-w-0 flex-col items-center">
-      <p className="absolute left-1/2 -top-[24px] max-w-[78px] -translate-x-1/2 truncate whitespace-nowrap text-center font-paperlogy text-[11px] font-normal text-text-heading">
+      <p className="absolute left-1/2 -top-[27px] max-w-[78px] -translate-x-1/2 truncate whitespace-nowrap text-center font-paperlogy text-[11px] font-normal text-text-heading">
         {place.name}
       </p>
       <span className="absolute left-1/2 -top-[11px] z-10 size-[11px] -translate-x-1/2 rounded-full border-[1.5px] border-main-blue bg-main-white" />
@@ -159,14 +159,21 @@ function TripResultContent() {
   const [activePlan, setActivePlan] = useState<string>("A");
   const [showInfo, setShowInfo] = useState(false);
   const [votedPlan, setVotedPlan] = useState<string | null>(null);
+  const [voteConfirmPlan, setVoteConfirmPlan] = useState<string | null>(null);
   const [freepassModal, setFreepassModal] = useState<FreepassModalStep>(null);
   const currentPlan = MOCK_PLANS.find((p) => p.id === activePlan) ?? MOCK_PLANS[0];
 
   const getVoteCount = (plan: Plan) => plan.voteCount + (votedPlan === plan.id ? 1 : 0);
 
   const handlePlanVote = (planId: string) => {
-    setActivePlan(planId);
-    setVotedPlan(planId);
+    setVoteConfirmPlan(planId);
+  };
+
+  const handleVoteConfirm = () => {
+    if (!voteConfirmPlan) return;
+    setActivePlan(voteConfirmPlan);
+    setVotedPlan(voteConfirmPlan);
+    setVoteConfirmPlan(null);
     router.push(`/itinerary/trips/vote-waiting?count=${count}`);
   };
 
@@ -242,57 +249,45 @@ function TripResultContent() {
 
           {/* 글래스 카드 - 투표 정보 */}
           <div className="relative -mx-[4px] mt-4 flex flex-col rounded-[20px] border border-system-navbg bg-gradient-to-b from-system-glassfrom to-system-glassto px-[16px] pt-[20px] pb-[24px] backdrop-blur-[15px]">
-            {/* 안 선택 탭 */}
-            <div className="flex items-start gap-[13px]">
+            {/* 안 선택 탭 + 투표 버튼 같은 라인 */}
+            <div className="flex items-center gap-[5px]">
               {MOCK_PLANS.map((plan) => (
-                <div
+                <button
                   key={plan.id}
-                  className="flex flex-col items-center gap-[5px]"
+                  type="button"
+                  aria-label={`${PLAN_LABELS[plan.id]} ${plan.id}안 보기`}
+                  onClick={() => setActivePlan(plan.id)}
+                  className={cn(
+                    "flex items-center justify-center rounded-[10px] px-[12px] pt-[4px] pb-[2px] font-proup text-md text-main-white transition-colors",
+                    activePlan === plan.id ? "bg-main-blue" : "bg-sub-lightblue",
+                  )}
                 >
-                  <button
-                    type="button"
-                    aria-label={`${PLAN_LABELS[plan.id]} ${plan.id}안에 투표하기`}
-                    onClick={() => handlePlanVote(plan.id)}
-                    className="flex size-[54px] items-center justify-center rounded-[10px] bg-sub-pink/50"
-                  >
-                    {votedPlan === plan.id && (
-                      <span
-                        className="block size-[14px] bg-sub-pink"
-                        style={{
-                          WebkitMaskImage: `url(${checkIcon.src})`,
-                          maskImage: `url(${checkIcon.src})`,
-                          WebkitMaskRepeat: "no-repeat",
-                          maskRepeat: "no-repeat",
-                          WebkitMaskPosition: "center",
-                          maskPosition: "center",
-                          WebkitMaskSize: "contain",
-                          maskSize: "contain",
-                        }}
-                        aria-hidden
-                      />
-                    )}
-                  </button>
-                  <div className="flex items-center gap-[2px] font-proup text-[12px] font-normal leading-none text-sub-pink">
-                    <span>♥</span>
-                    <span>{getVoteCount(plan)}</span>
-                  </div>
-                  <button
-                    type="button"
-                    aria-label={`${PLAN_LABELS[plan.id]} ${plan.id}안 보기`}
-                    onClick={() => setActivePlan(plan.id)}
-                    className={cn(
-                      "flex items-center justify-center rounded-[10px] px-[12px] pt-[4px] pb-[2px] font-proup text-md text-main-white transition-colors",
-                      activePlan === plan.id ? "bg-main-blue" : "bg-sub-lightblue",
-                    )}
-                  >
-                    {plan.id}
-                  </button>
-                </div>
+                  {plan.id}
+                </button>
               ))}
             </div>
 
+            {/* 투표 버튼 - 우측 상단 절대 배치 */}
+            <div className="absolute top-[16px] right-[16px] flex flex-col items-center gap-[4px]">
+              <button
+                type="button"
+                aria-label={`${activePlan}안에 투표하기`}
+                onClick={() => handlePlanVote(activePlan)}
+                className={cn(
+                  "flex items-center justify-center rounded-[10px] p-[5px]",
+                  votedPlan === activePlan ? "bg-sub-pink" : "bg-[#ffb3c7]/50",
+                )}
+              >
+                <Image src={checkIcon} alt="투표" width={14} height={14} aria-hidden />
+              </button>
+              <div className="flex items-center gap-[2px] font-proup text-[12px] font-normal leading-none text-sub-pink">
+                <span>♥</span>
+                <span>{getVoteCount(currentPlan)}</span>
+              </div>
+            </div>
+
             {/* 타임라인 */}
-            <div className="relative mt-5 ml-0">
+            <div className="relative mt-3 ml-0">
               {/* 세로 점선 - 이미지 중심(22px) 기준 */}
               <div className="absolute left-[22px] top-[22px] bottom-[22px] w-[2px] bg-[repeating-linear-gradient(to_bottom,#4da6ff_0,#4da6ff_6px,transparent_6px,transparent_12px)]" />
 
@@ -404,12 +399,25 @@ function TripResultContent() {
       </div>
 
       <Modal
+        isOpen={voteConfirmPlan !== null}
+        onClose={() => setVoteConfirmPlan(null)}
+        icon={<Image src={checkIcon} alt="" width={20} height={20} aria-hidden />}
+        iconClassName="bg-sub-pink/30"
+        title="이 일정으로 투표할까요?"
+        description={`${voteConfirmPlan}안에 투표하시겠어요?`}
+        cancelText="취소"
+        confirmText="투표하기"
+        onCancel={() => setVoteConfirmPlan(null)}
+        onConfirm={handleVoteConfirm}
+        className="max-w-[320px] rounded-[28px] px-7 py-9"
+      />
+
+      <Modal
         isOpen={freepassModal === "guide"}
         onClose={() => setFreepassModal(null)}
         icon={<Image src={freepassBlueIcon} alt="" width={25} height={25} aria-hidden />}
         iconClassName="bg-system-navbg"
         title="방장 마음대로 프리패스!"
-        titleClassName="text-lg"
         description={"투표 결과와 상관없이\n방장이 원하는 추천 일정을 선택할 수 있어요."}
         childrenVariant="card"
         childrenClassName="py-2"
@@ -430,24 +438,18 @@ function TripResultContent() {
         icon={<Image src={freepassBlueIcon} alt="" width={25} height={25} aria-hidden />}
         iconClassName="bg-system-navbg"
         title="방장 마음대로 프리패스!"
-        titleClassName="text-lg"
-        childrenVariant="plain"
-        childrenClassName="gap-7"
+        description={`${activePlan} 일정으로 선택하시겠어요?\n선택한 일정이 최종 일정으로 확정돼요.`}
+        childrenVariant="card"
+        childrenClassName="py-2"
         cancelText="취소"
         confirmText="확정하기"
         onCancel={() => setFreepassModal("guide")}
         onConfirm={handleFreepassConfirm}
-        className="max-w-[320px] rounded-[28px] px-7 py-9 gap-8"
+        className="max-w-[320px] rounded-[28px] px-7 py-9 gap-7"
       >
-        <div className="text-center font-paperlogy text-[16px] font-semibold leading-[1.65] text-text-heading">
-          <p>{activePlan} 일정으로 선택하시겠어요?</p>
-          <p>선택한 일정이 최종 일정으로 확정돼요.</p>
-        </div>
-        <div className="w-full rounded-lg border border-system-glassborder bg-gradient-to-b from-system-glassfrom to-system-glassto px-3 py-2 backdrop-blur-[15px]">
-          <p className="text-center font-paperlogy text-[11px] font-medium text-sub-darkgray">
-            * 다른 사람의 일정을 불러오면 현재 일정은 사라져요.
-          </p>
-        </div>
+        <p className="text-center font-paperlogy text-[11px] font-medium text-sub-darkgray">
+          * 다른 사람의 일정을 불러오면 현재 일정은 사라져요.
+        </p>
       </Modal>
     </div>
   );

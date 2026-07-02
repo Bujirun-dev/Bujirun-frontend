@@ -1,6 +1,6 @@
 import Image from "next/image";
 import removeIcon from "@/assets/icons/itinerary/remove.svg?url";
-import { Card, Modal } from "@/components";
+import { Modal } from "@/components";
 
 interface TripDeleteModalProps {
   isOpen: boolean;
@@ -19,23 +19,16 @@ export function TripDeleteModal({ isOpen, tripName, onClose, onConfirm }: TripDe
       }
       iconClassName="size-[48px] bg-system-navbg"
       title="여행 삭제"
-      titleClassName="font-bold text-xl text-text-heading"
-      childrenVariant="plain"
+      description={`'${tripName}' 여행을\n삭제하시겠어요?`}
+      childrenVariant="card"
       cancelText="취소"
       confirmText="삭제하기"
       confirmVariant="warning"
       onConfirm={onConfirm}
     >
-      <p className="text-center text-lg font-semibold leading-relaxed text-text-primary">
-        {`'${tripName}' 여행을`}
-        <br />
-        삭제하시겠어요?
+      <p className="text-center font-medium text-sub-darkgray">
+        * 삭제한 여행은 복구할 수 없어요.
       </p>
-      <Card variant="glass-sm" className="w-full rounded-lg px-3 py-2">
-        <p className="text-center text-sm font-medium text-sub-darkgray">
-          * 삭제한 여행은 복구할 수 없어요.
-        </p>
-      </Card>
     </Modal>
   );
 }

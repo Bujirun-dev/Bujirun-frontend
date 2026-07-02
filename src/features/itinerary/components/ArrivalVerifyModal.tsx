@@ -236,7 +236,7 @@ export function ArrivalVerifyModal({
       hideActions
       childrenVariant="plain"
       className="rounded-[28px]"
-      childrenClassName="flex w-full flex-col items-center gap-0"
+      childrenClassName="flex w-full flex-col items-center gap-5"
     >
       <div className="relative flex w-full flex-col items-center">
         {userAvatarUrl && (
