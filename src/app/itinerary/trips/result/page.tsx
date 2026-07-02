@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/shared/utils";
-import { CategoryChip, Modal, SpeechBubble } from "@/components";
+import { CategoryChip, Modal, SpeechBubble, Toast } from "@/components";
 import checkIcon from "@/assets/icons/itinerary/check.png";
 import infoIcon from "@/assets/icons/itinerary/info.png";
 import freepassBlueIcon from "@/assets/icons/itinerary/freepass-blue.png";
@@ -36,7 +36,11 @@ const MOCK_PLANS: Plan[] = [
         label: "Day 1",
         places: [
           { id: 1, name: "광안리 해수욕장", image: "https://picsum.photos/seed/place1/200/200" },
-          { id: 2, name: "해운대 해수욕장 놀이공원", image: "https://picsum.photos/seed/place2/200/200" },
+          {
+            id: 2,
+            name: "해운대 해수욕장 놀이공원",
+            image: "https://picsum.photos/seed/place2/200/200",
+          },
           { id: 3, name: "동백섬", image: "https://picsum.photos/seed/place3/200/200" },
         ],
       },
@@ -154,7 +158,8 @@ function TripResultContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const count = searchParams.get("count") ?? "6";
-  const totalDays = Math.max(1, Number(searchParams.get("days")) || 3);
+  const days = searchParams.get("days") ?? "3";
+  const totalDays = Math.max(1, Number(days) || 3);
 
   // days 수에 맞게 MOCK_PLANS day 슬라이스
   const plans = MOCK_PLANS.map((plan) => ({
@@ -168,6 +173,7 @@ function TripResultContent() {
   const [voteConfirmPlan, setVoteConfirmPlan] = useState<string | null>(null);
   const [freepassModal, setFreepassModal] = useState<FreepassModalStep>(null);
   const [isFreepassMode, setIsFreepassMode] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const currentPlan = plans.find((p) => p.id === activePlan) ?? plans[0];
 
   const getVoteCount = (plan: Plan) => plan.voteCount + (votedPlan === plan.id ? 1 : 0);
@@ -181,7 +187,7 @@ function TripResultContent() {
     setActivePlan(voteConfirmPlan);
     setVotedPlan(voteConfirmPlan);
     setVoteConfirmPlan(null);
-    router.push(`/itinerary/trips/vote-waiting?count=${count}`);
+    router.push(`/itinerary/trips/vote-waiting?count=${count}&days=${totalDays}`);
   };
 
   const handleFreepass = () => {
@@ -194,7 +200,11 @@ function TripResultContent() {
   };
 
   const handleFreepassConfirm = () => {
-    router.push(`/itinerary?count=${count}`);
+    setFreepassModal(null);
+    setToastMessage(`방장이 ${activePlan}안을 선택했어요! 🎉`);
+    window.setTimeout(() => {
+      router.push(`/itinerary?count=${count}&days=${totalDays}&plan=${activePlan}`);
+    }, 1800);
   };
 
   return (
@@ -249,7 +259,7 @@ function TripResultContent() {
                     <p className="font-medium">
                       ✨ 방장은 투표 결과와 관계없이 원하는 일정을 선택할 수 있어요.
                     </p>
-                    <p className="text-3xs font-semibold text-system-error">
+                    <p className="text-3xs font-semibold text-sub-coral">
                       ‼️ 프리패스 사용 시 참가자들의 투표 결과는 반영되지 않아요 ‼️
                     </p>
                   </div>
@@ -288,7 +298,7 @@ function TripResultContent() {
                 onClick={() => handlePlanVote(activePlan)}
                 className={cn(
                   "flex items-center justify-center rounded-[10px] p-[5px]",
-                  votedPlan === activePlan ? "bg-sub-pink" : "bg-[#ffb3c7]/50",
+                  votedPlan === activePlan ? "bg-sub-pink" : "bg-sub-pink/50",
                 )}
               >
                 <Image src={checkIcon} alt="투표" width={14} height={14} aria-hidden />
@@ -303,24 +313,37 @@ function TripResultContent() {
             {activePlan === "C" ? (
               <div className="mt-3 flex flex-col items-center justify-center gap-3 rounded-[14px] bg-system-navbg px-4 py-8 text-center">
                 <span className="text-2xl">✏️</span>
-                <p className="font-ssurround font-bold text-md text-text-heading">자유 편집형 일정</p>
+                <p className="font-ssurround font-bold text-md text-text-heading">
+                  자유 편집형 일정
+                </p>
                 <p className="font-paperlogy text-xs font-medium text-sub-darkgray leading-relaxed whitespace-pre-line">
-                  {"C안은 AI가 미리 짜주지 않아요.\n확정 후 팀원들과 함께 직접\n일정을 자유롭게 채워보세요!"}
+                  {
+                    "C안은 AI가 미리 짜주지 않아요.\n확정 후 팀원들과 함께 직접\n일정을 자유롭게 채워보세요!"
+                  }
                 </p>
               </div>
             ) : (
               <div className="relative mt-3 ml-0">
                 {/* 세로 점선 — 출발 중심(top:22px)에서 도착 중심(bottom:24px)까지만 */}
-                <div className="absolute left-[22px] top-[22px] bottom-[24px] w-[2px] bg-[repeating-linear-gradient(to_bottom,#4da6ff_0,#4da6ff_6px,transparent_6px,transparent_12px)]" />
+                <div className="absolute left-[22px] top-[22px] bottom-[24px] w-[2px] bg-[repeating-linear-gradient(to_bottom,var(--color-sub-deepblue)_0,var(--color-sub-deepblue)_6px,transparent_6px,transparent_12px)]" />
 
                 {/* 출발 - 부산역 */}
                 <div className="relative flex items-center gap-5">
                   <div className="relative z-10 flex h-[49px] w-[45px] shrink-0 items-center justify-center">
-                    <div className="absolute inset-[-6px] rounded-full bg-[rgba(151,193,255,0.3)] blur-md" />
-                    <Image src={busanStationImg} alt="" width={45} height={45} aria-hidden className="relative z-10" />
+                    <div className="absolute inset-[-6px] rounded-full bg-main-blue/30 blur-md" />
+                    <Image
+                      src={busanStationImg}
+                      alt=""
+                      width={45}
+                      height={45}
+                      aria-hidden
+                      className="relative z-10"
+                    />
                   </div>
                   <SpeechBubble variant="white" tailDirection="left">
-                    <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">10:00 여행 시작!</span>
+                    <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">
+                      10:00 여행 시작!
+                    </span>
                   </SpeechBubble>
                 </div>
 
@@ -332,9 +355,18 @@ function TripResultContent() {
                         <div className="relative z-10 h-[25px] w-[35px] shrink-0">
                           <span className="absolute left-[9.5px] top-1/2 z-0 h-[29px] w-[25px] -translate-y-1/2 rounded-full bg-main-white" />
                           <div className="absolute left-[5.5px] top-1/2 z-10 h-[33px] w-[33px] -translate-y-1/2 rounded-full bg-sub-pink/30 blur-md" />
-                          <Image src={flagImg} alt="" width={25} height={25} aria-hidden className="absolute left-[9.5px] top-0 z-20" />
+                          <Image
+                            src={flagImg}
+                            alt=""
+                            width={25}
+                            height={25}
+                            aria-hidden
+                            className="absolute left-[9.5px] top-0 z-20"
+                          />
                         </div>
-                        <span className="font-paperlogy text-xs font-medium text-sub-deepblue">{day.label.toLowerCase()}</span>
+                        <span className="font-paperlogy text-xs font-medium text-sub-deepblue">
+                          {day.label.toLowerCase()}
+                        </span>
                         <div className="relative ml-[3px] h-[1.5px] w-[235px] rounded-full bg-main-blue">
                           <div className="absolute left-0 right-0 top-[7.5px] flex items-start justify-around">
                             {day.places.map((place) => (
@@ -350,11 +382,20 @@ function TripResultContent() {
                 {/* 도착 - 집 */}
                 <div className="relative mt-[44px] flex items-center gap-5">
                   <div className="relative z-10 flex h-[49px] w-[45px] shrink-0 items-center justify-center">
-                    <div className="absolute inset-[-6px] rounded-full bg-[rgba(151,193,255,0.3)] blur-md" />
-                    <Image src={houseImg} alt="" width={45} height={45} aria-hidden className="relative z-10" />
+                    <div className="absolute inset-[-6px] rounded-full bg-main-blue/30 blur-md" />
+                    <Image
+                      src={houseImg}
+                      alt=""
+                      width={45}
+                      height={45}
+                      aria-hidden
+                      className="relative z-10"
+                    />
                   </div>
                   <SpeechBubble variant="white" tailDirection="left">
-                    <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">15:00 여행 끝!</span>
+                    <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">
+                      15:00 여행 끝!
+                    </span>
                   </SpeechBubble>
                 </div>
               </div>
@@ -383,7 +424,14 @@ function TripResultContent() {
               <span>✦ {activePlan} 일정으로 선택</span>
             ) : (
               <>
-                <Image src={freepassBlueIcon} alt="" width={15} height={15} aria-hidden className="-translate-y-0.5 brightness-0 invert" />
+                <Image
+                  src={freepassBlueIcon}
+                  alt=""
+                  width={15}
+                  height={15}
+                  aria-hidden
+                  className="-translate-y-0.5 brightness-0 invert"
+                />
                 <span>방장 마음대로 프리패스!</span>
               </>
             )}
@@ -444,6 +492,12 @@ function TripResultContent() {
           * 다른 사람의 일정을 불러오면 현재 일정은 사라져요.
         </p>
       </Modal>
+
+      <Toast
+        isVisible={toastMessage !== null}
+        onHide={() => setToastMessage(null)}
+        message={toastMessage ?? ""}
+      />
     </div>
   );
 }

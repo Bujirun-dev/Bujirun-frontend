@@ -1,11 +1,9 @@
 "use client";
 
-import Image from "next/image";
-import { Suspense, useEffect, useState } from "react";
+import { Fragment, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import faceImg from "@/assets/character/face.png";
 import { Modal, Toast } from "@/components";
-import { cn } from "@/shared/utils";
+import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 
 // TODO: API 연동 후 실제 투표 집계 결과로 교체
 // 동률 테스트: { A: 3, B: 3, C: 0 } / 단독 1위 테스트: { A: 3, B: 2, C: 1 }
@@ -14,26 +12,6 @@ const MOCK_AUTO_COMPLETE_DELAY_MS = 4000;
 
 // TODO: API 연동 시 실제 방장 여부로 교체
 const IS_HOST = true;
-
-const SLOT_LAYOUTS: Record<number, number[]> = {
-  2: [2],
-  3: [3],
-  4: [2, 2],
-  5: [2, 3],
-  6: [3, 3],
-};
-
-function buildRows(total: number): number[][] {
-  const rowCounts = SLOT_LAYOUTS[total] ?? SLOT_LAYOUTS[6];
-  let idx = 0;
-  return rowCounts.map((count) =>
-    Array.from({ length: count }, () => {
-      const current = idx;
-      idx += 1;
-      return current;
-    }),
-  );
-}
 
 function getWinnerPlan(votes: Record<string, number>): string | null {
   const sorted = Object.entries(votes).sort((a, b) => b[1] - a[1]);
@@ -48,21 +26,6 @@ function getTiedPlans(votes: Record<string, number>): string[] {
   return Object.entries(votes)
     .filter(([, v]) => v === max)
     .map(([k]) => k);
-}
-
-function AvatarSlot({ done }: { done: boolean }) {
-  return (
-    <div
-      className={cn(
-        "relative flex size-[72px] items-center justify-center overflow-hidden rounded-full",
-        done ? "bg-main-blue" : "border-2 border-dashed border-main-blue bg-sub-lightblue",
-      )}
-    >
-      <div className={cn("relative size-[84px] shrink-0 rounded-full", !done && "opacity-30 grayscale")}>
-        <Image src={faceImg} alt="" fill className="object-cover" aria-hidden />
-      </div>
-    </div>
-  );
 }
 
 export default function VoteWaitingPage() {
@@ -81,10 +44,11 @@ function VoteWaitingContent() {
   const [doneCount, setDoneCount] = useState(
     Math.min(totalSlots, Math.max(0, Number(searchParams.get("done")) || totalSlots - 1)),
   );
-  const [showTieModal, setShowTieModal] = useState(false);
-  const [tiedPlans, setTiedPlans] = useState<string[]>([]);
+  const [selectedTiePlan, setSelectedTiePlan] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const rows = buildRows(totalSlots);
+  const winnerPlan = getWinnerPlan(MOCK_VOTE_RESULT);
+  const tiedPlans = getTiedPlans(MOCK_VOTE_RESULT);
+  const showTieModal = doneCount >= totalSlots && !winnerPlan && !selectedTiePlan;
 
   // 임시: 일정 시간 후 투표 완료 시뮬레이션
   useEffect(() => {
@@ -97,25 +61,23 @@ function VoteWaitingContent() {
   useEffect(() => {
     if (doneCount < totalSlots) return;
 
-    const winner = getWinnerPlan(MOCK_VOTE_RESULT);
-
-    if (!winner) {
-      // 동률: 방장 선택 모달
-      setTiedPlans(getTiedPlans(MOCK_VOTE_RESULT));
-      setShowTieModal(true);
-      return;
-    }
+    if (!winnerPlan) return;
 
     // 단독 1위: 토스트 후 일정 메인 이동
-    setToastMessage(`${winner}안이 최다 투표로 선택됐어요! 🎉`);
+    const toastTimer = window.setTimeout(() => {
+      setToastMessage(`${winnerPlan}안이 최다 투표로 선택됐어요! 🎉`);
+    }, 0);
     const timer = window.setTimeout(() => {
-      router.push(`/itinerary?count=${totalSlots}&days=${days}&plan=${winner}`);
+      router.push(`/itinerary?count=${totalSlots}&days=${days}&plan=${winnerPlan}`);
     }, 1800);
-    return () => window.clearTimeout(timer);
-  }, [doneCount, totalSlots, router]);
+    return () => {
+      window.clearTimeout(toastTimer);
+      window.clearTimeout(timer);
+    };
+  }, [days, doneCount, totalSlots, router, winnerPlan]);
 
   const handleTiePick = (plan: string) => {
-    setShowTieModal(false);
+    setSelectedTiePlan(plan);
     setToastMessage(`방장이 ${plan}안을 선택했어요! 🎉`);
     window.setTimeout(() => {
       router.push(`/itinerary?count=${totalSlots}&days=${days}&plan=${plan}`);
@@ -127,9 +89,17 @@ function VoteWaitingContent() {
       <div className="flex w-full flex-col items-center rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-[30px] py-[42px] backdrop-blur-[15px]">
         <p className="text-center font-paperlogy text-xl font-medium leading-[23px] text-text-heading">
           {doneCount >= totalSlots ? (
-            <>투표가 완료됐어요! 🎉<br />일정을 확정하고 있어요...</>
+            <>
+              투표가 완료됐어요! 🎉
+              <br />
+              일정을 확정하고 있어요...
+            </>
           ) : (
-            <>친구들이 아직 투표 중이에요...<br />잠시만 기다려주세요 😇</>
+            <>
+              친구들이 아직 투표 중이에요...
+              <br />
+              잠시만 기다려주세요 😇
+            </>
           )}
         </p>
 
@@ -137,15 +107,7 @@ function VoteWaitingContent() {
           ( {doneCount} / {totalSlots} )
         </p>
 
-        <div className="mt-5 flex flex-col items-center gap-y-3">
-          {rows.map((row, rowIndex) => (
-            <div key={rowIndex} className="flex gap-x-4">
-              {row.map((idx) => (
-                <AvatarSlot key={idx} done={idx < doneCount} />
-              ))}
-            </div>
-          ))}
-        </div>
+        <ParticipantAvatarGrid total={totalSlots} activeCount={doneCount} className="mt-5" />
       </div>
 
       {/* 동률 모달 */}
@@ -179,12 +141,12 @@ function VoteWaitingContent() {
       >
         <div className="flex w-full items-center">
           {tiedPlans.map((plan, i) => (
-            <>
+            <Fragment key={plan}>
               {i > 0 && <div key={`divider-${i}`} className="h-8 w-[1px] bg-main-blue/30" />}
-              <div key={plan} className="flex flex-1 flex-col items-center gap-1">
+              <div className="flex flex-1 flex-col items-center gap-1">
                 <span className="font-proup text-2xl text-main-blue">{plan}</span>
               </div>
-            </>
+            </Fragment>
           ))}
         </div>
       </Modal>

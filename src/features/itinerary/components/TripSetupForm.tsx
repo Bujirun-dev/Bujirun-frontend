@@ -102,7 +102,7 @@ export function TripSetupForm() {
           <CalendarIcon width={16} height={16} aria-hidden />
           <span className="font-ssurround font-bold text-lg text-text-heading">여행기간</span>
         </div>
-        <div className="rounded-[20px] border border-main-blue/20 bg-gradient-to-b from-white/50 to-[#EAF4FF]/40 px-[28px] py-[16px] flex flex-col gap-3">
+        <div className="flex flex-col gap-3 rounded-[20px] border border-main-blue/20 bg-gradient-to-b from-system-glassfrom to-system-glassto px-[28px] py-[16px]">
           <div className="flex items-center gap-[14px]">
             <div className="flex items-center gap-[4px]">
               <ClockIcon width={12} height={12} aria-hidden />

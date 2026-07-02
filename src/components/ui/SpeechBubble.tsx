@@ -12,19 +12,16 @@ interface SpeechBubbleProps {
   tailDirection?: "top" | "bottom" | "left" | "right";
 }
 
-const BORDER_COLOR = "#97c1ff";
+const BORDER_COLOR = "var(--color-main-blue)";
 
-const speechBubbleVariants: Record<
-  SpeechBubbleVariant,
-  { bubble: string; tailFill: string }
-> = {
+const speechBubbleVariants: Record<SpeechBubbleVariant, { bubble: string; tailFill: string }> = {
   white: {
     bubble: "bg-main-white rounded-[13px] border border-main-blue",
-    tailFill: "white",
+    tailFill: "var(--color-main-white)",
   },
   blue: {
     bubble: "bg-system-searchbg rounded-[13px] border border-main-blue",
-    tailFill: "#EAF0FF",
+    tailFill: "var(--color-system-searchbg)",
   },
 };
 
@@ -79,26 +76,46 @@ export function SpeechBubble({
   const outerTailStyle: React.CSSProperties = {
     ...(tailCenter ? { left: "50%", transform: "translateX(-50%)" } : { left: tailPosition }),
     ...(isBottom
-      ? { borderLeft: "7px solid transparent", borderRight: "7px solid transparent", borderTop: `7px solid ${BORDER_COLOR}` }
-      : { borderLeft: "7px solid transparent", borderRight: "7px solid transparent", borderBottom: `7px solid ${BORDER_COLOR}` }),
+      ? {
+          borderLeft: "7px solid transparent",
+          borderRight: "7px solid transparent",
+          borderTop: `7px solid ${BORDER_COLOR}`,
+        }
+      : {
+          borderLeft: "7px solid transparent",
+          borderRight: "7px solid transparent",
+          borderBottom: `7px solid ${BORDER_COLOR}`,
+        }),
   };
 
   const innerTailStyle: React.CSSProperties = {
     ...(tailCenter ? { left: "50%", transform: "translateX(-50%)" } : { left: tailPosition + 1 }),
     ...(isBottom
-      ? { borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: `6px solid ${tailFill}` }
-      : { borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderBottom: `6px solid ${tailFill}` }),
+      ? {
+          borderLeft: "6px solid transparent",
+          borderRight: "6px solid transparent",
+          borderTop: `6px solid ${tailFill}`,
+        }
+      : {
+          borderLeft: "6px solid transparent",
+          borderRight: "6px solid transparent",
+          borderBottom: `6px solid ${tailFill}`,
+        }),
   };
 
   return (
-    <div
-      className={cn("relative", isBottom ? "pb-2" : "pt-2", tailCenter && "w-fit", className)}
-    >
+    <div className={cn("relative", isBottom ? "pb-2" : "pt-2", tailCenter && "w-fit", className)}>
       <div className={cn("px-2.5 py-2 w-fit flex items-center text-xs", bubble, bubbleClassName)}>
         {children}
       </div>
-      <div className={cn("absolute w-0 h-0", isBottom ? "bottom-[1px]" : "top-[1px]")} style={outerTailStyle} />
-      <div className={cn("absolute w-0 h-0", isBottom ? "bottom-[2px]" : "top-[2px]")} style={innerTailStyle} />
+      <div
+        className={cn("absolute w-0 h-0", isBottom ? "bottom-[1px]" : "top-[1px]")}
+        style={outerTailStyle}
+      />
+      <div
+        className={cn("absolute w-0 h-0", isBottom ? "bottom-[2px]" : "top-[2px]")}
+        style={innerTailStyle}
+      />
     </div>
   );
 }
