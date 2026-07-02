@@ -24,6 +24,7 @@ interface ItineraryModalsProps {
   onConfirmTime: () => void;
   onConfirmTransport: (option: RouteOption) => void;
   onConfirmVerify: () => void;
+  onVerifyContinue?: () => void;
   onTimeChange: (value: { hour: number; minute: number }) => void;
   onOptimizeStart: () => void;
 }
@@ -38,6 +39,7 @@ export function ItineraryModals({
   onConfirmTime,
   onConfirmTransport,
   onConfirmVerify,
+  onVerifyContinue,
   onTimeChange,
   onOptimizeStart,
 }: ItineraryModalsProps) {
@@ -101,6 +103,7 @@ export function ItineraryModals({
         placeName={activeStop?.placeName ?? ""}
         characterImageUrl={characterImg.src}
         onVerify={onConfirmVerify}
+        onContinue={onVerifyContinue}
         onLater={onClose}
       />
     </>

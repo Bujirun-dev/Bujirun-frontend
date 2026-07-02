@@ -143,7 +143,7 @@ function TripSwipeContent() {
             transform: "translate(-50%, -50%)",
           }}
         >
-          <span className="text-[16px] leading-none">☹️</span>
+          <span className="text-lg leading-none">☹️</span>
         </div>
 
         {/* 좋아요 힌트 - 고정, 오른쪽 드래그 시 강조 / 왼쪽 드래그 시 흐려짐 */}
@@ -154,7 +154,7 @@ function TripSwipeContent() {
             transform: "translate(50%, -50%)",
           }}
         >
-          <span className="text-[16px] leading-none">❣️</span>
+          <span className="text-lg leading-none">❣️</span>
         </div>
       </div>
     </div>

@@ -107,14 +107,14 @@ export function NicknameEditModal({
               onChange={(e) => setValue(e.target.value)}
               className="min-w-0 flex-1 bg-transparent text-sm font-medium text-text-primary outline-none placeholder:text-sub-gray"
             />
-            <span className="ml-2 shrink-0 text-[10px] text-sub-gray">
+            <span className="ml-2 shrink-0 text-2xs text-sub-gray">
               {value.length}/{MAX_NICKNAME_LENGTH}
             </span>
           </div>
           {isTaken && (
             <div className="flex items-center gap-1">
               <Image src={noIcon} alt="" width={12} height={12} aria-hidden />
-              <span className="text-[10px] font-semibold text-sub-coral">
+              <span className="text-2xs font-semibold text-sub-coral">
                 이미 사용중인 닉네임이에요.
               </span>
             </div>

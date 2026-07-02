@@ -132,7 +132,7 @@ type FreepassModalStep = "guide" | "confirm" | null;
 function ResultPlaceNode({ place }: { place: Place }) {
   return (
     <div className="relative flex min-w-0 flex-col items-center">
-      <p className="absolute left-1/2 -top-[27px] max-w-[78px] -translate-x-1/2 truncate whitespace-nowrap text-center font-paperlogy text-[11px] font-normal text-text-heading">
+      <p className="absolute left-1/2 -top-[27px] max-w-[78px] -translate-x-1/2 truncate whitespace-nowrap text-center font-paperlogy text-xs font-normal text-text-heading">
         {place.name}
       </p>
       <span className="absolute left-1/2 -top-[11px] z-10 size-[11px] -translate-x-1/2 rounded-full border-[1.5px] border-main-blue bg-main-white" />
@@ -220,7 +220,7 @@ function TripResultContent() {
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowInfo(false)} />
                 <div className="absolute left-[60px] top-[calc(100%+8px)] z-20 rounded-[20px] border border-system-navbg bg-gradient-to-b from-system-glassfrom to-system-glassto px-[15px] py-[10px] backdrop-blur-[15px] shadow-sm">
-                  <div className="flex flex-col gap-[10px] font-paperlogy text-[10px] text-text-primary leading-snug whitespace-nowrap">
+                  <div className="flex flex-col gap-[10px] font-paperlogy text-2xs text-text-primary leading-snug whitespace-nowrap">
                     <p className="font-semibold">
                       😇 AI가 친구들의 취향을 분석해 3가지 일정을 추천해요.
                     </p>
@@ -238,7 +238,7 @@ function TripResultContent() {
                     <p className="font-medium">
                       ✨ 방장은 투표 결과와 관계없이 원하는 일정을 선택할 수 있어요.
                     </p>
-                    <p className="text-[9px] font-semibold text-system-error">
+                    <p className="text-3xs font-semibold text-system-error">
                       ‼️ 프리패스 사용 시 참가자들의 투표 결과는 반영되지 않아요 ‼️
                     </p>
                   </div>
@@ -280,7 +280,7 @@ function TripResultContent() {
               >
                 <Image src={checkIcon} alt="투표" width={14} height={14} aria-hidden />
               </button>
-              <div className="flex items-center gap-[2px] font-proup text-[12px] font-normal leading-none text-sub-pink">
+              <div className="flex items-center gap-[2px] font-proup text-sm font-normal leading-none text-sub-pink">
                 <span>♥</span>
                 <span>{getVoteCount(currentPlan)}</span>
               </div>
@@ -310,7 +310,7 @@ function TripResultContent() {
                   bubbleClassName="border border-main-blue rounded-[10px]"
                   tailBorderColor="#97c1ff"
                 >
-                  <span className="font-paperlogy text-[11px] font-medium leading-none text-sub-deepblue">
+                  <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">
                     10:00 여행 시작!
                   </span>
                 </SpeechBubble>
@@ -367,7 +367,7 @@ function TripResultContent() {
                   bubbleClassName="border border-main-blue rounded-[10px]"
                   tailBorderColor="#97c1ff"
                 >
-                  <span className="font-paperlogy text-[11px] font-medium leading-none text-sub-deepblue">
+                  <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">
                     15:00 여행 끝!
                   </span>
                 </SpeechBubble>
@@ -427,7 +427,7 @@ function TripResultContent() {
         onConfirm={() => setFreepassModal("confirm")}
         className="max-w-[320px] rounded-[28px] px-7 py-9 gap-7"
       >
-        <p className="text-center font-paperlogy text-[11px] font-medium text-sub-darkgray">
+        <p className="text-center font-paperlogy text-xs font-medium text-sub-darkgray">
           * 사용 시 현재 투표 결과는 반영되지 않아요.
         </p>
       </Modal>
@@ -447,7 +447,7 @@ function TripResultContent() {
         onConfirm={handleFreepassConfirm}
         className="max-w-[320px] rounded-[28px] px-7 py-9 gap-7"
       >
-        <p className="text-center font-paperlogy text-[11px] font-medium text-sub-darkgray">
+        <p className="text-center font-paperlogy text-xs font-medium text-sub-darkgray">
           * 다른 사람의 일정을 불러오면 현재 일정은 사라져요.
         </p>
       </Modal>

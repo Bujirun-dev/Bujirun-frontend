@@ -30,6 +30,7 @@ interface ArrivalVerifyModalProps {
   userAvatarUrl?: string;
   characterImageUrl?: string;
   onVerify: () => void;
+  onContinue?: () => void;
   onLater: () => void;
 }
 
@@ -40,6 +41,7 @@ export function ArrivalVerifyModal({
   userAvatarUrl,
   characterImageUrl,
   onVerify,
+  onContinue,
   onLater,
 }: ArrivalVerifyModalProps) {
   const router = useRouter();
@@ -206,7 +208,7 @@ export function ArrivalVerifyModal({
         return (
           <BasicTwoButtonFooter
             left={
-              <Button variant="secondary" className="w-full" onClick={() => { closeAndReset(); router.push("/itinerary"); }}>
+              <Button variant="secondary" className="w-full" onClick={() => { onContinue?.(); closeAndReset(); router.push("/itinerary"); }}>
                 계속 여행하기
               </Button>
             }

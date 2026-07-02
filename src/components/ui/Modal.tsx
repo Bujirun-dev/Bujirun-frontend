@@ -124,13 +124,13 @@ export function Modal({
           <div className="flex flex-col items-center gap-5 text-center">
             {title && (
               <h2
-                className={cn("font-ssurround text-[16px] font-bold text-text-heading", titleClassName)}
+                className={cn("font-ssurround text-lg font-bold text-text-heading", titleClassName)}
               >
                 {title}
               </h2>
             )}
             {description && (
-              <p className="text-[14px] font-medium text-text-primary leading-relaxed whitespace-pre-line break-keep">
+              <p className="text-md font-medium text-text-primary leading-relaxed whitespace-pre-line break-keep">
                 {description}
               </p>
             )}
@@ -142,7 +142,7 @@ export function Modal({
             <Card
               variant="glass-sm"
               className={cn(
-                "w-full rounded-lg px-3 py-2 flex flex-col gap-2 justify-center text-[12px]",
+                "w-full rounded-lg px-3 py-2 flex flex-col gap-2 justify-center text-sm",
                 childrenClassName,
               )}
             >

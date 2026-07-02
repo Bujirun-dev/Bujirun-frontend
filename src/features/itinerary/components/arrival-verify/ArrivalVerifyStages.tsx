@@ -47,7 +47,7 @@ export function ArrivalStage({
       />
       <div className="mb-3 flex flex-col items-center gap-2 text-center">
         <PlaceBadge placeName={placeName} />
-        <h2 className="font-paperlogy text-lg font-semibold text-text-primary">
+        <h2 className="font-paperlogy text-md font-semibold text-text-primary">
           이곳에 도착하셨나요?
         </h2>
       </div>
@@ -61,7 +61,7 @@ export function ArrivalStage({
 export function GpsPermissionStage({}: Pick<CommonProps, never>) {
   return (
     <>
-      <h2 className="mb-5 whitespace-pre-line text-center text-xl font-ssurround font-bold text-text-heading">
+      <h2 className="mb-5 whitespace-pre-line text-center text-lg font-ssurround font-bold text-text-heading">
         “BUJIRUN”이 사용자의{"\n"}위치에 접근하려고 합니다.
       </h2>
       <div className="mb-3 w-full">
@@ -87,7 +87,7 @@ export function GpsLoadingStage({}: Pick<CommonProps, never>) {
       <div className="mb-5 flex size-[48px] items-center justify-center rounded-full bg-system-navbg">
         <LandLayerLocationIcon width={25} height={25} className="fill-sub-deepblue" aria-hidden />
       </div>
-      <h2 className="mb-2 text-center text-xl font-ssurround font-bold text-text-heading">
+      <h2 className="mb-2 text-center text-lg font-ssurround font-bold text-text-heading">
         현재 위치를 확인하고 있어요.
       </h2>
       <div className="mb-6 w-full">
@@ -126,7 +126,7 @@ export function GpsFailStage({ placeName }: Pick<CommonProps, "placeName">) {
       />
       <div className="mb-5 flex flex-col items-center gap-2 text-center">
         <PlaceBadge placeName={placeName} />
-        <h2 className="font-paperlogy text-lg font-bold text-text-heading">
+        <h2 className="font-paperlogy text-md font-bold text-text-heading">
           위치를 확인할 수 없어요!
         </h2>
       </div>
@@ -147,7 +147,7 @@ export function GpsSuccessStage({ placeName }: Pick<CommonProps, "placeName">) {
       />
       <div className="mb-3 flex flex-col items-center gap-2 text-center">
         <PlaceBadge placeName={placeName} />
-        <h2 className="font-paperlogy text-lg font-semibold text-text-primary">
+        <h2 className="font-paperlogy text-md font-semibold text-text-primary">
           관광지 확인이 완료되었어요!
         </h2>
       </div>
@@ -161,7 +161,7 @@ export function GpsSuccessStage({ placeName }: Pick<CommonProps, "placeName">) {
 export function CameraPermissionStage({ placeName }: Pick<CommonProps, "placeName">) {
   return (
     <>
-      <h2 className="mb-5 whitespace-pre-line text-center text-xl font-ssurround font-bold text-text-heading">
+      <h2 className="mb-5 whitespace-pre-line text-center text-lg font-ssurround font-bold text-text-heading">
         “BUJIRUN”이 사용자의{"\n"}카메라에 접근하려고 합니다.
       </h2>
       <div className="mb-6 w-full">

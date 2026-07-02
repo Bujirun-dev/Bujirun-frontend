@@ -77,7 +77,6 @@ function ItineraryMain() {
   const [selectedRouteOptionId, setSelectedRouteOptionId] = useState<string>("transit");
 
   const touchStartX = useRef(0);
-  const verifyTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!importedLogId) return;
@@ -179,8 +178,6 @@ function ItineraryMain() {
       );
       return next;
     });
-    if (verifyTimerRef.current) window.clearTimeout(verifyTimerRef.current);
-    verifyTimerRef.current = window.setTimeout(() => setToastMessage("관광지를 수집했어요!"), 500);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -275,6 +272,7 @@ function ItineraryMain() {
         onConfirmTime={confirmTime}
         onConfirmTransport={confirmTransport}
         onConfirmVerify={confirmVerify}
+        onVerifyContinue={() => setToastMessage("관광지를 수집했어요!")}
         onTimeChange={setTimeValue}
         onOptimizeStart={() => setModal("optimizing")}
       />

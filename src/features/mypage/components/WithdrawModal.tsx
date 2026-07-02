@@ -61,7 +61,7 @@ export function WithdrawModal({ isOpen, onClose, onConfirm }: WithdrawModalProps
         >
           {WITHDRAW_ITEMS.map((item) => (
             <div key={item} className="flex items-start gap-1 -ml-[13px]">
-              <span className="text-[11px] text-sub-coral shrink-0">✅</span>
+              <span className="text-xs text-sub-coral shrink-0">✅</span>
               <p className="text-xs font-medium text-text-primary tracking-[-0.3px] leading-tight">
                 {item}
               </p>
