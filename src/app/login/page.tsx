@@ -13,12 +13,12 @@ export default function LoginPage() {
         </div>
 
         {/* 캐릭터 */}
-        <div className="w-full flex justify-center">
+        <div className="w-full flex justify-center mt-[30px]">
           <Image
             src={characterImg}
             alt="부지런 캐릭터"
-            width={360}
-            height={360}
+            width={320}
+            height={320}
             className="object-contain"
           />
         </div>

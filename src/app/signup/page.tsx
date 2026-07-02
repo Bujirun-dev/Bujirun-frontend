@@ -7,26 +7,23 @@ import { TextInput } from "@/components/ui/TextInput";
 import { Card } from "@/components/ui/Card";
 import { ProfileImageSelector } from "@/components/profile/ProfileImageSelector";
 import { SignUpSuccessModal } from "@/features/auth/components/SignUpSuccessModal";
+import { PROFILE_IMAGES } from "@/components/profile/profileImages";
 
 import YesIcon from "@/assets/icons/login-register/yes.svg?svgr";
 import NoIcon from "@/assets/icons/login-register/no.svg?svgr";
-import profileHat from "@/assets/character/profile/profile-hat.png";
-
-//TODO: 실제 프로필 이미지 9개로 교체 예정
-const PROFILE_IMAGES = Array.from({ length: 9 }, (_, i) => ({
-  id: i + 1,
-  src: profileHat,
-}));
 
 // 닉네임 중복 확인용 — TODO: API 연결 시 제거
 const TAKEN_NICKNAMES = ["유리", "성빈", "은진"];
 
 export default function SignUpPage() {
-  const [nicknameState, setNicknameState] = useState({ value: "", isTaken: false });
+  const [nickname, setNickname] = useState("");
   const [selectedProfile, setSelectedProfile] = useState<number | null>(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
-  const isNicknameValid = nicknameState.value.trim().length >= 2 && !nicknameState.isTaken;
+  const trimmedNickname = nickname.trim();
+  const isNicknameTaken = TAKEN_NICKNAMES.includes(trimmedNickname);
+  const isNicknameValid =
+    trimmedNickname.length >= 2 && trimmedNickname.length <= 6 && !isNicknameTaken;
   const isFormValid = isNicknameValid && selectedProfile !== null;
 
   // 회원가입 완료 버튼 클릭 — TODO: API 연결 시 서버 요청으로 교체
@@ -39,40 +36,37 @@ export default function SignUpPage() {
     <>
       <Card
         variant="white"
-        className="absolute bottom-0 left-0 right-0 h-[722px] rounded-t-[28px] rounded-b-none shadow-none p-0 flex flex-col"
+        className="absolute bottom-0 left-0 right-0 h-[722px] rounded-t-[40px] rounded-b-none shadow-none p-0 flex flex-col"
       >
         {/* 타이틀 */}
-        <p className="text-center font-ssurround font-bold text-2xl text-text-heading mt-[20px]">
+        <p className="text-center font-ssurround font-bold text-xl text-text-heading mt-[35px]">
           회원가입
         </p>
         <div className="px-[24px] mt-[40px] flex flex-col gap-[28px]">
           {/* 닉네임 입력 */}
-          <section className="flex flex-col gap-[6px]">
+          <section className="flex flex-col gap-[8px]">
             <label className="font-semibold text-lg text-text-primary">닉네임</label>
             <div className="relative">
               <TextInput
-                placeholder="2 - 10자 이내"
-                value={nicknameState.value}
+                placeholder="2 - 6자 이내"
+                value={nickname}
                 onChange={(e) => {
                   const value = e.target.value;
-                  if (value.length > 10) return;
-                  setNicknameState({
-                    value,
-                    isTaken: TAKEN_NICKNAMES.includes(value.trim()),
-                  });
+                  if (value.length > 6) return;
+                  setNickname(value);
                 }}
               />
               {isNicknameValid && (
                 <div className="absolute right-3 top-[12px]">
-                  <YesIcon width={16} height={16} aria-hidden />
+                  <YesIcon width={16} height={16} aria-hidden className="fill-main-blue" />
                 </div>
               )}
             </div>
 
-            <div className="flex items-center justify-between pr-2.5">
-              {nicknameState.isTaken ? (
+            <div className="flex items-center justify-between  px-1 pr-1">
+              {isNicknameTaken ? (
                 <div className="flex items-center gap-[4px]">
-                  <NoIcon width={12} height={12} aria-hidden />
+                  <NoIcon width={12} height={12} aria-hidden className="fill-sub-coral" />
                   <span className="font-semibold text-sm text-sub-coral">
                     이미 사용중인 닉네임이에요.
                   </span>
@@ -80,9 +74,7 @@ export default function SignUpPage() {
               ) : (
                 <span />
               )}
-              <span className="font-semibold text-sm text-sub-gray">
-                {nicknameState.value.length} /10
-              </span>
+              <span className="font-semibold text-sm text-sub-gray">{nickname.length} / 6</span>
             </div>
           </section>
 
@@ -93,6 +85,7 @@ export default function SignUpPage() {
               images={PROFILE_IMAGES}
               selectedId={selectedProfile}
               onSelect={setSelectedProfile}
+              variant="signup"
             />
           </section>
         </div>
