@@ -23,7 +23,9 @@ export function getRelatedLogsByPlaceName(placeName: string): RelatedLog[] {
     return log.days.some((day) =>
       day.stops.some((stop) => {
         const stopNorm = normalizePlaceName(stop.place);
-        return stopNorm === normalized || stopNorm.includes(normalized) || normalized.includes(stopNorm);
+        return (
+          stopNorm === normalized || stopNorm.includes(normalized) || normalized.includes(stopNorm)
+        );
       }),
     );
   });

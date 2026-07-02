@@ -26,9 +26,7 @@ export function TripDeleteModal({ isOpen, tripName, onClose, onConfirm }: TripDe
       confirmVariant="warning"
       onConfirm={onConfirm}
     >
-      <p className="text-center font-medium text-sub-darkgray">
-        * 삭제한 여행은 복구할 수 없어요.
-      </p>
+      <p className="text-center font-medium text-sub-darkgray">* 삭제한 여행은 복구할 수 없어요.</p>
     </Modal>
   );
 }

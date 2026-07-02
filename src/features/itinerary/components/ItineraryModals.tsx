@@ -61,7 +61,14 @@ export function ItineraryModals({
         isOpen={modal === "delete"}
         onClose={onClose}
         icon={
-          <Image src={removeIcon} alt="" width={25} height={25} className="icon-coral" aria-hidden />
+          <Image
+            src={removeIcon}
+            alt=""
+            width={25}
+            height={25}
+            className="icon-coral"
+            aria-hidden
+          />
         }
         iconClassName="size-[48px] bg-system-navbg"
         title="일정 삭제"

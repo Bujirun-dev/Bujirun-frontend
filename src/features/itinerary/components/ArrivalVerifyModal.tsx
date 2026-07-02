@@ -208,7 +208,15 @@ export function ArrivalVerifyModal({
         return (
           <BasicTwoButtonFooter
             left={
-              <Button variant="secondary" className="w-full" onClick={() => { onContinue?.(); closeAndReset(); router.push("/itinerary"); }}>
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => {
+                  onContinue?.();
+                  closeAndReset();
+                  router.push("/itinerary");
+                }}
+              >
                 계속 여행하기
               </Button>
             }

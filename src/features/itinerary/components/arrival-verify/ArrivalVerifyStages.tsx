@@ -219,7 +219,11 @@ export function PhotoConfirmStage({ placeName }: Pick<CommonProps, "placeName">)
 export function CompleteStage({ placeName }: Pick<CommonProps, "placeName">) {
   return (
     <>
-      <CharacterImage src={congsCharacter} alt="인증 완료" className="-mb-[14px] h-[160px] w-[180px]" />
+      <CharacterImage
+        src={congsCharacter}
+        alt="인증 완료"
+        className="-mb-[14px] h-[160px] w-[180px]"
+      />
       <div className="mb-5 flex flex-col items-center gap-2 text-center">
         <PlaceBadge placeName={placeName} />
         <h2 className="text-lg font-paperlogy font-bold text-text-heading">인증이 완료되었어요!</h2>

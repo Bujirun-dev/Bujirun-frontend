@@ -149,7 +149,9 @@ export function Modal({
               {children}
             </Card>
           ) : (
-            <div className={cn("w-full flex flex-col items-center gap-6", childrenClassName)}>{children}</div>
+            <div className={cn("w-full flex flex-col items-center gap-6", childrenClassName)}>
+              {children}
+            </div>
           ))}
 
         {footer}
