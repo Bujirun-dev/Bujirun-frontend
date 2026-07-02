@@ -16,7 +16,7 @@ export function PlaceSection() {
         <h2 className="font-ssurround text-xl text-text-heading">여기는 어때요?</h2>
         <button
           type="button"
-          className="flex items-center font-paperlogy text-sm font-semibold text-sub-darkgray"
+          className="flex items-center text-sm font-semibold text-sub-darkgray"
           onClick={() => router.push("/home/recommend")}
         >
           더보기
@@ -31,7 +31,7 @@ export function PlaceSection() {
             key={place.id}
             type="button"
             className="relative h-25 w-[160px] shrink-0 overflow-hidden rounded-[15px] active:opacity-80"
-            onClick={() => router.push(`/collection/${place.id}`)}
+            onClick={() => router.push(`/home/recommend/${place.id}`)}
           >
             <Image
               src={place.imageUrl}

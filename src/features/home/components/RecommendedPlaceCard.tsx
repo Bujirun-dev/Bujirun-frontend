@@ -21,7 +21,7 @@ export function RecommendedPlaceCard({ place }: RecommendedPlaceCardProps) {
       status="pending"
       showBookmark
       isBookmarked={place.isBookmarked}
-      onClick={() => router.push(`/collection/${place.id}`)}
+      onClick={() => router.push(`/home/recommend/${place.id}`)}
     />
   );
 }

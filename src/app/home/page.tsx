@@ -1,17 +1,13 @@
 import Image from "next/image";
 import { Card, PageCard, StaircaseGlassCard } from "@/components";
 import marineCharacter from "@/assets/character/marine.png";
-import turtleIcon from "@/assets/icons/home/turtle.png";
+import { CollectionProgress } from "@/features/home/components/CollectionProgress";
 import { TodayItinerary } from "@/features/home/components/TodayItinerary";
 import { PlaceSection } from "@/features/home/components/PlaceSection";
 import { PLACES } from "@/features/home/data/places";
 
 const COLLECTION_TOTAL = PLACES.length;
 const COLLECTION_COUNT = PLACES.filter((place) => place.isCollected).length;
-const COLLECTION_RADIUS = 36;
-const COLLECTION_CIRCUMFERENCE = 2 * Math.PI * COLLECTION_RADIUS;
-const COLLECTION_PROGRESS = COLLECTION_COUNT / COLLECTION_TOTAL;
-const COLLECTION_DASH = COLLECTION_CIRCUMFERENCE * COLLECTION_PROGRESS;
 
 function MegaphoneIcon() {
   return (
@@ -52,37 +48,7 @@ export default function HomePage() {
         </div>
 
         <div className="mt-4 flex items-center gap-4">
-          <div className="relative aspect-square w-40 place-items-center">
-            <svg
-              viewBox="0 0 112 112"
-              className="absolute inset-0 size-full -rotate-90"
-              aria-hidden="true"
-            >
-              {/* 전체 링 */}
-              <circle
-                cx="56"
-                cy="56"
-                r="36"
-                fill="none"
-                className="stroke-system-whitebg stroke-[40]"
-              />
-
-              {/* 진행률 */}
-              <circle
-                cx="56"
-                cy="56"
-                r={COLLECTION_RADIUS}
-                fill="none"
-                className="stroke-main-blue stroke-[40]"
-                strokeLinecap="round"
-                strokeDasharray={`${COLLECTION_DASH} ${COLLECTION_CIRCUMFERENCE}`}
-              />
-            </svg>
-
-            <div className="relative grid size-[48px] place-items-center rounded-full translate-y-[2px]">
-              <Image src={turtleIcon} alt="거북이 아이콘" className="h-8 w-8 object-contain" />
-            </div>
-          </div>
+          <CollectionProgress count={COLLECTION_COUNT} total={COLLECTION_TOTAL} />
 
           <div className="flex flex-1 flex-col gap-3">
             <div className="origin-left">
