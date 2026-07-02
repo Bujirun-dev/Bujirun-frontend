@@ -57,6 +57,7 @@ function TripInviteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const totalSlots = Math.min(6, Math.max(2, Number(searchParams.get("count")) || 6));
+  const days = searchParams.get("days") ?? "1";
   const joinedCount = totalSlots; // mock - 실제로는 API에서 받아옴 (다 들어온 상태로 처리)
   const rows = buildRows(totalSlots);
   const [copied, setCopied] = useState(false);
@@ -64,7 +65,7 @@ function TripInviteContent() {
   useEffect(() => {
     if (joinedCount < totalSlots) return;
     const timer = setTimeout(() => {
-      router.push(`/itinerary/trips/personality?count=${totalSlots}`);
+      router.push(`/itinerary/trips/personality?count=${totalSlots}&days=${days}`);
     }, 1000);
     return () => clearTimeout(timer);
   }, [joinedCount, totalSlots, router]);

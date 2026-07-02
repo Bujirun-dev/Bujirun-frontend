@@ -9,7 +9,7 @@ import TitleIcon from "@/assets/icons/itinerary/title.svg?svgr";
 import NoIcon from "@/assets/icons/login-register/no.svg?svgr";
 import YesIcon from "@/assets/icons/login-register/yes.svg?svgr";
 import { Counter } from "@/components";
-import { TripDateTimePicker, formatTripDateTime } from "./TripDateTimePicker";
+import { TripDateTimePicker, formatTripDateTime, parseTripDateTime } from "./TripDateTimePicker";
 import { cn } from "@/shared/utils";
 
 function getDefaultDates() {
@@ -32,10 +32,19 @@ export function TripSetupForm() {
   const isNameValid = nameLength >= 2 && nameLength <= 15;
   const hasName = nameLength > 0;
 
+  const getTotalDays = () => {
+    const start = parseTripDateTime(startDate);
+    const end = parseTripDateTime(endDate);
+    const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    const nights = Math.max(0, Math.round((endDay.getTime() - startDay.getTime()) / 86400000));
+    return nights + 1;
+  };
+
   const handleInvite = () => {
     if (!isNameValid) return;
     // TODO: API 연동 - trip 생성 후 친구 초대 페이지로 이동
-    router.push(`/itinerary/trips/invite?count=${friendCount}`);
+    router.push(`/itinerary/trips/invite?count=${friendCount}&days=${getTotalDays()}`);
   };
 
   return (
@@ -53,7 +62,7 @@ export function TripSetupForm() {
             onChange={(e) => setTripName(e.target.value.slice(0, 15))}
             placeholder="2-15글자 입력 가능"
             className={cn(
-              "w-full rounded-[10px] border py-[10px] pl-[15px] pr-14",
+              "w-full rounded-[10px] border py-[10px] pl-[15px] pr-10",
               "font-paperlogy font-medium text-xs text-sub-gray",
               "placeholder:font-paperlogy placeholder:font-medium placeholder:text-xs placeholder:text-sub-gray",
               "outline-none transition-colors",
@@ -61,11 +70,16 @@ export function TripSetupForm() {
             )}
           />
           {hasName && (
-            <div className="absolute right-[8px] top-1/2 -translate-y-1/2">
+            <div className="absolute right-[10px] top-1/2 -translate-y-1/2 flex items-center justify-center">
               {isNameValid ? (
                 <YesIcon width={14} height={14} className="fill-sub-deepblue" aria-hidden />
               ) : (
-                <button type="button" onClick={() => setTripName("")} aria-label="지우기">
+                <button
+                  type="button"
+                  onClick={() => setTripName("")}
+                  aria-label="지우기"
+                  className="flex items-center justify-center p-0 leading-none"
+                >
                   <NoIcon width={14} height={14} className="fill-sub-coral" aria-hidden />
                 </button>
               )}

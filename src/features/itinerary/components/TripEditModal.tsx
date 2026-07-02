@@ -43,42 +43,42 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
       title="일정 정보 수정"
       titleClassName="font-bold text-xl text-text-heading"
       childrenVariant="plain"
-      childrenClassName="flex flex-col gap-6"
+      childrenClassName="flex flex-col gap-6 items-start"
       cancelText="취소"
       confirmText="수정하기"
       onConfirm={handleConfirm}
     >
-      <div className="flex flex-col gap-3">
+      <div className="flex w-full flex-col gap-3">
         <div className="flex items-center gap-1.5">
-          <Image src={titleIcon} alt="" width={16} height={16} aria-hidden />
-          <span className="text-lg font-semibold text-text-heading">여행명</span>
+          <Image src={titleIcon} alt="" width={14} height={14} aria-hidden />
+          <span className="text-md font-semibold text-text-heading">여행명</span>
         </div>
         <TextInput
           value={name}
           onChange={(event) => setName(event.target.value)}
           placeholder="여행 이름을 입력하세요"
-          className="h-[30px] w-full rounded-lg border border-main-blue text-xs font-medium text-text-primary"
+          className="h-[34px] w-full rounded-lg border border-main-blue px-3 text-xs font-medium text-text-primary"
         />
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex w-full flex-col gap-2">
         <div className="flex items-center gap-1.5">
-          <Image src={calendarIcon} alt="" width={16} height={16} aria-hidden />
-          <span className="text-lg font-semibold text-text-heading">여행 기간</span>
+          <Image src={calendarIcon} alt="" width={14} height={14} aria-hidden />
+          <span className="text-md font-semibold text-text-heading">여행 기간</span>
         </div>
         <div className="flex flex-col gap-2.5">
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-2">
             <DateTimeLabel label="시작 시간" />
-            <TripDateTimePicker value={startDate} onChange={handleStartDateChange} />
+            <TripDateTimePicker value={startDate} onChange={handleStartDateChange} className="flex-1 w-auto" />
           </div>
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-2">
             <DateTimeLabel label="종료 시간" />
-            <TripDateTimePicker value={endDate} minValue={startDate} onChange={setEndDate} />
+            <TripDateTimePicker value={endDate} minValue={startDate} onChange={setEndDate} className="flex-1 w-auto" />
           </div>
         </div>
 
         <Card variant="glass-sm" className="mt-5 w-full rounded-lg px-3 py-2">
-          <p className="text-center text-sm font-medium text-sub-darkgray">
+          <p className="text-center text-sm font-medium text-sub-darkgray break-keep">
             * 변경된 여행 기간에 맞춰 일정이 자동으로 조정돼요.
           </p>
         </Card>
@@ -91,7 +91,7 @@ function DateTimeLabel({ label }: { label: string }) {
   return (
     <div className="flex shrink-0 items-center gap-1">
       <Image src={clockIcon} alt="" width={11} height={11} aria-hidden />
-      <span className="text-sm font-semibold text-text-primary">{label}</span>
+      <span className="text-xs font-semibold text-text-primary">{label}</span>
     </div>
   );
 }

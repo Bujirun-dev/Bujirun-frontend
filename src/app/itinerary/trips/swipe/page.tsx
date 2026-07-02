@@ -33,6 +33,7 @@ function TripSwipeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const count = searchParams.get("count") ?? "6";
+  const days = searchParams.get("days") ?? "1";
   const [currentIndex, setCurrentIndex] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -47,7 +48,7 @@ function TripSwipeContent() {
     setTimeout(() => {
       const nextIndex = currentIndex + 1;
       if (nextIndex >= total) {
-        router.push(`/itinerary/trips/waiting?count=${count}`);
+        router.push(`/itinerary/trips/waiting?count=${count}&days=${days}`);
         return;
       }
       setCurrentIndex(nextIndex);

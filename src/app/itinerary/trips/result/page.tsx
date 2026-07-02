@@ -154,6 +154,13 @@ function TripResultContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const count = searchParams.get("count") ?? "6";
+  const totalDays = Math.max(1, Number(searchParams.get("days")) || 3);
+
+  // days 수에 맞게 MOCK_PLANS day 슬라이스
+  const plans = MOCK_PLANS.map((plan) => ({
+    ...plan,
+    days: plan.days.slice(0, totalDays),
+  }));
 
   const [activePlan, setActivePlan] = useState<string>("A");
   const [showInfo, setShowInfo] = useState(false);
@@ -161,7 +168,7 @@ function TripResultContent() {
   const [voteConfirmPlan, setVoteConfirmPlan] = useState<string | null>(null);
   const [freepassModal, setFreepassModal] = useState<FreepassModalStep>(null);
   const [isFreepassMode, setIsFreepassMode] = useState(false);
-  const currentPlan = MOCK_PLANS.find((p) => p.id === activePlan) ?? MOCK_PLANS[0];
+  const currentPlan = plans.find((p) => p.id === activePlan) ?? plans[0];
 
   const getVoteCount = (plan: Plan) => plan.voteCount + (votedPlan === plan.id ? 1 : 0);
 
@@ -208,9 +215,8 @@ function TripResultContent() {
 
       {/* 투표 섹션 - PageCard 스타일 */}
       <div className="-mx-6 flex flex-1 flex-col overflow-hidden rounded-tl-[40px] rounded-tr-[40px] bg-white">
-        {/* 스크롤 영역 */}
-        <div className="flex-1 overflow-y-auto px-[28px] pt-[28px] pb-[10px]">
-          {/* 헤더 */}
+        {/* 헤더 - 고정 */}
+        <div className="shrink-0 px-[28px] pt-[28px]">
           <div className="relative">
             <div className="flex items-center gap-1.5">
               <span className="font-ssurround font-bold text-lg text-text-heading">
@@ -251,12 +257,14 @@ function TripResultContent() {
               </>
             )}
           </div>
+        </div>
 
-          {/* 글래스 카드 - 투표 정보 */}
+        {/* 글래스 카드 - 스크롤 영역 */}
+        <div className="flex-1 overflow-y-auto px-[28px] pb-[10px]">
           <div className="relative -mx-[4px] mt-4 flex flex-col rounded-[20px] border border-system-navbg bg-gradient-to-b from-system-glassfrom to-system-glassto px-[16px] pt-[20px] pb-[24px] backdrop-blur-[15px]">
             {/* 안 선택 탭 + 투표 버튼 같은 라인 */}
             <div className="flex items-center gap-[5px]">
-              {MOCK_PLANS.map((plan) => (
+              {plans.map((plan) => (
                 <button
                   key={plan.id}
                   type="button"
@@ -293,7 +301,7 @@ function TripResultContent() {
 
             {/* 타임라인 */}
             {activePlan === "C" ? (
-              <div className="mt-3 flex h-[333px] flex-col items-center justify-center gap-3 rounded-[14px] bg-system-navbg px-4 py-5 text-center">
+              <div className="mt-3 flex flex-col items-center justify-center gap-3 rounded-[14px] bg-system-navbg px-4 py-8 text-center">
                 <span className="text-2xl">✏️</span>
                 <p className="font-ssurround font-bold text-md text-text-heading">자유 편집형 일정</p>
                 <p className="font-paperlogy text-xs font-medium text-sub-darkgray leading-relaxed whitespace-pre-line">
@@ -302,8 +310,8 @@ function TripResultContent() {
               </div>
             ) : (
               <div className="relative mt-3 ml-0">
-                {/* 세로 점선 */}
-                <div className="absolute left-[22px] top-[22px] bottom-[22px] w-[2px] bg-[repeating-linear-gradient(to_bottom,#4da6ff_0,#4da6ff_6px,transparent_6px,transparent_12px)]" />
+                {/* 세로 점선 — 출발 중심(top:22px)에서 도착 중심(bottom:24px)까지만 */}
+                <div className="absolute left-[22px] top-[22px] bottom-[24px] w-[2px] bg-[repeating-linear-gradient(to_bottom,#4da6ff_0,#4da6ff_6px,transparent_6px,transparent_12px)]" />
 
                 {/* 출발 - 부산역 */}
                 <div className="relative flex items-center gap-5">
@@ -352,8 +360,10 @@ function TripResultContent() {
               </div>
             )}
           </div>
+        </div>
 
-          {/* 프리패스 버튼 (방장만 활성화) */}
+        {/* 프리패스 버튼 - 하단 고정 */}
+        <div className="shrink-0 px-[28px] pb-[24px] pt-[12px]">
           <button
             type="button"
             onClick={
@@ -365,7 +375,7 @@ function TripResultContent() {
             }
             disabled={!IS_HOST}
             className={cn(
-              "mt-[24px] flex h-[44px] w-full items-center justify-center gap-2 rounded-[10px] font-ssurround font-bold text-md text-main-white transition-opacity",
+              "flex h-[44px] w-full items-center justify-center gap-2 rounded-[10px] font-ssurround font-bold text-md text-main-white transition-opacity",
               IS_HOST ? "bg-main-blue" : "bg-sub-gray cursor-not-allowed",
             )}
           >

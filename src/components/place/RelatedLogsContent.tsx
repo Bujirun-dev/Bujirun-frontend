@@ -36,7 +36,7 @@ export function RelatedLogsContent({ placeName, category, relatedLogs }: Related
 
       <div className="flex-1 overflow-y-auto pb-6">
         {relatedLogs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3 pt-20">
+          <div className="flex flex-col items-center justify-center h-full gap-3 pb-16">
             <span className="text-4xl">📭</span>
             <p className="text-sm text-sub-gray font-medium">아직 관련 로그가 없어요</p>
           </div>

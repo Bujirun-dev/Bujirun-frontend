@@ -55,7 +55,7 @@ export function ImportLogModal({
         </div>
       }
     >
-      <p className="text-center font-medium text-sub-darkgray">
+      <p className="text-center font-medium text-sub-darkgray break-keep">
         * 다른 사람의 일정을 불러오면 현재 일정은 사라져요.
       </p>
     </Modal>

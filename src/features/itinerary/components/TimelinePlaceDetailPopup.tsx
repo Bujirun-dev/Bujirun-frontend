@@ -174,7 +174,7 @@ export function PlaceDetailContent({ stop, onClose, onAdd }: PlaceDetailContentP
           <div className="mb-2.5 flex items-center justify-between">
             <h3 className="text-xs font-semibold text-text-heading">관련 로그</h3>
             <Link
-              href="/itinerary/logs"
+              href={`/itinerary/place/${stop.id}/related-logs`}
               className="flex items-center gap-1 text-2xs font-semibold text-sub-gray"
             >
               더보기

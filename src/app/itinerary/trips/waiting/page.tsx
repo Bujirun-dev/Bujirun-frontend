@@ -1,10 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import faceImg from "@/assets/character/face.png";
 import { cn } from "@/shared/utils";
+
+// TODO: API 연동 시 실시간 완료 인원으로 교체
+const MOCK_AUTO_COMPLETE_DELAY_MS = 4000;
 
 const SLOT_LAYOUTS: Record<number, number[]> = {
   2: [2],
@@ -55,17 +58,27 @@ function TripWaitingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const totalSlots = Math.min(6, Math.max(2, Number(searchParams.get("count")) || 6));
-  // TODO: API 연동 후 실제 완료 인원으로 교체
-  const doneCount = Math.ceil(totalSlots / 2);
+  const days = searchParams.get("days") ?? "1";
+
+  // 나는 이미 완료 → 1명 done으로 시작
+  const [doneCount, setDoneCount] = useState(1);
   const rows = buildRows(totalSlots);
 
-  // TODO: API 연동 후 모두 완료 조건으로 교체
+  // 임시: 일정 시간 후 전원 완료 시뮬레이션
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.push(`/itinerary/trips/result?count=${totalSlots}`);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [router, totalSlots]);
+    if (doneCount >= totalSlots) return;
+    const timer = window.setTimeout(() => setDoneCount(totalSlots), MOCK_AUTO_COMPLETE_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [doneCount, totalSlots]);
+
+  // 전원 완료 시 결과 페이지로 이동
+  useEffect(() => {
+    if (doneCount < totalSlots) return;
+    const timer = window.setTimeout(() => {
+      router.push(`/itinerary/trips/result?count=${totalSlots}&days=${days}`);
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [doneCount, totalSlots, router, days]);
 
   let slotIdx = 0;
 
@@ -77,9 +90,11 @@ function TripWaitingContent() {
           className="font-paperlogy font-medium text-xl text-text-heading text-center"
           style={{ lineHeight: "23px" }}
         >
-          친구들이 아직 취향분석 중이에요...
-          <br />
-          잠시만 기다려주세요 😇
+          {doneCount >= totalSlots ? (
+            <>모두 완료됐어요! 🎉<br />결과를 불러오고 있어요...</>
+          ) : (
+            <>친구들이 아직 취향분석 중이에요...<br />잠시만 기다려주세요 😇</>
+          )}
         </p>
 
         {/* 완료 카운트 */}

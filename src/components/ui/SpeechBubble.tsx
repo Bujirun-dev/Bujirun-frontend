@@ -97,8 +97,8 @@ export function SpeechBubble({
       <div className={cn("px-2.5 py-2 w-fit flex items-center text-xs", bubble, bubbleClassName)}>
         {children}
       </div>
-      <div className={cn("absolute w-0 h-0", isBottom ? "bottom-0" : "top-0")} style={outerTailStyle} />
-      <div className={cn("absolute w-0 h-0", isBottom ? "bottom-0" : "top-0")} style={innerTailStyle} />
+      <div className={cn("absolute w-0 h-0", isBottom ? "bottom-[1px]" : "top-[1px]")} style={outerTailStyle} />
+      <div className={cn("absolute w-0 h-0", isBottom ? "bottom-[2px]" : "top-[2px]")} style={innerTailStyle} />
     </div>
   );
 }
