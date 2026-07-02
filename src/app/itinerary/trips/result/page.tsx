@@ -8,7 +8,6 @@ import { CategoryChip, Modal, SpeechBubble } from "@/components";
 import checkIcon from "@/assets/icons/itinerary/check.png";
 import infoIcon from "@/assets/icons/itinerary/info.png";
 import freepassBlueIcon from "@/assets/icons/itinerary/freepass-blue.png";
-import freepassWhiteIcon from "@/assets/icons/itinerary/freepass-white.png";
 import flagImg from "@/assets/place/flag.png";
 import houseImg from "@/assets/place/house.png";
 import busanStationImg from "@/assets/place/busan-station.png";
@@ -37,7 +36,7 @@ const MOCK_PLANS: Plan[] = [
         label: "Day 1",
         places: [
           { id: 1, name: "광안리 해수욕장", image: "https://picsum.photos/seed/place1/200/200" },
-          { id: 2, name: "해운대 해수욕장", image: "https://picsum.photos/seed/place2/200/200" },
+          { id: 2, name: "해운대 해수욕장 놀이공원", image: "https://picsum.photos/seed/place2/200/200" },
           { id: 3, name: "동백섬", image: "https://picsum.photos/seed/place3/200/200" },
         ],
       },
@@ -161,6 +160,7 @@ function TripResultContent() {
   const [votedPlan, setVotedPlan] = useState<string | null>(null);
   const [voteConfirmPlan, setVoteConfirmPlan] = useState<string | null>(null);
   const [freepassModal, setFreepassModal] = useState<FreepassModalStep>(null);
+  const [isFreepassMode, setIsFreepassMode] = useState(false);
   const currentPlan = MOCK_PLANS.find((p) => p.id === activePlan) ?? MOCK_PLANS[0];
 
   const getVoteCount = (plan: Plan) => plan.voteCount + (votedPlan === plan.id ? 1 : 0);
@@ -179,6 +179,11 @@ function TripResultContent() {
 
   const handleFreepass = () => {
     setFreepassModal("guide");
+  };
+
+  const handleFreepassActivate = () => {
+    setIsFreepassMode(true);
+    setFreepassModal(null);
   };
 
   const handleFreepassConfirm = () => {
@@ -287,113 +292,91 @@ function TripResultContent() {
             </div>
 
             {/* 타임라인 */}
-            <div className="relative mt-3 ml-0">
-              {/* 세로 점선 - 이미지 중심(22px) 기준 */}
-              <div className="absolute left-[22px] top-[22px] bottom-[22px] w-[2px] bg-[repeating-linear-gradient(to_bottom,#4da6ff_0,#4da6ff_6px,transparent_6px,transparent_12px)]" />
-
-              {/* 출발 - 부산역 */}
-              <div className="relative flex items-center gap-5">
-                <div className="relative z-10 flex h-[49px] w-[45px] shrink-0 items-center justify-center">
-                  <div className="absolute inset-[-6px] rounded-full bg-[rgba(151,193,255,0.3)] blur-md" />
-                  <Image
-                    src={busanStationImg}
-                    alt=""
-                    width={45}
-                    height={45}
-                    aria-hidden
-                    className="relative z-10"
-                  />
-                </div>
-                <SpeechBubble
-                  variant="white"
-                  tailDirection="left"
-                  bubbleClassName="border border-main-blue rounded-[10px]"
-                  tailBorderColor="#97c1ff"
-                >
-                  <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">
-                    10:00 여행 시작!
-                  </span>
-                </SpeechBubble>
+            {activePlan === "C" ? (
+              <div className="mt-3 flex h-[333px] flex-col items-center justify-center gap-3 rounded-[14px] bg-system-navbg px-4 py-5 text-center">
+                <span className="text-2xl">✏️</span>
+                <p className="font-ssurround font-bold text-md text-text-heading">자유 편집형 일정</p>
+                <p className="font-paperlogy text-xs font-medium text-sub-darkgray leading-relaxed whitespace-pre-line">
+                  {"C안은 AI가 미리 짜주지 않아요.\n확정 후 팀원들과 함께 직접\n일정을 자유롭게 채워보세요!"}
+                </p>
               </div>
+            ) : (
+              <div className="relative mt-3 ml-0">
+                {/* 세로 점선 */}
+                <div className="absolute left-[22px] top-[22px] bottom-[22px] w-[2px] bg-[repeating-linear-gradient(to_bottom,#4da6ff_0,#4da6ff_6px,transparent_6px,transparent_12px)]" />
 
-              {/* 각 Day */}
-              <div className="mt-[12px] flex flex-col gap-[45px]">
-                {currentPlan.days.map((day) => (
-                  <div key={day.day}>
-                    <div className="relative flex items-center gap-[2px]">
-                      <div className="relative z-10 h-[25px] w-[35px] shrink-0">
-                        <span className="absolute left-[9.5px] top-1/2 z-0 h-[29px] w-[25px] -translate-y-1/2 rounded-full bg-main-white" />
-                        <div className="absolute left-[5.5px] top-1/2 z-10 h-[33px] w-[33px] -translate-y-1/2 rounded-full bg-sub-pink/30 blur-md" />
-                        <Image
-                          src={flagImg}
-                          alt=""
-                          width={25}
-                          height={25}
-                          aria-hidden
-                          className="absolute left-[9.5px] top-0 z-20"
-                        />
-                      </div>
-                      <span className="font-paperlogy text-xs font-medium text-sub-deepblue">
-                        {day.label.toLowerCase()}
-                      </span>
-                      <div className="relative ml-[3px] h-[1.5px] w-[235px] rounded-full bg-main-blue">
-                        <div className="absolute left-0 right-0 top-[7.5px] flex items-start justify-around">
-                          {day.places.map((place) => (
-                            <ResultPlaceNode key={place.id} place={place} />
-                          ))}
+                {/* 출발 - 부산역 */}
+                <div className="relative flex items-center gap-5">
+                  <div className="relative z-10 flex h-[49px] w-[45px] shrink-0 items-center justify-center">
+                    <div className="absolute inset-[-6px] rounded-full bg-[rgba(151,193,255,0.3)] blur-md" />
+                    <Image src={busanStationImg} alt="" width={45} height={45} aria-hidden className="relative z-10" />
+                  </div>
+                  <SpeechBubble variant="white" tailDirection="left">
+                    <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">10:00 여행 시작!</span>
+                  </SpeechBubble>
+                </div>
+
+                {/* 각 Day */}
+                <div className="mt-[12px] flex flex-col gap-[52px]">
+                  {currentPlan.days.map((day) => (
+                    <div key={day.day}>
+                      <div className="relative flex items-center gap-[2px]">
+                        <div className="relative z-10 h-[25px] w-[35px] shrink-0">
+                          <span className="absolute left-[9.5px] top-1/2 z-0 h-[29px] w-[25px] -translate-y-1/2 rounded-full bg-main-white" />
+                          <div className="absolute left-[5.5px] top-1/2 z-10 h-[33px] w-[33px] -translate-y-1/2 rounded-full bg-sub-pink/30 blur-md" />
+                          <Image src={flagImg} alt="" width={25} height={25} aria-hidden className="absolute left-[9.5px] top-0 z-20" />
+                        </div>
+                        <span className="font-paperlogy text-xs font-medium text-sub-deepblue">{day.label.toLowerCase()}</span>
+                        <div className="relative ml-[3px] h-[1.5px] w-[235px] rounded-full bg-main-blue">
+                          <div className="absolute left-0 right-0 top-[7.5px] flex items-start justify-around">
+                            {day.places.map((place) => (
+                              <ResultPlaceNode key={place.id} place={place} />
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* 도착 - 집 */}
-              <div className="relative mt-[44px] flex items-center gap-5">
-                <div className="relative z-10 flex h-[49px] w-[45px] shrink-0 items-center justify-center">
-                  <div className="absolute inset-[-6px] rounded-full bg-[rgba(151,193,255,0.3)] blur-md" />
-                  <Image
-                    src={houseImg}
-                    alt=""
-                    width={45}
-                    height={45}
-                    aria-hidden
-                    className="relative z-10"
-                  />
+                  ))}
                 </div>
-                <SpeechBubble
-                  variant="white"
-                  tailDirection="left"
-                  bubbleClassName="border border-main-blue rounded-[10px]"
-                  tailBorderColor="#97c1ff"
-                >
-                  <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">
-                    15:00 여행 끝!
-                  </span>
-                </SpeechBubble>
+
+                {/* 도착 - 집 */}
+                <div className="relative mt-[44px] flex items-center gap-5">
+                  <div className="relative z-10 flex h-[49px] w-[45px] shrink-0 items-center justify-center">
+                    <div className="absolute inset-[-6px] rounded-full bg-[rgba(151,193,255,0.3)] blur-md" />
+                    <Image src={houseImg} alt="" width={45} height={45} aria-hidden className="relative z-10" />
+                  </div>
+                  <SpeechBubble variant="white" tailDirection="left">
+                    <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">15:00 여행 끝!</span>
+                  </SpeechBubble>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* 프리패스 버튼 (방장만 활성화) */}
           <button
             type="button"
-            onClick={IS_HOST ? handleFreepass : undefined}
+            onClick={
+              IS_HOST
+                ? isFreepassMode
+                  ? () => setFreepassModal("confirm")
+                  : handleFreepass
+                : undefined
+            }
             disabled={!IS_HOST}
             className={cn(
               "mt-[24px] flex h-[44px] w-full items-center justify-center gap-2 rounded-[10px] font-ssurround font-bold text-md text-main-white transition-opacity",
               IS_HOST ? "bg-main-blue" : "bg-sub-gray cursor-not-allowed",
             )}
           >
-            <Image
-              src={freepassWhiteIcon}
-              alt=""
-              width={15}
-              height={15}
-              aria-hidden
-              className="-translate-y-0.5"
-            />
-            <span>방장 마음대로 프리패스!</span>
+            {isFreepassMode ? (
+              <span>✦ {activePlan} 일정으로 선택</span>
+            ) : (
+              <>
+                <Image src={freepassBlueIcon} alt="" width={15} height={15} aria-hidden className="-translate-y-0.5 brightness-0 invert" />
+                <span>방장 마음대로 프리패스!</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -424,7 +407,7 @@ function TripResultContent() {
         cancelText="취소"
         confirmText="프리패스"
         onCancel={() => setFreepassModal(null)}
-        onConfirm={() => setFreepassModal("confirm")}
+        onConfirm={handleFreepassActivate}
         className="max-w-[320px] rounded-[28px] px-7 py-9 gap-7"
       >
         <p className="text-center font-paperlogy text-xs font-medium text-sub-darkgray">
@@ -434,7 +417,7 @@ function TripResultContent() {
 
       <Modal
         isOpen={freepassModal === "confirm"}
-        onClose={() => setFreepassModal("guide")}
+        onClose={() => setFreepassModal(null)}
         icon={<Image src={freepassBlueIcon} alt="" width={25} height={25} aria-hidden />}
         iconClassName="bg-system-navbg"
         title="방장 마음대로 프리패스!"
@@ -443,7 +426,7 @@ function TripResultContent() {
         childrenClassName="py-2"
         cancelText="취소"
         confirmText="확정하기"
-        onCancel={() => setFreepassModal("guide")}
+        onCancel={() => setFreepassModal(null)}
         onConfirm={handleFreepassConfirm}
         className="max-w-[320px] rounded-[28px] px-7 py-9 gap-7"
       >
