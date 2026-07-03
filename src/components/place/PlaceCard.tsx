@@ -1,6 +1,8 @@
 import Image from "next/image";
 import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
 import removeIcon from "@/assets/icons/itinerary/remove.svg?url";
+import bookmarkOnIcon from "@/assets/icons/mypage/bookmark-on.png";
+import bookmarkOffIcon from "@/assets/icons/mypage/bookmark-off.png";
 import { cn } from "@/shared/utils";
 import { CategoryChip, StatusBadge } from "@/components";
 import type { Category } from "@/components";
@@ -12,6 +14,8 @@ interface PlaceCardProps {
   name: string;
   category: Category;
   status?: PlaceStatus;
+  isBookmarked?: boolean;
+  showBookmark?: boolean;
   onDelete?: () => void;
   onClick?: () => void;
   onVerify?: () => void;
@@ -23,6 +27,8 @@ export function PlaceCard({
   name,
   category,
   status,
+  isBookmarked = false,
+  showBookmark = false,
   onDelete,
   onClick,
   onVerify,
@@ -64,6 +70,17 @@ export function PlaceCard({
               <StatusBadge status={status} />
             )}
           </div>
+        )}
+
+        {showBookmark && (
+          <Image
+            src={isBookmarked ? bookmarkOnIcon : bookmarkOffIcon}
+            alt=""
+            width={16}
+            height={16}
+            aria-hidden
+            className="absolute top-[10px] right-[10px]"
+          />
         )}
 
         {onDelete && (

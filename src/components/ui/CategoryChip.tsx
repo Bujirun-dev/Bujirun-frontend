@@ -5,14 +5,31 @@ export type Category = "sea" | "nature" | "culture" | "experience";
 interface CategoryChipProps {
   category: Category;
   size?: "sm" | "md" | "lg";
+  variant?: "default" | "strong";
   className?: string;
 }
 
-const CATEGORY_CONFIG: Record<Category, { label: string; bg: string }> = {
-  sea: { label: "#바다", bg: "bg-category-sea" },
-  nature: { label: "#자연", bg: "bg-category-nature" },
-  culture: { label: "#문화", bg: "bg-category-culture" },
-  experience: { label: "#체험", bg: "bg-category-experience" },
+const CATEGORY_CONFIG: Record<Category, { label: string; defaultBg: string; strongBg: string }> = {
+  sea: {
+    label: "#바다",
+    defaultBg: "bg-category-sea",
+    strongBg: "bg-main-blue",
+  },
+  nature: {
+    label: "#자연",
+    defaultBg: "bg-category-nature",
+    strongBg: "bg-sub-green",
+  },
+  culture: {
+    label: "#문화",
+    defaultBg: "bg-category-culture",
+    strongBg: "bg-sub-pink",
+  },
+  experience: {
+    label: "#체험",
+    defaultBg: "bg-category-experience",
+    strongBg: "bg-sub-violet",
+  },
 };
 
 const SIZE_CLASS = {
@@ -21,8 +38,14 @@ const SIZE_CLASS = {
   lg: "py-[6px] px-[10px] text-md",
 };
 
-export function CategoryChip({ category, size = "md", className }: CategoryChipProps) {
-  const { label, bg } = CATEGORY_CONFIG[category];
+export function CategoryChip({
+  category,
+  size = "md",
+  variant = "default",
+  className,
+}: CategoryChipProps) {
+  const { label, defaultBg, strongBg } = CATEGORY_CONFIG[category];
+  const bg = variant === "strong" ? strongBg : defaultBg;
 
   return (
     <div

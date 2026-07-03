@@ -6,7 +6,7 @@ import { CategoryChip } from "@/components/ui/CategoryChip";
 import { PageCard } from "@/components/layout/PageCard";
 import { LogCard } from "@/features/itinerary";
 import type { Category } from "@/components/ui/CategoryChip";
-import type { RelatedLog } from "@/features/mypage/data/relatedLogs";
+import type { RelatedLog } from "@/shared/types/relatedLog";
 
 interface RelatedLogsContentProps {
   placeName?: string;
