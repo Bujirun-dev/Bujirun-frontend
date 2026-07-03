@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { ReceiptButtons } from "@/features/receipt/components/ReceiptButtons";
 import { TripReceipt } from "@/features/receipt/components/TripReceipt";
 import { toPng } from "html-to-image";
@@ -78,11 +79,16 @@ export function TripReceiptModal({
 
   if (!isOpen || !receipt) return null;
 
-  return (
-    <div className="fixed left-1/2 top-0 z-50 h-[844px] max-h-dvh w-full max-w-[390px] -translate-x-1/2 overflow-hidden bg-system-blackbg">
+  if (typeof document === "undefined") return null;
+
+  const appRoot = document.getElementById("app-root");
+  if (!appRoot) return null;
+
+  return createPortal(
+    <div className="absolute inset-0 z-50 overflow-hidden bg-system-blackbg" onClick={onClose}>
       <div className="h-full overflow-y-auto">
         <div className="mx-auto flex min-h-full w-full justify-center px-5 py-13">
-          <div className="relative w-full max-w-[320px]">
+          <div className="relative w-full max-w-[320px]" onClick={(e) => e.stopPropagation()}>
             {/* 다운로드되는 영수증 */}
             <div ref={receiptRef}>
               <TripReceipt receipt={receipt} />
@@ -94,6 +100,7 @@ export function TripReceiptModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    appRoot,
   );
 }

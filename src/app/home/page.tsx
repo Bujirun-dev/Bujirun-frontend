@@ -25,7 +25,7 @@ function MegaphoneIcon() {
 export default function HomePage() {
   return (
     <main className="flex h-full flex-col">
-      <div className="flex shrink-0 items-center justify-between gap-4 px-4">
+      <div className="flex shrink-0 items-start justify-between gap-4 px-4">
         <div className="min-w-0 text-text-heading">
           <p className="font-dxsubtitles text-md">안녕, 유리 👋</p>
           <h1 className="mt-2 whitespace-pre-line font-proup text-2xl leading-[1.25]">
@@ -36,12 +36,12 @@ export default function HomePage() {
         <Image
           src={marineCharacter}
           alt="마린룩 캐릭터"
-          className="translate-y-2 z-10 h-[140px] w-auto shrink-0 object-contain"
+          className="-translate-y-1 z-10 h-[140px] w-auto shrink-0 object-contain"
           priority
         />
       </div>
 
-      <Card variant="glass-lg" className="relative shrink-0 rounded-[32px] mt-[-16px] mb-2 py-6">
+      <Card variant="glass-lg" className="relative shrink-0 rounded-[32px] mt-[-28px] mb-2 py-6">
         <div className="flex items-center gap-2">
           <h2 className="font-ssurround text-xl text-text-heading">부산도감</h2>
           <MegaphoneIcon />
@@ -70,7 +70,7 @@ export default function HomePage() {
         </div>
       </Card>
 
-      <PageCard className="relative z-20 mt-5 flex-1 overflow-y-auto py-8">
+      <PageCard className="relative z-20 mt-3 flex-1 overflow-y-auto py-8">
         <TodayItinerary />
         <div className="mt-8">
           <PlaceSection />

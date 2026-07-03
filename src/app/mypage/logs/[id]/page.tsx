@@ -2,35 +2,9 @@
 
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { BackButton, PageCard } from "@/components";
-import { cn } from "@/shared/utils";
-import { DayBadge } from "@/features/itinerary";
-import {
-  SAMPLE_LOGS,
-  type DaySchedule,
-  type ScheduleStop,
-} from "@/features/itinerary/data/sampleLogs";
-
-function TagChip({ label, isLight }: { label: string; isLight?: boolean }) {
-  return (
-    <div
-      className={cn(
-        "rounded-md inline-flex items-center justify-center px-1.5 py-1",
-        isLight ? "bg-category-sea" : "bg-main-blue",
-      )}
-    >
-      <span
-        className={cn(
-          "font-normal text-xs text-center tracking-[0.16px]",
-          isLight ? "text-text-primary" : "text-main-white",
-        )}
-      >
-        {label}
-      </span>
-    </div>
-  );
-}
+import { PageCard } from "@/components";
+import { LogDetailContent } from "@/components/log/LogDetailContent";
+import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";
 
 // 마이페이지(북마크) 전용 로그 상세보기
 // - 일정 탭의 itinerary/logs/[id]와 화면 구성은 동일하지만, 일정 추가 버튼은 넣지 않음
@@ -50,88 +24,28 @@ export default function MypageLogDetailPage({ params }: { params: Promise<{ id: 
     );
   }
 
-  const summaryPlace =
-    log.extraCount > 0 ? `${log.placeName} 외 ${log.extraCount}곳` : log.placeName;
-
   return (
     <PageCard>
-      {/* 헤더 - 일정 추가 버튼 없음, 뒤로가기는 공통 BackButton 사용 */}
-      <div className="flex items-center gap-4 pb-4 shrink-0">
-        <BackButton className="bg-transparent" onClick={() => router.back()} />
-        <span className="font-ssurround font-bold text-lg text-text-heading flex-1">
-          {log.title}
-        </span>
-      </div>
-
-      {/* 요약 정보 카드 */}
-      <div className="shrink-0 mb-5 backdrop-blur-[15px] bg-gradient-to-b from-system-glassfrom to-system-glassto border border-system-glassborder rounded-2xl h-[67px] flex flex-col justify-center px-5 gap-2">
-        <div className="flex items-center gap-1">
-          <span className="text-md shrink-0">📍</span>
-          <span className="font-medium text-md text-text-primary tracking-[0.28px]">
-            {summaryPlace}
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="text-sm shrink-0">📅</span>
-          <span className="font-medium text-sm text-sub-darkgray tracking-[0.24px]">
-            {log.duration} · {log.date}
-          </span>
-        </div>
-      </div>
-
-      {/* 스크롤 영역 */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-6">
-        {log.days.map((daySchedule: DaySchedule) => (
-          <div key={daySchedule.day} className="flex flex-col">
-            <div className="flex items-center gap-2 mb-3.5">
-              <DayBadge day={daySchedule.day} />
-              <span className="font-ssurround font-bold text-xs text-sub-gray">
-                {daySchedule.date}
-              </span>
-            </div>
-
-            <div className="relative flex flex-col pb-1.5">
-              <div className="absolute top-[6px] bottom-[6px] left-[45px] w-[2px] bg-sub-lightgray rounded-full" />
-              {daySchedule.stops.map((stop: ScheduleStop, idx: number) => (
-                <div
-                  key={idx}
-                  className={cn("flex items-start", idx < daySchedule.stops.length - 1 && "pb-5")}
-                >
-                  <div className="flex items-center shrink-0">
-                    <div className="w-10 text-right pr-2.5">
-                      <span className="font-medium text-sm text-sub-deepblue tracking-[0.6px]">
-                        {stop.time}
-                      </span>
-                    </div>
-                    <div className="w-3 h-3 rounded-full bg-main-blue shrink-0 relative z-10" />
-                  </div>
-
-                  <div className="flex-1 flex flex-col gap-2.5 pl-2">
-                    <div className="flex items-center gap-1">
-                      <span className="text-md shrink-0">📍</span>
-                      <span className="font-medium text-md text-text-primary tracking-[0.42px]">
-                        {stop.place}
-                      </span>
-                    </div>
-
-                    {stop.imageUrl && (
-                      <div className="relative w-[254px] h-[118px] rounded-lg overflow-hidden border-[0.3px] border-system-glassborder shrink-0">
-                        <Image src={stop.imageUrl} alt={stop.place} fill className="object-cover" />
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-1 flex-wrap">
-                      {stop.tags.map((tag, tagIdx) => (
-                        <TagChip key={tag} label={tag} isLight={tagIdx === 0} />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+      <LogDetailContent
+        log={{
+          title: log.title,
+          placeName: log.placeName,
+          extraCount: log.extraCount,
+          duration: log.duration,
+          date: log.date,
+          days: log.days.map((day) => ({
+            day: day.day,
+            date: day.date,
+            stops: day.stops.map((stop) => ({
+              time: stop.time,
+              place: stop.place,
+              imageUrl: stop.imageUrl,
+              tags: stop.tags,
+            })),
+          })),
+        }}
+        onBack={() => router.back()}
+      />
     </PageCard>
   );
 }

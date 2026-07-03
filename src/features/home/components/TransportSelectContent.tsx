@@ -10,17 +10,23 @@ interface TransportSelectContentProps {
   transportGroup: TransportGroup;
   selectedOptionId: string;
   onSelect: (option: TransportOption) => void;
+  onKakaoMapClick?: () => void;
 }
 
 export function TransportSelectContent({
   transportGroup,
   selectedOptionId,
   onSelect,
+  onKakaoMapClick,
 }: TransportSelectContentProps) {
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="flex items-center justify-start">
-        <button type="button" className="rounded-lg bg-main-blue px-2 py-1 active:opacity-80">
+        <button
+          type="button"
+          className="rounded-lg bg-main-blue px-2 py-1 active:opacity-80"
+          onClick={onKakaoMapClick}
+        >
           <Image src={kakaoMapLogo} alt="카카오맵" width={60} />
         </button>
       </div>

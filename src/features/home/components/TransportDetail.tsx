@@ -12,6 +12,7 @@ import kakaoMapLogo from "@/assets/icons/home/kakaomap_horizontal_ko.png";
 interface TransportDetailProps {
   transportGroup: TransportGroup;
   selectedOption: TransportOption;
+  onKakaoMapClick?: () => void;
 }
 
 const TRANSPORT_COLORS: Record<TransportType, string> = {
@@ -21,18 +22,26 @@ const TRANSPORT_COLORS: Record<TransportType, string> = {
   택시: "bg-sub-violet",
 };
 
-export function TransportDetail({ transportGroup, selectedOption }: TransportDetailProps) {
+export function TransportDetail({
+  transportGroup,
+  selectedOption,
+  onKakaoMapClick,
+}: TransportDetailProps) {
   const { fromPlace, toPlace } = transportGroup;
   const { durationText, costText, steps } = selectedOption;
   const metaText = `${durationText ?? "-"} · ${costText ?? "-"}`;
   return (
-    <div className="relative flex min-w-0 flex-col gap-3 py-4">
+    <div className="relative flex w-full min-w-0 flex-col gap-3 py-4">
       <div className="mb-1 flex min-w-0 items-center justify-between gap-3">
-        <button type="button" className="rounded-lg bg-main-blue px-2 py-1 active:opacity-80">
+        <button
+          type="button"
+          className="rounded-lg bg-main-blue px-2 py-1 active:opacity-80"
+          onClick={onKakaoMapClick}
+        >
           <Image src={kakaoMapLogo} alt="카카오맵" width={60} />
         </button>
 
-        <span className="min-w-0 truncate text-md font-semibold text-sub-darkgray">{metaText}</span>
+        <span className="min-w-0 truncate text-sm font-semibold text-sub-darkgray">{metaText}</span>
       </div>
       <div
         className="pointer-events-none absolute bottom-[28px] left-[14px] top-[68px] w-[1.5px]"
@@ -45,7 +54,7 @@ export function TransportDetail({ transportGroup, selectedOption }: TransportDet
         <div className="relative z-10 flex size-7 shrink-0 items-center justify-center">
           <span className="size-3.5 rounded-full bg-sub-gray" />
         </div>
-        <span className="min-w-0 break-words text-lg font-semibold text-text-primary">
+        <span className="min-w-0 break-words text-md font-semibold text-text-primary">
           {fromPlace ?? "출발 장소"}
         </span>
       </div>
@@ -68,7 +77,7 @@ export function TransportDetail({ transportGroup, selectedOption }: TransportDet
         <div className="relative z-10 flex size-7 shrink-0 items-center justify-center">
           <span className="size-3.5 rounded-full bg-sub-gray" />
         </div>
-        <span className="truncate text-lg font-semibold text-text-primary">
+        <span className="truncate text-md font-semibold text-text-primary">
           {toPlace ?? "도착 장소"}
         </span>
       </div>

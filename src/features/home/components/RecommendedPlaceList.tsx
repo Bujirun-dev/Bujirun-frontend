@@ -6,7 +6,7 @@ const recommendedPlaces = PLACES.filter((place) => !place.isCollected);
 
 export function RecommendedPlaceList() {
   return (
-    <div className="flex flex-col gap-[30px]">
+    <div className="flex flex-col gap-[20px]">
       {recommendedPlaces.map((item) => (
         <RecommendedPlaceCard key={item.id} place={item} />
       ))}

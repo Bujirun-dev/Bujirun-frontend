@@ -13,7 +13,7 @@ export function PlaceSection() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-ssurround text-xl text-text-heading">여기는 어때요?</h2>
+        <h2 className="font-ssurround text-lg text-text-heading">여기는 어때요?</h2>
         <button
           type="button"
           className="flex items-center text-sm font-semibold text-sub-darkgray"
@@ -30,7 +30,7 @@ export function PlaceSection() {
           <button
             key={place.id}
             type="button"
-            className="relative h-25 w-[160px] shrink-0 overflow-hidden rounded-[15px] active:opacity-80"
+            className="relative h-[90px] w-[144px] shrink-0 overflow-hidden rounded-[15px] active:opacity-80"
             onClick={() => router.push(`/home/recommend/${place.id}`)}
           >
             <Image
@@ -38,7 +38,7 @@ export function PlaceSection() {
               alt={place.name}
               fill
               className="object-cover"
-              sizes="160px"
+              sizes="144px"
             />
 
             <div className="absolute right-2 top-2">
@@ -46,7 +46,7 @@ export function PlaceSection() {
             </div>
 
             <div className="absolute bottom-2 left-2">
-              <span className="inline-flex rounded-[8px] bg-system-blackbg px-2.5 py-1.5 text-sm font-semibold text-main-white backdrop-blur-sm">
+              <span className="inline-flex rounded-[8px] bg-system-blackbg px-2.5 py-1.5 text-xs font-semibold text-main-white backdrop-blur-sm">
                 {place.name}
               </span>
             </div>

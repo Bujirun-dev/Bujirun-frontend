@@ -23,21 +23,24 @@ export function TransportSummaryCard({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-[14px] border border-main-blue bg-system-navbg px-4 py-2.5",
+        "flex items-center gap-3 rounded-[14px] border border-main-blue bg-system-navbg px-3 py-2",
         className,
       )}
     >
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex shrink-0 items-center gap-1.5">
         {visibleSteps.map((step, index) => (
           <TransportIcon
             key={`${step.type}-${index}`}
             type={step.type}
-            className="size-4 fill-sub-darkgray"
+            className={cn(
+              "size-3.5 fill-sub-darkgray",
+              step.type === "버스" && "-translate-y-[1px]",
+            )}
           />
         ))}
       </div>
 
-      <span className="min-w-0 truncate text-md font-medium text-sub-darkgray">{metaText}</span>
+      <span className="min-w-0 truncate text-sm font-medium text-sub-darkgray">{metaText}</span>
     </div>
   );
 }

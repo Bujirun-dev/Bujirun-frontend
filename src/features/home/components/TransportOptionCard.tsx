@@ -43,12 +43,12 @@ export function TransportOptionCard({
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-lg font-semibold text-text-primary">{step.routeName}</p>
+                <p className="text-md font-semibold text-text-primary">{step.routeName}</p>
                 {index === 0 && (
-                  <span className="shrink-0 text-md font-medium text-sub-deepblue">{metaText}</span>
+                  <span className="shrink-0 text-sm font-medium text-sub-deepblue">{metaText}</span>
                 )}
               </div>
-              <p className="mt-1 break-words text-sm text-sub-darkgray">
+              <p className="mt-1 break-words text-xs text-sub-darkgray">
                 {step.from}
                 <svg
                   viewBox="0 0 24 24"
