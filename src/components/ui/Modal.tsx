@@ -157,10 +157,10 @@ export function Modal({
         {footer}
 
         {!hideActions && (
-          <div className="flex w-full justify-center gap-3">
+          <div className="mt-1 flex w-full gap-6">
             <button
               className={cn(
-                "flex-1 py-2.5 cursor-pointer rounded-lg border font-ssurround text-md font-bold active:opacity-70",
+                "w-full py-2.5 px-5 cursor-pointer rounded-lg border font-ssurround text-md font-bold active:opacity-70",
                 confirmVariant === "warning"
                   ? "border-sub-coral text-sub-coral"
                   : "border-main-blue text-sub-deepblue",
@@ -172,7 +172,7 @@ export function Modal({
             {onConfirm && (
               <button
                 className={cn(
-                  "flex-1 py-2.5 cursor-pointer rounded-lg font-ssurround text-md font-bold text-white active:opacity-70",
+                  "w-full py-2.5 px-5 cursor-pointer rounded-lg font-ssurround text-md font-bold text-white active:opacity-70",
                   confirmVariant === "warning" ? "bg-sub-coral" : "bg-main-blue",
                 )}
                 onClick={onConfirm}

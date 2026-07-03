@@ -20,8 +20,17 @@ export function getCategoryLabel(category: Category): string {
 
 export function getCategoryFromKo(ko: string): Category {
   if (ko.includes("바다")) return "sea";
-  if (ko.includes("자연") || ko.includes("공원")) return "nature";
-  if (ko.includes("문화") || ko.includes("역사")) return "culture";
-  if (ko.includes("체험") || ko.includes("레저")) return "experience";
+  if (ko.includes("자연")) return "nature";
+  if (ko.includes("문화")) return "culture";
+  if (ko.includes("체험")) return "experience";
   return CATEGORY_LABEL_KO[ko] ?? "nature";
+}
+
+export function getCategoryFromEN(en: string): Category {
+  if (en.includes("sea")) return "sea";
+  if (en.includes("nature")) return "nature";
+  if (en.includes("culture")) return "culture";
+  if (en.includes("experience")) return "experience";
+
+  return CATEGORY_LABEL_KO[en] ?? "nature";
 }

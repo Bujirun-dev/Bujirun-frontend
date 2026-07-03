@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useRef } from "react";
+import { ReceiptButtons } from "@/features/receipt/components/ReceiptButtons";
+import { TripReceipt } from "@/features/receipt/components/TripReceipt";
 import { toPng } from "html-to-image";
-import { ReceiptButtons } from "@/features/collection/components/ReceiptButtons";
-import { TripReceipt } from "@/features/collection/components/TripReceipt";
-import { tripReceipts } from "@/features/collection/data/tripReceipts";
+import type { ReceiptData } from "@/features/receipt/types/receipt";
 
 type TripReceiptModalProps = {
   isOpen: boolean;
-  tripId: number;
+  receipt?: ReceiptData;
   onDetail?: () => void;
   onClose: () => void;
   onDownloadComplete?: () => void;
@@ -30,23 +30,29 @@ const waitForImages = async (element: HTMLElement) => {
   );
 };
 
+const sanitizeFileName = (fileName: string) => fileName.replace(/[\\/:*?"<>|]/g, "").trim();
+
+const createReceiptFileName = (title: string, tripId: number) => {
+  const safeTitle = sanitizeFileName(title);
+  return safeTitle ? `[bujirun]${safeTitle}.png` : `[bujirun]receipt-${tripId}.png`;
+};
+
 export function TripReceiptModal({
   isOpen,
-  tripId,
+  receipt,
   onDetail,
   onClose,
   onDownloadComplete,
   onDownloadError,
 }: TripReceiptModalProps) {
   const receiptRef = useRef<HTMLDivElement>(null);
-  const receipt = tripReceipts.find((item) => item.tripId === tripId);
-  const receiptFileName = receipt?.title
-    ? `[bujirun]${receipt.title}.png`
-    : `[bujirun]receipt-${tripId}.png`;
+  const receiptFileName = receipt
+    ? createReceiptFileName(receipt.title, receipt.tripId)
+    : "[bujirun]receipt-unknown.png";
 
   // 영수증.png 다운로드
   const handleDownload = useCallback(async () => {
-    if (!receiptRef.current) return;
+    if (!receiptRef.current || !receipt) return;
 
     try {
       await document.fonts.ready;
@@ -62,14 +68,15 @@ export function TripReceiptModal({
       link.download = receiptFileName;
       link.href = dataUrl;
       link.click();
+
       onDownloadComplete?.();
     } catch (error) {
       console.error("영수증 다운로드에 실패했어요.", error);
       onDownloadError?.();
     }
-  }, [receiptFileName, onDownloadComplete, onDownloadError]);
+  }, [receipt, receiptFileName, onDownloadComplete, onDownloadError]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !receipt) return null;
 
   return (
     <div className="fixed left-1/2 top-0 z-50 h-[844px] max-h-dvh w-full max-w-[390px] -translate-x-1/2 overflow-hidden bg-system-blackbg">
@@ -78,7 +85,7 @@ export function TripReceiptModal({
           <div className="relative w-full max-w-[320px]">
             {/* 다운로드되는 영수증 */}
             <div ref={receiptRef}>
-              <TripReceipt tripId={tripId} />
+              <TripReceipt receipt={receipt} />
             </div>
 
             <div className="absolute right-3 top-5 z-20">
