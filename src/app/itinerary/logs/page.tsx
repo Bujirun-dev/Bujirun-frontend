@@ -2,8 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg";
+import AngleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?svgr";
 import { PageCard, FilterChips } from "@/components";
 import { LogCard } from "@/features/itinerary";
 import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";
@@ -69,13 +68,7 @@ export default function LogsPage() {
       {/* 헤더 */}
       <div className="flex items-center gap-4 pb-4">
         <button onClick={() => router.back()} className="flex items-center justify-center shrink-0">
-          <Image
-            src={angleLeftIcon}
-            alt="뒤로"
-            width={16}
-            height={16}
-            style={{ filter: "invert(53%)" }}
-          />
+          <AngleLeftIcon width={16} height={16} className="fill-sub-gray" aria-hidden />
         </button>
         <span className="font-ssurround font-bold text-lg text-text-heading">로그 둘러보기</span>
       </div>
@@ -92,7 +85,7 @@ export default function LogsPage() {
       <div className="flex justify-end items-center gap-2 pb-4">
         <button
           onClick={() => setSortBy("최신순")}
-          className={`font-paperlogy text-xs ${
+          className={`text-xs ${
             sortBy === "최신순" ? "font-semibold text-sub-deepblue" : "font-medium text-sub-gray"
           }`}
         >
@@ -101,7 +94,7 @@ export default function LogsPage() {
         <div className="w-[1px] h-[10px] bg-sub-gray/40" />
         <button
           onClick={() => setSortBy("인기순")}
-          className={`font-paperlogy text-xs ${
+          className={`text-xs ${
             sortBy === "인기순" ? "font-semibold text-sub-deepblue" : "font-medium text-sub-gray"
           }`}
         >
@@ -112,7 +105,7 @@ export default function LogsPage() {
       {/* 로그 목록 */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-7">
         {visibleLogs.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center text-sub-gray font-paperlogy text-sm pt-20">
+          <div className="flex flex-1 items-center justify-center text-sub-gray text-sm pt-20">
             해당 카테고리의 로그가 없습니다.
           </div>
         ) : (
@@ -132,11 +125,7 @@ export default function LogsPage() {
             ))}
             {/* 무한 스크롤 감지 sentinel */}
             <div ref={sentinelRef} className="h-1 shrink-0" />
-            {isLoading && (
-              <p className="text-center font-paperlogy text-sm text-sub-gray pb-2">
-                불러오는 중...
-              </p>
-            )}
+            {isLoading && <p className="text-center text-sm text-sub-gray pb-2">불러오는 중...</p>}
           </>
         )}
       </div>

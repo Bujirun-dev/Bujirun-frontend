@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import searchIcon from "@/assets/icons/collection/search.png";
 import { cn } from "@/shared/utils";
 
@@ -9,6 +8,9 @@ interface SearchBarProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  inputClassName?: string;
+  gapClassName?: string;
+  iconSize?: number;
 }
 
 export function SearchBar({
@@ -16,17 +18,36 @@ export function SearchBar({
   onChange,
   placeholder = "관광지 검색",
   className,
+  inputClassName,
+  gapClassName,
+  iconSize = 16,
 }: SearchBarProps) {
   return (
     <div
       className={cn(
         "flex items-center gap-1",
+        gapClassName,
         "py-2 px-3 rounded-lg",
         "bg-system-searchbg",
         className,
       )}
     >
-      <Image src={searchIcon} alt="검색" width={16} height={16} className="shrink-0" />
+      <span
+        aria-hidden="true"
+        className="shrink-0 bg-sub-gray"
+        style={{
+          width: iconSize,
+          height: iconSize,
+          maskImage: `url(${searchIcon.src})`,
+          maskSize: "contain",
+          maskPosition: "center",
+          maskRepeat: "no-repeat",
+          WebkitMaskImage: `url(${searchIcon.src})`,
+          WebkitMaskSize: "contain",
+          WebkitMaskPosition: "center",
+          WebkitMaskRepeat: "no-repeat",
+        }}
+      />
       <input
         type="text"
         value={value}
@@ -34,8 +55,9 @@ export function SearchBar({
         placeholder={placeholder}
         className={cn(
           "flex-1 bg-transparent outline-none",
-          "font-paperlogy font-normal text-xs text-text-primary",
+          "font-normal text-xs text-text-primary",
           "placeholder:text-sub-gray",
+          inputClassName,
         )}
       />
     </div>

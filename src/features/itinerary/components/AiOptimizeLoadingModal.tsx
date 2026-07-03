@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import magicWandIcon from "@/assets/icons/itinerary/magic-wand.png";
-import freepassBlueIcon from "@/assets/icons/itinerary/freepass-blue.png";
+import FreepassIcon from "@/assets/icons/itinerary/freepass.svg?svgr";
+import magicWandIcon from "@/assets/icons/itinerary/magic-wand.svg?url";
 import seaCharacter from "@/assets/character/sea.png";
 import { Modal } from "@/components";
+import { LoadingProgressBar } from "./LoadingProgressBar";
 
 interface AiOptimizeLoadingModalProps {
   isOpen: boolean;
@@ -70,18 +71,23 @@ export function AiOptimizeLoadingModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      icon={<Image src={magicWandIcon} alt="AI 최적화" width={28} height={28} />}
+      icon={
+        <Image
+          src={magicWandIcon}
+          alt=""
+          width={25}
+          height={25}
+          className="block icon-coral"
+          aria-hidden
+        />
+      }
+      iconClassName="bg-sub-coral/10"
       title="AI가 최적 경로를 찾고 있어요"
       hideActions
       childrenVariant="card"
       footer={
         <div className="flex flex-col items-center gap-3 w-full">
-          <div className="w-[248px] h-[8px] rounded-lg bg-system-scroll overflow-hidden">
-            <div
-              className="h-full bg-sub-deepblue rounded-lg transition-all duration-[3000ms] ease-in-out"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+          <LoadingProgressBar progress={progress} />
           <Image
             src={seaCharacter}
             alt="캐릭터"
@@ -92,8 +98,8 @@ export function AiOptimizeLoadingModal({
         </div>
       }
     >
-      <p className="flex items-center justify-center gap-1.5 font-paperlogy text-sm font-medium text-sub-darkgray">
-        <Image src={freepassBlueIcon} alt="" width={12} height={12} />
+      <p className="flex items-center justify-center gap-1.5 text-sm font-medium text-sub-darkgray">
+        <FreepassIcon width={12} height={12} className="fill-sub-deepblue" aria-hidden />
         여행 동선을 계산하는 중...
       </p>
     </Modal>

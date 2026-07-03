@@ -1,2 +1,9 @@
 export { MenuItem } from "./MenuItem";
-export { AvatarSelectModal } from "./AvatarSelectModal";
+export { ProfileImageSelectModal } from "./ProfileImageSelectModal";
+export { NicknameEditModal } from "./NicknameEditModal";
+export { MypageProfile } from "./MypageProfile";
+export { MypageMenuList } from "./MypageMenuList";
+export { LogoutModal } from "./LogoutModal";
+export { WithdrawModal } from "./WithdrawModal";
+export { BookmarkCard } from "./BookmarkCard";
+export { BookmarkList } from "./BookmarkList";

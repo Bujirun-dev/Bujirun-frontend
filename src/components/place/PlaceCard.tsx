@@ -1,6 +1,8 @@
 import Image from "next/image";
-import removeWhiteIcon from "@/assets/icons/itinerary/remove-white.png";
-import markerBlueIcon from "@/assets/icons/itinerary/marker-blue.png";
+import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
+import removeIcon from "@/assets/icons/itinerary/remove.svg?url";
+import bookmarkOnIcon from "@/assets/icons/mypage/bookmark-on.png";
+import bookmarkOffIcon from "@/assets/icons/mypage/bookmark-off.png";
 import { cn } from "@/shared/utils";
 import { CategoryChip, StatusBadge } from "@/components";
 import type { Category } from "@/components";
@@ -12,6 +14,8 @@ interface PlaceCardProps {
   name: string;
   category: Category;
   status?: PlaceStatus;
+  isBookmarked?: boolean;
+  showBookmark?: boolean;
   onDelete?: () => void;
   onClick?: () => void;
   onVerify?: () => void;
@@ -23,6 +27,8 @@ export function PlaceCard({
   name,
   category,
   status,
+  isBookmarked = false,
+  showBookmark = false,
   onDelete,
   onClick,
   onVerify,
@@ -31,22 +37,20 @@ export function PlaceCard({
   return (
     <div
       className={cn(
-        "w-full min-w-0 h-[98px] flex bg-white rounded-2xl overflow-hidden shadow-sm cursor-pointer",
+        "w-full min-w-0 h-[98px] flex bg-main-white rounded-2xl overflow-hidden border-[0.5px] border-system-glassborder shadow-[2px_2px_10px_0px_var(--color-system-glassborder)] cursor-pointer",
         className,
       )}
       onClick={onClick}
     >
-      <div className="relative w-[115px] h-[80px] shrink-0 self-center ml-2 rounded-xl overflow-hidden">
+      <div className="relative w-[108px] h-[80px] shrink-0 self-center ml-2 rounded-xl overflow-hidden">
         <Image src={imageUrl} alt={name} fill className="object-cover" />
       </div>
 
       <div className="min-w-0 flex-1 flex flex-col justify-between px-2.5 py-2.5 overflow-hidden relative">
         <div className="flex flex-col gap-1">
           <div className="flex min-w-0 items-center gap-1 pr-5">
-            <Image src={markerBlueIcon} alt="위치" width={13} height={13} className="shrink-0" />
-            <span className="font-paperlogy font-medium text-md text-text-heading truncate">
-              {name}
-            </span>
+            <MarkerIcon width={13} height={13} className="shrink-0 fill-main-blue" aria-hidden />
+            <span className="font-medium text-md text-text-heading truncate">{name}</span>
           </div>
           <CategoryChip category={category} className="self-start" />
         </div>
@@ -68,6 +72,17 @@ export function PlaceCard({
           </div>
         )}
 
+        {showBookmark && (
+          <Image
+            src={isBookmarked ? bookmarkOnIcon : bookmarkOffIcon}
+            alt=""
+            width={16}
+            height={16}
+            aria-hidden
+            className="absolute top-[10px] right-[10px]"
+          />
+        )}
+
         {onDelete && (
           <button
             className="absolute top-[10px] right-[10px] w-[18px] h-[18px] rounded-md bg-sub-coral flex items-center justify-center"
@@ -76,7 +91,13 @@ export function PlaceCard({
               onDelete();
             }}
           >
-            <Image src={removeWhiteIcon} alt="삭제" width={10} height={10} />
+            <Image
+              src={removeIcon}
+              alt="삭제"
+              width={10}
+              height={10}
+              className="brightness-0 invert"
+            />
           </button>
         )}
       </div>

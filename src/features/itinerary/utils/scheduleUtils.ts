@@ -3,15 +3,9 @@ import type { ItineraryStop, RouteOption } from "../components";
 import { SAMPLE_LOGS } from "../data/sampleLogs";
 import { getScheduleById, getPlaceById } from "@/mocks";
 import type { TravelMode } from "@/shared/types";
+import { getCategoryFromKo } from "@/shared/constants/category";
 
 export const FALLBACK_IMAGE = "https://picsum.photos/seed/busan/300/200";
-
-const CATEGORY_MAP: Record<string, Category> = {
-  "자연·공원": "nature",
-  "역사·문화": "culture",
-  "체험·레저": "experience",
-  "음식·카페": "experience",
-};
 
 const TRAVEL_MODE_MAP: Record<TravelMode, "버스" | "지하철" | "도보" | "택시"> = {
   transit: "버스",
@@ -24,7 +18,7 @@ type TransportType = "버스" | "지하철" | "도보" | "택시";
 
 export type BaseStop = Omit<
   ItineraryStop,
-  "onDelete" | "onClick" | "onTimeClick" | "onTransportClick" | "onVerify"
+  "onDelete" | "onClick" | "onTimeClick" | "onTimeConfirm" | "onTransportClick" | "onVerify"
 >;
 
 export function categoryFromTags(tags: string[]): Category {
@@ -58,6 +52,10 @@ export function getTransportPointName(type: TransportType, placeName: string): s
   return placeName;
 }
 
+function getPlaceDescription(placeName: string): string {
+  return `${placeName}은(는) 부산 여행 일정에서 방문하기 좋은 관광지입니다. 주변 관광지와 함께 둘러보기 좋고, 일정 중 잠시 머물며 분위기를 느끼기 좋은 장소예요.`;
+}
+
 export function buildDaysFromLog(log: (typeof SAMPLE_LOGS)[0]): {
   days: BaseStop[][];
   dates: string[];
@@ -75,6 +73,12 @@ export function buildDaysFromLog(log: (typeof SAMPLE_LOGS)[0]): {
         imageUrl: stop.imageUrl || FALLBACK_IMAGE,
         category: categoryFromTags(stop.tags),
         status: "verify" as const,
+        description: getPlaceDescription(stop.place),
+        address: "부산광역시",
+        operatingHours: "운영 정보 확인 필요",
+        fee: "무료",
+        parking: "주차 정보 확인 필요",
+        mapUrl: `https://map.kakao.com/link/search/${encodeURIComponent(stop.place)}`,
         transport: nextStop
           ? {
               from: stop.place,
@@ -131,8 +135,17 @@ export function buildDays(scheduleId: string): { days: BaseStop[][]; dates: stri
         time: item.arrivalTime,
         placeName: item.spotName,
         imageUrl: place?.thumbnailUrl || FALLBACK_IMAGE,
-        category: CATEGORY_MAP[place?.category ?? ""] ?? "nature",
+        category: getCategoryFromKo(place?.category ?? ""),
         status: "verify",
+        description: getPlaceDescription(item.spotName),
+        address: place?.address,
+        operatingHours: place?.operatingHours,
+        fee: "무료",
+        parking: "공영 주차장",
+        mapUrl: place
+          ? `https://map.kakao.com/link/map/${encodeURIComponent(place.name)},${place.lat},${place.lng}`
+          : `https://map.kakao.com/link/search/${encodeURIComponent(item.spotName)}`,
+        isBookmarked: place?.isCollected,
         transport,
       };
     }),
@@ -144,6 +157,38 @@ export function buildDays(scheduleId: string): { days: BaseStop[][]; dates: stri
   });
 
   return { days, dates };
+}
+
+export function rebuildTransport(stops: BaseStop[]): BaseStop[] {
+  return stops.map((stop, idx) => {
+    const nextStop = stops[idx + 1];
+    if (!nextStop) return { ...stop, transport: undefined };
+
+    const existing = stop.transport;
+    const type = existing?.legs[0]?.type ?? "버스";
+    const durationMin = existing?.durationMin ?? 30;
+    const baseDurationMin = existing?.baseDurationMin ?? 30;
+    const cost = existing?.cost ?? 1500;
+
+    return {
+      ...stop,
+      transport: {
+        from: stop.placeName,
+        to: nextStop.placeName,
+        durationMin,
+        baseDurationMin,
+        cost,
+        legs: [
+          {
+            type,
+            routeName: existing?.legs[0]?.routeName ?? type,
+            from: getTransportPointName(type, stop.placeName),
+            to: getTransportPointName(type, nextStop.placeName),
+          },
+        ],
+      },
+    };
+  });
 }
 
 export function buildTransportOptions(activeStop: BaseStop | undefined): RouteOption[] {

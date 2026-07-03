@@ -4,7 +4,7 @@ import { Suspense, useRef, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import travelImg from "@/assets/character/travel.png";
-import successIcon from "@/assets/icons/mypage/success.svg";
+import SuccessIcon from "@/assets/icons/mypage/success.svg";
 import { PageCard, Button, Toast } from "@/components";
 import {
   ItineraryHeader,
@@ -19,7 +19,9 @@ import {
   type BaseStop,
   buildDays,
   buildDaysFromLog,
+  rebuildTransport,
 } from "@/features/itinerary/utils/scheduleUtils";
+import type { SearchPlace } from "@/features/itinerary/components/PlaceSearchPanel";
 import type { RouteOption } from "@/features/itinerary";
 
 // TODO: 실제 API 연동 시 교체
@@ -35,10 +37,8 @@ function ItineraryEmptyState() {
       <div className="flex-1 flex flex-col items-center justify-center gap-6 pb-10 px-5">
         <Image src={travelImg} alt="여행" width={160} height={160} />
         <div className="flex flex-col items-center gap-2 text-center">
-          <p className="font-paperlogy font-bold text-xl text-text-heading">
-            아직 여행 일정이 없어요
-          </p>
-          <p className="font-paperlogy text-sm text-sub-gray">
+          <p className="font-bold text-xl text-text-heading">아직 여행 일정이 없어요</p>
+          <p className="text-sm text-sub-gray">
             부지런즈와 함께
             <br />
             여행을 시작해볼까요?
@@ -65,10 +65,13 @@ function ItineraryMain() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const importedLogId = searchParams.get("importedLogId");
+  const requestedDays = Math.max(1, Number(searchParams.get("days")) || INITIAL_DAYS.length);
+  const initialDays = INITIAL_DAYS.slice(0, requestedDays);
+  const initialDates = TRIP_DATES.slice(0, requestedDays);
 
   const [currentDay, setCurrentDay] = useState(0);
-  const [stopsPerDay, setStopsPerDay] = useState<BaseStop[][]>(INITIAL_DAYS);
-  const [tripDates, setTripDates] = useState<string[]>(TRIP_DATES);
+  const [stopsPerDay, setStopsPerDay] = useState<BaseStop[][]>(initialDays);
+  const [tripDates, setTripDates] = useState<string[]>(initialDates);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalType | null>(null);
   const [activeStopId, setActiveStopId] = useState<string | null>(null);
@@ -132,17 +135,20 @@ function ItineraryMain() {
       return next;
     });
     closeModal();
+    setToastMessage("장소가 삭제되었어요.");
   };
   const confirmTime = () => {
     const timeStr = `${String(timeValue.hour).padStart(2, "0")}:${String(timeValue.minute).padStart(2, "0")}`;
     setStopsPerDay((prev) => {
       const next = [...prev];
-      next[activeDayIdx] = [...next[activeDayIdx]]
+      const sorted = [...next[activeDayIdx]]
         .map((s) => (s.id === activeStopId ? { ...s, time: timeStr } : s))
         .sort((a, b) => a.time.localeCompare(b.time));
+      next[activeDayIdx] = rebuildTransport(sorted);
       return next;
     });
     closeModal();
+    setToastMessage("시간이 변경되었어요.");
   };
   const confirmTransport = (option: RouteOption) => {
     setSelectedRouteOptionId(option.id);
@@ -165,6 +171,7 @@ function ItineraryMain() {
       return next;
     });
     closeModal();
+    setToastMessage("교통수단이 변경되었어요.");
   };
   const confirmVerify = () => {
     setStopsPerDay((prev) => {
@@ -174,7 +181,6 @@ function ItineraryMain() {
       );
       return next;
     });
-    closeModal();
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -187,12 +193,46 @@ function ItineraryMain() {
     if (diff < 0 && currentDay > 0) setCurrentDay((d) => d - 1);
   };
 
+  const replaceStop = (dayIdx: number, stopId: string, place: SearchPlace) => {
+    setStopsPerDay((prev) => {
+      const next = [...prev];
+      next[dayIdx] = rebuildTransport(
+        next[dayIdx].map((s) =>
+          s.id === stopId
+            ? {
+                ...s,
+                placeName: place.name,
+                imageUrl: place.imageUrl,
+                category: place.category,
+                status: place.status === "completed" ? ("completed" as const) : ("verify" as const),
+              }
+            : s,
+        ),
+      );
+      return next;
+    });
+    setToastMessage("관광지가 추가되었어요.");
+  };
+
+  const confirmTimeInline = (dayIdx: number, stopId: string, time: string) => {
+    setStopsPerDay((prev) => {
+      const next = [...prev];
+      const sorted = [...next[dayIdx]]
+        .map((s) => (s.id === stopId ? { ...s, time } : s))
+        .sort((a, b) => a.time.localeCompare(b.time));
+      next[dayIdx] = rebuildTransport(sorted);
+      return next;
+    });
+    setToastMessage("시간이 변경되었어요.");
+  };
+
   const allDayStops: ItineraryStop[][] = stopsPerDay.map((dayStops, dayIdx) =>
     dayStops.map((stop) => ({
       ...stop,
-      onClick: () => router.push(`/itinerary/place/${stop.id}`),
       onDelete: () => openDelete(dayIdx, stop.id),
       onTimeClick: () => openTime(dayIdx, stop.id, stop.time),
+      onTimeConfirm: (time: string) => confirmTimeInline(dayIdx, stop.id, time),
+      onAddPlace: (place: SearchPlace) => replaceStop(dayIdx, stop.id, place),
       onTransportClick: stop.transport ? () => openTransport(dayIdx, stop.id) : undefined,
       onVerify: stop.status === "verify" ? () => openVerify(dayIdx, stop.id) : undefined,
     })),
@@ -214,7 +254,7 @@ function ItineraryMain() {
           allDayStops={allDayStops}
           currentDay={currentDay}
           tripDates={tripDates}
-          onAdd={() => router.push("/itinerary/search")}
+          onAdd={() => {}}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         />
@@ -235,6 +275,7 @@ function ItineraryMain() {
         onConfirmTime={confirmTime}
         onConfirmTransport={confirmTransport}
         onConfirmVerify={confirmVerify}
+        onVerifyContinue={() => setToastMessage("관광지를 수집했어요!")}
         onTimeChange={setTimeValue}
         onOptimizeStart={() => setModal("optimizing")}
       />
@@ -243,15 +284,7 @@ function ItineraryMain() {
         isVisible={toastMessage !== null}
         onHide={() => setToastMessage(null)}
         message={toastMessage ?? ""}
-        icon={
-          <Image
-            src={successIcon}
-            alt="완료"
-            width={12}
-            height={12}
-            className="brightness-0 invert"
-          />
-        }
+        icon={<SuccessIcon width={12} height={12} className="brightness-0 invert" aria-hidden />}
       />
     </div>
   );

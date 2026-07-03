@@ -1,28 +1,37 @@
-import { cn } from "@/shared/utils";
+"use client";
+
+import Image from "next/image";
+import type { StaticImageData } from "next/image";
+import type { LucideProps } from "lucide-react";
+import type { ComponentType } from "react";
 
 interface MenuItemProps {
-  icon: React.ReactNode;
+  icon?: ComponentType<LucideProps>;
+  iconSrc?: StaticImageData | string;
   label: string;
   onClick?: () => void;
-  className?: string;
 }
 
-export function MenuItem({ icon, label, onClick, className }: MenuItemProps) {
+export function MenuItem({ icon: Icon, iconSrc, label, onClick }: MenuItemProps) {
   return (
     <button
-      className={cn(
-        "w-full flex items-center justify-between",
-        "bg-white/60 rounded-2xl px-5 py-4",
-        "transition-opacity active:opacity-70",
-        className,
-      )}
+      type="button"
       onClick={onClick}
+      className="
+        w-full flex flex-row items-center gap-[12px]
+        px-[20px] h-[55px]
+        rounded-[15px] border-[0.5px] border-main-blue
+        bg-main-white backdrop-blur-[15px]
+        text-left
+        active:scale-[0.98] transition-transform duration-100
+      "
     >
-      <div className="flex items-center gap-3">
-        <span className="text-xl">{icon}</span>
-        <span className="font-paperlogy text-md text-text-primary">{label}</span>
-      </div>
-      <span className="text-sub-gray text-md">›</span>
+      {iconSrc ? (
+        <Image src={iconSrc} alt="" width={18} height={18} aria-hidden />
+      ) : Icon ? (
+        <Icon size={18} strokeWidth={2} className="text-text-primary" aria-hidden />
+      ) : null}
+      <span className="font-ssurround font-bold text-lg text-text-primary">{label}</span>
     </button>
   );
 }

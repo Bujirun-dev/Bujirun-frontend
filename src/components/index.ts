@@ -13,11 +13,22 @@ export { SpeechBubble } from "./ui/SpeechBubble";
 export { CategoryChip } from "./ui/CategoryChip";
 export type { Category } from "./ui/CategoryChip";
 export { FilterChips } from "./ui/FilterChips";
+export { BackButton } from "./ui/BackButton";
 export { PlaceCard } from "./place/PlaceCard";
+export { PlaceDetailContent } from "./place/PlaceDetailContent";
+export type {
+  PlaceDetailData,
+  PlaceDetailInfoItem,
+  PlaceDetailRelatedLog,
+} from "./place/PlaceDetailContent";
+export { RelatedLogsContent } from "./place/RelatedLogsContent";
 export { PlaceDetailSheet } from "./place/PlaceDetailSheet";
 export { PlaceInfoRow } from "./place/PlaceInfoRow";
+export { LogDetailContent } from "./log/LogDetailContent";
+export type { LogDetailData, LogDetailDay, LogDetailStop } from "./log/LogDetailContent";
 export { AppHeader } from "./layout/AppHeader";
 export { AppShell } from "./layout/AppShell";
 export { BottomNavigation } from "./layout/BottomNavigation";
 export { ScrollToTop } from "./layout/ScrollToTop";
 export { PageCard } from "./layout/PageCard";
+export { StaircaseGlassCard } from "./ui/StaircaseGlassCard";

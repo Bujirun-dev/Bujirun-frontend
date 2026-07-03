@@ -1,10 +1,9 @@
 import Image from "next/image";
-import busIcon from "@/assets/icons/itinerary/bus.png";
-import subwayIcon from "@/assets/icons/itinerary/subway.png";
-import walkIcon from "@/assets/icons/itinerary/walk.png";
-import taxiIcon from "@/assets/icons/itinerary/taxi.png";
+import busIcon from "@/assets/icons/itinerary/bus.svg?url";
+import subwayIcon from "@/assets/icons/itinerary/subway.svg?url";
+import walkIcon from "@/assets/icons/itinerary/walk.svg?url";
+import taxiIcon from "@/assets/icons/itinerary/taxi.svg?url";
 import { cn } from "@/shared/utils";
-import type { StaticImageData } from "next/image";
 
 type TransportType = "버스" | "지하철" | "도보" | "택시";
 
@@ -23,10 +22,11 @@ interface TransportCardProps {
   legs: TransportLeg[];
   isRecommended?: boolean;
   selected?: boolean;
+  disableShadow?: boolean;
   className?: string;
 }
 
-const TRANSPORT_ICONS: Record<TransportType, StaticImageData> = {
+const TRANSPORT_ICONS: Record<TransportType, string> = {
   버스: busIcon,
   지하철: subwayIcon,
   도보: walkIcon,
@@ -37,7 +37,7 @@ const TRANSPORT_COLORS: Record<TransportType, string> = {
   버스: "bg-main-blue",
   지하철: "bg-sub-pink",
   도보: "bg-sub-green",
-  택시: "bg-transport-taxi",
+  택시: "bg-sub-violet",
 };
 
 export function TransportCard({
@@ -48,10 +48,12 @@ export function TransportCard({
   legs,
   isRecommended,
   selected,
+  disableShadow,
   className,
 }: TransportCardProps) {
   const cardBase = cn(
-    "w-full min-w-0 overflow-hidden rounded-2xl py-3.5 px-2.5 shadow-sm",
+    "w-full min-w-0 overflow-hidden rounded-2xl border-[0.5px] border-system-glassborder py-3.5 px-2.5",
+    !disableShadow && "shadow-[2px_2px_10px_0px_var(--color-system-glassborder)]",
     selected === false ? "bg-main-white" : "bg-system-navbg",
     className,
   );
@@ -60,6 +62,7 @@ export function TransportCard({
   // 단일 leg (택시/도보): 점 없이 심플 레이아웃
   if (legs.length === 1) {
     const leg = legs[0];
+    const legIcon = TRANSPORT_ICONS[leg.type];
     return (
       <div className={cardBase}>
         <div className="flex min-w-0 items-center gap-3">
@@ -69,18 +72,25 @@ export function TransportCard({
               TRANSPORT_COLORS[leg.type],
             )}
           >
-            <Image src={TRANSPORT_ICONS[leg.type]} alt={leg.type} width={14} height={14} />
+            <Image
+              src={legIcon}
+              alt=""
+              width={14}
+              height={14}
+              className="brightness-0 invert"
+              aria-hidden
+            />
           </div>
           <div className="flex flex-col gap-0.5 min-w-0 flex-1">
             <div className="flex min-w-0 items-center justify-between gap-2">
-              <span className="min-w-0 truncate font-paperlogy font-semibold text-md text-text-heading leading-none">
+              <span className="min-w-0 truncate font-semibold text-md text-text-heading leading-none">
                 {leg.routeName}
               </span>
-              <span className="shrink-0 font-paperlogy font-semibold text-xs text-sub-darkgray whitespace-nowrap -mt-2">
+              <span className="shrink-0 font-semibold text-xs text-sub-darkgray whitespace-nowrap -mt-2">
                 {metaText}
               </span>
             </div>
-            <span className="font-paperlogy font-normal text-xs text-sub-darkgray truncate">
+            <span className="font-normal text-xs text-sub-darkgray truncate">
               {leg.from} → {leg.to}
             </span>
           </div>
@@ -123,40 +133,48 @@ export function TransportCard({
               }}
             />
           </div>
-          <span className="truncate font-paperlogy font-semibold text-md text-text-heading">
-            {from}
-          </span>
+          <span className="truncate font-semibold text-md text-text-heading">{from}</span>
         </div>
 
-        {legs.map((leg, index) => (
-          <div key={index} className="flex items-center gap-3">
-            <div
-              className={cn(
-                "w-6 h-6 rounded-lg flex items-center justify-center shrink-0 relative z-10",
-                TRANSPORT_COLORS[leg.type],
-              )}
-            >
-              <Image src={TRANSPORT_ICONS[leg.type]} alt={leg.type} width={14} height={14} />
-            </div>
-            <div className="flex flex-1 items-center justify-between min-w-0 gap-2">
-              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <div className="flex min-w-0 items-center justify-between gap-2">
-                  <span className="min-w-0 truncate font-paperlogy font-semibold text-md text-text-heading leading-none">
-                    {leg.routeName}
-                  </span>
-                  {index === 0 && (
-                    <span className="shrink-0 font-paperlogy font-semibold text-xs text-sub-darkgray whitespace-nowrap">
-                      {metaText}
+        {legs.map((leg, index) => {
+          const legIcon = TRANSPORT_ICONS[leg.type];
+          return (
+            <div key={index} className="flex items-center gap-3">
+              <div
+                className={cn(
+                  "w-6 h-6 rounded-lg flex items-center justify-center shrink-0 relative z-10",
+                  TRANSPORT_COLORS[leg.type],
+                )}
+              >
+                <Image
+                  src={legIcon}
+                  alt=""
+                  width={14}
+                  height={14}
+                  className="brightness-0 invert"
+                  aria-hidden
+                />
+              </div>
+              <div className="flex flex-1 items-center justify-between min-w-0 gap-2">
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <div className="flex min-w-0 items-center justify-between gap-2">
+                    <span className="min-w-0 truncate font-semibold text-md text-text-heading leading-none">
+                      {leg.routeName}
                     </span>
-                  )}
+                    {index === 0 && (
+                      <span className="shrink-0 font-semibold text-xs text-sub-darkgray whitespace-nowrap">
+                        {metaText}
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-normal text-xs text-sub-darkgray truncate">
+                    {leg.from} → {leg.to}
+                  </span>
                 </div>
-                <span className="font-paperlogy font-normal text-xs text-sub-darkgray truncate">
-                  {leg.from} → {leg.to}
-                </span>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* 도착 */}
         <div className="flex items-center gap-3">
@@ -171,9 +189,7 @@ export function TransportCard({
               }}
             />
           </div>
-          <span className="truncate font-paperlogy font-semibold text-md text-text-heading">
-            {to}
-          </span>
+          <span className="truncate font-semibold text-md text-text-heading">{to}</span>
         </div>
       </div>
     </div>

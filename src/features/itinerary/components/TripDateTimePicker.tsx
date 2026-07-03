@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { cn } from "@/shared/utils";
 
 interface TripDateTimePickerProps {
   value: string;
   onChange: (value: string) => void;
   minValue?: string;
+  className?: string;
 }
 
 type TimeInputType = "hour" | "minute";
@@ -38,14 +40,37 @@ const getCalendarDays = (monthDate: Date) => {
 const isBeforeMinute = (date: Date, target: Date) =>
   date.getTime() < new Date(target).setSeconds(0, 0);
 
-export function TripDateTimePicker({ value, onChange, minValue }: TripDateTimePickerProps) {
+export function TripDateTimePicker({
+  value,
+  onChange,
+  minValue,
+  className,
+}: TripDateTimePickerProps) {
   const selectedDate = parseTripDateTime(value);
   const minDate = minValue ? parseTripDateTime(minValue) : null;
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [popupPos, setPopupPos] = useState({ top: 0, left: 0 });
   const [calendarMonth, setCalendarMonth] = useState(() => parseTripDateTime(value));
   const [hourInput, setHourInput] = useState(() => pad(selectedDate.getHours()));
   const [minuteInput, setMinuteInput] = useState(() => pad(selectedDate.getMinutes()));
   const calendarDays = getCalendarDays(calendarMonth);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+
+      if (triggerRef.current?.contains(target) || popupRef.current?.contains(target)) return;
+
+      setIsOpen(false);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [isOpen]);
 
   const applyDate = (date: Date) => {
     if (minDate && isBeforeMinute(date, minDate)) {
@@ -57,9 +82,34 @@ export function TripDateTimePicker({ value, onChange, minValue }: TripDateTimePi
 
     onChange(formatTripDateTime(date));
   };
+  const updatePopupPosition = useCallback(() => {
+    const rect = triggerRef.current?.getBoundingClientRect();
+    const appRoot = document.getElementById("app-root");
+
+    if (!rect || !appRoot) return;
+
+    const rootRect = appRoot.getBoundingClientRect();
+    const popupWidth = popupRef.current?.offsetWidth ?? 220;
+    const popupHeight = popupRef.current?.offsetHeight ?? 240;
+    const margin = 8;
+    const gap = 8;
+    const centeredLeft = rect.left + rect.width / 2 - popupWidth / 2;
+    const minLeft = rootRect.left + margin;
+    const maxLeft = rootRect.right - popupWidth - margin;
+    const left = Math.min(Math.max(centeredLeft, minLeft), maxLeft);
+    const top = Math.max(rootRect.top + margin, rect.top - popupHeight - gap);
+
+    setPopupPos({ top, left });
+  }, []);
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+
+    updatePopupPosition();
+  }, [isOpen, updatePopupPosition, value]);
   const openPicker = () => {
     const targetDate = parseTripDateTime(value);
 
+    updatePopupPosition();
     setIsOpen(true);
     setCalendarMonth(new Date(targetDate.getFullYear(), targetDate.getMonth(), 1));
     setHourInput(pad(targetDate.getHours()));
@@ -123,40 +173,50 @@ export function TripDateTimePicker({ value, onChange, minValue }: TripDateTimePi
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         onClick={openPicker}
-        className="h-[27px] w-[197px] rounded-lg border-[0.5px] border-sub-lightblue bg-main-blue/20 px-3 text-left font-paperlogy text-xs font-light text-text-primary outline-none"
+        className={cn(
+          "h-[27px] w-[160px] rounded-lg border-[0.5px] border-sub-lightblue bg-main-blue/20 px-3 text-left text-2xs font-light text-text-primary outline-none",
+          className,
+        )}
       >
         {value}
       </button>
 
       {isOpen && (
-        <div className="fixed left-1/2 top-1/2 z-10 w-[252px] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-sub-lightblue bg-main-white p-[10px] shadow-lg">
+        <div
+          ref={popupRef}
+          className="fixed z-50 w-[204px] rounded-2xl border-[0.5px] border-sub-lightblue bg-main-white/95 p-2 backdrop-blur-[12px]"
+          style={{ top: popupPos.top, left: popupPos.left }}
+        >
           <div className="mb-2 flex items-center justify-between">
             <button
               type="button"
-              className="size-[22px] rounded-full bg-main-blue/20 font-paperlogy text-sm text-text-primary active:opacity-70"
+              aria-label="이전 달"
+              className="flex size-6 items-center justify-center text-md font-bold text-text-primary active:opacity-70"
               onClick={() => moveCalendarMonth(-1)}
             >
               &lt;
             </button>
-            <span className="font-paperlogy text-sm font-semibold text-text-heading">
+            <span className="font-ssurround text-sm font-bold text-text-heading">
               {calendarMonth.getFullYear()}.{pad(calendarMonth.getMonth() + 1)}
             </span>
             <button
               type="button"
-              className="size-[22px] rounded-full bg-main-blue/20 font-paperlogy text-sm text-text-primary active:opacity-70"
+              aria-label="다음 달"
+              className="flex size-6 items-center justify-center text-md font-bold text-text-primary active:opacity-70"
               onClick={() => moveCalendarMonth(1)}
             >
               &gt;
             </button>
           </div>
-          <div className="grid grid-cols-7 gap-1 text-center font-paperlogy text-xs text-sub-gray">
+          <div className="grid grid-cols-7 gap-1 text-center font-paperlogy text-xs font-medium text-sub-gray">
             {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
               <span key={day}>{day}</span>
             ))}
           </div>
-          <div className="mt-1 grid grid-cols-7 gap-1">
+          <div className="mt-1.5 grid grid-cols-7 gap-0.5">
             {calendarDays.map((day, index) => {
               if (!day) return <span key={`empty-${index}`} />;
 
@@ -171,12 +231,12 @@ export function TripDateTimePicker({ value, onChange, minValue }: TripDateTimePi
                   type="button"
                   key={day}
                   disabled={isDisabled}
-                  className={`h-[22px] rounded-md font-paperlogy text-xs active:opacity-70 ${
+                  className={`h-5 font-paperlogy text-xs font-medium active:opacity-70 ${
                     isDisabled
-                      ? "bg-system-searchbg text-sub-lightgray"
+                      ? "text-sub-lightgray"
                       : isSelected
-                        ? "bg-main-blue text-white"
-                        : "bg-system-searchbg text-text-primary"
+                        ? "rounded-lg bg-main-blue text-main-white"
+                        : "text-text-primary"
                   }`}
                   onClick={() => handleDateSelect(day)}
                 >
@@ -185,29 +245,42 @@ export function TripDateTimePicker({ value, onChange, minValue }: TripDateTimePi
               );
             })}
           </div>
-          <div className="mt-2 flex items-center justify-center gap-1.5">
-            <input
-              type="text"
-              inputMode="numeric"
-              value={hourInput}
-              onChange={(event) => handleTimeInput("hour", event.target.value)}
-              onBlur={() => handleTimeInputBlur("hour")}
-              onFocus={(event) => event.currentTarget.select()}
-              className="h-[30px] w-[48px] rounded-lg border-[0.5px] border-sub-lightblue bg-main-blue/20 text-center font-paperlogy text-xs text-text-primary outline-none"
-            />
-            <span className="font-paperlogy text-sm font-semibold text-text-primary">:</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={minuteInput}
-              onChange={(event) => handleTimeInput("minute", event.target.value)}
-              onBlur={() => handleTimeInputBlur("minute")}
-              onFocus={(event) => event.currentTarget.select()}
-              className="h-[30px] w-[48px] rounded-lg border-[0.5px] border-sub-lightblue bg-main-blue/20 text-center font-paperlogy text-xs text-text-primary outline-none"
-            />
+          <div className="mt-3 rounded-xl border-[0.5px] border-sub-lightblue bg-main-blue/10 px-3 py-2">
+            <div className="flex items-center justify-center">
+              <input
+                type="text"
+                inputMode="numeric"
+                value={hourInput}
+                aria-label="시"
+                onChange={(event) => handleTimeInput("hour", event.target.value)}
+                onBlur={() => handleTimeInputBlur("hour")}
+                onFocus={(event) => event.currentTarget.select()}
+                className="w-8 bg-transparent text-center font-ssurround text-sm font-bold text-text-heading outline-none"
+              />
+              <span className="px-1 font-ssurround text-sm font-bold text-sub-gray">:</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={minuteInput}
+                aria-label="분"
+                onChange={(event) => handleTimeInput("minute", event.target.value)}
+                onBlur={() => handleTimeInputBlur("minute")}
+                onFocus={(event) => event.currentTarget.select()}
+                className="w-8 bg-transparent text-center font-ssurround text-sm font-bold text-text-heading outline-none"
+              />
+            </div>
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-2">
             <button
               type="button"
-              className="h-[30px] rounded-lg bg-main-blue px-3 font-paperlogy text-xs font-semibold text-white active:opacity-70"
+              className="h-8 rounded-[10px] border-[0.5px] border-main-blue font-ssurround text-xs font-bold text-main-blue active:opacity-70"
+              onClick={() => setIsOpen(false)}
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              className="h-8 rounded-[10px] bg-main-blue font-ssurround text-xs font-bold text-main-white active:opacity-70"
               onClick={() => setIsOpen(false)}
             >
               완료

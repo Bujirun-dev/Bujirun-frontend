@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import CloseIcon from "@/assets/icons/mypage/close.svg?svgr";
 import { cn } from "@/shared/utils";
 import { Button } from "./Button";
 
@@ -59,7 +60,7 @@ function ScrollColumn({
             onClick={() => onSelect(v)}
             style={{ height: ITEM_H, scrollSnapAlign: "center" }}
             className={cn(
-              "flex items-center justify-center cursor-pointer font-paperlogy transition-all select-none",
+              "flex items-center justify-center cursor-pointer transition-all select-none",
               v === selected
                 ? "text-2xl font-bold text-text-heading"
                 : "text-lg font-semibold text-sub-gray",
@@ -95,10 +96,17 @@ export function TimePicker({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[260px] max-h-[80dvh] bg-white rounded-3xl px-5 py-6 flex flex-col items-center gap-4"
+        className="relative w-full max-w-[260px] max-h-[80dvh] bg-white rounded-3xl px-5 py-6 flex flex-col items-center gap-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="font-paperlogy font-bold text-2xl text-text-heading">시간 변경</h3>
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-5 top-5 flex h-5 w-5 items-center justify-center text-main-blue active:opacity-70"
+        >
+          <CloseIcon width={16} height={16} aria-hidden />
+        </button>
+        <h3 className="font-bold text-2xl text-text-heading">시간 변경</h3>
 
         {/* 스크롤 영역 + 하이라이트 */}
         <div className="relative flex items-center gap-2" style={{ height: ITEM_H * VISIBLE }}>
@@ -115,7 +123,7 @@ export function TimePicker({
           <ScrollColumn items={HOURS} selected={hour} onSelect={(h) => onChange(h, minute)} />
 
           <span
-            className="relative z-10 font-paperlogy font-bold text-2xl text-text-heading"
+            className="relative z-10 font-bold text-2xl text-text-heading"
             style={{ lineHeight: 1 }}
           >
             :

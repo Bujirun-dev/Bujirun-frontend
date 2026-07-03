@@ -27,7 +27,7 @@ const buttonVariants: Record<ButtonVariant, string> = {
     "w-full h-[40px]",
     "bg-main-white border-2 border-main-blue",
     "rounded-lg",
-    "font-ssurround text-md text-sub-deepblue font-bold",
+    "font-ssurround text-md text-main-blue font-bold",
     "transition-opacity active:opacity-80",
   ].join(" "),
 

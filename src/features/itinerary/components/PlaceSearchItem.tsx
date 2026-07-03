@@ -1,10 +1,10 @@
 import Image from "next/image";
-import markerIcon from "@/assets/icons/itinerary/marker-pink.png";
+import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
 import { cn } from "@/shared/utils";
 import { CategoryChip, StatusBadge } from "@/components";
 import type { Category } from "@/components";
 
-type PlaceStatus = "completed" | "verify" | "pending";
+type PlaceStatus = "completed" | "verify" | "pending" | "uncollected";
 
 interface PlaceSearchItemProps {
   imageUrl?: string;
@@ -26,28 +26,30 @@ export function PlaceSearchItem({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 bg-white rounded-xl p-3 cursor-pointer active:opacity-80",
+        "relative flex h-[81px] w-full cursor-pointer items-start gap-1.5 rounded-xl bg-main-white px-2.5 py-2 active:opacity-80",
         className,
       )}
       onClick={onClick}
     >
       {imageUrl && (
-        <div className="relative w-[80px] h-[56px] rounded-lg overflow-hidden shrink-0">
+        <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg">
           <Image src={imageUrl} alt={name} fill className="object-cover" />
         </div>
       )}
 
-      <div className="flex-1 flex flex-col gap-1.5 min-w-0">
-        <div className="flex items-center gap-1">
-          <Image src={markerIcon} alt="위치" width={12} height={12} className="shrink-0" />
-          <span className="font-paperlogy font-semibold text-md text-text-heading truncate">
-            {name}
-          </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5 pt-1">
+        <div className="flex min-w-0 items-center gap-1">
+          <MarkerIcon width={11} height={11} className="shrink-0 fill-sub-pink" aria-hidden />
+          <span className="min-w-0 truncate text-sm font-medium text-text-heading">{name}</span>
         </div>
-        <CategoryChip category={category} className="self-start" />
+        <CategoryChip category={category} size="sm" className="self-start" />
       </div>
 
-      {status && <StatusBadge status={status} />}
+      {status && (
+        <div className="absolute bottom-2 right-2.5">
+          <StatusBadge status={status} />
+        </div>
+      )}
     </div>
   );
 }

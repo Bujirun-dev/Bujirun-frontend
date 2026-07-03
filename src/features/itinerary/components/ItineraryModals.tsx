@@ -1,11 +1,15 @@
 "use client";
 
-import characterImg from "@/assets/character/face.png";
+import Image from "next/image";
+import characterImg from "@/assets/character/map.png";
+import removeIcon from "@/assets/icons/itinerary/remove.svg?url";
 import { Modal, TimePicker } from "@/components";
-import { TransportSelectSheet } from "./TransportSelectSheet";
+import { openKakaoMapRoute } from "./TransportSelectSheet";
 import { ArrivalVerifyModal } from "./ArrivalVerifyModal";
 import { AiOptimizeModal } from "./AiOptimizeModal";
 import { AiOptimizeLoadingModal } from "./AiOptimizeLoadingModal";
+import { TransportDetailModal } from "@/features/home/components/TransportDetailModal";
+import type { TransportGroup, TransportOption } from "@/features/home/types/transport";
 import type { RouteOption } from "./TransportSelectSheet";
 import type { BaseStop } from "../utils/scheduleUtils";
 import { buildTransportOptions } from "../utils/scheduleUtils";
@@ -22,6 +26,7 @@ interface ItineraryModalsProps {
   onConfirmTime: () => void;
   onConfirmTransport: (option: RouteOption) => void;
   onConfirmVerify: () => void;
+  onVerifyContinue?: () => void;
   onTimeChange: (value: { hour: number; minute: number }) => void;
   onOptimizeStart: () => void;
 }
@@ -36,6 +41,7 @@ export function ItineraryModals({
   onConfirmTime,
   onConfirmTransport,
   onConfirmVerify,
+  onVerifyContinue,
   onTimeChange,
   onOptimizeStart,
 }: ItineraryModalsProps) {
@@ -56,14 +62,30 @@ export function ItineraryModals({
       <Modal
         isOpen={modal === "delete"}
         onClose={onClose}
+        icon={
+          <Image
+            src={removeIcon}
+            alt=""
+            width={25}
+            height={25}
+            className="icon-coral"
+            aria-hidden
+          />
+        }
+        iconClassName="size-[48px] bg-system-navbg"
         title="일정 삭제"
-        description={`해당 관광지를 일정에서\n삭제하시겠어요?`}
+        description={`'${activeStop?.placeName ?? "관광지"}'을(를)\n일정에서 삭제하시겠어요?`}
+        childrenVariant="card"
         confirmText="삭제하기"
         cancelText="취소"
         confirmVariant="warning"
         onConfirm={onConfirmDelete}
         onCancel={onClose}
-      />
+      >
+        <p className="text-center font-medium text-sub-darkgray">
+          * 삭제한 일정은 복구할 수 없어요.
+        </p>
+      </Modal>
 
       <TimePicker
         isOpen={modal === "time"}
@@ -74,15 +96,44 @@ export function ItineraryModals({
         onClose={onClose}
       />
 
-      <TransportSelectSheet
-        isOpen={modal === "transport"}
-        onClose={onClose}
-        from={activeStop?.transport?.from ?? "출발 장소"}
-        to={activeStop?.transport?.to ?? "도착 장소"}
-        selectedOptionId={selectedRouteOptionId}
-        options={buildTransportOptions(activeStop)}
-        onSelect={onConfirmTransport}
-      />
+      {(() => {
+        const routeOptions = buildTransportOptions(activeStop);
+        const transportGroup: TransportGroup = {
+          fromPlace: activeStop?.transport?.from ?? "출발 장소",
+          toPlace: activeStop?.transport?.to ?? "도착 장소",
+          selectedOptionId: selectedRouteOptionId,
+          options: routeOptions.map((option) => ({
+            id: option.id,
+            durationText: `${option.durationMin}분`,
+            costText: `${(option.cost ?? 0).toLocaleString()}원`,
+            isRecommended: option.isRecommended,
+            steps: option.legs.map((leg) => ({
+              type: leg.type,
+              routeName: leg.routeName,
+              from: leg.from,
+              to: leg.to,
+            })),
+          })),
+        };
+
+        const handleChange = (option: TransportOption) => {
+          const original = routeOptions.find((routeOption) => routeOption.id === option.id);
+          if (original) onConfirmTransport(original);
+        };
+
+        return (
+          <TransportDetailModal
+            isOpen={modal === "transport"}
+            transportGroup={transportGroup}
+            selectedOptionId={selectedRouteOptionId}
+            onClose={onClose}
+            onChange={handleChange}
+            onKakaoMapClick={() =>
+              openKakaoMapRoute(transportGroup.fromPlace, transportGroup.toPlace)
+            }
+          />
+        );
+      })()}
 
       <ArrivalVerifyModal
         isOpen={modal === "verify"}
@@ -90,6 +141,7 @@ export function ItineraryModals({
         placeName={activeStop?.placeName ?? ""}
         characterImageUrl={characterImg.src}
         onVerify={onConfirmVerify}
+        onContinue={onVerifyContinue}
         onLater={onClose}
       />
     </>

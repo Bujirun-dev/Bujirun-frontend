@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
-import plusSmallIcon from "@/assets/icons/itinerary/plus-small-gray.png";
+import { useRouter } from "next/navigation";
+import plusSmallIcon from "@/assets/icons/itinerary/plus-small.svg?url";
 import { PageCard } from "@/components";
 import { TripCard, TripEditModal, TripDeleteModal, TripDeleteToast } from "@/features/itinerary";
 import type { Trip } from "@/features/itinerary";
@@ -11,8 +11,11 @@ import type { Trip } from "@/features/itinerary";
 // TODO: API 연동 시 이 데이터를 fetch로 교체
 const MOCK_TRIPS: Trip[] = [
   { id: "1", name: "부지렁즈", startDate: "2026.05.18", endDate: "2026.05.20" },
-  { id: "2", name: "여행 이름", startDate: "2026.05.18", endDate: "2026.05.20" },
-  { id: "3", name: "여행 이름", startDate: "2026.05.18", endDate: "2026.05.20" },
+  { id: "2", name: "영도 감성 코스", startDate: "2026.06.02", endDate: "2026.06.03" },
+  { id: "3", name: "기장 바다 드라이브", startDate: "2026.06.14", endDate: "2026.06.15" },
+  { id: "4", name: "서면 문화 탐방", startDate: "2026.06.22", endDate: "2026.06.22" },
+  { id: "5", name: "낙동강 노을 산책", startDate: "2026.07.03", endDate: "2026.07.04" },
+  { id: "6", name: "오시리아 체험 여행", startDate: "2026.08.01", endDate: "2026.08.02" },
 ];
 
 type ModalState = { type: "edit"; trip: Trip } | { type: "delete"; trip: Trip } | null;
@@ -69,14 +72,15 @@ export default function TripsPage() {
       {/* + 버튼 */}
       <button
         className="absolute top-[28px] right-[32px] size-[28px] rounded-lg bg-sub-coral flex items-center justify-center active:opacity-80 z-10"
-        onClick={() => {}}
+        onClick={() => router.push("/itinerary/trips/new")}
       >
         <Image
           src={plusSmallIcon}
-          alt="여행 추가"
+          alt=""
           width={24}
           height={24}
           className="brightness-0 invert"
+          aria-hidden
         />
       </button>
 

@@ -1,0 +1,75 @@
+"use client";
+
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Toast } from "@/components";
+import { ParticipantAvatarGrid } from "@/features/itinerary/components";
+
+export default function TripInvitePage() {
+  return (
+    <Suspense fallback={null}>
+      <TripInviteContent />
+    </Suspense>
+  );
+}
+
+function TripInviteContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const totalSlots = Math.min(6, Math.max(2, Number(searchParams.get("count")) || 6));
+  const days = searchParams.get("days") ?? "1";
+  const joinedCount = totalSlots; // mock - 실제로는 API에서 받아옴 (다 들어온 상태로 처리)
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (joinedCount < totalSlots) return;
+    const timer = setTimeout(() => {
+      router.push(`/itinerary/trips/personality?count=${totalSlots}&days=${days}`);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [days, joinedCount, totalSlots, router]);
+
+  const handleInvite = async () => {
+    // TODO: API 연동 후 실제 tripId로 교체
+    const tripId = searchParams.get("tripId") ?? "MOCK_TRIP_ID";
+    const inviteUrl = `${window.location.origin}/join/${tripId}`;
+    await navigator.clipboard.writeText(inviteUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="flex h-full flex-col items-center justify-center px-4 pb-16">
+      <div className="w-full rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-6 py-[40px] backdrop-blur-[15px] flex flex-col items-center">
+        {/* 안내 문구 */}
+        <p
+          className="font-paperlogy font-medium text-xl text-text-heading text-center"
+          style={{ lineHeight: "23px" }}
+        >
+          친구들이 모두 모이면
+          <br />
+          일정을 짜러 갈 수 있어요 🥰
+        </p>
+
+        {/* 참여 카운트 */}
+        <p className="mt-[27px] font-paperlogy font-bold text-md text-sub-deepblue text-center">
+          ( {joinedCount} / {totalSlots} )
+        </p>
+
+        {/* 친구 아바타 - 친구 수별 행 배치 */}
+        <ParticipantAvatarGrid total={totalSlots} activeCount={joinedCount} className="mt-5" />
+
+        {/* 친구 초대 링크 */}
+        <button
+          type="button"
+          onClick={handleInvite}
+          className="mt-[27px] font-paperlogy font-normal text-sm text-text-primary underline decoration-solid underline-offset-2"
+        >
+          친구 초대하기
+        </button>
+
+        <Toast isVisible={copied} message="링크가 복사되었어요 !" onHide={() => setCopied(false)} />
+      </div>
+    </div>
+  );
+}

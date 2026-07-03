@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import angleLeftIcon from "@/assets/icons/itinerary/angle-left.png";
-import { PageCard, SearchBar } from "@/components";
+import { BackButton, PageCard, SearchBar } from "@/components";
+import { cn } from "@/shared/utils";
 import { PlaceSearchItem } from "@/features/itinerary";
 
 const SAMPLE_PLACES = [
@@ -56,28 +55,27 @@ export default function PlaceSearchPage() {
     <PageCard>
       {/* 헤더 */}
       <div className="flex items-center gap-3 pb-3">
-        <button
-          onClick={() => router.back()}
-          className="size-[28px] rounded-lg bg-system-scroll flex items-center justify-center shrink-0"
-        >
-          <Image src={angleLeftIcon} alt="뒤로" width={16} height={16} />
-        </button>
+        <BackButton />
         <div className="flex-1">
           <SearchBar value={searchValue} onChange={setSearchValue} placeholder="관광지 검색" />
         </div>
       </div>
 
       {/* 정렬 */}
-      <div className="flex gap-2 pb-3">
+      <div className="flex items-center pb-3">
         {SORT_OPTIONS.map((opt) => (
           <button
             key={opt}
             onClick={() => setSortBy(opt)}
-            className={`h-[26px] px-3 rounded-full font-paperlogy text-xs font-semibold transition-colors ${
-              sortBy === opt ? "bg-main-blue text-white" : "bg-system-searchbg text-text-primary"
-            }`}
+            className={cn(
+              "relative rounded-md px-1.5 py-1 text-xs font-medium",
+              sortBy === opt ? "bg-system-navbg text-sub-deepblue" : "text-sub-gray",
+            )}
           >
             {opt}
+            {sortBy === opt && (
+              <span className="absolute bottom-0 left-0.5 right-0.5 h-[0.5px] rounded-full bg-sub-deepblue" />
+            )}
           </button>
         ))}
       </div>
@@ -85,7 +83,7 @@ export default function PlaceSearchPage() {
       {/* 관광지 목록 */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-2">
         {filtered.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center text-sub-gray font-paperlogy text-sm pt-20">
+          <div className="flex flex-1 items-center justify-center text-sub-gray text-sm pt-20">
             검색 결과가 없습니다.
           </div>
         ) : (

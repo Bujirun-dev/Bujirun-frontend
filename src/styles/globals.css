@@ -1,4 +1,14 @@
+@import url("https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap");
+@import url("https://cdn.jsdelivr.net/gh/MonadABXY/mona-font/web/mona.css");
 @import "tailwindcss";
+
+@font-face {
+  font-family: "DXSubtitles";
+  src: url("/fonts/DXMSubtitlesM-KSCpc-EUC-H.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
 @font-face {
   font-family: "GiantsInline";
@@ -141,9 +151,15 @@
   --color-text-primary: #1e293b;
   --color-text-heading: #0f172a;
 
+  /* Receipt */
+  --color-receipt-bg: #fbf7ef;
+  --color-text-receipt-main: #000000;
+  --color-text-receipt-sub: #6b6b6b;
+
   /* System */
   --color-system-whitebg: rgba(255, 255, 255, 0.4);
   --color-system-blackbg: rgba(0, 0, 0, 0.4);
+  --color-system-coralbg: rgba(255, 127, 80, 0.1);
   --color-system-navbg: #ecf5ff;
   --color-system-scroll: #d5e6ff;
   --color-system-searchbg: #f2f5fa;
@@ -163,12 +179,15 @@
   --color-category-experience: rgba(202, 182, 255, 0.5);
 
   /* Font Size */
+  --text-3xs: 9px;
+  --text-2xs: 10px;
   --text-xs: 11px;
   --text-sm: 12px;
   --text-md: 14px;
   --text-lg: 16px;
   --text-xl: 18px;
   --text-2xl: 20px;
+  --text-3xl: 24px;
 
   /* Spacing */
   --spacing-screen-x: 24px;
@@ -178,12 +197,62 @@
   --font-ssurround: "Cafe24Ssurround", sans-serif;
   --font-proup: "Cafe24ProUp", sans-serif;
   --font-laundrygothic: "LaundryGothic", sans-serif;
+  --font-courierprime: "Courier Prime", monospace;
+  --font-dxsubtitles: "DXSubtitles", sans-serif;
+  --font-mona: "Mona12", sans-serif;
+}
+
+/* SVG 아이콘 색상 필터 유틸리티 */
+@utility icon-deepblue {
+  filter: brightness(0) saturate(100%) invert(60%) sepia(95%) saturate(476%) hue-rotate(185deg)
+    brightness(104%) contrast(101%);
+}
+@utility icon-pink {
+  filter: brightness(0) saturate(100%) invert(79%) sepia(40%) saturate(850%) hue-rotate(297deg)
+    brightness(102%) contrast(101%);
+}
+@utility icon-coral {
+  filter: brightness(0) saturate(100%) invert(62%) sepia(57%) saturate(1030%) hue-rotate(333deg)
+    brightness(101%) contrast(98%);
+}
+@utility icon-gray {
+  filter: brightness(0) saturate(100%) invert(63%) sepia(0%) saturate(17%) hue-rotate(326deg)
+    brightness(96%) contrast(90%);
+}
+@utility icon-darkgray {
+  filter: brightness(0) saturate(100%) invert(55%) sepia(0%) saturate(0%) hue-rotate(0deg)
+    brightness(100%) contrast(90%);
+}
+@utility icon-main-blue {
+  filter: brightness(0) saturate(100%) invert(76%) sepia(30%) saturate(600%) hue-rotate(196deg)
+    brightness(109%) contrast(100%);
+}
+@utility icon-lightblue {
+  filter: brightness(0) saturate(100%) invert(93%) sepia(10%) saturate(400%) hue-rotate(200deg)
+    brightness(104%) contrast(99%);
+}
+@utility icon-green {
+  filter: brightness(0) saturate(100%) invert(92%) sepia(18%) saturate(380%) hue-rotate(70deg)
+    brightness(105%) contrast(98%);
+}
+@utility icon-violet {
+  filter: brightness(0) saturate(100%) invert(84%) sepia(20%) saturate(520%) hue-rotate(240deg)
+    brightness(105%) contrast(99%);
+}
+@utility icon-lightgray {
+  filter: brightness(0) saturate(100%) invert(90%) sepia(0%) saturate(0%) hue-rotate(0deg)
+    brightness(100%) contrast(95%);
 }
 
 *,
 *::before,
 *::after {
   line-height: 1.2;
+}
+
+img {
+  -webkit-user-drag: none;
+  user-select: none;
 }
 
 html,
@@ -210,4 +279,5 @@ body {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
 }
