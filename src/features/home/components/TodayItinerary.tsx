@@ -62,11 +62,11 @@ export function TodayItinerary() {
   return (
     <div>
       <div className="flex items-end gap-3">
-        <h2 className="font-ssurround text-xl text-text-heading">오늘의 일정</h2>
+        <h2 className="font-ssurround text-lg text-text-heading">오늘의 일정</h2>
         <p className="font-paperlogy text-sm font-semibold text-sub-darkgray">{day.date}</p>
       </div>
 
-      <ol className="mt-6">
+      <ol className="mt-4">
         {plans.map((plan, index) => {
           const isPlanVerified = plan.isVerified || verifiedPlaceNames.has(plan.place);
           const nextPlan = plans[index + 1];
@@ -103,7 +103,7 @@ export function TodayItinerary() {
                 />
 
                 <div className="min-w-0 flex-1">
-                  <p className="leading-4 text-lg font-medium text-text-primary">{plan.place}</p>
+                  <p className="leading-4 text-md font-medium text-text-primary">{plan.place}</p>
                   {transportGroup && selectedOption && (
                     <button
                       type="button"
@@ -117,14 +117,14 @@ export function TodayItinerary() {
               </div>
 
               {isPlanVerified ? (
-                <StatusBadge status="completed" className="shrink-0 px-3 py-2 text-md" />
+                <StatusBadge status="completed" className="shrink-0 px-2.5 py-1.5 text-sm mt-[7px]" />
               ) : (
                 <button
                   type="button"
-                  className="shrink-0"
+                  className="shrink-0 mt-[7px]"
                   onClick={() => openVerifyModal(plan.place)}
                 >
-                  <StatusBadge status="verify" className="px-3 py-2 text-md" />
+                  <StatusBadge status="verify" className="px-2.5 py-1.5 text-sm" />
                 </button>
               )}
             </li>

@@ -31,15 +31,15 @@ export function BookmarkCard({
 }: BookmarkCardProps) {
   return (
     <div
-      className="relative flex h-[117px] w-full cursor-pointer items-start gap-3 rounded-[20px] border-[0.3px] border-sub-lightblue bg-main-white px-[14px] py-[13px] shadow-[2px_2px_6px_var(--color-system-scroll)] active:opacity-80"
+      className="relative flex h-[98px] w-full cursor-pointer items-start gap-3 rounded-[20px] border-[0.3px] border-sub-lightblue bg-main-white px-[14px] py-[13px] shadow-[2px_2px_6px_var(--color-system-scroll)] active:opacity-80"
       onClick={onClick}
     >
       {/* 썸네일 - 이미지 없으면 placeholder */}
-      <div className="relative h-[91px] w-[136px] shrink-0 overflow-hidden rounded-[15px] border-[0.3px] border-system-glassborder bg-system-navbg">
+      <div className="relative h-[80px] w-[108px] shrink-0 overflow-hidden rounded-[15px] border-[0.3px] border-system-glassborder bg-system-navbg">
         {imageUrl && <Image src={imageUrl} alt={name} fill className="object-cover" />}
       </div>
 
-      <div className="flex flex-1 flex-col h-[91px]">
+      <div className="flex flex-1 flex-col h-[80px]">
         {/* 상단: 관광지명 + 북마크 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">

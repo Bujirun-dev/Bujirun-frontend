@@ -37,7 +37,7 @@ export interface PlaceDetailRelatedLog {
 }
 
 export interface PlaceDetailData {
-  imageUrl: string;
+  imageUrl: string | StaticImageData;
   name: string;
   category: Category;
   description: string;
@@ -84,7 +84,7 @@ export function PlaceDetailContent({
       <div className="shrink-0 flex items-center justify-between pt-5 pb-4">
         <div className="flex min-w-0 items-center gap-1.5">
           <Image src={markerPinkIcon} alt="" width={18} height={18} aria-hidden />
-          <span className="truncate text-xl font-medium text-text-heading tracking-[-0.3px]">
+          <span className="truncate text-xl font-bold text-text-heading tracking-[-0.3px]">
             {name}
           </span>
           <CategoryChip category={category} size="md" className="ml-2 shrink-0" />
@@ -99,8 +99,8 @@ export function PlaceDetailContent({
             <Image
               src={isBookmarked ? bookmarkOnIcon : bookmarkOffIcon}
               alt=""
-              width={20}
-              height={20}
+              width={18}
+              height={18}
               aria-hidden
             />
           </button>
@@ -113,8 +113,8 @@ export function PlaceDetailContent({
       <div className="flex-1 overflow-y-auto overflow-x-hidden py-5 flex flex-col gap-5">
         {/* 소개 */}
         <section className="flex flex-col gap-2">
-          <h2 className="text-md font-bold text-text-heading">소개</h2>
-          <p className="text-sm leading-relaxed text-text-primary">{description}</p>
+          <h2 className="text-lg font-bold text-text-heading">소개</h2>
+          <p className="text-md leading-relaxed text-text-primary">{description}</p>
         </section>
 
         <hr className="border-[0.3px] border-sub-lightgray" />
@@ -122,7 +122,7 @@ export function PlaceDetailContent({
         {/* 위치 */}
         <section className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
-            <h2 className="text-md font-bold text-text-heading">위치</h2>
+            <h2 className="text-lg font-bold text-text-heading">위치</h2>
             {mapUrl && (
               <a href={mapUrl} target="_blank" rel="noreferrer" className="active:opacity-70">
                 <Image
@@ -135,15 +135,15 @@ export function PlaceDetailContent({
               </a>
             )}
           </div>
-          <p className="text-sm text-text-primary">{address}</p>
+          <p className="text-md text-text-primary">{address}</p>
         </section>
 
         {infoItems && infoItems.length > 0 && (
           <>
             <hr className="border-[0.3px] border-sub-lightgray" />
             <section className="flex flex-col gap-2">
-              <h2 className="text-md font-bold text-text-heading">정보</h2>
-              <Card variant="glass-sm" className="flex flex-col gap-2 !p-[12px_19px]">
+              <h2 className="text-lg font-bold text-text-heading">정보</h2>
+              <Card variant="glass-sm" className="flex flex-col gap-2 !p-[12px_16px]">
                 {infoItems.map((item) => (
                   <InfoRow
                     key={item.label}
@@ -162,15 +162,15 @@ export function PlaceDetailContent({
             <hr className="border-[0.3px] border-sub-lightgray" />
             <section className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <h2 className="text-md font-bold text-text-heading">관련 로그</h2>
+                <h2 className="text-lg font-bold text-text-heading">관련 로그</h2>
                 {relatedLogs.length > 0 &&
                   (relatedLogsHref ? (
                     <Link
                       href={relatedLogsHref}
                       className="flex items-center gap-1 active:opacity-70"
                     >
-                      <span className="text-2xs font-semibold text-sub-gray">더보기</span>
-                      <span className="text-2xs text-sub-gray">›</span>
+                      <span className="text-xs font-semibold text-sub-gray">더보기</span>
+                      <span className="text-xs text-sub-gray">›</span>
                     </Link>
                   ) : (
                     onViewMoreLogs && (
@@ -179,8 +179,8 @@ export function PlaceDetailContent({
                         className="flex items-center gap-1 active:opacity-70"
                         onClick={onViewMoreLogs}
                       >
-                        <span className="text-2xs font-semibold text-sub-gray">더보기</span>
-                        <span className="text-2xs text-sub-gray">›</span>
+                        <span className="text-xs font-semibold text-sub-gray">더보기</span>
+                        <span className="text-xs text-sub-gray">›</span>
                       </button>
                     )
                   ))}
@@ -235,13 +235,13 @@ export function PlaceDetailContent({
 function InfoRow({ icon, label, value }: { icon: StaticImageData; label: string; value: string }) {
   return (
     <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <div className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[5px] border-[0.1px] border-main-blue bg-system-navbg">
           <Image src={icon} alt="" width={14} height={14} aria-hidden />
         </div>
-        <span className="text-sm text-text-primary">{label}</span>
+        <span className="text-md text-text-primary">{label}</span>
       </div>
-      <span className="text-sm text-text-primary">{value}</span>
+      <span className="text-md text-text-primary">{value}</span>
     </div>
   );
 }

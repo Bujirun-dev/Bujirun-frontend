@@ -34,3 +34,15 @@ export function getCategoryFromEN(en: string): Category {
 
   return CATEGORY_LABEL_KO[en] ?? "nature";
 }
+
+/**
+ * itinerary/mypage 로그 데이터는 stop.tags[0]에 "#카테고리" 라벨이 섞여 저장되어 있음.
+ * 이를 분리해서 category + 나머지 태그로 변환한다.
+ */
+export function splitLegacyStopTags(tags: string[]): { category: Category; tags: string[] } {
+  const [categoryTag, ...rest] = tags;
+  return {
+    category: getCategoryFromKo((categoryTag ?? "").replace(/^#/, "")),
+    tags: rest,
+  };
+}

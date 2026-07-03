@@ -24,6 +24,8 @@ export type {
 export { RelatedLogsContent } from "./place/RelatedLogsContent";
 export { PlaceDetailSheet } from "./place/PlaceDetailSheet";
 export { PlaceInfoRow } from "./place/PlaceInfoRow";
+export { LogDetailContent } from "./log/LogDetailContent";
+export type { LogDetailData, LogDetailDay, LogDetailStop } from "./log/LogDetailContent";
 export { AppHeader } from "./layout/AppHeader";
 export { AppShell } from "./layout/AppShell";
 export { BottomNavigation } from "./layout/BottomNavigation";

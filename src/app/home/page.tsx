@@ -25,7 +25,7 @@ function MegaphoneIcon() {
 export default function HomePage() {
   return (
     <main className="flex h-full flex-col">
-      <div className="flex shrink-0 items-center justify-between gap-4 px-4">
+      <div className="flex shrink-0 items-start justify-between gap-4 px-4">
         <div className="min-w-0 text-text-heading">
           <p className="font-dxsubtitles text-md">안녕, 유리 👋</p>
           <h1 className="mt-2 whitespace-pre-line font-proup text-2xl leading-[1.25]">

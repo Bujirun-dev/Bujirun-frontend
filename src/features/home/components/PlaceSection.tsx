@@ -13,7 +13,7 @@ export function PlaceSection() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-ssurround text-xl text-text-heading">여기는 어때요?</h2>
+        <h2 className="font-ssurround text-lg text-text-heading">여기는 어때요?</h2>
         <button
           type="button"
           className="flex items-center text-sm font-semibold text-sub-darkgray"
