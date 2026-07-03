@@ -8,8 +8,8 @@ interface CollectionProgressProps {
 
 const VIEW_SIZE = 112;
 const CENTER = VIEW_SIZE / 2;
-const RADIUS = 36;
-const STROKE_WIDTH = 40;
+const RADIUS = 38;
+const STROKE_WIDTH = 35;
 
 function pointOnCircle(progress: number) {
   const angle = progress * 2 * Math.PI - Math.PI / 2;
@@ -66,7 +66,7 @@ export function CollectionProgress({ count, total }: CollectionProgressProps) {
         className="absolute -translate-x-1/2 -translate-y-1/2"
         style={{ left: `${xPercent}%`, top: `${yPercent}%` }}
       >
-        <Image src={turtleIcon} alt="거북이 아이콘" className="size-20 object-contain" />
+        <Image src={turtleIcon} alt="거북이 아이콘" className="size-10 object-contain" />
       </div>
     </div>
   );
