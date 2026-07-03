@@ -13,6 +13,7 @@ interface TransportDetailModalProps {
   selectedOptionId?: string;
   onClose: () => void;
   onChange?: (option: TransportOption) => void;
+  onKakaoMapClick?: () => void;
 }
 
 export function TransportDetailModal({
@@ -21,6 +22,7 @@ export function TransportDetailModal({
   selectedOptionId,
   onClose,
   onChange,
+  onKakaoMapClick,
 }: TransportDetailModalProps) {
   const [mode, setMode] = useState<"detail" | "select">("detail");
   const [hasChanged, setHasChanged] = useState(false);
@@ -56,6 +58,7 @@ export function TransportDetailModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
+      className="!gap-3"
       childrenVariant="plain"
       hideActions
       footer={
@@ -82,12 +85,17 @@ export function TransportDetailModal({
       }
     >
       {mode === "detail" ? (
-        <TransportDetail transportGroup={transportGroup} selectedOption={selectedOption} />
+        <TransportDetail
+          transportGroup={transportGroup}
+          selectedOption={selectedOption}
+          onKakaoMapClick={onKakaoMapClick}
+        />
       ) : (
         <TransportSelectContent
           transportGroup={transportGroup}
           selectedOptionId={selectedOption.id}
           onSelect={handleSelect}
+          onKakaoMapClick={onKakaoMapClick}
         />
       )}
     </Modal>

@@ -6,6 +6,7 @@ import { getClosestDay } from "@/features/home/utils/getClosestDay";
 import { TransportSummaryCard } from "@/features/home/components/TransportSummaryCard";
 import { TransportDetailModal } from "@/features/home/components/TransportDetailModal";
 import { ArrivalVerifyModal } from "@/features/itinerary/components/ArrivalVerifyModal";
+import { openKakaoMapRoute } from "@/features/itinerary/components/TransportSelectSheet";
 import {
   DEFAULT_TRANSPORT_GROUP,
   findTransportGroupByPlaces,
@@ -142,6 +143,10 @@ export function TodayItinerary() {
         }
         onClose={closeTransportModal}
         onChange={handleChangeTransportOption}
+        onKakaoMapClick={() =>
+          selectedTransportGroup &&
+          openKakaoMapRoute(selectedTransportGroup.fromPlace, selectedTransportGroup.toPlace)
+        }
       />
       <ArrivalVerifyModal
         isOpen={selectedVerifyPlaceName !== null}

@@ -4,10 +4,12 @@ import Image from "next/image";
 import characterImg from "@/assets/character/map.png";
 import removeIcon from "@/assets/icons/itinerary/remove.svg?url";
 import { Modal, TimePicker } from "@/components";
-import { TransportSelectSheet } from "./TransportSelectSheet";
+import { openKakaoMapRoute } from "./TransportSelectSheet";
 import { ArrivalVerifyModal } from "./ArrivalVerifyModal";
 import { AiOptimizeModal } from "./AiOptimizeModal";
 import { AiOptimizeLoadingModal } from "./AiOptimizeLoadingModal";
+import { TransportDetailModal } from "@/features/home/components/TransportDetailModal";
+import type { TransportGroup, TransportOption } from "@/features/home/types/transport";
 import type { RouteOption } from "./TransportSelectSheet";
 import type { BaseStop } from "../utils/scheduleUtils";
 import { buildTransportOptions } from "../utils/scheduleUtils";
@@ -94,15 +96,42 @@ export function ItineraryModals({
         onClose={onClose}
       />
 
-      <TransportSelectSheet
-        isOpen={modal === "transport"}
-        onClose={onClose}
-        from={activeStop?.transport?.from ?? "출발 장소"}
-        to={activeStop?.transport?.to ?? "도착 장소"}
-        selectedOptionId={selectedRouteOptionId}
-        options={buildTransportOptions(activeStop)}
-        onSelect={onConfirmTransport}
-      />
+      {(() => {
+        const routeOptions = buildTransportOptions(activeStop);
+        const transportGroup: TransportGroup = {
+          fromPlace: activeStop?.transport?.from ?? "출발 장소",
+          toPlace: activeStop?.transport?.to ?? "도착 장소",
+          selectedOptionId: selectedRouteOptionId,
+          options: routeOptions.map((option) => ({
+            id: option.id,
+            durationText: `${option.durationMin}분`,
+            costText: `${(option.cost ?? 0).toLocaleString()}원`,
+            isRecommended: option.isRecommended,
+            steps: option.legs.map((leg) => ({
+              type: leg.type,
+              routeName: leg.routeName,
+              from: leg.from,
+              to: leg.to,
+            })),
+          })),
+        };
+
+        const handleChange = (option: TransportOption) => {
+          const original = routeOptions.find((routeOption) => routeOption.id === option.id);
+          if (original) onConfirmTransport(original);
+        };
+
+        return (
+          <TransportDetailModal
+            isOpen={modal === "transport"}
+            transportGroup={transportGroup}
+            selectedOptionId={selectedRouteOptionId}
+            onClose={onClose}
+            onChange={handleChange}
+            onKakaoMapClick={() => openKakaoMapRoute(transportGroup.fromPlace, transportGroup.toPlace)}
+          />
+        );
+      })()}
 
       <ArrivalVerifyModal
         isOpen={modal === "verify"}
