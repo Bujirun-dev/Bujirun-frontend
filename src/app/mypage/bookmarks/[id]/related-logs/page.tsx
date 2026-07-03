@@ -6,8 +6,6 @@ import { getRelatedLogs } from "@/features/mypage/data/relatedLogs";
 import { PLACES } from "@/features/collection/data/places";
 import type { Category } from "@/components";
 
-// TODO: API 연결 시 useQuery로 교체 — GET /tour-spots/:spotId/logs
-
 export default function RelatedLogsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
 
@@ -21,6 +19,8 @@ export default function RelatedLogsPage({ params }: { params: Promise<{ id: stri
       placeName={placeName}
       category={placeInfo?.category as Category | undefined}
       relatedLogs={relatedLogs}
+      // 마이페이지 전용 로그 상세 경로 prefix 주입 (RelatedLogsContent 내부에서 router.push 처리)
+      logHrefBase="/mypage/logs"
     />
   );
 }
