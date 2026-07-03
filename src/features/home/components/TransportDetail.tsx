@@ -26,7 +26,7 @@ export function TransportDetail({ transportGroup, selectedOption }: TransportDet
   const { durationText, costText, steps } = selectedOption;
   const metaText = `${durationText ?? "-"} · ${costText ?? "-"}`;
   return (
-    <div className="relative flex min-w-0 flex-col gap-3 py-2">
+    <div className="relative flex min-w-0 flex-col gap-3 py-4">
       <div className="mb-1 flex min-w-0 items-center justify-between gap-3">
         <button type="button" className="rounded-lg bg-main-blue px-2 py-1 active:opacity-80">
           <Image src={kakaoMapLogo} alt="카카오맵" width={60} />
