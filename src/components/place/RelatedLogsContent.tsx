@@ -12,9 +12,17 @@ interface RelatedLogsContentProps {
   placeName?: string;
   category?: Category;
   relatedLogs: RelatedLog[];
+  // 로그 상세 이동 경로 prefix (예: "/itinerary/logs", "/mypage/logs")
+  // Server Component에서도 문자열은 넘길 수 있어서 함수(onLogClick) 대신 사용
+  logHrefBase: string;
 }
 
-export function RelatedLogsContent({ placeName, category, relatedLogs }: RelatedLogsContentProps) {
+export function RelatedLogsContent({
+  placeName,
+  category,
+  relatedLogs,
+  logHrefBase,
+}: RelatedLogsContentProps) {
   const router = useRouter();
 
   return (
@@ -52,7 +60,8 @@ export function RelatedLogsContent({ placeName, category, relatedLogs }: Related
                 duration={log.duration}
                 date={log.date}
                 downloadCount={log.downloadCount}
-                onClick={() => router.push(`/itinerary/logs/${log.id}`)}
+                // 경로 prefix + id 조합으로 이동 (부모가 함수를 넘길 필요 없음)
+                onClick={() => router.push(`${logHrefBase}/${log.id}`)}
               />
             ))}
           </div>

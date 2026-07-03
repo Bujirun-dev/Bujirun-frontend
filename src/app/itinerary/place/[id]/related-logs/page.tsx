@@ -36,6 +36,7 @@ export default async function ItineraryPlaceRelatedLogsPage({
       placeName={placeName}
       category={category}
       relatedLogs={getRelatedLogsByPlaceName(placeName)}
+      logHrefBase="/itinerary/logs"
     />
   );
 }
