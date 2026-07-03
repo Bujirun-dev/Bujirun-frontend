@@ -57,6 +57,7 @@ export function PlaceDetailContent({ stop, onClose, onAdd }: PlaceDetailContentP
   const relatedLogs = stop.relatedLogs?.length
     ? stop.relatedLogs
     : getFallbackRelatedLogs(stop.placeName);
+  const relatedLogsHref = `/itinerary/place/${encodeURIComponent(stop.id)}/related-logs?placeName=${encodeURIComponent(stop.placeName)}&category=${stop.category}`;
   const infoItems = [
     { icon: ClockIcon, label: "운영시간", value: operatingHours },
     { icon: FeeIcon, label: "입장료", value: stop.fee ?? "무료" },
@@ -174,7 +175,7 @@ export function PlaceDetailContent({ stop, onClose, onAdd }: PlaceDetailContentP
           <div className="mb-2.5 flex items-center justify-between">
             <h3 className="text-xs font-semibold text-text-heading">관련 로그</h3>
             <Link
-              href="/itinerary/logs"
+              href={relatedLogsHref}
               className="flex items-center gap-1 text-2xs font-semibold text-sub-gray"
             >
               더보기

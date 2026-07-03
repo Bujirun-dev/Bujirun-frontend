@@ -1,49 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import faceImg from "@/assets/character/face.png";
 import { Toast } from "@/components";
-import { cn } from "@/shared/utils";
-
-// 친구 수별 행 배치 (각 행에 몇 명씩)
-const SLOT_LAYOUTS: Record<number, number[]> = {
-  2: [2],
-  3: [3],
-  4: [2, 2],
-  5: [2, 3],
-  6: [3, 3],
-};
-
-function buildRows(total: number): number[][] {
-  const rowCounts = SLOT_LAYOUTS[total] ?? [3, 3];
-  let idx = 0;
-  return rowCounts.map((count) => {
-    const row = Array.from({ length: count }, () => idx++);
-    return row;
-  });
-}
-
-function AvatarSlot({ joined }: { joined: boolean }) {
-  return (
-    <div
-      className={cn(
-        "relative size-[72px] rounded-full flex items-center justify-center overflow-hidden",
-        joined ? "bg-main-blue" : "border-2 border-dashed border-main-blue bg-sub-lightblue",
-      )}
-    >
-      <div
-        className={cn(
-          "relative size-[84px] shrink-0 rounded-full",
-          !joined && "opacity-30 grayscale",
-        )}
-      >
-        <Image src={faceImg} alt="" fill className="object-cover" aria-hidden />
-      </div>
-    </div>
-  );
-}
+import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 
 export default function TripInvitePage() {
   return (
@@ -57,17 +17,17 @@ function TripInviteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const totalSlots = Math.min(6, Math.max(2, Number(searchParams.get("count")) || 6));
+  const days = searchParams.get("days") ?? "1";
   const joinedCount = totalSlots; // mock - 실제로는 API에서 받아옴 (다 들어온 상태로 처리)
-  const rows = buildRows(totalSlots);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (joinedCount < totalSlots) return;
     const timer = setTimeout(() => {
-      router.push(`/itinerary/trips/personality?count=${totalSlots}`);
+      router.push(`/itinerary/trips/personality?count=${totalSlots}&days=${days}`);
     }, 1000);
     return () => clearTimeout(timer);
-  }, [joinedCount, totalSlots, router]);
+  }, [days, joinedCount, totalSlots, router]);
 
   const handleInvite = async () => {
     // TODO: API 연동 후 실제 tripId로 교체
@@ -77,8 +37,6 @@ function TripInviteContent() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  let slotIdx = 0;
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pb-16">
@@ -99,16 +57,7 @@ function TripInviteContent() {
         </p>
 
         {/* 친구 아바타 - 친구 수별 행 배치 */}
-        <div className="mt-5 flex flex-col items-center gap-y-3">
-          {rows.map((row, rowIndex) => (
-            <div key={rowIndex} className="flex gap-x-4">
-              {row.map(() => {
-                const idx = slotIdx++;
-                return <AvatarSlot key={idx} joined={idx < joinedCount} />;
-              })}
-            </div>
-          ))}
-        </div>
+        <ParticipantAvatarGrid total={totalSlots} activeCount={joinedCount} className="mt-5" />
 
         {/* 친구 초대 링크 */}
         <button

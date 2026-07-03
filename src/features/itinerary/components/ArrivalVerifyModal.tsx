@@ -30,6 +30,7 @@ interface ArrivalVerifyModalProps {
   userAvatarUrl?: string;
   characterImageUrl?: string;
   onVerify: () => void;
+  onContinue?: () => void;
   onLater: () => void;
 }
 
@@ -40,6 +41,7 @@ export function ArrivalVerifyModal({
   userAvatarUrl,
   characterImageUrl,
   onVerify,
+  onContinue,
   onLater,
 }: ArrivalVerifyModalProps) {
   const router = useRouter();
@@ -206,7 +208,15 @@ export function ArrivalVerifyModal({
         return (
           <BasicTwoButtonFooter
             left={
-              <Button variant="secondary" className="w-full" onClick={closeAndReset}>
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => {
+                  onContinue?.();
+                  closeAndReset();
+                  router.push("/itinerary");
+                }}
+              >
                 계속 여행하기
               </Button>
             }
@@ -235,8 +245,8 @@ export function ArrivalVerifyModal({
       onClose={closeAndReset}
       hideActions
       childrenVariant="plain"
-      className="rounded-[28px] px-8 pb-8 pt-12 gap-0"
-      childrenClassName="flex w-full flex-col items-center"
+      className="rounded-[28px]"
+      childrenClassName="flex w-full flex-col items-center gap-5"
     >
       <div className="relative flex w-full flex-col items-center">
         {userAvatarUrl && (

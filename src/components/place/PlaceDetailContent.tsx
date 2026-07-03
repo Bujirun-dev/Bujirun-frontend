@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import type { StaticImageData } from "next/image";
 import bookmarkOffIcon from "@/assets/icons/itinerary/bookmark-off.png";
@@ -51,7 +52,9 @@ interface PlaceDetailContentProps {
   onBookmark?: () => void;
   relatedLogs?: PlaceDetailRelatedLog[];
   onViewMoreLogs?: () => void;
+  relatedLogsHref?: string;
   onLogClick?: (logId: string) => void;
+  getRelatedLogHref?: (logId: string) => string;
   imageOverlay?: ReactNode;
   footer?: ReactNode;
 }
@@ -61,7 +64,9 @@ export function PlaceDetailContent({
   onBookmark,
   relatedLogs,
   onViewMoreLogs,
+  relatedLogsHref,
   onLogClick,
+  getRelatedLogHref,
   imageOverlay,
   footer,
 }: PlaceDetailContentProps) {
@@ -158,34 +163,63 @@ export function PlaceDetailContent({
             <section className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <h2 className="text-md font-bold text-text-heading">관련 로그</h2>
-                {relatedLogs.length > 0 && onViewMoreLogs && (
-                  <button
-                    type="button"
-                    className="flex items-center gap-1 active:opacity-70"
-                    onClick={onViewMoreLogs}
-                  >
-                    <span className="text-2xs font-semibold text-sub-gray">더보기</span>
-                    <span className="text-2xs text-sub-gray">›</span>
-                  </button>
-                )}
+                {relatedLogs.length > 0 &&
+                  (relatedLogsHref ? (
+                    <Link
+                      href={relatedLogsHref}
+                      className="flex items-center gap-1 active:opacity-70"
+                    >
+                      <span className="text-2xs font-semibold text-sub-gray">더보기</span>
+                      <span className="text-2xs text-sub-gray">›</span>
+                    </Link>
+                  ) : (
+                    onViewMoreLogs && (
+                      <button
+                        type="button"
+                        className="flex items-center gap-1 active:opacity-70"
+                        onClick={onViewMoreLogs}
+                      >
+                        <span className="text-2xs font-semibold text-sub-gray">더보기</span>
+                        <span className="text-2xs text-sub-gray">›</span>
+                      </button>
+                    )
+                  ))}
               </div>
               <div className="flex gap-4">
                 {relatedLogs.length === 0 ? (
                   <p className="text-sm text-sub-gray">아직 관련 로그가 없어요</p>
                 ) : (
-                  relatedLogs.slice(0, 2).map((log) => (
-                    <button
-                      key={log.id}
-                      type="button"
-                      onClick={() => onLogClick?.(log.id)}
-                      className="relative h-[95px] w-[150px] shrink-0 overflow-hidden rounded-lg active:opacity-70"
-                    >
-                      <Image src={log.imageUrl} alt="" fill className="object-cover" />
-                      <div className="absolute bottom-[6px] left-[6px] rounded-[5px] bg-system-blackbg px-1.5 py-0.5">
-                        <span className="text-2xs font-medium text-white">{log.author}</span>
-                      </div>
-                    </button>
-                  ))
+                  relatedLogs.slice(0, 2).map((log) => {
+                    const content = (
+                      <>
+                        <Image src={log.imageUrl} alt="" fill className="object-cover" />
+                        <div className="absolute bottom-[6px] left-[6px] rounded-[5px] bg-system-blackbg px-1.5 py-0.5">
+                          <span className="text-2xs font-medium text-white">{log.author}</span>
+                        </div>
+                      </>
+                    );
+                    const className =
+                      "relative h-[95px] w-[150px] shrink-0 overflow-hidden rounded-lg active:opacity-70";
+
+                    if (getRelatedLogHref) {
+                      return (
+                        <Link key={log.id} href={getRelatedLogHref(log.id)} className={className}>
+                          {content}
+                        </Link>
+                      );
+                    }
+
+                    return (
+                      <button
+                        key={log.id}
+                        type="button"
+                        onClick={() => onLogClick?.(log.id)}
+                        className={className}
+                      >
+                        {content}
+                      </button>
+                    );
+                  })
                 )}
               </div>
             </section>

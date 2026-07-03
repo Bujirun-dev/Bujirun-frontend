@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import characterImg from "@/assets/character/map.png";
+import removeIcon from "@/assets/icons/itinerary/remove.svg?url";
 import { Modal, TimePicker } from "@/components";
 import { TransportSelectSheet } from "./TransportSelectSheet";
 import { ArrivalVerifyModal } from "./ArrivalVerifyModal";
@@ -22,6 +24,7 @@ interface ItineraryModalsProps {
   onConfirmTime: () => void;
   onConfirmTransport: (option: RouteOption) => void;
   onConfirmVerify: () => void;
+  onVerifyContinue?: () => void;
   onTimeChange: (value: { hour: number; minute: number }) => void;
   onOptimizeStart: () => void;
 }
@@ -36,6 +39,7 @@ export function ItineraryModals({
   onConfirmTime,
   onConfirmTransport,
   onConfirmVerify,
+  onVerifyContinue,
   onTimeChange,
   onOptimizeStart,
 }: ItineraryModalsProps) {
@@ -56,14 +60,30 @@ export function ItineraryModals({
       <Modal
         isOpen={modal === "delete"}
         onClose={onClose}
+        icon={
+          <Image
+            src={removeIcon}
+            alt=""
+            width={25}
+            height={25}
+            className="icon-coral"
+            aria-hidden
+          />
+        }
+        iconClassName="size-[48px] bg-system-navbg"
         title="일정 삭제"
-        description={`해당 관광지를 일정에서\n삭제하시겠어요?`}
+        description={`'${activeStop?.placeName ?? "관광지"}'을(를)\n일정에서 삭제하시겠어요?`}
+        childrenVariant="card"
         confirmText="삭제하기"
         cancelText="취소"
         confirmVariant="warning"
         onConfirm={onConfirmDelete}
         onCancel={onClose}
-      />
+      >
+        <p className="text-center font-medium text-sub-darkgray">
+          * 삭제한 일정은 복구할 수 없어요.
+        </p>
+      </Modal>
 
       <TimePicker
         isOpen={modal === "time"}
@@ -90,6 +110,7 @@ export function ItineraryModals({
         placeName={activeStop?.placeName ?? ""}
         characterImageUrl={characterImg.src}
         onVerify={onConfirmVerify}
+        onContinue={onVerifyContinue}
         onLater={onClose}
       />
     </>

@@ -177,7 +177,7 @@ export function TripDateTimePicker({
         type="button"
         onClick={openPicker}
         className={cn(
-          "h-[27px] w-[160px] rounded-lg border-[0.5px] border-sub-lightblue bg-main-blue/20 px-3 text-left text-xs font-light text-text-primary outline-none",
+          "h-[27px] w-[160px] rounded-lg border-[0.5px] border-sub-lightblue bg-main-blue/20 px-3 text-left text-2xs font-light text-text-primary outline-none",
           className,
         )}
       >

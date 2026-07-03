@@ -65,10 +65,13 @@ function ItineraryMain() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const importedLogId = searchParams.get("importedLogId");
+  const requestedDays = Math.max(1, Number(searchParams.get("days")) || INITIAL_DAYS.length);
+  const initialDays = INITIAL_DAYS.slice(0, requestedDays);
+  const initialDates = TRIP_DATES.slice(0, requestedDays);
 
   const [currentDay, setCurrentDay] = useState(0);
-  const [stopsPerDay, setStopsPerDay] = useState<BaseStop[][]>(INITIAL_DAYS);
-  const [tripDates, setTripDates] = useState<string[]>(TRIP_DATES);
+  const [stopsPerDay, setStopsPerDay] = useState<BaseStop[][]>(initialDays);
+  const [tripDates, setTripDates] = useState<string[]>(initialDates);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalType | null>(null);
   const [activeStopId, setActiveStopId] = useState<string | null>(null);
@@ -178,7 +181,6 @@ function ItineraryMain() {
       );
       return next;
     });
-    setToastMessage("방문이 인증되었어요.");
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -273,6 +275,7 @@ function ItineraryMain() {
         onConfirmTime={confirmTime}
         onConfirmTransport={confirmTransport}
         onConfirmVerify={confirmVerify}
+        onVerifyContinue={() => setToastMessage("관광지를 수집했어요!")}
         onTimeChange={setTimeValue}
         onOptimizeStart={() => setModal("optimizing")}
       />

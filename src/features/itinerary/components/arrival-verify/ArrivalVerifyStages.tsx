@@ -11,7 +11,7 @@ import mapCharacter from "@/assets/character/map.png";
 import seaCharacter from "@/assets/character/sea.png";
 import LandLayerLocationIcon from "@/assets/icons/itinerary/land-layer-location.svg?svgr";
 import samplePlaceImage from "@/assets/place/place1.png";
-import { Button } from "@/components";
+import { Button, Card } from "@/components";
 import { LoadingProgressBar } from "../LoadingProgressBar";
 import { CharacterImage, MapPreview, Notice, PlaceBadge } from "./ArrivalVerifyShared";
 
@@ -47,11 +47,11 @@ export function ArrivalStage({
       />
       <div className="mb-3 flex flex-col items-center gap-2 text-center">
         <PlaceBadge placeName={placeName} />
-        <h2 className="font-paperlogy text-lg font-semibold text-text-primary">
+        <h2 className="font-paperlogy text-md font-semibold text-text-primary">
           이곳에 도착하셨나요?
         </h2>
       </div>
-      <div className="mb-[30px] w-full">
+      <div className="w-full">
         <Notice>* GPS 위치 확인 후 관광지를 수집해주세요.</Notice>
       </div>
     </>
@@ -61,13 +61,13 @@ export function ArrivalStage({
 export function GpsPermissionStage({}: Pick<CommonProps, never>) {
   return (
     <>
-      <h2 className="mb-5 whitespace-pre-line text-center text-xl font-ssurround font-bold text-text-heading">
+      <h2 className="mb-5 whitespace-pre-line text-center text-lg font-ssurround font-bold text-text-heading">
         “BUJIRUN”이 사용자의{"\n"}위치에 접근하려고 합니다.
       </h2>
-      <div className="mb-6 w-full">
+      <div className="mb-3 w-full">
         <Notice>* 관광지를 수집해서 도감을 채워봐요!</Notice>
       </div>
-      <div className="mb-6 w-full">
+      <div className="w-full">
         <MapPreview />
       </div>
     </>
@@ -84,10 +84,10 @@ export function GpsLoadingStage({}: Pick<CommonProps, never>) {
 
   return (
     <>
-      <div className="mb-5 flex size-[76px] items-center justify-center rounded-full bg-system-navbg">
-        <LandLayerLocationIcon width={42} height={42} className="fill-sub-deepblue" aria-hidden />
+      <div className="mb-5 flex size-[48px] items-center justify-center rounded-full bg-system-navbg">
+        <LandLayerLocationIcon width={25} height={25} className="fill-sub-deepblue" aria-hidden />
       </div>
-      <h2 className="mb-2 text-center text-xl font-ssurround font-bold text-text-heading">
+      <h2 className="mb-2 text-center text-lg font-ssurround font-bold text-text-heading">
         현재 위치를 확인하고 있어요.
       </h2>
       <div className="mb-6 w-full">
@@ -126,11 +126,11 @@ export function GpsFailStage({ placeName }: Pick<CommonProps, "placeName">) {
       />
       <div className="mb-5 flex flex-col items-center gap-2 text-center">
         <PlaceBadge placeName={placeName} />
-        <h2 className="font-paperlogy text-lg font-bold text-text-heading">
+        <h2 className="font-paperlogy text-md font-bold text-text-heading">
           위치를 확인할 수 없어요!
         </h2>
       </div>
-      <div className="mb-7 w-full">
+      <div className="w-full">
         <Notice>* 관광지 근처에서 다시 시도해주세요.</Notice>
       </div>
     </>
@@ -147,11 +147,11 @@ export function GpsSuccessStage({ placeName }: Pick<CommonProps, "placeName">) {
       />
       <div className="mb-3 flex flex-col items-center gap-2 text-center">
         <PlaceBadge placeName={placeName} />
-        <h2 className="font-paperlogy text-lg font-semibold text-text-primary">
+        <h2 className="font-paperlogy text-md font-semibold text-text-primary">
           관광지 확인이 완료되었어요!
         </h2>
       </div>
-      <div className="mb-[30px] w-full">
+      <div className="w-full">
         <Notice>* 사진을 찍어 기록을 남겨주세요.</Notice>
       </div>
     </>
@@ -161,13 +161,13 @@ export function GpsSuccessStage({ placeName }: Pick<CommonProps, "placeName">) {
 export function CameraPermissionStage({ placeName }: Pick<CommonProps, "placeName">) {
   return (
     <>
-      <h2 className="mb-5 whitespace-pre-line text-center text-xl font-ssurround font-bold text-text-heading">
+      <h2 className="mb-5 whitespace-pre-line text-center text-lg font-ssurround font-bold text-text-heading">
         “BUJIRUN”이 사용자의{"\n"}카메라에 접근하려고 합니다.
       </h2>
       <div className="mb-6 w-full">
         <Notice>* 사진을 촬영해서 기록을 남겨봐요!</Notice>
       </div>
-      <div className="relative mb-6 h-[162px] w-full overflow-hidden rounded-[10px]">
+      <div className="relative h-[162px] w-full overflow-hidden rounded-[10px]">
         <Image src={samplePlaceImage} alt={placeName} fill className="object-cover" />
       </div>
     </>
@@ -209,7 +209,7 @@ export function PhotoConfirmStage({ placeName }: Pick<CommonProps, "placeName">)
         <CheckCircleIcon width={14} height={14} className="fill-main-blue" aria-hidden />
         관광지가 잘 보이나요?
       </p>
-      <div className="mb-7 w-full">
+      <div className="w-full">
         <Notice>* 마음에 들지 않는다면 다시 촬영할 수 있어요!</Notice>
       </div>
     </>
@@ -219,20 +219,28 @@ export function PhotoConfirmStage({ placeName }: Pick<CommonProps, "placeName">)
 export function CompleteStage({ placeName }: Pick<CommonProps, "placeName">) {
   return (
     <>
-      <CharacterImage src={congsCharacter} alt="인증 완료" className="mb-3 h-[120px] w-[140px]" />
+      <CharacterImage
+        src={congsCharacter}
+        alt="인증 완료"
+        className="-mb-[14px] h-[160px] w-[180px]"
+      />
       <div className="mb-5 flex flex-col items-center gap-2 text-center">
         <PlaceBadge placeName={placeName} />
-        <h2 className="text-xl font-ssurround font-bold text-text-heading">인증이 완료되었어요!</h2>
+        <h2 className="text-lg font-paperlogy font-bold text-text-heading">인증이 완료되었어요!</h2>
       </div>
-      <div className="relative mb-5 h-[153px] w-[273px] overflow-hidden rounded-[10px]">
+      <div className="relative mb-[14px] h-[153px] w-full overflow-hidden rounded-[10px]">
         <Image src={samplePlaceImage} alt={placeName} fill className="object-cover" />
       </div>
-      <div className="mb-7 flex h-[74px] w-[273px] flex-col items-center justify-center gap-1 rounded-xl border-[0.5px] border-system-scroll bg-main-white text-center">
-        <span className="font-paperlogy text-sm font-medium text-text-heading">
-          📖 도감 등록 완료!
+      <Card
+        variant="glass-sm"
+        className="w-full flex flex-col items-center justify-center gap-[12px] py-[12px] text-center"
+      >
+        <span className="flex items-center gap-[3px] font-paperlogy text-md font-medium text-text-heading">
+          <span>📖</span>
+          <span>도감 등록 완료!</span>
         </span>
-        <span className="font-ssurround text-md font-bold text-main-blue">새로운 관광지 + 1</span>
-      </div>
+        <span className="font-mona font-normal text-sm text-sub-deepblue">도감 +1</span>
+      </Card>
     </>
   );
 }

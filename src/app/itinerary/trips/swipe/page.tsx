@@ -33,6 +33,7 @@ function TripSwipeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const count = searchParams.get("count") ?? "6";
+  const days = searchParams.get("days") ?? "1";
   const [currentIndex, setCurrentIndex] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -47,7 +48,7 @@ function TripSwipeContent() {
     setTimeout(() => {
       const nextIndex = currentIndex + 1;
       if (nextIndex >= total) {
-        router.push(`/itinerary/trips/waiting?count=${count}`);
+        router.push(`/itinerary/trips/waiting?count=${count}&days=${days}`);
         return;
       }
       setCurrentIndex(nextIndex);
@@ -143,7 +144,7 @@ function TripSwipeContent() {
             transform: "translate(-50%, -50%)",
           }}
         >
-          <span className="text-[16px] leading-none">☹️</span>
+          <span className="text-lg leading-none">☹️</span>
         </div>
 
         {/* 좋아요 힌트 - 고정, 오른쪽 드래그 시 강조 / 왼쪽 드래그 시 흐려짐 */}
@@ -154,7 +155,7 @@ function TripSwipeContent() {
             transform: "translate(50%, -50%)",
           }}
         >
-          <span className="text-[16px] leading-none">❣️</span>
+          <span className="text-lg leading-none">❣️</span>
         </div>
       </div>
     </div>

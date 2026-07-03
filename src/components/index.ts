@@ -21,6 +21,7 @@ export type {
   PlaceDetailInfoItem,
   PlaceDetailRelatedLog,
 } from "./place/PlaceDetailContent";
+export { RelatedLogsContent } from "./place/RelatedLogsContent";
 export { PlaceDetailSheet } from "./place/PlaceDetailSheet";
 export { PlaceInfoRow } from "./place/PlaceInfoRow";
 export { AppHeader } from "./layout/AppHeader";

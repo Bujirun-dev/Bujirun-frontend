@@ -4,9 +4,10 @@ import Image from "next/image";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/shared/utils";
-import { CategoryChip } from "@/components";
+import { CategoryChip, Modal, SpeechBubble, Toast } from "@/components";
+import checkIcon from "@/assets/icons/itinerary/check.png";
 import infoIcon from "@/assets/icons/itinerary/info.png";
-import freepassWhiteIcon from "@/assets/icons/itinerary/freepass-white.png";
+import freepassBlueIcon from "@/assets/icons/itinerary/freepass-blue.png";
 import flagImg from "@/assets/place/flag.png";
 import houseImg from "@/assets/place/house.png";
 import busanStationImg from "@/assets/place/busan-station.png";
@@ -35,7 +36,11 @@ const MOCK_PLANS: Plan[] = [
         label: "Day 1",
         places: [
           { id: 1, name: "광안리 해수욕장", image: "https://picsum.photos/seed/place1/200/200" },
-          { id: 2, name: "해운대 해수욕장", image: "https://picsum.photos/seed/place2/200/200" },
+          {
+            id: 2,
+            name: "해운대 해수욕장 놀이공원",
+            image: "https://picsum.photos/seed/place2/200/200",
+          },
           { id: 3, name: "동백섬", image: "https://picsum.photos/seed/place3/200/200" },
         ],
       },
@@ -125,29 +130,15 @@ const MOCK_PLANS: Plan[] = [
 // TODO: API 연동 후 실제 방장 여부로 교체
 const IS_HOST = true;
 
-function TimelineSpeechBubble({ children }: { children: string }) {
-  return (
-    <div className="relative h-[25px] w-[112px]">
-      <span className="absolute left-[-2px] top-1/2 z-0 h-[11px] w-[11px] -translate-y-1/2 rotate-45 rounded-[1.5px] border border-main-blue bg-main-white" />
-      <div className="relative z-10 box-border flex h-full w-full items-center justify-center rounded-[10px] border border-main-blue bg-main-white px-[12px] py-[6px]">
-        <span className="font-paperlogy text-[11px] font-medium leading-none text-sub-deepblue">
-          {children}
-        </span>
-      </div>
-      <span className="absolute left-[-1px] top-1/2 z-20 h-[17px] w-[11px] -translate-y-1/2 bg-main-white" />
-      <span className="absolute left-0 top-[6px] z-30 h-[1px] w-[2px] bg-main-blue" />
-      <span className="absolute left-0 bottom-[6px] z-30 h-[1px] w-[2px] bg-main-blue" />
-    </div>
-  );
-}
+type FreepassModalStep = "guide" | "confirm" | null;
 
 function ResultPlaceNode({ place }: { place: Place }) {
   return (
     <div className="relative flex min-w-0 flex-col items-center">
-      <p className="absolute left-1/2 -top-[34px] max-w-[78px] -translate-x-1/2 truncate whitespace-nowrap text-center font-paperlogy text-[11px] font-normal text-text-heading">
+      <p className="absolute left-1/2 -top-[27px] max-w-[78px] -translate-x-1/2 truncate whitespace-nowrap text-center font-paperlogy text-xs font-normal text-text-heading">
         {place.name}
       </p>
-      <span className="absolute left-1/2 -top-[13px] z-10 size-[11px] -translate-x-1/2 rounded-full border-[1.5px] border-main-blue bg-main-white" />
+      <span className="absolute left-1/2 -top-[11px] z-10 size-[11px] -translate-x-1/2 rounded-full border-[1.5px] border-main-blue bg-main-white" />
       <div className="relative h-[35px] w-[53px] overflow-hidden rounded-[8px] border border-main-blue bg-system-navbg">
         <Image src={place.image} alt={place.name} fill className="object-cover" />
       </div>
@@ -167,12 +158,53 @@ function TripResultContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const count = searchParams.get("count") ?? "6";
+  const days = searchParams.get("days") ?? "3";
+  const totalDays = Math.max(1, Number(days) || 3);
+
+  // days 수에 맞게 MOCK_PLANS day 슬라이스
+  const plans = MOCK_PLANS.map((plan) => ({
+    ...plan,
+    days: plan.days.slice(0, totalDays),
+  }));
 
   const [activePlan, setActivePlan] = useState<string>("A");
-  const currentPlan = MOCK_PLANS.find((p) => p.id === activePlan) ?? MOCK_PLANS[0];
+  const [showInfo, setShowInfo] = useState(false);
+  const [votedPlan, setVotedPlan] = useState<string | null>(null);
+  const [voteConfirmPlan, setVoteConfirmPlan] = useState<string | null>(null);
+  const [freepassModal, setFreepassModal] = useState<FreepassModalStep>(null);
+  const [isFreepassMode, setIsFreepassMode] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const currentPlan = plans.find((p) => p.id === activePlan) ?? plans[0];
+
+  const getVoteCount = (plan: Plan) => plan.voteCount + (votedPlan === plan.id ? 1 : 0);
+
+  const handlePlanVote = (planId: string) => {
+    setVoteConfirmPlan(planId);
+  };
+
+  const handleVoteConfirm = () => {
+    if (!voteConfirmPlan) return;
+    setActivePlan(voteConfirmPlan);
+    setVotedPlan(voteConfirmPlan);
+    setVoteConfirmPlan(null);
+    router.push(`/itinerary/trips/vote-waiting?count=${count}&days=${totalDays}`);
+  };
 
   const handleFreepass = () => {
-    router.push(`/itinerary?count=${count}`);
+    setFreepassModal("guide");
+  };
+
+  const handleFreepassActivate = () => {
+    setIsFreepassMode(true);
+    setFreepassModal(null);
+  };
+
+  const handleFreepassConfirm = () => {
+    setFreepassModal(null);
+    setToastMessage(`방장이 ${activePlan}안을 선택했어요! 🎉`);
+    window.setTimeout(() => {
+      router.push(`/itinerary?count=${count}&days=${totalDays}&plan=${activePlan}`);
+    }, 1800);
   };
 
   return (
@@ -193,135 +225,279 @@ function TripResultContent() {
 
       {/* 투표 섹션 - PageCard 스타일 */}
       <div className="-mx-6 flex flex-1 flex-col overflow-hidden rounded-tl-[40px] rounded-tr-[40px] bg-white">
-        {/* 스크롤 영역 */}
-        <div className="flex-1 overflow-y-auto px-[28px] pt-[28px] pb-[10px]">
-          {/* 헤더 */}
-          <div className="flex items-center gap-1.5">
-            <span className="font-ssurround font-bold text-lg text-text-heading">
-              마음에 드는 일정에 투표해주세요!
-            </span>
-            <Image src={infoIcon} alt="안내" width={14} height={14} />
-          </div>
+        {/* 헤더 - 고정 */}
+        <div className="shrink-0 px-[28px] pt-[28px]">
+          <div className="relative">
+            <div className="flex items-center gap-1.5">
+              <span className="font-ssurround font-bold text-lg text-text-heading">
+                마음에 드는 일정에 투표해주세요!
+              </span>
+              <button type="button" onClick={() => setShowInfo((v) => !v)} aria-label="투표 안내">
+                <Image src={infoIcon} alt="안내" width={14} height={14} />
+              </button>
+            </div>
 
-          {/* 글래스 카드 - 투표 정보 */}
-          <div className="-mx-[4px] mt-4 flex flex-col rounded-[20px] border border-system-navbg bg-gradient-to-b from-system-glassfrom to-system-glassto px-[16px] pt-[20px] pb-[24px] backdrop-blur-[15px]">
-            {/* 안 선택 탭 + 투표 수 */}
+            {showInfo && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowInfo(false)} />
+                <div className="absolute left-[60px] top-[calc(100%+8px)] z-20 rounded-[20px] border border-system-navbg bg-gradient-to-b from-system-glassfrom to-system-glassto px-[15px] py-[10px] backdrop-blur-[15px] shadow-sm">
+                  <div className="flex flex-col gap-[10px] font-paperlogy text-2xs text-text-primary leading-snug whitespace-nowrap">
+                    <p className="font-semibold">
+                      😇 AI가 친구들의 취향을 분석해 3가지 일정을 추천해요.
+                    </p>
+                    <div className="flex flex-col gap-[6px]">
+                      <p className="font-semibold">📌 A안 (취향 집중형)</p>
+                      <p className="pl-5 font-medium">친구들의 취향을 균형 있게 반영한 일정</p>
+                      <p className="font-semibold">📌 B안 (균형 최적형)</p>
+                      <p className="pl-5 font-medium">친구들의 미수집 관광지 위주로 구성한 일정</p>
+                      <p className="font-semibold">📌 C안 (자유 편집형)</p>
+                      <p className="pl-5 font-medium">자유롭게 구성할 수 있는 일정</p>
+                    </div>
+                    <p className="font-medium">
+                      ✅ 마음에 드는 일정에 투표해 최종 일정을 결정해요.
+                    </p>
+                    <p className="font-medium">
+                      ✨ 방장은 투표 결과와 관계없이 원하는 일정을 선택할 수 있어요.
+                    </p>
+                    <p className="text-3xs font-semibold text-sub-coral">
+                      ‼️ 프리패스 사용 시 참가자들의 투표 결과는 반영되지 않아요 ‼️
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* 글래스 카드 - 스크롤 영역 */}
+        <div className="flex-1 overflow-y-auto px-[28px] pb-[10px]">
+          <div className="relative -mx-[4px] mt-4 flex flex-col rounded-[20px] border border-system-navbg bg-gradient-to-b from-system-glassfrom to-system-glassto px-[16px] pt-[20px] pb-[24px] backdrop-blur-[15px]">
+            {/* 안 선택 탭 + 투표 버튼 같은 라인 */}
             <div className="flex items-center gap-[5px]">
-              {MOCK_PLANS.map((plan) => (
+              {plans.map((plan) => (
                 <button
                   key={plan.id}
                   type="button"
-                  aria-label={`${PLAN_LABELS[plan.id]} ${plan.id}안`}
+                  aria-label={`${PLAN_LABELS[plan.id]} ${plan.id}안 보기`}
                   onClick={() => setActivePlan(plan.id)}
                   className={cn(
-                    "rounded-[10px] px-[12px] pt-[4px] pb-[2px] font-proup text-md text-main-white flex items-center justify-center transition-colors",
+                    "flex items-center justify-center rounded-[10px] px-[12px] pt-[4px] pb-[2px] font-proup text-md text-main-white transition-colors",
                     activePlan === plan.id ? "bg-main-blue" : "bg-sub-lightblue",
                   )}
                 >
                   {plan.id}
                 </button>
               ))}
-              <div className="ml-auto flex items-center gap-1">
-                <span className="font-paperlogy text-sm text-sub-deepblue">♥</span>
-                <span className="font-paperlogy font-bold text-sm text-sub-deepblue">
-                  {currentPlan.voteCount}
-                </span>
+            </div>
+
+            {/* 투표 버튼 - 우측 상단 절대 배치 */}
+            <div className="absolute top-[16px] right-[16px] flex flex-col items-center gap-[4px]">
+              <button
+                type="button"
+                aria-label={`${activePlan}안에 투표하기`}
+                onClick={() => handlePlanVote(activePlan)}
+                className={cn(
+                  "flex items-center justify-center rounded-[10px] p-[5px]",
+                  votedPlan === activePlan ? "bg-sub-pink" : "bg-sub-pink/50",
+                )}
+              >
+                <Image src={checkIcon} alt="투표" width={14} height={14} aria-hidden />
+              </button>
+              <div className="flex items-center gap-[2px] font-proup text-sm font-normal leading-none text-sub-pink">
+                <span>♥</span>
+                <span>{getVoteCount(currentPlan)}</span>
               </div>
             </div>
 
             {/* 타임라인 */}
-            <div className="relative mt-5 ml-0">
-              {/* 세로 점선 - 이미지 중심(22px) 기준 */}
-              <div className="absolute left-[22px] top-[22px] bottom-[22px] w-[2px] bg-[repeating-linear-gradient(to_bottom,#4da6ff_0,#4da6ff_6px,transparent_6px,transparent_12px)]" />
-
-              {/* 출발 - 부산역 */}
-              <div className="relative flex items-center gap-5">
-                <div className="relative z-10 flex h-[49px] w-[45px] shrink-0 items-center justify-center">
-                  <div className="absolute inset-[-6px] rounded-full bg-[rgba(151,193,255,0.3)] blur-md" />
-                  <Image
-                    src={busanStationImg}
-                    alt=""
-                    width={45}
-                    height={45}
-                    aria-hidden
-                    className="relative z-10"
-                  />
-                </div>
-                <TimelineSpeechBubble>10:00 여행 시작!</TimelineSpeechBubble>
+            {activePlan === "C" ? (
+              <div className="mt-3 flex flex-col items-center justify-center gap-3 rounded-[14px] bg-system-navbg px-4 py-8 text-center">
+                <span className="text-2xl">✏️</span>
+                <p className="font-ssurround font-bold text-md text-text-heading">
+                  자유 편집형 일정
+                </p>
+                <p className="font-paperlogy text-xs font-medium text-sub-darkgray leading-relaxed whitespace-pre-line">
+                  {
+                    "C안은 AI가 미리 짜주지 않아요.\n확정 후 팀원들과 함께 직접\n일정을 자유롭게 채워보세요!"
+                  }
+                </p>
               </div>
+            ) : (
+              <div className="relative mt-3 ml-0">
+                {/* 세로 점선 — 출발 중심(top:22px)에서 도착 중심(bottom:24px)까지만 */}
+                <div className="absolute left-[22px] top-[22px] bottom-[24px] w-[2px] bg-[repeating-linear-gradient(to_bottom,var(--color-sub-deepblue)_0,var(--color-sub-deepblue)_6px,transparent_6px,transparent_12px)]" />
 
-              {/* 각 Day */}
-              <div className="mt-[12px] flex flex-col gap-[45px]">
-                {currentPlan.days.map((day) => (
-                  <div key={day.day}>
-                    <div className="relative flex items-center gap-[2px]">
-                      <div className="relative z-10 h-[25px] w-[35px] shrink-0">
-                        <span className="absolute left-[9.5px] top-1/2 z-0 h-[29px] w-[25px] -translate-y-1/2 rounded-full bg-main-white" />
-                        <div className="absolute left-[5.5px] top-1/2 z-10 h-[33px] w-[33px] -translate-y-1/2 rounded-full bg-sub-pink/30 blur-md" />
-                        <Image
-                          src={flagImg}
-                          alt=""
-                          width={25}
-                          height={25}
-                          aria-hidden
-                          className="absolute left-[9.5px] top-0 z-20"
-                        />
-                      </div>
-                      <span className="font-paperlogy text-xs font-medium text-sub-deepblue">
-                        {day.label.toLowerCase()}
-                      </span>
-                      <div className="relative ml-[3px] h-[1.5px] w-[235px] rounded-full bg-main-blue">
-                        <div className="absolute left-0 right-0 top-[7.5px] flex items-start justify-around">
-                          {day.places.map((place) => (
-                            <ResultPlaceNode key={place.id} place={place} />
-                          ))}
+                {/* 출발 - 부산역 */}
+                <div className="relative flex items-center gap-5">
+                  <div className="relative z-10 flex h-[49px] w-[45px] shrink-0 items-center justify-center">
+                    <div className="absolute inset-[-6px] rounded-full bg-main-blue/30 blur-md" />
+                    <Image
+                      src={busanStationImg}
+                      alt=""
+                      width={45}
+                      height={45}
+                      aria-hidden
+                      className="relative z-10"
+                    />
+                  </div>
+                  <SpeechBubble variant="white" tailDirection="left">
+                    <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">
+                      10:00 여행 시작!
+                    </span>
+                  </SpeechBubble>
+                </div>
+
+                {/* 각 Day */}
+                <div className="mt-[12px] flex flex-col gap-[52px]">
+                  {currentPlan.days.map((day) => (
+                    <div key={day.day}>
+                      <div className="relative flex items-center gap-[2px]">
+                        <div className="relative z-10 h-[25px] w-[35px] shrink-0">
+                          <span className="absolute left-[9.5px] top-1/2 z-0 h-[29px] w-[25px] -translate-y-1/2 rounded-full bg-main-white" />
+                          <div className="absolute left-[5.5px] top-1/2 z-10 h-[33px] w-[33px] -translate-y-1/2 rounded-full bg-sub-pink/30 blur-md" />
+                          <Image
+                            src={flagImg}
+                            alt=""
+                            width={25}
+                            height={25}
+                            aria-hidden
+                            className="absolute left-[9.5px] top-0 z-20"
+                          />
+                        </div>
+                        <span className="font-paperlogy text-xs font-medium text-sub-deepblue">
+                          {day.label.toLowerCase()}
+                        </span>
+                        <div className="relative ml-[3px] h-[1.5px] w-[235px] rounded-full bg-main-blue">
+                          <div className="absolute left-0 right-0 top-[7.5px] flex items-start justify-around">
+                            {day.places.map((place) => (
+                              <ResultPlaceNode key={place.id} place={place} />
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* 도착 - 집 */}
-              <div className="relative mt-[44px] flex items-center gap-5">
-                <div className="relative z-10 flex h-[49px] w-[45px] shrink-0 items-center justify-center">
-                  <div className="absolute inset-[-6px] rounded-full bg-[rgba(151,193,255,0.3)] blur-md" />
-                  <Image
-                    src={houseImg}
-                    alt=""
-                    width={45}
-                    height={45}
-                    aria-hidden
-                    className="relative z-10"
-                  />
+                  ))}
                 </div>
-                <TimelineSpeechBubble>15:00 여행 끝!</TimelineSpeechBubble>
-              </div>
-            </div>
-          </div>
 
-          {/* 프리패스 버튼 (방장만 활성화) */}
+                {/* 도착 - 집 */}
+                <div className="relative mt-[44px] flex items-center gap-5">
+                  <div className="relative z-10 flex h-[49px] w-[45px] shrink-0 items-center justify-center">
+                    <div className="absolute inset-[-6px] rounded-full bg-main-blue/30 blur-md" />
+                    <Image
+                      src={houseImg}
+                      alt=""
+                      width={45}
+                      height={45}
+                      aria-hidden
+                      className="relative z-10"
+                    />
+                  </div>
+                  <SpeechBubble variant="white" tailDirection="left">
+                    <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">
+                      15:00 여행 끝!
+                    </span>
+                  </SpeechBubble>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 프리패스 버튼 - 하단 고정 */}
+        <div className="shrink-0 px-[28px] pb-[24px] pt-[12px]">
           <button
             type="button"
-            onClick={IS_HOST ? handleFreepass : undefined}
+            onClick={
+              IS_HOST
+                ? isFreepassMode
+                  ? () => setFreepassModal("confirm")
+                  : handleFreepass
+                : undefined
+            }
             disabled={!IS_HOST}
             className={cn(
-              "mt-[24px] flex h-[44px] w-full items-center justify-center gap-2 rounded-[10px] font-ssurround font-bold text-md text-main-white transition-opacity",
+              "flex h-[44px] w-full items-center justify-center gap-2 rounded-[10px] font-ssurround font-bold text-md text-main-white transition-opacity",
               IS_HOST ? "bg-main-blue" : "bg-sub-gray cursor-not-allowed",
             )}
           >
-            <Image
-              src={freepassWhiteIcon}
-              alt=""
-              width={15}
-              height={15}
-              aria-hidden
-              className="-translate-y-0.5"
-            />
-            <span>방장 마음대로 프리패스!</span>
+            {isFreepassMode ? (
+              <span>✦ {activePlan} 일정으로 선택</span>
+            ) : (
+              <>
+                <Image
+                  src={freepassBlueIcon}
+                  alt=""
+                  width={15}
+                  height={15}
+                  aria-hidden
+                  className="-translate-y-0.5 brightness-0 invert"
+                />
+                <span>방장 마음대로 프리패스!</span>
+              </>
+            )}
           </button>
         </div>
       </div>
+
+      <Modal
+        isOpen={voteConfirmPlan !== null}
+        onClose={() => setVoteConfirmPlan(null)}
+        icon={<Image src={checkIcon} alt="" width={20} height={20} aria-hidden />}
+        iconClassName="bg-sub-pink/30"
+        title="이 일정으로 투표할까요?"
+        description={`${voteConfirmPlan}안에 투표하시겠어요?`}
+        cancelText="취소"
+        confirmText="투표하기"
+        onCancel={() => setVoteConfirmPlan(null)}
+        onConfirm={handleVoteConfirm}
+        className="max-w-[320px] rounded-[28px] px-7 py-9"
+      />
+
+      <Modal
+        isOpen={freepassModal === "guide"}
+        onClose={() => setFreepassModal(null)}
+        icon={<Image src={freepassBlueIcon} alt="" width={25} height={25} aria-hidden />}
+        iconClassName="bg-system-navbg"
+        title="방장 마음대로 프리패스!"
+        description={"투표 결과와 상관없이\n방장이 원하는 추천 일정을 선택할 수 있어요."}
+        childrenVariant="card"
+        childrenClassName="py-2"
+        cancelText="취소"
+        confirmText="프리패스"
+        onCancel={() => setFreepassModal(null)}
+        onConfirm={handleFreepassActivate}
+        className="max-w-[320px] rounded-[28px] px-7 py-9 gap-7"
+      >
+        <p className="text-center font-paperlogy text-xs font-medium text-sub-darkgray">
+          * 사용 시 현재 투표 결과는 반영되지 않아요.
+        </p>
+      </Modal>
+
+      <Modal
+        isOpen={freepassModal === "confirm"}
+        onClose={() => setFreepassModal(null)}
+        icon={<Image src={freepassBlueIcon} alt="" width={25} height={25} aria-hidden />}
+        iconClassName="bg-system-navbg"
+        title="방장 마음대로 프리패스!"
+        description={`${activePlan} 일정으로 선택하시겠어요?\n선택한 일정이 최종 일정으로 확정돼요.`}
+        childrenVariant="card"
+        childrenClassName="py-2"
+        cancelText="취소"
+        confirmText="확정하기"
+        onCancel={() => setFreepassModal(null)}
+        onConfirm={handleFreepassConfirm}
+        className="max-w-[320px] rounded-[28px] px-7 py-9 gap-7"
+      >
+        <p className="text-center font-paperlogy text-xs font-medium text-sub-darkgray">
+          * 다른 사람의 일정을 불러오면 현재 일정은 사라져요.
+        </p>
+      </Modal>
+
+      <Toast
+        isVisible={toastMessage !== null}
+        onHide={() => setToastMessage(null)}
+        message={toastMessage ?? ""}
+      />
     </div>
   );
 }
