@@ -150,6 +150,9 @@
   /* Text */
   --color-text-primary: #1e293b;
   --color-text-heading: #0f172a;
+
+  /* Receipt */
+  --color-receipt-bg: #fbf7ef;
   --color-text-receipt-main: #000000;
   --color-text-receipt-sub: #6b6b6b;
 

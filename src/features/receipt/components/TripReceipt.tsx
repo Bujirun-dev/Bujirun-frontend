@@ -3,8 +3,8 @@ import Image from "next/image";
 import { cn } from "@/shared/utils";
 
 import receiptBackground from "@/assets/receipt/receipt_background.png";
-import { ReceiptBarcode } from "@/features/collection/components/ReceiptBarcode";
-import { tripReceipts } from "@/features/collection/data/tripReceipts";
+import { ReceiptBarcode } from "@/features/receipt/components/ReceiptBarcode";
+import type { ReceiptData } from "@/features/receipt/types/receipt";
 import { PLACES } from "@/features/collection/data/places";
 
 import {
@@ -12,16 +12,13 @@ import {
   createArchiveNumber,
   createBarcode,
   calculateTotalDays,
-} from "@/features/collection/utils/receipt";
+} from "@/features/receipt/utils/receipt";
 
 interface TripReceiptProps {
-  tripId: number;
+  receipt: ReceiptData;
 }
 
-export function TripReceipt({ tripId }: TripReceiptProps) {
-  const receipt = tripReceipts.find((r) => r.tripId === tripId);
-  if (!receipt) return null;
-
+export function TripReceipt({ receipt }: TripReceiptProps) {
   const tripOrder = receipt.tripId;
   const archiveNumber = createArchiveNumber(receipt.period.startDate, tripOrder);
   const issuedOn = formatDateWithDots(receipt.period.endDate);

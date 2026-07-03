@@ -35,6 +35,8 @@ export interface LogDetail {
   downloadCount: number;
   createdAt: string;
   imageUrl: string;
+  mood: string;
+  theme: string;
   days: DaySchedule[];
 }
 
@@ -51,6 +53,8 @@ export const SAMPLE_LOGS: LogDetail[] = [
     downloadCount: 34,
     createdAt: "2026-08-10",
     imageUrl: "https://picsum.photos/seed/log1/400/300",
+    mood: "",
+    theme: "",
     days: [
       {
         day: 1,
@@ -148,6 +152,8 @@ export const SAMPLE_LOGS: LogDetail[] = [
     downloadCount: 12,
     createdAt: "2026-08-08",
     imageUrl: "https://picsum.photos/seed/log2/400/300",
+    mood: "",
+    theme: "",
     days: [
       {
         day: 1,
@@ -215,6 +221,8 @@ export const SAMPLE_LOGS: LogDetail[] = [
     downloadCount: 8,
     createdAt: "2026-08-01",
     imageUrl: "https://picsum.photos/seed/log3/400/300",
+    mood: "",
+    theme: "",
     days: [
       {
         day: 1,
@@ -296,6 +304,8 @@ export const SAMPLE_LOGS: LogDetail[] = [
     downloadCount: 56,
     createdAt: "2026-08-20",
     imageUrl: "https://picsum.photos/seed/log4/400/300",
+    mood: "",
+    theme: "",
     days: [
       {
         day: 1,
@@ -371,6 +381,8 @@ export const SAMPLE_LOGS: LogDetail[] = [
     downloadCount: 21,
     createdAt: "2026-08-15",
     imageUrl: "https://picsum.photos/seed/log5/400/300",
+    mood: "",
+    theme: "",
     days: [
       {
         day: 1,

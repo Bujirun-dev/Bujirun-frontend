@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 import { Card, PageCard, StaircaseGlassCard } from "@/components";
 import marineCharacter from "@/assets/character/marine.png";

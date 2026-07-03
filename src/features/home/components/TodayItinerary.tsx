@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components";
 import { getClosestDay } from "@/features/home/utils/getClosestDay";
 import { TransportSummaryCard } from "@/features/home/components/TransportSummaryCard";
 import { TransportDetailModal } from "@/features/home/components/TransportDetailModal";
+import { ArrivalVerifyModal } from "@/features/itinerary/components/ArrivalVerifyModal";
 import {
   DEFAULT_TRANSPORT_GROUP,
   findTransportGroupByPlaces,
@@ -19,6 +20,8 @@ export function TodayItinerary() {
   const { day } = getClosestDay(SAMPLE_LOGS);
   const plans = day.stops;
   const [selectedTransportGroup, setSelectedTransportGroup] = useState<TransportGroup | null>(null);
+  const [selectedVerifyPlaceName, setSelectedVerifyPlaceName] = useState<string | null>(null);
+  const [verifiedPlaceNames, setVerifiedPlaceNames] = useState<Set<string>>(() => new Set());
   const [selectedOptionIdByRoute, setSelectedOptionIdByRoute] = useState<Record<string, string>>(
     {},
   );
@@ -28,6 +31,24 @@ export function TodayItinerary() {
   };
 
   const closeTransportModal = () => setSelectedTransportGroup(null);
+
+  const openVerifyModal = (placeName: string) => {
+    setSelectedVerifyPlaceName(placeName);
+  };
+
+  const closeVerifyModal = () => {
+    setSelectedVerifyPlaceName(null);
+  };
+
+  const handleVerifyPlace = () => {
+    if (!selectedVerifyPlaceName) return;
+
+    setVerifiedPlaceNames((prev) => {
+      const next = new Set(prev);
+      next.add(selectedVerifyPlaceName);
+      return next;
+    });
+  };
 
   const handleChangeTransportOption = (option: TransportOption) => {
     if (!selectedTransportGroup) return;
@@ -47,6 +68,7 @@ export function TodayItinerary() {
 
       <ol className="mt-6">
         {plans.map((plan, index) => {
+          const isPlanVerified = plan.isVerified || verifiedPlaceNames.has(plan.place);
           const nextPlan = plans[index + 1];
           const transportGroup = nextPlan
             ? findTransportGroupByPlaces(plan.place, nextPlan.place)
@@ -74,7 +96,7 @@ export function TodayItinerary() {
               <div className="flex min-w-0 flex-1 items-start gap-3 pt-[7px]">
                 <span
                   className={
-                    plan.isVerified
+                    isPlanVerified
                       ? "size-4 shrink-0 rounded-full bg-main-blue"
                       : "size-4 shrink-0 rounded-full bg-sub-pink"
                   }
@@ -94,10 +116,17 @@ export function TodayItinerary() {
                 </div>
               </div>
 
-              <StatusBadge
-                status={plan.isVerified ? "completed" : "verify"}
-                className="shrink-0 px-3 py-2 text-md"
-              />
+              {isPlanVerified ? (
+                <StatusBadge status="completed" className="shrink-0 px-3 py-2 text-md" />
+              ) : (
+                <button
+                  type="button"
+                  className="shrink-0"
+                  onClick={() => openVerifyModal(plan.place)}
+                >
+                  <StatusBadge status="verify" className="px-3 py-2 text-md" />
+                </button>
+              )}
             </li>
           );
         })}
@@ -113,6 +142,13 @@ export function TodayItinerary() {
         }
         onClose={closeTransportModal}
         onChange={handleChangeTransportOption}
+      />
+      <ArrivalVerifyModal
+        isOpen={selectedVerifyPlaceName !== null}
+        placeName={selectedVerifyPlaceName ?? ""}
+        onClose={closeVerifyModal}
+        onVerify={handleVerifyPlace}
+        onLater={closeVerifyModal}
       />
     </div>
   );

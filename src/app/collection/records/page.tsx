@@ -7,8 +7,9 @@ import { useRouter } from "next/navigation";
 
 import { useMemo, useState, useCallback } from "react";
 import { RecordDeleteModal } from "@/features/collection/components/RecordDeleteModal";
-import { TripReceiptModal } from "@/features/collection/components/TripReceiptModal";
-
+import { TripReceiptModal } from "@/features/receipt/components/TripReceiptModal";
+import { tripReceipts } from "@/features/receipt/data/tripReceipts";
+import type { ReceiptData } from "@/features/receipt/types/receipt";
 import bookIcon from "@/assets/icons/collection/book.png";
 import { Card, CategoryChip, PageCard, Toast } from "@/components";
 import type { Category } from "@/components/ui/CategoryChip";
@@ -84,6 +85,19 @@ export default function CollectionRecordsPage() {
   }, []);
 
   const selectedDeleteTrip = records.find((record) => record.id === selectedDeleteTripId) ?? null;
+
+  const selectedBaseReceipt =
+    selectedTripId === null
+      ? undefined
+      : tripReceipts.find((receipt) => receipt.tripId === selectedTripId);
+
+  const selectedReceipt: ReceiptData | undefined = selectedBaseReceipt
+    ? {
+        ...selectedBaseReceipt,
+        mood: selectedBaseReceipt.mood ?? "",
+        theme: selectedBaseReceipt.theme ?? "",
+      }
+    : undefined;
 
   // 여행 기록 삭제
   const handleDelete = () => {
@@ -164,7 +178,7 @@ export default function CollectionRecordsPage() {
       {/* 여행 영수증 모달 */}
       <TripReceiptModal
         isOpen={isReceiptOpen}
-        tripId={selectedTripId ?? 0}
+        receipt={selectedReceipt}
         onDownloadComplete={() =>
           setToast({
             message: "영수증이 저장되었어요.",

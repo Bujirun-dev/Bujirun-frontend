@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-import { Modal } from "@/components";
+import { Button, Modal } from "@/components";
 import { TransportDetail } from "@/features/home/components/TransportDetail";
 import { TransportSelectContent } from "@/features/home/components/TransportSelectContent";
 import { getSelectedTransportOption } from "@/features/home/data/sampleTransport";
@@ -58,20 +58,22 @@ export function TransportDetailModal({
       footer={
         mode === "detail" ? (
           <div className="mt-1 flex w-full justify-center gap-6">
-            <button
+            <Button
               type="button"
-              className="min-w-[100px] rounded-lg border border-main-blue px-5 py-2.5 font-ssurround text-md font-bold text-sub-deepblue transition-colors hover:bg-main-blue hover:text-main-white active:opacity-70"
+              variant="secondary"
+              className="min-w-[100px] w-auto px-5"
               onClick={handleClose}
             >
               닫기
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className="min-w-[100px] rounded-lg bg-main-blue px-5 py-2.5 font-ssurround text-md font-bold text-main-white active:opacity-70"
+              variant="primary"
+              className="min-w-[100px] w-auto px-5"
               onClick={handleConfirm}
             >
               변경
-            </button>
+            </Button>
           </div>
         ) : undefined
       }
