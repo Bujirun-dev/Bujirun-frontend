@@ -23,6 +23,7 @@ export function TransportDetailModal({
   onChange,
 }: TransportDetailModalProps) {
   const [mode, setMode] = useState<"detail" | "select">("detail");
+  const [hasChanged, setHasChanged] = useState(false);
   const [localSelectedOptionId, setLocalSelectedOptionId] = useState(
     selectedOptionId ?? transportGroup.selectedOptionId,
   );
@@ -31,21 +32,23 @@ export function TransportDetailModal({
 
   const handleClose = () => {
     setMode("detail");
+    setHasChanged(false);
     onClose();
   };
 
   const handleConfirm = () => {
-    if (mode === "detail") {
-      setMode("select");
+    if (hasChanged) {
+      handleClose();
       return;
     }
 
-    setMode("detail");
+    setMode("select");
   };
 
   const handleSelect = (option: TransportOption) => {
     setLocalSelectedOptionId(option.id);
     onChange?.(option);
+    setHasChanged(true);
     setMode("detail");
   };
 
@@ -72,7 +75,7 @@ export function TransportDetailModal({
               className="min-w-[100px] w-auto px-5"
               onClick={handleConfirm}
             >
-              변경
+              {hasChanged ? "확인" : "변경"}
             </Button>
           </div>
         ) : undefined

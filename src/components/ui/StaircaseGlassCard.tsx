@@ -18,7 +18,7 @@ const SIZE_CLASS = {
   },
   sm: {
     text: "text-sm",
-    padding: "py-2 px-3",
+    padding: "py-2.5 px-4",
   },
 } as const;
 

@@ -36,12 +36,12 @@ export default function HomePage() {
         <Image
           src={marineCharacter}
           alt="마린룩 캐릭터"
-          className="translate-y-2 z-10 h-[140px] w-auto shrink-0 object-contain"
+          className="-translate-y-1 z-10 h-[140px] w-auto shrink-0 object-contain"
           priority
         />
       </div>
 
-      <Card variant="glass-lg" className="relative shrink-0 rounded-[32px] mt-[-16px] mb-2 py-6">
+      <Card variant="glass-lg" className="relative shrink-0 rounded-[32px] mt-[-28px] mb-2 py-6">
         <div className="flex items-center gap-2">
           <h2 className="font-ssurround text-xl text-text-heading">부산도감</h2>
           <MegaphoneIcon />
@@ -70,7 +70,7 @@ export default function HomePage() {
         </div>
       </Card>
 
-      <PageCard className="relative z-20 mt-5 flex-1 overflow-y-auto py-8">
+      <PageCard className="relative z-20 mt-3 flex-1 overflow-y-auto py-8">
         <TodayItinerary />
         <div className="mt-8">
           <PlaceSection />

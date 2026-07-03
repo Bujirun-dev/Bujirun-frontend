@@ -24,7 +24,7 @@ interface TransportSelectSheetProps {
   onSelect: (option: RouteOption) => void;
 }
 
-function openKakaoMapRoute(from: string, to: string) {
+export function openKakaoMapRoute(from: string, to: string) {
   const openWithCoords = (fx: string, fy: string, tx: string, ty: string) => {
     // 앱 딥링크 (sp/ep = 위도,경도 순)
     window.location.href = `kakaomap://route?sp=${fy},${fx}&ep=${ty},${tx}&by=PUBLIC`;
