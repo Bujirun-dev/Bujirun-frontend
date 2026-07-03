@@ -36,13 +36,9 @@ export function getCategoryFromEN(en: string): Category {
 }
 
 /**
- * itinerary/mypage 로그 데이터는 stop.tags[0]에 "#카테고리" 라벨이 섞여 저장되어 있음.
- * 이를 분리해서 category + 나머지 태그로 변환한다.
+ * 태그 문자열이 4개 카테고리(바다/자연/문화/체험) 중 하나와 정확히 일치하는지 확인.
+ * 일치하지 않으면 undefined — 일반 태그는 카테고리로 간주하지 않는다.
  */
-export function splitLegacyStopTags(tags: string[]): { category: Category; tags: string[] } {
-  const [categoryTag, ...rest] = tags;
-  return {
-    category: getCategoryFromKo((categoryTag ?? "").replace(/^#/, "")),
-    tags: rest,
-  };
+export function matchCategoryTag(tag: string): Category | undefined {
+  return CATEGORY_LABEL_KO[tag.replace(/^#/, "")];
 }

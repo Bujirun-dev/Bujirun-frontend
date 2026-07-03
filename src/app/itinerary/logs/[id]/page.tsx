@@ -8,7 +8,6 @@ import { PageCard } from "@/components";
 import { LogDetailContent } from "@/components/log/LogDetailContent";
 import { ImportLogModal } from "@/features/itinerary";
 import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";
-import { splitLegacyStopTags } from "@/shared/constants/category";
 
 export default function LogDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -64,10 +63,12 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
           days: log.days.map((day) => ({
             day: day.day,
             date: day.date,
-            stops: day.stops.map((stop) => {
-              const { category, tags } = splitLegacyStopTags(stop.tags);
-              return { time: stop.time, place: stop.place, imageUrl: stop.imageUrl, category, tags };
-            }),
+            stops: day.stops.map((stop) => ({
+              time: stop.time,
+              place: stop.place,
+              imageUrl: stop.imageUrl,
+              tags: stop.tags,
+            })),
           })),
         }}
         onBack={() => router.back()}

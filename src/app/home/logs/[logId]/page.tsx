@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PageCard } from "@/components";
 import { LogDetailContent } from "@/components/log/LogDetailContent";
 import { SAMPLE_LOGS } from "@/features/home/data/sampleLogs";
+import { getCategoryLabel } from "@/shared/constants/category";
 
 export default function LogDetailPage({ params }: { params: Promise<{ logId: string }> }) {
   const { logId } = use(params);
@@ -30,7 +31,16 @@ export default function LogDetailPage({ params }: { params: Promise<{ logId: str
           extraCount: log.extraCount,
           duration: log.duration,
           date: log.date,
-          days: log.days,
+          days: log.days.map((day) => ({
+            day: day.day,
+            date: day.date,
+            stops: day.stops.map((stop) => ({
+              time: stop.time,
+              place: stop.place,
+              imageUrl: stop.imageUrl,
+              tags: [getCategoryLabel(stop.category), ...stop.tags],
+            })),
+          })),
         }}
         onBack={() => router.back()}
       />

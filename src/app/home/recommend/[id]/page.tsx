@@ -7,7 +7,11 @@ import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
 import { PLACES } from "@/features/home/data/places";
 import { SAMPLE_LOGS } from "@/features/home/data/sampleLogs";
 
-export default function RecommendedPlaceDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function RecommendedPlaceDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = use(params);
   const router = useRouter();
   const place = PLACES.find((p) => String(p.id) === id);

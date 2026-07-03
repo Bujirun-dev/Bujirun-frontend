@@ -30,6 +30,18 @@ export function TransportDetailModal({
     selectedOptionId ?? transportGroup.selectedOptionId,
   );
 
+  // 모달 인스턴스가 열림/닫힘과 무관하게 계속 유지되므로(isOpen만 토글),
+  // 매번 새로 열릴 때 이전 경로/선택에서 남은 상태가 이어지지 않도록 초기화한다.
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen && !prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    setMode("detail");
+    setHasChanged(false);
+    setLocalSelectedOptionId(selectedOptionId ?? transportGroup.selectedOptionId);
+  } else if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+  }
+
   const selectedOption = getSelectedTransportOption(transportGroup, localSelectedOptionId);
 
   const handleClose = () => {

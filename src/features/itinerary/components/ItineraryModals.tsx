@@ -128,7 +128,9 @@ export function ItineraryModals({
             selectedOptionId={selectedRouteOptionId}
             onClose={onClose}
             onChange={handleChange}
-            onKakaoMapClick={() => openKakaoMapRoute(transportGroup.fromPlace, transportGroup.toPlace)}
+            onKakaoMapClick={() =>
+              openKakaoMapRoute(transportGroup.fromPlace, transportGroup.toPlace)
+            }
           />
         );
       })()}

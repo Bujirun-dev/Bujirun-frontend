@@ -6,7 +6,7 @@ import type { StaticImageData } from "next/image";
 import { BackButton } from "@/components/ui/BackButton";
 import { cn } from "@/shared/utils";
 import type { Category } from "@/components/ui/CategoryChip";
-import { getCategoryLabel } from "@/shared/constants/category";
+import { matchCategoryTag } from "@/shared/constants/category";
 
 const CATEGORY_BG: Record<Category, string> = {
   sea: "bg-category-sea",
@@ -19,7 +19,7 @@ export interface LogDetailStop {
   time: string;
   place: string;
   imageUrl?: string | StaticImageData;
-  category: Category;
+  /** 4개 카테고리(바다/자연/문화/체험)와 일치하는 태그만 해당 카테고리 색으로, 나머지는 기본색으로 표시 */
   tags: string[];
 }
 
@@ -47,7 +47,9 @@ interface LogDetailContentProps {
 
 export function LogDetailContent({ log, onBack, headerRight }: LogDetailContentProps) {
   const summaryPlace =
-    log.extraCount && log.extraCount > 0 ? `${log.placeName} 외 ${log.extraCount}곳` : log.placeName;
+    log.extraCount && log.extraCount > 0
+      ? `${log.placeName} 외 ${log.extraCount}곳`
+      : log.placeName;
 
   return (
     <>
@@ -123,28 +125,29 @@ export function LogDetailContent({ log, onBack, headerRight }: LogDetailContentP
                       </div>
                     )}
 
-                    {/* 태그 */}
+                    {/* 태그 — 4개 카테고리와 일치하는 태그만 해당 색, 나머지는 기본색 */}
                     <div className="flex items-center gap-1 flex-wrap">
-                      <span
-                        className={cn(
-                          "inline-flex items-center justify-center rounded-md px-1.5 py-1",
-                          CATEGORY_BG[stop.category],
-                        )}
-                      >
-                        <span className="text-center text-xs text-text-primary tracking-[0.16px]">
-                          {getCategoryLabel(stop.category)}
-                        </span>
-                      </span>
-                      {stop.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="inline-flex items-center justify-center rounded-md bg-main-blue px-1.5 py-1"
-                        >
-                          <span className="text-center text-xs text-main-white tracking-[0.16px]">
-                            {tag}
+                      {stop.tags.map((tag, tagIdx) => {
+                        const matchedCategory = matchCategoryTag(tag);
+                        return (
+                          <span
+                            key={`${tag}-${tagIdx}`}
+                            className={cn(
+                              "inline-flex items-center justify-center rounded-md px-1.5 py-1",
+                              matchedCategory ? CATEGORY_BG[matchedCategory] : "bg-main-blue",
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                "text-center text-xs tracking-[0.16px]",
+                                matchedCategory ? "text-text-primary" : "text-main-white",
+                              )}
+                            >
+                              {tag}
+                            </span>
                           </span>
-                        </span>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

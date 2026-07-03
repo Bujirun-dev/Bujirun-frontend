@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { PageCard } from "@/components";
 import { LogDetailContent } from "@/components/log/LogDetailContent";
 import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";
-import { splitLegacyStopTags } from "@/shared/constants/category";
 
 // 마이페이지(북마크) 전용 로그 상세보기
 // - 일정 탭의 itinerary/logs/[id]와 화면 구성은 동일하지만, 일정 추가 버튼은 넣지 않음
@@ -37,10 +36,12 @@ export default function MypageLogDetailPage({ params }: { params: Promise<{ id: 
           days: log.days.map((day) => ({
             day: day.day,
             date: day.date,
-            stops: day.stops.map((stop) => {
-              const { category, tags } = splitLegacyStopTags(stop.tags);
-              return { time: stop.time, place: stop.place, imageUrl: stop.imageUrl, category, tags };
-            }),
+            stops: day.stops.map((stop) => ({
+              time: stop.time,
+              place: stop.place,
+              imageUrl: stop.imageUrl,
+              tags: stop.tags,
+            })),
           })),
         }}
         onBack={() => router.back()}

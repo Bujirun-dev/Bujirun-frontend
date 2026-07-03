@@ -118,7 +118,10 @@ export function TodayItinerary() {
               </div>
 
               {isPlanVerified ? (
-                <StatusBadge status="completed" className="shrink-0 px-2.5 py-1.5 text-sm mt-[7px]" />
+                <StatusBadge
+                  status="completed"
+                  className="shrink-0 px-2.5 py-1.5 text-sm mt-[7px]"
+                />
               ) : (
                 <button
                   type="button"
