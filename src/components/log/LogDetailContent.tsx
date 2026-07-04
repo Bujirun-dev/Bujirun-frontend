@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import type { ReactNode } from "react";
 import type { StaticImageData } from "next/image";
 import { BackButton } from "@/components/ui/BackButton";
@@ -43,9 +44,20 @@ interface LogDetailContentProps {
   onBack?: () => void;
   /** itinerary의 "일정에 담기" 버튼, collection의 공개/비공개 스위치 등 헤더 우측 슬롯 */
   headerRight?: ReactNode;
+  /** 도감(collection) 탭 로그 상세보기에서만 사용: 관광지 태그 추가/삭제 UI 노출 */
+  editableTags?: boolean;
+  onAddTag?: (dayIndex: number, stopIndex: number, tag: string) => void;
+  onDeleteTag?: (dayIndex: number, stopIndex: number, tagIndex: number) => void;
 }
 
-export function LogDetailContent({ log, onBack, headerRight }: LogDetailContentProps) {
+export function LogDetailContent({
+  log,
+  onBack,
+  headerRight,
+  editableTags = false,
+  onAddTag,
+  onDeleteTag,
+}: LogDetailContentProps) {
   const summaryPlace =
     log.extraCount && log.extraCount > 0
       ? `${log.placeName} 외 ${log.extraCount}곳`
@@ -80,7 +92,7 @@ export function LogDetailContent({ log, onBack, headerRight }: LogDetailContentP
 
       {/* 스크롤 영역 */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-6">
-        {log.days.map((daySchedule) => (
+        {log.days.map((daySchedule, dayIdx) => (
           <div key={daySchedule.day} className="flex flex-col">
             {/* Day 헤더 */}
             <div className="flex items-center gap-2 mb-3.5">
@@ -126,29 +138,12 @@ export function LogDetailContent({ log, onBack, headerRight }: LogDetailContentP
                     )}
 
                     {/* 태그 — 4개 카테고리와 일치하는 태그만 해당 색, 나머지는 기본색 */}
-                    <div className="flex items-center gap-1 flex-wrap">
-                      {stop.tags.map((tag, tagIdx) => {
-                        const matchedCategory = matchCategoryTag(tag);
-                        return (
-                          <span
-                            key={`${tag}-${tagIdx}`}
-                            className={cn(
-                              "inline-flex items-center justify-center rounded-md px-1.5 py-1",
-                              matchedCategory ? CATEGORY_BG[matchedCategory] : "bg-main-blue",
-                            )}
-                          >
-                            <span
-                              className={cn(
-                                "text-center text-xs tracking-[0.16px]",
-                                matchedCategory ? "text-text-primary" : "text-main-white",
-                              )}
-                            >
-                              {tag}
-                            </span>
-                          </span>
-                        );
-                      })}
-                    </div>
+                    <StopTags
+                      tags={stop.tags}
+                      editable={editableTags}
+                      onAddTag={(tag) => onAddTag?.(dayIdx, idx, tag)}
+                      onDeleteTag={(tagIdx) => onDeleteTag?.(dayIdx, idx, tagIdx)}
+                    />
                   </div>
                 </div>
               ))}
@@ -166,6 +161,103 @@ function DayBadge({ day }: { day: number }) {
       <span className="font-ssurround font-bold text-md text-main-white tracking-[0.5px] leading-none">
         day {day}
       </span>
+    </div>
+  );
+}
+
+interface StopTagsProps {
+  tags: string[];
+  editable?: boolean;
+  onAddTag?: (tag: string) => void;
+  onDeleteTag?: (tagIndex: number) => void;
+}
+
+/** editable이 true일 때만(도감 탭) 태그 추가/삭제 UI를 노출, 그 외 페이지는 기존과 동일한 정적 표시 */
+function StopTags({ tags, editable = false, onAddTag, onDeleteTag }: StopTagsProps) {
+  const [isAdding, setIsAdding] = useState(false);
+  const [newTag, setNewTag] = useState("");
+
+  const handleCancel = () => {
+    setIsAdding(false);
+    setNewTag("");
+  };
+
+  const handleSubmit = () => {
+    const trimmedTag = newTag.trim().replace(/^#/, "");
+
+    if (!trimmedTag) {
+      handleCancel();
+      return;
+    }
+
+    onAddTag?.(`#${trimmedTag}`);
+    handleCancel();
+  };
+
+  return (
+    <div className="flex items-center gap-1 flex-wrap">
+      {tags.map((tag, tagIdx) => {
+        const matchedCategory = matchCategoryTag(tag);
+        const deletable = editable && !matchedCategory;
+
+        return (
+          <button
+            key={`${tag}-${tagIdx}`}
+            type="button"
+            onClick={deletable ? () => onDeleteTag?.(tagIdx) : undefined}
+            disabled={!deletable}
+            className={cn(
+              "inline-flex items-center justify-center rounded-md px-1.5 py-1",
+              deletable ? "cursor-pointer" : "cursor-default",
+              matchedCategory ? CATEGORY_BG[matchedCategory] : "bg-main-blue",
+            )}
+          >
+            <span
+              className={cn(
+                "text-center text-xs tracking-[0.16px]",
+                matchedCategory ? "text-text-primary" : "text-main-white",
+              )}
+            >
+              {tag}
+            </span>
+          </button>
+        );
+      })}
+
+      {editable &&
+        (isAdding ? (
+          <div className="inline-flex items-center justify-center rounded-md bg-main-blue px-1.5 py-1">
+            <span className="text-center text-xs tracking-[0.16px] text-main-white">#</span>
+            <input
+              value={newTag}
+              onChange={(event) => setNewTag(event.target.value)}
+              onBlur={handleSubmit}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  handleSubmit();
+                }
+
+                if (event.key === "Escape") {
+                  handleCancel();
+                }
+              }}
+              style={{ width: `${Math.max(newTag.length + 1, 1)}ch` }}
+              className="ml-0.5 min-w-5 max-w-[16ch] bg-transparent text-xs tracking-[0.16px] text-main-white outline-none placeholder:text-main-white/70"
+              autoFocus
+            />
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsAdding(true)}
+            aria-label="태그 추가"
+            className="inline-flex min-w-[36px] items-center justify-center rounded-md border border-dashed border-main-blue px-1.5 py-[3px]"
+          >
+            <svg viewBox="0 0 20 20" className="size-4 fill-main-blue" aria-hidden="true">
+              <path d="M9 4a1 1 0 1 1 2 0v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H4a1 1 0 1 1 0-2h5V4Z" />
+            </svg>
+          </button>
+        ))}
     </div>
   );
 }
