@@ -2,6 +2,11 @@ import { apiClient } from "@/shared/api/client";
 import { unwrap } from "@/shared/api/response";
 import type { OpBody, OpResponse } from "@/shared/api/types";
 
+export const keys = {
+  all: ["user"] as const,
+  me: () => [...keys.all, "me"] as const,
+};
+
 export function getMyProfile() {
   return apiClient.get<OpResponse<"getMyProfile">>("/api/users/me").then((res) => unwrap(res));
 }

@@ -2,6 +2,14 @@ import { apiClient } from "@/shared/api/client";
 import { unwrap } from "@/shared/api/response";
 import type { OpBody, OpQuery, OpResponse } from "@/shared/api/types";
 
+export const keys = {
+  all: ["travel-logs"] as const,
+  mine: () => [...keys.all, "me"] as const,
+  public: (query?: OpQuery<"getPublicLogs">) => [...keys.all, "public", query ?? {}] as const,
+  bySpot: (spotId: string) => [...keys.all, "spot", spotId] as const,
+  detail: (id: string) => [...keys.all, "detail", id] as const,
+};
+
 export function createLog(body: OpBody<"create">) {
   return apiClient.post<OpResponse<"create">>("/api/logs", body).then((res) => unwrap(res));
 }

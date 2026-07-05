@@ -2,6 +2,12 @@ import { apiClient } from "@/shared/api/client";
 import { unwrap } from "@/shared/api/response";
 import type { OpBody, OpResponse } from "@/shared/api/types";
 
+export const keys = {
+  all: ["itineraries"] as const,
+  lists: () => [...keys.all, "list"] as const,
+  detail: (id: string) => [...keys.all, "detail", id] as const,
+};
+
 export function getItineraries() {
   return apiClient.get<OpResponse<"getList">>("/api/itineraries").then((res) => unwrap(res));
 }

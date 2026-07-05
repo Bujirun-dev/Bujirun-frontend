@@ -2,6 +2,12 @@ import { apiClient } from "@/shared/api/client";
 import { unwrap } from "@/shared/api/response";
 import type { OpBody, OpResponse } from "@/shared/api/types";
 
+export const keys = {
+  all: ["groups"] as const,
+  mine: () => [...keys.all, "me"] as const,
+  members: (groupId: string) => [...keys.all, groupId, "members"] as const,
+};
+
 export function createGroup(body: OpBody<"create_2">) {
   return apiClient.post<OpResponse<"create_2">>("/api/groups", body).then((res) => unwrap(res));
 }
