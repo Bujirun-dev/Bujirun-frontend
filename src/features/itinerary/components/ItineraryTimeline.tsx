@@ -53,35 +53,40 @@ export interface ItineraryStop {
 interface ItineraryTimelineProps {
   stops: ItineraryStop[];
   date?: string;
-  onAdd?: () => void;
+  onAddNewPlace?: (place: SearchPlace) => void;
 }
 
-export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
+export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimelineProps) {
   const [activeSearchStopId, setActiveSearchStopId] = useState<string | null>(null);
+  const [isAddingNew, setIsAddingNew] = useState(false);
   const [activeDetailStopId, setActiveDetailStopId] = useState<string | null>(null);
   const [activeTimeStopId, setActiveTimeStopId] = useState<string | null>(null);
   const [inlineTimeValue, setInlineTimeValue] = useState({ hour: 12, minute: 0 });
   const [popupScrollSpace, setPopupScrollSpace] = useState(0);
   const searchCardRef = useRef<HTMLDivElement>(null);
+  const addNewCardRef = useRef<HTMLDivElement>(null);
   const detailCardRef = useRef<HTMLDivElement>(null);
   const timePickerRef = useRef<HTMLDivElement>(null);
   const stopRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const isAutoScrollingRef = useRef(false);
   const activePopupStopId = activeSearchStopId ?? activeDetailStopId;
 
-  const openSearch = (stopId: string) => {
-    setActiveTimeStopId(null);
-    setActiveDetailStopId(null);
-    setPopupScrollSpace(0);
-    setActiveSearchStopId(stopId);
-  };
   const closeSearch = () => {
     setActiveSearchStopId(null);
     setPopupScrollSpace(0);
   };
+  const openAddNew = () => {
+    setActiveTimeStopId(null);
+    setActiveDetailStopId(null);
+    setActiveSearchStopId(null);
+    setPopupScrollSpace(0);
+    setIsAddingNew(true);
+  };
+  const closeAddNew = () => setIsAddingNew(false);
   const openDetail = (stop: ItineraryStop) => {
     setActiveTimeStopId(null);
     setActiveSearchStopId(null);
+    setIsAddingNew(false);
     setPopupScrollSpace(0);
     setActiveDetailStopId(stop.id);
     stop.onClick?.();
@@ -95,6 +100,7 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
   const openTimePicker = (stop: ItineraryStop) => {
     closeSearch();
     closeDetail();
+    closeAddNew();
     const [h, m] = stop.time.split(":").map(Number);
     setInlineTimeValue({ hour: h, minute: m });
 
@@ -186,6 +192,10 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
       if (target.closest("[data-time-btn]")) return;
       closeSearch();
     }
+    if (isAddingNew) {
+      if (addNewCardRef.current?.contains(target)) return;
+      closeAddNew();
+    }
     if (activeDetailStopId) {
       if (detailCardRef.current?.contains(target)) return;
       closeDetail();
@@ -204,22 +214,30 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
 
       <div className="flex flex-col gap-5" style={{ paddingBottom: popupScrollSpace }}>
         {/* 상단: + 버튼 + 날짜 (검색 중엔 + 버튼만 숨김) */}
-        <div className="flex items-center">
+        <div className="relative flex items-center">
           <div className="w-10 shrink-0" />
           <div className="relative z-10 -ml-0.5 flex items-center gap-2.5">
             <button
               type="button"
               className={cn(
                 "flex size-[18px] shrink-0 items-center justify-center rounded-md bg-sub-coral active:opacity-70",
-                activeSearchStopId && "invisible",
+                (activeSearchStopId || isAddingNew) && "invisible",
               )}
-              onClick={() => stops[0] && openSearch(stops[0].id)}
+              onClick={openAddNew}
               aria-label="장소 추가"
             >
               <PlusIcon width={16} height={16} className="text-main-white" aria-hidden />
             </button>
             <span className="text-xs font-semibold text-sub-gray">{date}</span>
           </div>
+
+          {isAddingNew && (
+            <TimelineSearchPopup
+              ref={addNewCardRef}
+              onClose={closeAddNew}
+              onAddToItinerary={onAddNewPlace}
+            />
+          )}
         </div>
 
         {stops.map((stop) => {

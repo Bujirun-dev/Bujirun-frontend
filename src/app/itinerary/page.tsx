@@ -20,6 +20,7 @@ import {
   type BaseStop,
   buildDaysFromLog,
   mapItineraryDetailToDays,
+  nextTempStopId,
   rebuildTransport,
 } from "@/features/itinerary/utils/scheduleUtils";
 import type { SearchPlace } from "@/features/itinerary/components/PlaceSearchPanel";
@@ -300,6 +301,40 @@ function ItineraryMain({
     }
   };
 
+  const addNewStop = (dayIdx: number, place: SearchPlace) => {
+    const tempId = nextTempStopId();
+    const newStop: BaseStop = {
+      id: tempId,
+      time: "00:00",
+      placeName: place.name,
+      imageUrl: place.imageUrl,
+      category: place.category,
+      status: place.status === "completed" ? "completed" : "verify",
+    };
+    const orderIndex = stopsPerDay[dayIdx]?.length ?? 0;
+
+    setStopsPerDay((prev) => {
+      const next = [...prev];
+      next[dayIdx] = rebuildTransport([...next[dayIdx], newStop]);
+      return next;
+    });
+    setToastMessage("관광지가 추가되었어요.");
+
+    const dayId = dayIdsSliced[dayIdx];
+    if (!dayId) return;
+    itineraryApi
+      .addItem(itineraryId, dayId, { spotId: place.id, arrivalTime: "00:00", orderIndex })
+      .then((newItem) => {
+        if (!newItem?.id) return;
+        setStopsPerDay((prev) => {
+          const next = [...prev];
+          next[dayIdx] = next[dayIdx].map((s) => (s.id === tempId ? { ...s, id: newItem.id! } : s));
+          return next;
+        });
+      })
+      .catch(() => setToastMessage("장소 추가 저장에 실패했어요."));
+  };
+
   const allDayStops: ItineraryStop[][] = stopsPerDay.map((dayStops, dayIdx) =>
     dayStops.map((stop) => ({
       ...stop,
@@ -326,7 +361,7 @@ function ItineraryMain({
           allDayStops={allDayStops}
           currentDay={currentDay}
           tripDates={tripDates}
-          onAdd={() => {}}
+          onAddNewPlace={addNewStop}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         />

@@ -1,11 +1,12 @@
 import type { ItineraryStop } from "./ItineraryTimeline";
 import { ItineraryTimeline } from "./ItineraryTimeline";
+import type { SearchPlace } from "./PlaceSearchPanel";
 
 interface SlidingTimelineProps {
   allDayStops: ItineraryStop[][];
   currentDay: number;
   tripDates: string[];
-  onAdd: () => void;
+  onAddNewPlace: (dayIdx: number, place: SearchPlace) => void;
   onTouchStart: (e: React.TouchEvent) => void;
   onTouchEnd: (e: React.TouchEvent) => void;
 }
@@ -14,7 +15,7 @@ export function SlidingTimeline({
   allDayStops,
   currentDay,
   tripDates,
-  onAdd,
+  onAddNewPlace,
   onTouchStart,
   onTouchEnd,
 }: SlidingTimelineProps) {
@@ -31,7 +32,11 @@ export function SlidingTimeline({
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
           >
-            <ItineraryTimeline stops={dayStops} date={tripDates[dayIdx]} onAdd={onAdd} />
+            <ItineraryTimeline
+              stops={dayStops}
+              date={tripDates[dayIdx]}
+              onAddNewPlace={(place) => onAddNewPlace(dayIdx, place)}
+            />
           </div>
         ))}
       </div>

@@ -8,6 +8,14 @@ import type { components } from "@/shared/api/schema";
 
 type ItineraryDetailResponse = components["schemas"]["ItineraryDetailResponse"];
 
+// 서버 응답을 받기 전까지 로컬 state에서 새 항목을 식별하기 위한 임시 id (Date.now/crypto 같은
+// impure 호출을 렌더 함수 안에서 쓰지 않도록 모듈 스코프 카운터로 대체).
+let tempStopIdCounter = 0;
+export function nextTempStopId(): string {
+  tempStopIdCounter += 1;
+  return `temp-${tempStopIdCounter}`;
+}
+
 export const FALLBACK_IMAGE = "https://picsum.photos/seed/busan/300/200";
 
 const TRAVEL_MODE_MAP: Record<TravelMode, "버스" | "지하철" | "도보" | "택시"> = {
