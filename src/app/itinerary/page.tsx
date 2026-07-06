@@ -18,15 +18,12 @@ import { itineraryApi } from "@/shared/api/domains";
 import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";
 import {
   type BaseStop,
-  buildDays,
   buildDaysFromLog,
+  mapItineraryDetailToDays,
   rebuildTransport,
 } from "@/features/itinerary/utils/scheduleUtils";
 import type { SearchPlace } from "@/features/itinerary/components/PlaceSearchPanel";
 import type { RouteOption } from "@/features/itinerary";
-
-const SCHEDULE_ID = "660e8400-e29b-41d4-a716-446655440000";
-const { days: INITIAL_DAYS, dates: TRIP_DATES } = buildDays(SCHEDULE_ID);
 
 function ItineraryEmptyState() {
   const router = useRouter();
@@ -51,28 +48,48 @@ function ItineraryEmptyState() {
 }
 
 export default function ItineraryPage() {
-  const { data: itineraries, isLoading } = useQuery({
+  const { data: itineraries, isLoading: isListLoading } = useQuery({
     queryKey: itineraryApi.keys.lists(),
     queryFn: itineraryApi.getItineraries,
   });
 
-  if (isLoading) return null;
-  if (!itineraries || itineraries.length === 0) return <ItineraryEmptyState />;
+  const itineraryId = itineraries?.[0]?.id;
+
+  const { data: detail, isLoading: isDetailLoading } = useQuery({
+    queryKey: itineraryApi.keys.detail(itineraryId ?? ""),
+    queryFn: () => itineraryApi.getItinerary(itineraryId as string),
+    enabled: !!itineraryId,
+  });
+
+  if (isListLoading || isDetailLoading) return null;
+  if (!itineraries || itineraries.length === 0 || !itineraryId || !detail) {
+    return <ItineraryEmptyState />;
+  }
+
+  const { days, dates } = mapItineraryDetailToDays(detail);
 
   return (
     <Suspense fallback={null}>
-      <ItineraryMain tripTitle={itineraries[0].title} />
+      <ItineraryMain tripTitle={detail.title ?? itineraries[0].title} initialDays={days} initialDates={dates} />
     </Suspense>
   );
 }
 
-function ItineraryMain({ tripTitle }: { tripTitle?: string }) {
+function ItineraryMain({
+  tripTitle,
+  initialDays: initialDaysData,
+  initialDates: initialDatesData,
+}: {
+  tripTitle?: string;
+  initialDays: BaseStop[][];
+  initialDates: string[];
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const importedLogId = searchParams.get("importedLogId");
-  const requestedDays = Math.max(1, Number(searchParams.get("days")) || INITIAL_DAYS.length);
-  const initialDays = INITIAL_DAYS.slice(0, requestedDays);
-  const initialDates = TRIP_DATES.slice(0, requestedDays);
+  const requestedDays = Math.max(1, Number(searchParams.get("days")) || initialDaysData.length);
+  const initialDays = initialDaysData.slice(0, requestedDays);
+  const initialDates = initialDatesData.slice(0, requestedDays);
 
   const [currentDay, setCurrentDay] = useState(0);
   const [stopsPerDay, setStopsPerDay] = useState<BaseStop[][]>(initialDays);

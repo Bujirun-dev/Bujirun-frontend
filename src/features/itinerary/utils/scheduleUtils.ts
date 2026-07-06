@@ -4,6 +4,9 @@ import { SAMPLE_LOGS } from "../data/sampleLogs";
 import { getScheduleById, getPlaceById } from "@/mocks";
 import type { TravelMode } from "@/shared/types";
 import { getCategoryFromKo } from "@/shared/constants/category";
+import type { components } from "@/shared/api/schema";
+
+type ItineraryDetailResponse = components["schemas"]["ItineraryDetailResponse"];
 
 export const FALLBACK_IMAGE = "https://picsum.photos/seed/busan/300/200";
 
@@ -154,6 +157,75 @@ export function buildDays(scheduleId: string): { days: BaseStop[][]; dates: stri
   const dates = schedule.days.map((d) => {
     const [, month, day] = d.date.split("-");
     return `2026.${month}.${day}`;
+  });
+
+  return { days, dates };
+}
+
+const API_TRAVEL_MODE_MAP: Record<string, TransportType> = {
+  transit: "버스",
+  bus: "버스",
+  walk: "도보",
+  taxi: "택시",
+};
+
+// GET /api/itineraries/{id} 응답을 타임라인 UI가 쓰는 BaseStop[][] 구조로 변환한다.
+export function mapItineraryDetailToDays(detail: ItineraryDetailResponse): {
+  days: BaseStop[][];
+  dates: string[];
+} {
+  const sortedDays = [...(detail.days ?? [])].sort(
+    (a, b) => (a.dayNumber ?? 0) - (b.dayNumber ?? 0),
+  );
+
+  const days = sortedDays.map((day) => {
+    const items = [...(day.items ?? [])].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+
+    return items.map((item, idx): BaseStop => {
+      const nextItem = items[idx + 1];
+      const placeName = item.spot?.name ?? "장소 미정";
+      const nextPlaceName = nextItem?.spot?.name ?? "";
+      const transportType = API_TRAVEL_MODE_MAP[nextItem?.travelMode ?? ""] ?? "버스";
+
+      return {
+        id: item.id ?? `${day.id}-${idx}`,
+        time: item.arrivalTime ?? "00:00",
+        placeName,
+        imageUrl: item.spot?.thumbnailUrl || FALLBACK_IMAGE,
+        category: getCategoryFromKo(item.spot?.category ?? ""),
+        status: "verify",
+        description: item.memo || getPlaceDescription(placeName),
+        address: item.spot?.address,
+        fee: "무료",
+        parking: "공영 주차장",
+        mapUrl: item.spot
+          ? `https://map.kakao.com/link/map/${encodeURIComponent(placeName)},${item.spot.lat},${item.spot.lng}`
+          : `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,
+        isBookmarked: item.spot?.isCollected,
+        transport: nextItem
+          ? {
+              from: placeName,
+              to: nextPlaceName,
+              durationMin: nextItem.travelTimeMin ?? 30,
+              baseDurationMin: nextItem.travelTimeMin ?? 30,
+              legs: [
+                {
+                  type: transportType,
+                  routeName: transportType,
+                  from: getTransportPointName(transportType, placeName),
+                  to: getTransportPointName(transportType, nextPlaceName),
+                },
+              ],
+            }
+          : undefined,
+      };
+    });
+  });
+
+  const dates = sortedDays.map((day) => {
+    if (!day.date) return "";
+    const [year, month, dayNum] = day.date.split("-");
+    return `${year}.${month}.${dayNum}`;
   });
 
   return { days, dates };
