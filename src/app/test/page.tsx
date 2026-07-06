@@ -30,6 +30,8 @@ import {
   PlaceSearchItem,
 } from "@/features/itinerary";
 import { HomeItineraryItem, DogamProgressBar } from "@/features/home";
+import { itineraryApi } from "@/shared/api/domains";
+import { useAuthStore } from "@/shared/stores/useAuthStore";
 
 const IMG = "https://picsum.photos/400/300";
 const IMG2 = "https://picsum.photos/401/300";
@@ -66,8 +68,60 @@ export default function TestPage() {
   const [showLogout, setShowLogout] = useState(false);
   const [showDeleteToast, setShowDeleteToast] = useState(false);
 
+  const [apiLoading, setApiLoading] = useState(false);
+  const [apiResult, setApiResult] = useState<unknown>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [tokenInput, setTokenInput] = useState("");
+
+  const handleSaveToken = () => {
+    useAuthStore.getState().setAccessToken(tokenInput.trim() || null);
+  };
+
+  const handleTestGetItineraries = async () => {
+    setApiLoading(true);
+    setApiError(null);
+    setApiResult(null);
+    try {
+      const data = await itineraryApi.getItineraries();
+      setApiResult(data);
+    } catch (e) {
+      setApiError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setApiLoading(false);
+    }
+  };
+
   return (
     <div className="bg-system-navbg px-5 py-6 flex flex-col gap-8 overflow-y-auto overflow-x-hidden">
+      <section className="flex flex-col gap-3">
+        <SectionTitle>API 연동 테스트</SectionTitle>
+        <ComponentLabel>테스트용 accessToken (백엔드에서 발급받은 토큰 붙여넣기)</ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={tokenInput}
+            onChange={(e) => setTokenInput(e.target.value)}
+            placeholder="accessToken 붙여넣기"
+          />
+          <Button variant="secondary" onClick={handleSaveToken}>
+            토큰 저장
+          </Button>
+        </div>
+        <ComponentLabel>GET /api/itineraries</ComponentLabel>
+        <Button variant="primary" onClick={handleTestGetItineraries} disabled={apiLoading}>
+          {apiLoading ? "요청 중..." : "일정 목록 조회 테스트"}
+        </Button>
+        {apiError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {apiError}
+          </pre>
+        )}
+        {apiResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(apiResult, null, 2)}
+          </pre>
+        )}
+      </section>
+
       <h1 className="font-bold text-2xl text-text-heading">컴포넌트 테스트</h1>
 
       {/* ════════════════════════════════ 공통 UI ════════════════════════════════ */}

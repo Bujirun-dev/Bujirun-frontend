@@ -2,6 +2,7 @@
 
 import { Suspense, useRef, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import travelImg from "@/assets/character/travel.png";
 import SuccessIcon from "@/assets/icons/mypage/success.svg";
@@ -13,7 +14,7 @@ import {
   ItineraryModals,
 } from "@/features/itinerary";
 import type { ItineraryStop, ModalType } from "@/features/itinerary";
-import { getScheduleById } from "@/mocks";
+import { itineraryApi } from "@/shared/api/domains";
 import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";
 import {
   type BaseStop,
@@ -23,9 +24,6 @@ import {
 } from "@/features/itinerary/utils/scheduleUtils";
 import type { SearchPlace } from "@/features/itinerary/components/PlaceSearchPanel";
 import type { RouteOption } from "@/features/itinerary";
-
-// TODO: 실제 API 연동 시 교체
-const MOCK_HAS_ACTIVE_TRIP = true;
 
 const SCHEDULE_ID = "660e8400-e29b-41d4-a716-446655440000";
 const { days: INITIAL_DAYS, dates: TRIP_DATES } = buildDays(SCHEDULE_ID);
@@ -53,15 +51,22 @@ function ItineraryEmptyState() {
 }
 
 export default function ItineraryPage() {
-  if (!MOCK_HAS_ACTIVE_TRIP) return <ItineraryEmptyState />;
+  const { data: itineraries, isLoading } = useQuery({
+    queryKey: itineraryApi.keys.lists(),
+    queryFn: itineraryApi.getItineraries,
+  });
+
+  if (isLoading) return null;
+  if (!itineraries || itineraries.length === 0) return <ItineraryEmptyState />;
+
   return (
     <Suspense fallback={null}>
-      <ItineraryMain />
+      <ItineraryMain tripTitle={itineraries[0].title} />
     </Suspense>
   );
 }
 
-function ItineraryMain() {
+function ItineraryMain({ tripTitle }: { tripTitle?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const importedLogId = searchParams.get("importedLogId");
@@ -238,14 +243,12 @@ function ItineraryMain() {
     })),
   );
 
-  const schedule = getScheduleById(SCHEDULE_ID);
-
   return (
     <div className="relative h-full">
       <PageCard>
         <ItineraryHeader
           currentDay={currentDay}
-          tripName={schedule?.title ?? "부지렁즈"}
+          tripName={tripTitle ?? "부지렁즈"}
           onLogsClick={() => router.push("/itinerary/logs")}
           onOptimizeClick={() => setModal("optimize")}
           onTripsClick={() => router.push("/itinerary/trips")}
