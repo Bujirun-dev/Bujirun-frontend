@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
 import { SearchBar } from "@/components";
 import { PlaceSearchItem } from "./PlaceSearchItem";
@@ -9,85 +10,23 @@ import { ConsonantIndexBar } from "./ConsonantIndexBar";
 import { CategoryFilterDropdown } from "./CategoryFilterDropdown";
 import type { Category } from "@/components";
 import { cn } from "@/shared/utils";
+import { spotApi } from "@/shared/api/domains";
+import { CATEGORY_LABEL, getCategoryFromKo } from "@/shared/constants/category";
+import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
 
 type SortOption = "추천순" | "이름순";
 type CategoryFilter = Category | "all";
 
 const SORT_OPTIONS: SortOption[] = ["추천순", "이름순"];
 
-// TODO: API 연결 시 제거 — GET /api/places?region=... 응답으로 교체
-const SAMPLE_PLACES = [
-  {
-    id: "1",
-    name: "해운대 해수욕장",
-    category: "sea" as Category,
-    status: "uncollected" as const,
-    imageUrl: "https://picsum.photos/seed/beach2/300/200",
-  },
-  {
-    id: "2",
-    name: "감천문화마을",
-    category: "culture" as Category,
-    status: "uncollected" as const,
-    imageUrl: "https://picsum.photos/seed/culture/300/200",
-  },
-  {
-    id: "3",
-    name: "금정산",
-    category: "nature" as Category,
-    status: "uncollected" as const,
-    imageUrl: "https://picsum.photos/seed/mountain/300/200",
-  },
-  {
-    id: "4",
-    name: "송도해상케이블카",
-    category: "experience" as Category,
-    status: "completed" as const,
-    imageUrl: "https://picsum.photos/seed/cable/300/200",
-  },
-  {
-    id: "5",
-    name: "광안리 해수욕장",
-    category: "sea" as Category,
-    status: "uncollected" as const,
-    imageUrl: "https://picsum.photos/seed/beach3/300/200",
-  },
-  {
-    id: "6",
-    name: "송도 해수욕장",
-    category: "sea" as Category,
-    status: "uncollected" as const,
-    imageUrl: "https://picsum.photos/seed/beach4/300/200",
-  },
-  {
-    id: "7",
-    name: "낙동강 하구 에코센터",
-    category: "nature" as Category,
-    status: "uncollected" as const,
-    imageUrl: "https://picsum.photos/seed/eco/300/200",
-  },
-  {
-    id: "8",
-    name: "남포동 거리",
-    category: "culture" as Category,
-    status: "completed" as const,
-    imageUrl: "https://picsum.photos/seed/nampo/300/200",
-  },
-  {
-    id: "9",
-    name: "다대포 해수욕장",
-    category: "sea" as Category,
-    status: "uncollected" as const,
-    imageUrl: "https://picsum.photos/seed/dadaepo/300/200",
-  },
-  {
-    id: "10",
-    name: "민락 수변 공원",
-    category: "nature" as Category,
-    status: "uncollected" as const,
-    imageUrl: "https://picsum.photos/seed/minlak/300/200",
-  },
-];
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebounced(value), delayMs);
+    return () => window.clearTimeout(timer);
+  }, [value, delayMs]);
+  return debounced;
+}
 
 const CONSONANTS = [
   "ㄱ",
@@ -186,13 +125,29 @@ export function PlaceSearchPanel({ onClose, onPlaceSelect }: PlaceSearchPanelPro
     return () => observer.disconnect();
   }, [sortBy]);
 
-  // TODO: API 연결 시 searchValue·categoryFilter 를 쿼리 파라미터로 넘기고
-  //       추천순은 백엔드 추천 로직 결과 순서 그대로 렌더링, 이름순만 클라이언트 정렬 유지
-  const filtered = SAMPLE_PLACES.filter((p) => {
-    const matchesSearch = p.name.includes(searchValue);
-    const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
-    return matchesSearch && matchesCategory;
+  const debouncedSearchValue = useDebouncedValue(searchValue, 300);
+
+  const { data: searchResults, isLoading } = useQuery({
+    queryKey: spotApi.keys.search({
+      keyword: debouncedSearchValue || undefined,
+      category: categoryFilter === "all" ? undefined : CATEGORY_LABEL[categoryFilter].replace("#", ""),
+      sort: sortBy === "추천순" ? "RECOMMEND" : undefined,
+    }),
+    queryFn: () =>
+      spotApi.searchSpots({
+        keyword: debouncedSearchValue || undefined,
+        category: categoryFilter === "all" ? undefined : CATEGORY_LABEL[categoryFilter].replace("#", ""),
+        sort: sortBy === "추천순" ? "RECOMMEND" : undefined,
+      }),
   });
+
+  const filtered: SearchPlace[] = (searchResults ?? []).map((spot) => ({
+    id: spot.spotId ?? spot.name ?? "",
+    name: spot.name ?? "이름 미상",
+    category: getCategoryFromKo(spot.category ?? ""),
+    status: spot.collected ? "completed" : "uncollected",
+    imageUrl: spot.thumbnailUrl || FALLBACK_IMAGE,
+  }));
 
   const sorted = [...filtered].sort((a, b) => a.name.localeCompare(b.name, "ko"));
 
@@ -262,7 +217,11 @@ export function PlaceSearchPanel({ onClose, onPlaceSelect }: PlaceSearchPanelPro
       </div>
 
       {/* 목록 */}
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <div className="flex flex-1 items-center justify-center pb-[50%]">
+          <p className="text-sm text-sub-gray">검색 중...</p>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-1 pb-[50%]">
           <p className="text-sm text-sub-gray">
             <span>&quot;{searchValue}&quot;</span>에 대한 검색 결과가 없어요.
