@@ -2,8 +2,10 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { Toast } from "@/components";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
+import { groupApi } from "@/shared/api/domains";
 
 export default function TripInvitePage() {
   return (
@@ -18,8 +20,17 @@ function TripInviteContent() {
   const searchParams = useSearchParams();
   const totalSlots = Math.min(6, Math.max(2, Number(searchParams.get("count")) || 6));
   const days = searchParams.get("days") ?? "1";
-  const joinedCount = totalSlots; // mock - 실제로는 API에서 받아옴 (다 들어온 상태로 처리)
+  const groupId = searchParams.get("groupId") ?? "";
+  const inviteCode = searchParams.get("inviteCode") ?? "";
   const [copied, setCopied] = useState(false);
+
+  const { data: members } = useQuery({
+    queryKey: groupApi.keys.members(groupId),
+    queryFn: () => groupApi.getGroupMembers(groupId),
+    enabled: !!groupId,
+    refetchInterval: 3000,
+  });
+  const joinedCount = Math.max(1, members?.length ?? 1);
 
   useEffect(() => {
     if (joinedCount < totalSlots) return;
@@ -30,9 +41,8 @@ function TripInviteContent() {
   }, [days, joinedCount, totalSlots, router]);
 
   const handleInvite = async () => {
-    // TODO: API 연동 후 실제 tripId로 교체
-    const tripId = searchParams.get("tripId") ?? "MOCK_TRIP_ID";
-    const inviteUrl = `${window.location.origin}/join/${tripId}`;
+    // 초대 코드를 받는 페이지(/join/{code})는 아직 없어서, 만들어지면 이 경로에 맞춰야 함
+    const inviteUrl = `${window.location.origin}/join/${inviteCode}`;
     await navigator.clipboard.writeText(inviteUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

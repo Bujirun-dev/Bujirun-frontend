@@ -30,7 +30,7 @@ import {
   PlaceSearchItem,
 } from "@/features/itinerary";
 import { HomeItineraryItem, DogamProgressBar } from "@/features/home";
-import { itineraryApi, spotApi, travelLogApi } from "@/shared/api/domains";
+import { itineraryApi, spotApi, travelLogApi, groupApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 
 const IMG = "https://picsum.photos/400/300";
@@ -147,6 +147,62 @@ export default function TestPage() {
     }
   };
 
+  const [groupNameInput, setGroupNameInput] = useState("");
+  const [groupLoading, setGroupLoading] = useState(false);
+  const [groupResult, setGroupResult] = useState<unknown>(null);
+  const [groupError, setGroupError] = useState<string | null>(null);
+
+  const handleTestCreateGroup = async () => {
+    setGroupLoading(true);
+    setGroupError(null);
+    setGroupResult(null);
+    try {
+      const data = await groupApi.createGroup({ name: groupNameInput || "테스트 방" });
+      setGroupResult(data);
+    } catch (e) {
+      setGroupError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setGroupLoading(false);
+    }
+  };
+
+  const [myGroupsLoading, setMyGroupsLoading] = useState(false);
+  const [myGroupsResult, setMyGroupsResult] = useState<unknown>(null);
+  const [myGroupsError, setMyGroupsError] = useState<string | null>(null);
+
+  const handleTestGetMyGroups = async () => {
+    setMyGroupsLoading(true);
+    setMyGroupsError(null);
+    setMyGroupsResult(null);
+    try {
+      const data = await groupApi.getMyGroups();
+      setMyGroupsResult(data);
+    } catch (e) {
+      setMyGroupsError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setMyGroupsLoading(false);
+    }
+  };
+
+  const [groupIdInput, setGroupIdInput] = useState("");
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [membersResult, setMembersResult] = useState<unknown>(null);
+  const [membersError, setMembersError] = useState<string | null>(null);
+
+  const handleTestGetMembers = async () => {
+    setMembersLoading(true);
+    setMembersError(null);
+    setMembersResult(null);
+    try {
+      const data = await groupApi.getGroupMembers(groupIdInput.trim());
+      setMembersResult(data);
+    } catch (e) {
+      setMembersError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setMembersLoading(false);
+    }
+  };
+
   return (
     <div className="bg-system-navbg px-5 py-6 flex flex-col gap-8 overflow-y-auto overflow-x-hidden">
       <section className="flex flex-col gap-3">
@@ -233,6 +289,65 @@ export default function TestPage() {
         {logsResult !== null && (
           <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
             {JSON.stringify(logsResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>POST /api/groups (여행 방 생성)</ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={groupNameInput}
+            onChange={(e) => setGroupNameInput(e.target.value)}
+            placeholder="방 이름"
+          />
+          <Button variant="primary" onClick={handleTestCreateGroup} disabled={groupLoading}>
+            {groupLoading ? "요청 중..." : "방 생성 테스트"}
+          </Button>
+        </div>
+        {groupError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {groupError}
+          </pre>
+        )}
+        {groupResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(groupResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>GET /api/groups/me (내 방 목록)</ComponentLabel>
+        <Button variant="primary" onClick={handleTestGetMyGroups} disabled={myGroupsLoading}>
+          {myGroupsLoading ? "요청 중..." : "내 방 목록 조회 테스트"}
+        </Button>
+        {myGroupsError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {myGroupsError}
+          </pre>
+        )}
+        {myGroupsResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(myGroupsResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>GET /api/groups/{"{groupId}"}/members (위 방 생성 결과의 id 붙여넣기)</ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={groupIdInput}
+            onChange={(e) => setGroupIdInput(e.target.value)}
+            placeholder="groupId 붙여넣기"
+          />
+          <Button variant="primary" onClick={handleTestGetMembers} disabled={membersLoading}>
+            {membersLoading ? "요청 중..." : "참여자 조회 테스트"}
+          </Button>
+        </div>
+        {membersError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {membersError}
+          </pre>
+        )}
+        {membersResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(membersResult, null, 2)}
           </pre>
         )}
       </section>
