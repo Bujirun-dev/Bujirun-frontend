@@ -170,9 +170,11 @@ const API_TRAVEL_MODE_MAP: Record<string, TransportType> = {
 };
 
 // GET /api/itineraries/{id} 응답을 타임라인 UI가 쓰는 BaseStop[][] 구조로 변환한다.
+// dayIds는 stopsPerDay와 같은 인덱스로 대응하는 실제 dayId — 일차별 쓰기 API(PATCH/DELETE)에 필요.
 export function mapItineraryDetailToDays(detail: ItineraryDetailResponse): {
   days: BaseStop[][];
   dates: string[];
+  dayIds: string[];
 } {
   const sortedDays = [...(detail.days ?? [])].sort(
     (a, b) => (a.dayNumber ?? 0) - (b.dayNumber ?? 0),
@@ -228,7 +230,9 @@ export function mapItineraryDetailToDays(detail: ItineraryDetailResponse): {
     return `${year}.${month}.${dayNum}`;
   });
 
-  return { days, dates };
+  const dayIds = sortedDays.map((day) => day.id ?? "");
+
+  return { days, dates, dayIds };
 }
 
 export function rebuildTransport(stops: BaseStop[]): BaseStop[] {

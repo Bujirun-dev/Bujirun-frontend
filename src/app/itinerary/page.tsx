@@ -66,23 +66,33 @@ export default function ItineraryPage() {
     return <ItineraryEmptyState />;
   }
 
-  const { days, dates } = mapItineraryDetailToDays(detail);
+  const { days, dates, dayIds } = mapItineraryDetailToDays(detail);
 
   return (
     <Suspense fallback={null}>
-      <ItineraryMain tripTitle={detail.title ?? itineraries[0].title} initialDays={days} initialDates={dates} />
+      <ItineraryMain
+        itineraryId={itineraryId}
+        tripTitle={detail.title ?? itineraries[0].title}
+        initialDays={days}
+        initialDates={dates}
+        dayIds={dayIds}
+      />
     </Suspense>
   );
 }
 
 function ItineraryMain({
+  itineraryId,
   tripTitle,
   initialDays: initialDaysData,
   initialDates: initialDatesData,
+  dayIds,
 }: {
+  itineraryId: string;
   tripTitle?: string;
   initialDays: BaseStop[][];
   initialDates: string[];
+  dayIds: string[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -90,6 +100,7 @@ function ItineraryMain({
   const requestedDays = Math.max(1, Number(searchParams.get("days")) || initialDaysData.length);
   const initialDays = initialDaysData.slice(0, requestedDays);
   const initialDates = initialDatesData.slice(0, requestedDays);
+  const dayIdsSliced = dayIds.slice(0, requestedDays);
 
   const [currentDay, setCurrentDay] = useState(0);
   const [stopsPerDay, setStopsPerDay] = useState<BaseStop[][]>(initialDays);
@@ -151,6 +162,8 @@ function ItineraryMain({
   };
 
   const confirmDelete = () => {
+    const dayId = dayIdsSliced[activeDayIdx];
+    const stopId = activeStopId;
     setStopsPerDay((prev) => {
       const next = [...prev];
       next[activeDayIdx] = next[activeDayIdx].filter((s) => s.id !== activeStopId);
@@ -158,9 +171,16 @@ function ItineraryMain({
     });
     closeModal();
     setToastMessage("장소가 삭제되었어요.");
+    if (dayId && stopId) {
+      itineraryApi
+        .deleteItem(itineraryId, dayId, stopId)
+        .catch(() => setToastMessage("삭제 저장에 실패했어요."));
+    }
   };
   const confirmTime = () => {
     const timeStr = `${String(timeValue.hour).padStart(2, "0")}:${String(timeValue.minute).padStart(2, "0")}`;
+    const dayId = dayIdsSliced[activeDayIdx];
+    const stopId = activeStopId;
     setStopsPerDay((prev) => {
       const next = [...prev];
       const sorted = [...next[activeDayIdx]]
@@ -171,6 +191,11 @@ function ItineraryMain({
     });
     closeModal();
     setToastMessage("시간이 변경되었어요.");
+    if (dayId && stopId) {
+      itineraryApi
+        .updateItem(itineraryId, dayId, stopId, { arrivalTime: timeStr })
+        .catch(() => setToastMessage("시간 변경 저장에 실패했어요."));
+    }
   };
   const confirmTransport = (option: RouteOption) => {
     setSelectedRouteOptionId(option.id);
@@ -216,6 +241,7 @@ function ItineraryMain({
   };
 
   const replaceStop = (dayIdx: number, stopId: string, place: SearchPlace) => {
+    const existingTime = stopsPerDay[dayIdx]?.find((s) => s.id === stopId)?.time;
     setStopsPerDay((prev) => {
       const next = [...prev];
       next[dayIdx] = rebuildTransport(
@@ -234,6 +260,25 @@ function ItineraryMain({
       return next;
     });
     setToastMessage("관광지가 추가되었어요.");
+
+    // PATCH로는 spotId(장소 자체)를 바꿀 수 없어서, 기존 항목 삭제 후 새 장소로 다시 추가하는 방식으로 처리
+    const dayId = dayIdsSliced[dayIdx];
+    if (!dayId) return;
+    itineraryApi
+      .deleteItem(itineraryId, dayId, stopId)
+      .catch(() => {})
+      .then(() =>
+        itineraryApi.addItem(itineraryId, dayId, { spotId: place.id, arrivalTime: existingTime }),
+      )
+      .then((newItem) => {
+        if (!newItem?.id) return;
+        setStopsPerDay((prev) => {
+          const next = [...prev];
+          next[dayIdx] = next[dayIdx].map((s) => (s.id === stopId ? { ...s, id: newItem.id! } : s));
+          return next;
+        });
+      })
+      .catch(() => setToastMessage("장소 변경 저장에 실패했어요."));
   };
 
   const confirmTimeInline = (dayIdx: number, stopId: string, time: string) => {
@@ -246,6 +291,13 @@ function ItineraryMain({
       return next;
     });
     setToastMessage("시간이 변경되었어요.");
+
+    const dayId = dayIdsSliced[dayIdx];
+    if (dayId) {
+      itineraryApi
+        .updateItem(itineraryId, dayId, stopId, { arrivalTime: time })
+        .catch(() => setToastMessage("시간 변경 저장에 실패했어요."));
+    }
   };
 
   const allDayStops: ItineraryStop[][] = stopsPerDay.map((dayStops, dayIdx) =>
