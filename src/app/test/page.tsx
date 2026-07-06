@@ -30,7 +30,7 @@ import {
   PlaceSearchItem,
 } from "@/features/itinerary";
 import { HomeItineraryItem, DogamProgressBar } from "@/features/home";
-import { itineraryApi, spotApi } from "@/shared/api/domains";
+import { itineraryApi, spotApi, travelLogApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 
 const IMG = "https://picsum.photos/400/300";
@@ -91,6 +91,25 @@ export default function TestPage() {
     }
   };
 
+  const [itineraryIdInput, setItineraryIdInput] = useState("");
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailResult, setDetailResult] = useState<unknown>(null);
+  const [detailError, setDetailError] = useState<string | null>(null);
+
+  const handleTestGetItinerary = async () => {
+    setDetailLoading(true);
+    setDetailError(null);
+    setDetailResult(null);
+    try {
+      const data = await itineraryApi.getItinerary(itineraryIdInput.trim());
+      setDetailResult(data);
+    } catch (e) {
+      setDetailError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
   const [searchKeyword, setSearchKeyword] = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchResult, setSearchResult] = useState<unknown>(null);
@@ -107,6 +126,24 @@ export default function TestPage() {
       setSearchError(e instanceof Error ? e.message : String(e));
     } finally {
       setSearchLoading(false);
+    }
+  };
+
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsResult, setLogsResult] = useState<unknown>(null);
+  const [logsError, setLogsError] = useState<string | null>(null);
+
+  const handleTestGetPublicLogs = async () => {
+    setLogsLoading(true);
+    setLogsError(null);
+    setLogsResult(null);
+    try {
+      const data = await travelLogApi.getPublicLogs();
+      setLogsResult(data);
+    } catch (e) {
+      setLogsError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLogsLoading(false);
     }
   };
 
@@ -140,6 +177,28 @@ export default function TestPage() {
           </pre>
         )}
 
+        <ComponentLabel>GET /api/itineraries/{"{id}"} (위 목록 결과의 id 붙여넣기)</ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={itineraryIdInput}
+            onChange={(e) => setItineraryIdInput(e.target.value)}
+            placeholder="itinerary id 붙여넣기"
+          />
+          <Button variant="primary" onClick={handleTestGetItinerary} disabled={detailLoading}>
+            {detailLoading ? "요청 중..." : "일정 상세 조회 테스트"}
+          </Button>
+        </div>
+        {detailError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {detailError}
+          </pre>
+        )}
+        {detailResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(detailResult, null, 2)}
+          </pre>
+        )}
+
         <ComponentLabel>GET /api/spots/search</ComponentLabel>
         <div className="flex gap-2">
           <TextInput
@@ -159,6 +218,21 @@ export default function TestPage() {
         {searchResult !== null && (
           <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
             {JSON.stringify(searchResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>GET /api/logs/public</ComponentLabel>
+        <Button variant="primary" onClick={handleTestGetPublicLogs} disabled={logsLoading}>
+          {logsLoading ? "요청 중..." : "로그 둘러보기 테스트"}
+        </Button>
+        {logsError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {logsError}
+          </pre>
+        )}
+        {logsResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(logsResult, null, 2)}
           </pre>
         )}
       </section>

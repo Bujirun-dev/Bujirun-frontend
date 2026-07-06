@@ -2,12 +2,14 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import AngleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?svgr";
 import { PageCard, FilterChips } from "@/components";
 import { LogCard } from "@/features/itinerary";
-import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";
+import { travelLogApi } from "@/shared/api/domains";
+import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
 
-// TODO: API 연결 시 제거 — 실제 페이지당 아이템 수는 백엔드와 협의
+// 서버가 한 번에 전체 목록을 내려주므로(페이지네이션 파라미터 없음), 화면 노출 개수만 클라이언트에서 조절
 const PAGE_SIZE = 5;
 
 const CATEGORIES = ["전체", "바다", "자연", "문화", "체험"] as const;
@@ -22,13 +24,26 @@ export default function LogsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const allFiltered = SAMPLE_LOGS.filter(
-    (log) => selectedCategory === "전체" || log.category === selectedCategory,
-  ).sort((a, b) =>
-    sortBy === "인기순"
-      ? b.downloadCount - a.downloadCount
-      : b.createdAt.localeCompare(a.createdAt),
-  );
+  const logQuery = {
+    category: selectedCategory === "전체" ? undefined : selectedCategory,
+    sort: sortBy === "인기순" ? "popular" : "latest",
+  };
+
+  const { data: publicLogs, isLoading: isFetchingLogs } = useQuery({
+    queryKey: travelLogApi.keys.public(logQuery),
+    queryFn: () => travelLogApi.getPublicLogs(logQuery),
+  });
+
+  const allFiltered = (publicLogs ?? []).map((log) => ({
+    id: log.id ?? "",
+    imageUrl: log.thumbnailPhotoUrl || FALLBACK_IMAGE,
+    placeName: log.title ?? "제목 없음",
+    extraCount: Math.max(0, (log.totalSpots ?? 1) - 1),
+    author: log.authorNickname ?? "익명",
+    duration: "",
+    date: (log.startDate ?? "").replaceAll("-", "."),
+    downloadCount: log.addedCount ?? 0,
+  }));
 
   const hasMore = page * PAGE_SIZE < allFiltered.length;
   const visibleLogs = allFiltered.slice(0, page * PAGE_SIZE);
@@ -104,7 +119,11 @@ export default function LogsPage() {
 
       {/* 로그 목록 */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-7">
-        {visibleLogs.length === 0 ? (
+        {isFetchingLogs ? (
+          <div className="flex flex-1 items-center justify-center text-sub-gray text-sm pt-20">
+            불러오는 중...
+          </div>
+        ) : visibleLogs.length === 0 ? (
           <div className="flex flex-1 items-center justify-center text-sub-gray text-sm pt-20">
             해당 카테고리의 로그가 없습니다.
           </div>
