@@ -1,7 +1,9 @@
+// 마이페이지 프로필 카드 - 활동 지표 (방문 관광지 / 완료 일정 / 여행 로그)
+// visits / itineraries / travel_logs 테이블 카운트 기준
 interface ProfileStatsProps {
-  visitedCount: number; // visits 테이블 기준
-  completedItineraryCount: number; // itineraries 완료 상태 기준
-  travelLogCount: number; // travel_logs 테이블 기준
+  visitedCount: number;
+  completedItineraryCount: number;
+  travelLogCount: number;
 }
 
 export function ProfileStats({

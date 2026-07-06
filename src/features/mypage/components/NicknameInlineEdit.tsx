@@ -15,9 +15,6 @@ interface NicknameInlineEditProps {
 const TAKEN_NICKNAMES = ["유리", "성빈", "은진"];
 const MAX_NICKNAME_LENGTH = 6;
 
-// 뷰 모드 닉네임 텍스트 최소 너비 - 3~6자 어떤 길이든 연필 버튼 위치가 고정되도록
-const NICKNAME_MIN_WIDTH = 100;
-
 export function NicknameInlineEdit({ nickname, onConfirm }: NicknameInlineEditProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState("");
@@ -53,7 +50,7 @@ export function NicknameInlineEdit({ nickname, onConfirm }: NicknameInlineEditPr
     if (e.key === "Escape") closeEdit();
   };
 
-  // 한글 IME 조합 특성상 maxLength만으로는 6자 제한이 안 먹힐 때가 있어 직접 슬라이싱
+  // 한글 IME 조합 특성상 maxLength만으로는 6자 제한이 우회될 수 있어 직접 슬라이싱
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const nextValue = e.target.value;
     setValue(
@@ -62,14 +59,12 @@ export function NicknameInlineEdit({ nickname, onConfirm }: NicknameInlineEditPr
   };
 
   return (
-    <div className="inline-flex flex-col items-start gap-1">
+    // items-center: 뷰/편집 모드 모두 카드 중앙 기준으로 정렬
+    <div className="inline-flex flex-col items-center gap-1">
       {!isEditing ? (
-        <div className="flex items-center gap-1.5 border-b border-transparent">
-          {/* min-width 고정: 닉네임이 3자든 6자든 연필 버튼 위치가 흔들리지 않도록 */}
-          <span
-            className="text-lg font-bold text-text-heading leading-none py-0.5"
-            style={{ minWidth: NICKNAME_MIN_WIDTH }}
-          >
+        // 뷰 모드 - 닉네임+버튼 묶음이 내용물 크기만큼만 차지 → 부모 중앙 정렬이 그대로 적용됨
+        <div className="flex items-center gap-1.5">
+          <span className="text-lg font-bold text-text-heading leading-none py-0.5">
             {nickname}
           </span>
           <button
@@ -82,6 +77,7 @@ export function NicknameInlineEdit({ nickname, onConfirm }: NicknameInlineEditPr
           </button>
         </div>
       ) : (
+        // 편집 모드 - 입력창 활성화 시에만 밑줄 표시 (중복이면 코랄색)
         <div
           className={cn(
             "flex items-center gap-1.5 border-b",
@@ -120,8 +116,8 @@ export function NicknameInlineEdit({ nickname, onConfirm }: NicknameInlineEditPr
         </div>
       )}
 
-      {/* 경고문 자리를 항상 확보 - isTaken일 때만 보이게 하되 레이아웃 높이는 고정 */}
-      <div className={cn("flex w-full items-center gap-1 text-left", !isTaken && "invisible")}>
+      {/* 중복 안내 - 표시 여부와 무관하게 자리는 항상 확보 (레이아웃 흔들림 방지) */}
+      <div className={cn("flex items-center gap-1", !isTaken && "invisible")}>
         <XCircle size={12} className="text-sub-coral shrink-0" />
         <span className="text-2xs font-semibold text-sub-coral">이미 사용중인 닉네임이에요.</span>
       </div>
