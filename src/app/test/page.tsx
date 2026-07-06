@@ -30,7 +30,7 @@ import {
   PlaceSearchItem,
 } from "@/features/itinerary";
 import { HomeItineraryItem, DogamProgressBar } from "@/features/home";
-import { itineraryApi } from "@/shared/api/domains";
+import { itineraryApi, spotApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 
 const IMG = "https://picsum.photos/400/300";
@@ -91,6 +91,25 @@ export default function TestPage() {
     }
   };
 
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchResult, setSearchResult] = useState<unknown>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
+
+  const handleTestSearchSpots = async () => {
+    setSearchLoading(true);
+    setSearchError(null);
+    setSearchResult(null);
+    try {
+      const data = await spotApi.searchSpots({ keyword: searchKeyword || undefined });
+      setSearchResult(data);
+    } catch (e) {
+      setSearchError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
   return (
     <div className="bg-system-navbg px-5 py-6 flex flex-col gap-8 overflow-y-auto overflow-x-hidden">
       <section className="flex flex-col gap-3">
@@ -118,6 +137,28 @@ export default function TestPage() {
         {apiResult !== null && (
           <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
             {JSON.stringify(apiResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>GET /api/spots/search</ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
+            placeholder="검색어 (비워두면 전체 조회)"
+          />
+          <Button variant="primary" onClick={handleTestSearchSpots} disabled={searchLoading}>
+            {searchLoading ? "요청 중..." : "관광지 검색 테스트"}
+          </Button>
+        </div>
+        {searchError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {searchError}
+          </pre>
+        )}
+        {searchResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(searchResult, null, 2)}
           </pre>
         )}
       </section>
