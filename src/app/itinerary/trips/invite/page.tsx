@@ -41,7 +41,6 @@ function TripInviteContent() {
   }, [days, joinedCount, totalSlots, router]);
 
   const handleInvite = async () => {
-    // 초대 코드를 받는 페이지(/join/{code})는 아직 없어서, 만들어지면 이 경로에 맞춰야 함
     const inviteUrl = `${window.location.origin}/join/${inviteCode}`;
     await navigator.clipboard.writeText(inviteUrl);
     setCopied(true);
