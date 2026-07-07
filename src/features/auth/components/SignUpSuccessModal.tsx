@@ -17,7 +17,7 @@ export function SignUpSuccessModal({ isOpen, onClose }: SignUpSuccessModalProps)
   const router = useRouter();
 
   const handleStart = () => {
-    // API 여농
+    // 회원가입 완료 → 홈으로 이동 (accessToken은 콜백에서 이미 저장됨)
     onClose();
     router.push("/");
   };
