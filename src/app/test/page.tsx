@@ -29,7 +29,6 @@ import {
   InviteCard,
   PlaceSearchItem,
 } from "@/features/itinerary";
-import { HomeItineraryItem, DogamProgressBar } from "@/features/home";
 
 const IMG = "https://picsum.photos/400/300";
 const IMG2 = "https://picsum.photos/401/300";
@@ -226,28 +225,6 @@ export default function TestPage() {
 
       {/* ════════════════════════════════ 홈 탭 ════════════════════════════════ */}
       <SectionTitle>홈 탭</SectionTitle>
-
-      <div className="flex flex-col gap-2">
-        <ComponentLabel>DogamProgressBar</ComponentLabel>
-        <DogamProgressBar collectedCount={24} totalCount={34} />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <ComponentLabel>HomeItineraryItem</ComponentLabel>
-        <div className="flex flex-col">
-          <HomeItineraryItem
-            placeName="송도 해수욕장"
-            status="completed"
-            transport={{ type: "버스", routeName: "2012", durationMin: 20, nextStop: "5분 후" }}
-          />
-          <HomeItineraryItem
-            placeName="영도 해안선"
-            status="verify"
-            transport={{ type: "버스", routeName: "2012", durationMin: 20, nextStop: "5분 후" }}
-          />
-          <HomeItineraryItem placeName="광안대교" status="pending" isLast />
-        </div>
-      </div>
 
       {/* ════════════════════════════════ 일정 탭 ════════════════════════════════ */}
       <SectionTitle>일정 탭</SectionTitle>
