@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import turtleIcon from "@/assets/icons/collection/turtle.png";
 import { Card, SpeechBubble } from "@/components";
 import { FilterChips } from "@/components/ui/FilterChips";
-import { PLACES } from "@/features/collection/data/places";
+import { useCollectionProgress } from "@/shared/hooks/useCollectionProgress";
 
 export default function CollectionPage() {
   const router = useRouter();
@@ -20,9 +20,7 @@ export default function CollectionPage() {
     router.push("/collection/records");
   };
 
-  const collectedPlaces = PLACES.filter((place) => place.isCollected);
-  const totalCollectionCount = PLACES.length;
-  const collectedCollectionCount = collectedPlaces.length;
+  const { total: totalCollectionCount, count: collectedCollectionCount } = useCollectionProgress();
 
   // 수집률
   const collectionProgress = Math.round((collectedCollectionCount / totalCollectionCount) * 100);
