@@ -23,7 +23,10 @@ export default function CollectionPage() {
   const { total: totalCollectionCount, count: collectedCollectionCount } = useCollectionProgress();
 
   // 수집률
-  const collectionProgress = Math.round((collectedCollectionCount / totalCollectionCount) * 100);
+  const collectionProgress =
+    totalCollectionCount === 0
+      ? 0
+      : Math.round((collectedCollectionCount / totalCollectionCount) * 100);
 
   // 말풍선 꼬리 위치 계산 (범위 제한)
   const TAIL_MIN = 16;
