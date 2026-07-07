@@ -17,8 +17,7 @@ export function SignUpSuccessModal({ isOpen, onClose }: SignUpSuccessModalProps)
   const router = useRouter();
 
   const handleStart = () => {
-    // TODO: API 연결 시 실제 토큰으로 교체
-    localStorage.setItem("accessToken", "dummy_token");
+    // 회원가입 완료 → 홈으로 이동 (accessToken은 콜백에서 이미 저장됨)
     onClose();
     router.push("/");
   };
