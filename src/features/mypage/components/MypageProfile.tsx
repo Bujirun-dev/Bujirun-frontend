@@ -1,41 +1,40 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
-import { cn } from "@/shared/utils";
+import { useState, useCallback } from "react";
 import Image from "next/image";
-import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
-import { ProfileImageSelectModal, NicknameEditModal } from "@/features/mypage/components";
+import { ProfileImageSelectModal } from "./ProfileImageSelectModal";
+import { NicknameInlineEdit } from "./NicknameInlineEdit";
+import { ProfileStats } from "./ProfileStats";
 import { PROFILE_IMAGES } from "@/components/profile/profileImages";
 import { Toast } from "@/components/ui/Toast";
 import { Card } from "@/components/ui/Card";
 import { CategoryChip } from "@/components/ui/CategoryChip";
 import type { Category } from "@/components/ui/CategoryChip";
 import SuccessIcon from "@/assets/icons/mypage/success.svg?svgr";
+import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
 
-// TODO: API 연결 시 useQuery로 교체
+// TODO: API 연결 시 useQuery로 교체 (visits, itineraries, travel_logs 카운트 조회)
 const MOCK_USER = {
   nickname: "은지미",
   profileImageId: 1,
   tags: ["sea", "culture"] as Category[],
-  collectedCount: 24,
-  totalCount: 34,
+  visitedCount: 12,
+  completedItineraryCount: 5,
+  travelLogCount: 8,
 };
 
+const AVATAR_SIZE = 100;
+
 export function MypageProfile() {
-  const { tags, collectedCount, totalCount } = MOCK_USER;
+  const { tags, visitedCount, completedItineraryCount, travelLogCount } = MOCK_USER;
 
   const [nickname, setNickname] = useState(MOCK_USER.nickname);
   const [currentImageId, setCurrentImageId] = useState(MOCK_USER.profileImageId);
   const [isProfileImageModalOpen, setIsProfileImageModalOpen] = useState(false);
-  const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  // 닉네임 span 기준으로 모달 위치 잡기
-  const nicknameRef = useRef<HTMLSpanElement>(null);
-
   const currentImage = PROFILE_IMAGES.find((img) => img.id === currentImageId) ?? PROFILE_IMAGES[0];
-  const progressPercent = Math.round((collectedCount / totalCount) * 100);
 
   const showToast = useCallback((message: string) => {
     setToastMessage(message);
@@ -46,86 +45,58 @@ export function MypageProfile() {
 
   return (
     <>
-      {/* 프로필 카드 */}
-      <Card variant="white" className="w-full p-[20px]">
-        <div className="flex items-center gap-4">
+      <Card variant="white" className="w-full pt-[24px] pb-[24px]">
+        <div className="flex flex-col items-center gap-5">
           {/* 프로필 사진 */}
-          <div className="relative shrink-0">
+          <div
+            style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
+            className="relative shrink-0 rounded-full"
+          >
+            <div
+              style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
+              className="overflow-hidden rounded-full bg-system-navbg"
+            >
+              <Image
+                src={currentImage.src}
+                alt={`${nickname} 프로필 이미지`}
+                width={AVATAR_SIZE}
+                height={AVATAR_SIZE}
+                className="h-full w-full object-cover"
+              />
+            </div>
             <button
               type="button"
               aria-label="프로필 사진 변경"
               onClick={() => setIsProfileImageModalOpen(true)}
-              className="relative h-[86px] w-[86px] transition-opacity active:opacity-70"
+              className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-lg bg-system-navbg transition-opacity active:opacity-60"
             >
-              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-system-navbg">
-                <Image
-                  src={currentImage.src}
-                  alt={`${nickname} 프로필 이미지`}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            </button>
-            {/* 연필 아이콘 */}
-            <div className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-lg bg-system-navbg pointer-events-none">
               <Image src={pencilIcon} alt="사진 변경" width={10} height={10} />
-            </div>
+            </button>
           </div>
 
-          <div className="flex flex-1 flex-col gap-2">
-            {/* 닉네임 + 편집 버튼 */}
-            <div className="flex items-center gap-1.5">
-              <span
-                ref={nicknameRef}
-                className={cn(
-                  "relative z-50 text-lg font-bold",
-                  isNicknameModalOpen ? "text-white" : "text-text-heading",
-                )}
-              >
-                {nickname}
-              </span>
-              <button
-                type="button"
-                aria-label="닉네임 편집"
-                onClick={() => setIsNicknameModalOpen(true)}
-                className="flex h-5 w-5 items-center justify-center rounded-lg bg-system-navbg transition-opacity active:opacity-60"
-              >
-                <Image src={pencilIcon} alt="닉네임 편집" width={10} height={10} />
-              </button>
-            </div>
-            {/* 태그 칩 */}
-            <div className="flex flex-wrap gap-1.5 ">
-              {tags.map((tag) => (
-                <CategoryChip key={tag} category={tag} />
-              ))}
-            </div>
-            {/* 도감 진행 바 */}
-            <div className="flex flex-col gap-1 mt-2">
-              {/* 바 + 이모지 */}
-              <div className="relative h-3 w-full rounded-full bg-system-navbg overflow-visible">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-sub-deepblue to-main-blue transition-all duration-500"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-              {/* 수치 */}
-              <div className="flex justify-between items-center mt-1">
-                <span className="text-2xs text-sub-gray">
-                  현재 <span className="font-bold text-sub-deepblue">{progressPercent}%</span>{" "}
-                  수집했어요!
-                </span>
-                <span className="text-2xs text-sub-darkgray">
-                  <span className="font-bold text-sub-deepblue">{collectedCount}</span>
-                  {" / "}
-                  {totalCount}
-                </span>
-              </div>
-            </div>
+          <NicknameInlineEdit
+            nickname={nickname}
+            onConfirm={(newNickname) => {
+              setNickname(newNickname);
+              showToast("닉네임이 변경되었어요");
+            }}
+          />
+
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {tags.map((tag) => (
+              <CategoryChip key={tag} category={tag} />
+            ))}
           </div>
+
+          {/* 활동 지표 - visits/itineraries/travel_logs 테이블 기준 */}
+          <ProfileStats
+            visitedCount={visitedCount}
+            completedItineraryCount={completedItineraryCount}
+            travelLogCount={travelLogCount}
+          />
         </div>
       </Card>
 
-      {/* 프로필 수정 */}
       <ProfileImageSelectModal
         isOpen={isProfileImageModalOpen}
         onClose={() => setIsProfileImageModalOpen(false)}
@@ -134,23 +105,9 @@ export function MypageProfile() {
         onConfirm={(id) => {
           setCurrentImageId(id);
           showToast("프로필 사진이 변경되었어요");
-          // TODO: API 연결 시 mutation으로 서버에 반영
-        }}
-      />
-      {/* 닉네임 수정 */}
-      <NicknameEditModal
-        key={isNicknameModalOpen ? "open" : "closed"}
-        isOpen={isNicknameModalOpen}
-        onClose={() => setIsNicknameModalOpen(false)}
-        currentNickname={nickname}
-        anchorRef={nicknameRef}
-        onConfirm={(newNickname) => {
-          setNickname(newNickname);
-          showToast("닉네임이 변경되었어요");
         }}
       />
 
-      {/* 토스트 */}
       <Toast
         isVisible={toastVisible}
         message={toastMessage}

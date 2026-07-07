@@ -2,17 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bookmark } from "lucide-react";
-import logoutDarkIcon from "@/assets/icons/mypage/logout-dark.png";
-import leaveDarkIcon from "@/assets/icons/mypage/leave-dark.png";
+import { Bookmark, FileText, LogOut } from "lucide-react";
 import { MenuItem } from "./MenuItem";
+import { PrivacyPolicyModal } from "./PrivacyPolicyModal";
 import { LogoutModal } from "./LogoutModal";
-import { WithdrawModal } from "./WithdrawModal";
 
 export function MypageMenuList() {
   const router = useRouter();
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
-  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 
   const handleBookmark = () => {
     router.push("/mypage/bookmarks");
@@ -33,32 +31,23 @@ export function MypageMenuList() {
     }
   };
 
-  const handleWithdraw = () => {
-    // TODO: 회원탈퇴 API 연결
-    setIsWithdrawOpen(false);
-    router.replace("/login");
-  };
   return (
     <>
       <div className="flex flex-col gap-[9px]">
         <MenuItem icon={Bookmark} label="북마크 목록" onClick={handleBookmark} />
-        <MenuItem iconSrc={logoutDarkIcon} label="로그아웃" onClick={() => setIsLogoutOpen(true)} />
         <MenuItem
-          iconSrc={leaveDarkIcon}
-          label="회원 탈퇴"
-          onClick={() => setIsWithdrawOpen(true)}
+          icon={FileText}
+          label="약관 및 개인정보 활용"
+          onClick={() => setIsPrivacyOpen(true)}
         />
+        <MenuItem icon={LogOut} label="로그아웃" onClick={() => setIsLogoutOpen(true)} />
       </div>
 
+      <PrivacyPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
       <LogoutModal
         isOpen={isLogoutOpen}
         onClose={() => setIsLogoutOpen(false)}
         onConfirm={handleLogout}
-      />
-      <WithdrawModal
-        isOpen={isWithdrawOpen}
-        onClose={() => setIsWithdrawOpen(false)}
-        onConfirm={handleWithdraw}
       />
     </>
   );
