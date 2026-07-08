@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { isAxiosError } from "axios";
 import Image from "next/image";
 import removeWhiteIcon from "@/assets/icons/itinerary/remove-white.png";
 import {
@@ -36,6 +37,13 @@ import { useAuthStore } from "@/shared/stores/useAuthStore";
 const IMG = "https://picsum.photos/400/300";
 const IMG2 = "https://picsum.photos/401/300";
 const MOCK_FRIENDS = [{ imageUrl: IMG }, { imageUrl: IMG2 }, { imageUrl: IMG }, { imageUrl: IMG2 }];
+
+function formatApiError(e: unknown): string {
+  if (isAxiosError(e)) {
+    return `[${e.response?.status ?? "?"}] ${JSON.stringify(e.response?.data ?? e.message, null, 2)}`;
+  }
+  return e instanceof Error ? e.message : String(e);
+}
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -85,7 +93,7 @@ export default function TestPage() {
       const data = await itineraryApi.getItineraries();
       setApiResult(data);
     } catch (e) {
-      setApiError(e instanceof Error ? e.message : String(e));
+      setApiError(formatApiError(e));
     } finally {
       setApiLoading(false);
     }
@@ -104,9 +112,231 @@ export default function TestPage() {
       const data = await itineraryApi.getItinerary(itineraryIdInput.trim());
       setDetailResult(data);
     } catch (e) {
-      setDetailError(e instanceof Error ? e.message : String(e));
+      setDetailError(formatApiError(e));
     } finally {
       setDetailLoading(false);
+    }
+  };
+
+  const [createTitleInput, setCreateTitleInput] = useState("");
+  const [createStartAtInput, setCreateStartAtInput] = useState("");
+  const [createEndAtInput, setCreateEndAtInput] = useState("");
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createResult, setCreateResult] = useState<unknown>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  const handleTestCreateItinerary = async () => {
+    setCreateLoading(true);
+    setCreateError(null);
+    setCreateResult(null);
+    try {
+      const data = await itineraryApi.createItinerary({
+        title: createTitleInput || undefined,
+        startAt: createStartAtInput || undefined,
+        endAt: createEndAtInput || undefined,
+      });
+      setCreateResult(data);
+    } catch (e) {
+      setCreateError(formatApiError(e));
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const [generateSpotIdInput, setGenerateSpotIdInput] = useState("");
+  const [generateStartDateInput, setGenerateStartDateInput] = useState("");
+  const [generateEndDateInput, setGenerateEndDateInput] = useState("");
+  const [generateLoading, setGenerateLoading] = useState(false);
+  const [generateResult, setGenerateResult] = useState<unknown>(null);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+
+  const handleTestGenerateItinerary = async () => {
+    setGenerateLoading(true);
+    setGenerateError(null);
+    setGenerateResult(null);
+    try {
+      const data = await itineraryApi.generateItinerary({
+        swipes: generateSpotIdInput
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean)
+          .map((contentId) => ({ contentId, liked: true })),
+        startDate: generateStartDateInput,
+        endDate: generateEndDateInput,
+      });
+      setGenerateResult(data);
+    } catch (e) {
+      setGenerateError(formatApiError(e));
+    } finally {
+      setGenerateLoading(false);
+    }
+  };
+
+  const [updateItineraryIdInput, setUpdateItineraryIdInput] = useState("");
+  const [updateTitleInput, setUpdateTitleInput] = useState("");
+  const [updateStatusInput, setUpdateStatusInput] = useState("");
+  const [updateItineraryLoading, setUpdateItineraryLoading] = useState(false);
+  const [updateItineraryResult, setUpdateItineraryResult] = useState<unknown>(null);
+  const [updateItineraryError, setUpdateItineraryError] = useState<string | null>(null);
+
+  const handleTestUpdateItinerary = async () => {
+    setUpdateItineraryLoading(true);
+    setUpdateItineraryError(null);
+    setUpdateItineraryResult(null);
+    try {
+      const data = await itineraryApi.updateItinerary(updateItineraryIdInput.trim(), {
+        title: updateTitleInput || undefined,
+        status: updateStatusInput || undefined,
+      });
+      setUpdateItineraryResult(data);
+    } catch (e) {
+      setUpdateItineraryError(formatApiError(e));
+    } finally {
+      setUpdateItineraryLoading(false);
+    }
+  };
+
+  const [deleteItineraryIdInput, setDeleteItineraryIdInput] = useState("");
+  const [deleteItineraryLoading, setDeleteItineraryLoading] = useState(false);
+  const [deleteItineraryResult, setDeleteItineraryResult] = useState<unknown>(null);
+  const [deleteItineraryError, setDeleteItineraryError] = useState<string | null>(null);
+
+  const handleTestDeleteItinerary = async () => {
+    setDeleteItineraryLoading(true);
+    setDeleteItineraryError(null);
+    setDeleteItineraryResult(null);
+    try {
+      await itineraryApi.deleteItinerary(deleteItineraryIdInput.trim());
+      setDeleteItineraryResult("삭제 완료");
+    } catch (e) {
+      setDeleteItineraryError(formatApiError(e));
+    } finally {
+      setDeleteItineraryLoading(false);
+    }
+  };
+
+  const [addDayItineraryIdInput, setAddDayItineraryIdInput] = useState("");
+  const [addDayNumberInput, setAddDayNumberInput] = useState("");
+  const [addDayDateInput, setAddDayDateInput] = useState("");
+  const [addDayLoading, setAddDayLoading] = useState(false);
+  const [addDayResult, setAddDayResult] = useState<unknown>(null);
+  const [addDayError, setAddDayError] = useState<string | null>(null);
+
+  const handleTestAddDay = async () => {
+    setAddDayLoading(true);
+    setAddDayError(null);
+    setAddDayResult(null);
+    try {
+      const data = await itineraryApi.addDay(addDayItineraryIdInput.trim(), {
+        dayNumber: Number(addDayNumberInput) || 1,
+        date: addDayDateInput || undefined,
+      });
+      setAddDayResult(data);
+    } catch (e) {
+      setAddDayError(formatApiError(e));
+    } finally {
+      setAddDayLoading(false);
+    }
+  };
+
+  const [deleteDayItineraryIdInput, setDeleteDayItineraryIdInput] = useState("");
+  const [deleteDayIdInput, setDeleteDayIdInput] = useState("");
+  const [deleteDayLoading, setDeleteDayLoading] = useState(false);
+  const [deleteDayResult, setDeleteDayResult] = useState<unknown>(null);
+  const [deleteDayError, setDeleteDayError] = useState<string | null>(null);
+
+  const handleTestDeleteDay = async () => {
+    setDeleteDayLoading(true);
+    setDeleteDayError(null);
+    setDeleteDayResult(null);
+    try {
+      await itineraryApi.deleteDay(deleteDayItineraryIdInput.trim(), deleteDayIdInput.trim());
+      setDeleteDayResult("삭제 완료");
+    } catch (e) {
+      setDeleteDayError(formatApiError(e));
+    } finally {
+      setDeleteDayLoading(false);
+    }
+  };
+
+  const [addItemItineraryIdInput, setAddItemItineraryIdInput] = useState("");
+  const [addItemDayIdInput, setAddItemDayIdInput] = useState("");
+  const [addItemSpotIdInput, setAddItemSpotIdInput] = useState("");
+  const [addItemArrivalTimeInput, setAddItemArrivalTimeInput] = useState("");
+  const [addItemLoading, setAddItemLoading] = useState(false);
+  const [addItemResult, setAddItemResult] = useState<unknown>(null);
+  const [addItemError, setAddItemError] = useState<string | null>(null);
+
+  const handleTestAddItem = async () => {
+    setAddItemLoading(true);
+    setAddItemError(null);
+    setAddItemResult(null);
+    try {
+      const data = await itineraryApi.addItem(
+        addItemItineraryIdInput.trim(),
+        addItemDayIdInput.trim(),
+        {
+          spotId: addItemSpotIdInput.trim(),
+          arrivalTime: addItemArrivalTimeInput || undefined,
+        },
+      );
+      setAddItemResult(data);
+    } catch (e) {
+      setAddItemError(formatApiError(e));
+    } finally {
+      setAddItemLoading(false);
+    }
+  };
+
+  const [updateItemItineraryIdInput, setUpdateItemItineraryIdInput] = useState("");
+  const [updateItemDayIdInput, setUpdateItemDayIdInput] = useState("");
+  const [updateItemItemIdInput, setUpdateItemItemIdInput] = useState("");
+  const [updateItemArrivalTimeInput, setUpdateItemArrivalTimeInput] = useState("");
+  const [updateItemLoading, setUpdateItemLoading] = useState(false);
+  const [updateItemResult, setUpdateItemResult] = useState<unknown>(null);
+  const [updateItemError, setUpdateItemError] = useState<string | null>(null);
+
+  const handleTestUpdateItem = async () => {
+    setUpdateItemLoading(true);
+    setUpdateItemError(null);
+    setUpdateItemResult(null);
+    try {
+      const data = await itineraryApi.updateItem(
+        updateItemItineraryIdInput.trim(),
+        updateItemDayIdInput.trim(),
+        updateItemItemIdInput.trim(),
+        { arrivalTime: updateItemArrivalTimeInput || undefined },
+      );
+      setUpdateItemResult(data);
+    } catch (e) {
+      setUpdateItemError(formatApiError(e));
+    } finally {
+      setUpdateItemLoading(false);
+    }
+  };
+
+  const [deleteItemItineraryIdInput, setDeleteItemItineraryIdInput] = useState("");
+  const [deleteItemDayIdInput, setDeleteItemDayIdInput] = useState("");
+  const [deleteItemItemIdInput, setDeleteItemItemIdInput] = useState("");
+  const [deleteItemLoading, setDeleteItemLoading] = useState(false);
+  const [deleteItemResult, setDeleteItemResult] = useState<unknown>(null);
+  const [deleteItemError, setDeleteItemError] = useState<string | null>(null);
+
+  const handleTestDeleteItem = async () => {
+    setDeleteItemLoading(true);
+    setDeleteItemError(null);
+    setDeleteItemResult(null);
+    try {
+      await itineraryApi.deleteItem(
+        deleteItemItineraryIdInput.trim(),
+        deleteItemDayIdInput.trim(),
+        deleteItemItemIdInput.trim(),
+      );
+      setDeleteItemResult("삭제 완료");
+    } catch (e) {
+      setDeleteItemError(formatApiError(e));
+    } finally {
+      setDeleteItemLoading(false);
     }
   };
 
@@ -123,7 +353,7 @@ export default function TestPage() {
       const data = await spotApi.searchSpots({ keyword: searchKeyword || undefined });
       setSearchResult(data);
     } catch (e) {
-      setSearchError(e instanceof Error ? e.message : String(e));
+      setSearchError(formatApiError(e));
     } finally {
       setSearchLoading(false);
     }
@@ -141,7 +371,7 @@ export default function TestPage() {
       const data = await travelLogApi.getPublicLogs();
       setLogsResult(data);
     } catch (e) {
-      setLogsError(e instanceof Error ? e.message : String(e));
+      setLogsError(formatApiError(e));
     } finally {
       setLogsLoading(false);
     }
@@ -160,7 +390,7 @@ export default function TestPage() {
       const data = await groupApi.createGroup({ name: groupNameInput || "테스트 방" });
       setGroupResult(data);
     } catch (e) {
-      setGroupError(e instanceof Error ? e.message : String(e));
+      setGroupError(formatApiError(e));
     } finally {
       setGroupLoading(false);
     }
@@ -178,7 +408,7 @@ export default function TestPage() {
       const data = await groupApi.getMyGroups();
       setMyGroupsResult(data);
     } catch (e) {
-      setMyGroupsError(e instanceof Error ? e.message : String(e));
+      setMyGroupsError(formatApiError(e));
     } finally {
       setMyGroupsLoading(false);
     }
@@ -197,7 +427,7 @@ export default function TestPage() {
       const data = await groupApi.getGroupMembers(groupIdInput.trim());
       setMembersResult(data);
     } catch (e) {
-      setMembersError(e instanceof Error ? e.message : String(e));
+      setMembersError(formatApiError(e));
     } finally {
       setMembersLoading(false);
     }
@@ -252,6 +482,319 @@ export default function TestPage() {
         {detailResult !== null && (
           <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
             {JSON.stringify(detailResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>POST /api/itineraries (여행 생성)</ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={createTitleInput}
+            onChange={(e) => setCreateTitleInput(e.target.value)}
+            placeholder="제목"
+          />
+          <TextInput
+            value={createStartAtInput}
+            onChange={(e) => setCreateStartAtInput(e.target.value)}
+            placeholder="시작일 YYYY-MM-DD"
+          />
+          <TextInput
+            value={createEndAtInput}
+            onChange={(e) => setCreateEndAtInput(e.target.value)}
+            placeholder="종료일 YYYY-MM-DD"
+          />
+        </div>
+        <Button variant="primary" onClick={handleTestCreateItinerary} disabled={createLoading}>
+          {createLoading ? "요청 중..." : "여행 생성 테스트"}
+        </Button>
+        {createError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {createError}
+          </pre>
+        )}
+        {createResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(createResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>
+          POST /api/itineraries/generate (스와이프 기반 일정 생성 — swipe_sessions FK 문제 시 이걸로)
+        </ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={generateSpotIdInput}
+            onChange={(e) => setGenerateSpotIdInput(e.target.value)}
+            placeholder="좋아요 누른 spot id 여러 개, 콤마로 구분"
+          />
+        </div>
+        <div className="flex gap-2">
+          <TextInput
+            value={generateStartDateInput}
+            onChange={(e) => setGenerateStartDateInput(e.target.value)}
+            placeholder="시작일 YYYY-MM-DD"
+          />
+          <TextInput
+            value={generateEndDateInput}
+            onChange={(e) => setGenerateEndDateInput(e.target.value)}
+            placeholder="종료일 YYYY-MM-DD"
+          />
+        </div>
+        <Button
+          variant="primary"
+          onClick={handleTestGenerateItinerary}
+          disabled={generateLoading}
+        >
+          {generateLoading ? "요청 중..." : "스와이프 일정 생성 테스트"}
+        </Button>
+        {generateError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {generateError}
+          </pre>
+        )}
+        {generateResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(generateResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>PATCH /api/itineraries/{"{id}"} (여행 수정)</ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={updateItineraryIdInput}
+            onChange={(e) => setUpdateItineraryIdInput(e.target.value)}
+            placeholder="itinerary id"
+          />
+          <TextInput
+            value={updateTitleInput}
+            onChange={(e) => setUpdateTitleInput(e.target.value)}
+            placeholder="새 제목"
+          />
+          <TextInput
+            value={updateStatusInput}
+            onChange={(e) => setUpdateStatusInput(e.target.value)}
+            placeholder="status"
+          />
+        </div>
+        <Button
+          variant="primary"
+          onClick={handleTestUpdateItinerary}
+          disabled={updateItineraryLoading}
+        >
+          {updateItineraryLoading ? "요청 중..." : "여행 수정 테스트"}
+        </Button>
+        {updateItineraryError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {updateItineraryError}
+          </pre>
+        )}
+        {updateItineraryResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(updateItineraryResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>DELETE /api/itineraries/{"{id}"} (여행 삭제)</ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={deleteItineraryIdInput}
+            onChange={(e) => setDeleteItineraryIdInput(e.target.value)}
+            placeholder="itinerary id"
+          />
+          <Button
+            variant="warning"
+            onClick={handleTestDeleteItinerary}
+            disabled={deleteItineraryLoading}
+          >
+            {deleteItineraryLoading ? "요청 중..." : "여행 삭제 테스트"}
+          </Button>
+        </div>
+        {deleteItineraryError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {deleteItineraryError}
+          </pre>
+        )}
+        {deleteItineraryResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(deleteItineraryResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>POST /api/itineraries/{"{itineraryId}"}/days (Day 추가)</ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={addDayItineraryIdInput}
+            onChange={(e) => setAddDayItineraryIdInput(e.target.value)}
+            placeholder="itinerary id"
+          />
+          <TextInput
+            value={addDayNumberInput}
+            onChange={(e) => setAddDayNumberInput(e.target.value)}
+            placeholder="dayNumber (예: 1)"
+          />
+          <TextInput
+            value={addDayDateInput}
+            onChange={(e) => setAddDayDateInput(e.target.value)}
+            placeholder="date YYYY-MM-DD"
+          />
+        </div>
+        <Button variant="primary" onClick={handleTestAddDay} disabled={addDayLoading}>
+          {addDayLoading ? "요청 중..." : "Day 추가 테스트"}
+        </Button>
+        {addDayError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {addDayError}
+          </pre>
+        )}
+        {addDayResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(addDayResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>
+          DELETE /api/itineraries/{"{itineraryId}"}/days/{"{dayId}"} (Day 삭제)
+        </ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={deleteDayItineraryIdInput}
+            onChange={(e) => setDeleteDayItineraryIdInput(e.target.value)}
+            placeholder="itinerary id"
+          />
+          <TextInput
+            value={deleteDayIdInput}
+            onChange={(e) => setDeleteDayIdInput(e.target.value)}
+            placeholder="day id"
+          />
+          <Button variant="warning" onClick={handleTestDeleteDay} disabled={deleteDayLoading}>
+            {deleteDayLoading ? "요청 중..." : "Day 삭제 테스트"}
+          </Button>
+        </div>
+        {deleteDayError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {deleteDayError}
+          </pre>
+        )}
+        {deleteDayResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(deleteDayResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>
+          POST /api/itineraries/{"{itineraryId}"}/days/{"{dayId}"}/items (장소 추가)
+        </ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={addItemItineraryIdInput}
+            onChange={(e) => setAddItemItineraryIdInput(e.target.value)}
+            placeholder="itinerary id"
+          />
+          <TextInput
+            value={addItemDayIdInput}
+            onChange={(e) => setAddItemDayIdInput(e.target.value)}
+            placeholder="day id"
+          />
+        </div>
+        <div className="flex gap-2">
+          <TextInput
+            value={addItemSpotIdInput}
+            onChange={(e) => setAddItemSpotIdInput(e.target.value)}
+            placeholder="spot id"
+          />
+          <TextInput
+            value={addItemArrivalTimeInput}
+            onChange={(e) => setAddItemArrivalTimeInput(e.target.value)}
+            placeholder="arrivalTime HH:mm"
+          />
+        </div>
+        <Button variant="primary" onClick={handleTestAddItem} disabled={addItemLoading}>
+          {addItemLoading ? "요청 중..." : "장소 추가 테스트"}
+        </Button>
+        {addItemError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {addItemError}
+          </pre>
+        )}
+        {addItemResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(addItemResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>
+          PATCH .../days/{"{dayId}"}/items/{"{itemId}"} (항목 시간 변경)
+        </ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={updateItemItineraryIdInput}
+            onChange={(e) => setUpdateItemItineraryIdInput(e.target.value)}
+            placeholder="itinerary id"
+          />
+          <TextInput
+            value={updateItemDayIdInput}
+            onChange={(e) => setUpdateItemDayIdInput(e.target.value)}
+            placeholder="day id"
+          />
+        </div>
+        <div className="flex gap-2">
+          <TextInput
+            value={updateItemItemIdInput}
+            onChange={(e) => setUpdateItemItemIdInput(e.target.value)}
+            placeholder="item id"
+          />
+          <TextInput
+            value={updateItemArrivalTimeInput}
+            onChange={(e) => setUpdateItemArrivalTimeInput(e.target.value)}
+            placeholder="새 arrivalTime HH:mm"
+          />
+        </div>
+        <Button variant="primary" onClick={handleTestUpdateItem} disabled={updateItemLoading}>
+          {updateItemLoading ? "요청 중..." : "항목 수정 테스트"}
+        </Button>
+        {updateItemError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {updateItemError}
+          </pre>
+        )}
+        {updateItemResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(updateItemResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>
+          DELETE .../days/{"{dayId}"}/items/{"{itemId}"} (항목 삭제)
+        </ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={deleteItemItineraryIdInput}
+            onChange={(e) => setDeleteItemItineraryIdInput(e.target.value)}
+            placeholder="itinerary id"
+          />
+          <TextInput
+            value={deleteItemDayIdInput}
+            onChange={(e) => setDeleteItemDayIdInput(e.target.value)}
+            placeholder="day id"
+          />
+        </div>
+        <div className="flex gap-2">
+          <TextInput
+            value={deleteItemItemIdInput}
+            onChange={(e) => setDeleteItemItemIdInput(e.target.value)}
+            placeholder="item id"
+          />
+          <Button variant="warning" onClick={handleTestDeleteItem} disabled={deleteItemLoading}>
+            {deleteItemLoading ? "요청 중..." : "항목 삭제 테스트"}
+          </Button>
+        </div>
+        {deleteItemError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {deleteItemError}
+          </pre>
+        )}
+        {deleteItemResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(deleteItemResult, null, 2)}
           </pre>
         )}
 
