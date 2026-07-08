@@ -16,7 +16,8 @@ export function initKakaoShare() {
   if (typeof window === "undefined" || !window.Kakao) return;
   if (window.Kakao.isInitialized()) return;
 
-  const jsKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+  // 카카오 디벨로퍼스 앱은 JavaScript 키가 하나뿐이라, 카카오맵에 쓰는 키를 그대로 재사용한다.
+  const jsKey = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY;
   if (!jsKey) return;
 
   window.Kakao.init(jsKey);
