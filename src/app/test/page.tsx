@@ -501,18 +501,21 @@ export default function TestPage() {
   const [busRouteNoInput, setBusRouteNoInput] = useState("");
   const [busLoading, setBusLoading] = useState(false);
   const [busResult, setBusResult] = useState<unknown>(null);
+  const [busFetched, setBusFetched] = useState(false);
   const [busError, setBusError] = useState<string | null>(null);
 
   const handleTestGetBusArrival = async () => {
     setBusLoading(true);
     setBusError(null);
     setBusResult(null);
+    setBusFetched(false);
     try {
       const data = await transitApi.getBusArrival({
         arsId: busArsIdInput.trim(),
         routeNo: busRouteNoInput.trim(),
       });
       setBusResult(data);
+      setBusFetched(true);
     } catch (e) {
       setBusError(formatApiError(e));
     } finally {
@@ -1072,9 +1075,9 @@ export default function TestPage() {
             {busError}
           </pre>
         )}
-        {busResult !== null && (
+        {busFetched && (
           <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
-            {JSON.stringify(busResult, null, 2)}
+            {JSON.stringify(busResult, null, 2) ?? "null (도착 예정 정보 없음 — arsId/routeNo 조합 확인)"}
           </pre>
         )}
       </section>
