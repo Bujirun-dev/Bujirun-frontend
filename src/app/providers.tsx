@@ -25,10 +25,10 @@ export function Providers({ children }: ProvidersProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-      {children}
-      <ReactQueryDevtools initialIsOpen={false} />
-        </AuthProvider>
+      <AuthProvider>
+        {children}
+        <ReactQueryDevtools initialIsOpen={false} />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
