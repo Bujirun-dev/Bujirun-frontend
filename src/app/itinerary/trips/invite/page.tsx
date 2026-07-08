@@ -23,6 +23,7 @@ function TripInviteContent() {
   const days = searchParams.get("days") ?? "1";
   const groupId = searchParams.get("groupId") ?? "";
   const inviteCode = searchParams.get("inviteCode") ?? "";
+  const tripName = searchParams.get("name") ?? "여행";
   const [showShareModal, setShowShareModal] = useState(false);
 
   const { data: members } = useQuery({
@@ -95,8 +96,8 @@ function TripInviteContent() {
       <ShareInviteModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
-        title={`${nickname}님이 부산 여행에 초대했어요 🌊`}
-        description="광안대교 보러 갈 사람~ 지금 참여하고 같이 일정 짜요 ✈️"
+        title={`${nickname}님이 '${tripName}'에 초대했어요 ✈️`}
+        description="지금 참여하고 같이 일정을 짜러 가볼까요?"
         imageUrl={shareImageUrl}
         inviteUrl={inviteUrl}
       />

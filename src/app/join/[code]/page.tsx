@@ -45,6 +45,7 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
         const inviteParams = new URLSearchParams({ groupId: group.id ?? "" });
         if (count) inviteParams.set("count", count);
         if (days) inviteParams.set("days", days);
+        if (group.name) inviteParams.set("name", group.name);
         const timer = window.setTimeout(() => {
           router.replace(`/itinerary/trips/invite?${inviteParams.toString()}`);
         }, 1200);

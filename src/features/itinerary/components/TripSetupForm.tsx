@@ -59,6 +59,7 @@ export function TripSetupForm() {
         days: String(getTotalDays()),
         groupId: group.id ?? "",
         inviteCode: group.inviteCode ?? "",
+        name: group.name ?? tripName,
       });
       router.push(`/itinerary/trips/invite?${params.toString()}`);
     } finally {
