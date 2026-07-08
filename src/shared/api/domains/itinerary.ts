@@ -6,6 +6,8 @@ export const keys = {
   all: ["itineraries"] as const,
   lists: () => [...keys.all, "list"] as const,
   detail: (id: string) => [...keys.all, "detail", id] as const,
+  groupGenerate: (groupId: string, startDate: string, endDate: string) =>
+    [...keys.all, "group-generate", groupId, startDate, endDate] as const,
 };
 
 export function getItineraries() {
