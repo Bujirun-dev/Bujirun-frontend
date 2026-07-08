@@ -1,25 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import pawIcon from "@/assets/icons/itinerary/paw-print.png";
-
-// TODO: API 연동 후 실제 관광지 데이터로 교체
-const MOCK_PLACES = [
-  { id: 1, name: "광안리 해수욕장", image: "https://picsum.photos/seed/place1/600/800" },
-  { id: 2, name: "해운대 해수욕장", image: "https://picsum.photos/seed/place2/600/800" },
-  { id: 3, name: "감천 문화마을", image: "https://picsum.photos/seed/place3/600/800" },
-  { id: 4, name: "국제시장", image: "https://picsum.photos/seed/place4/600/800" },
-  { id: 5, name: "태종대", image: "https://picsum.photos/seed/place5/600/800" },
-  { id: 6, name: "용두산공원", image: "https://picsum.photos/seed/place6/600/800" },
-  { id: 7, name: "송도 해수욕장", image: "https://picsum.photos/seed/place7/600/800" },
-  { id: 8, name: "BIFF 광장", image: "https://picsum.photos/seed/place8/600/800" },
-  { id: 9, name: "흰여울 문화마을", image: "https://picsum.photos/seed/place9/600/800" },
-  { id: 10, name: "영도대교", image: "https://picsum.photos/seed/place10/600/800" },
-];
+import { spotApi, itineraryApi } from "@/shared/api/domains";
+import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
 
 const SWIPE_THRESHOLD = 80;
+const MAX_CARDS = 15;
 
 export default function TripSwipePage() {
   return (
@@ -34,21 +24,58 @@ function TripSwipeContent() {
   const searchParams = useSearchParams();
   const count = searchParams.get("count") ?? "6";
   const days = searchParams.get("days") ?? "1";
+  const groupId = searchParams.get("groupId") ?? "";
+  const name = searchParams.get("name") ?? "";
+  const startDate = searchParams.get("startDate") ?? "";
+  const endDate = searchParams.get("endDate") ?? "";
+  const forwardParams = new URLSearchParams({
+    count,
+    days,
+    groupId,
+    name,
+    startDate,
+    endDate,
+  }).toString();
+
+  const { data: spotsData } = useQuery({
+    queryKey: spotApi.keys.search(),
+    queryFn: () => spotApi.searchSpots(),
+  });
+  const places = useMemo(
+    () =>
+      (spotsData ?? []).slice(0, MAX_CARDS).map((spot) => ({
+        id: spot.spotId ?? "",
+        name: spot.name ?? "",
+        image: spot.thumbnailUrl || FALLBACK_IMAGE,
+      })),
+    [spotsData],
+  );
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState<"left" | "right" | null>(null);
   const startXRef = useRef(0);
-  const total = MOCK_PLACES.length;
-  const place = MOCK_PLACES[currentIndex];
-  const progress = (currentIndex + 1) / total;
+  const swipesRef = useRef<{ contentId: string; liked: boolean }[]>([]);
+  const total = places.length;
+  const place = places[currentIndex];
+  const progress = total > 0 ? (currentIndex + 1) / total : 0;
 
   const handleSwipe = (direction: "left" | "right") => {
+    if (!place) return;
+    swipesRef.current.push({ contentId: place.id, liked: direction === "right" });
+
     setIsAnimatingOut(direction);
     setTimeout(() => {
       const nextIndex = currentIndex + 1;
       if (nextIndex >= total) {
-        router.push(`/itinerary/trips/waiting?count=${count}&days=${days}`);
+        // 개인 스와이프 결과 등록 (그룹 일정 자동생성이 참고할 세션을 서버에 남기기 위한 호출)
+        if (startDate && endDate) {
+          itineraryApi
+            .generateItinerary({ swipes: swipesRef.current, startDate, endDate })
+            .catch(() => {});
+        }
+        router.push(`/itinerary/trips/waiting?${forwardParams}`);
         return;
       }
       setCurrentIndex(nextIndex);
@@ -88,6 +115,16 @@ function TripSwipeContent() {
         transform: `translateX(${dragX}px) rotate(${cardRotate}deg)`,
         transition: isDragging ? "none" : "transform 0.3s ease-out",
       };
+
+  if (!place) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center px-6">
+        <p className="font-paperlogy font-medium text-md text-text-heading">
+          관광지를 불러오고 있어요...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col items-center px-6 pt-4 pb-[40px]">
@@ -134,6 +171,9 @@ function TripSwipeContent() {
             className="object-cover pointer-events-none"
             draggable={false}
           />
+          <p className="absolute bottom-4 left-4 right-4 font-ssurround font-bold text-lg text-white drop-shadow">
+            {place.name}
+          </p>
         </div>
 
         {/* 별로에요 힌트 - 고정, 왼쪽 드래그 시 강조 / 오른쪽 드래그 시 흐려짐 */}
