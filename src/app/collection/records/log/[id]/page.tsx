@@ -13,6 +13,19 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
   const router = useRouter();
   const log = SAMPLE_LOGS.find((l) => l.id === id);
   const [isVisible, setIsVisible] = useState(log?.isVisible ?? false);
+  const [days, setDays] = useState(
+    () =>
+      log?.days.map((day) => ({
+        day: day.day,
+        date: day.date,
+        stops: day.stops.map((stop) => ({
+          time: stop.time,
+          place: stop.place,
+          imageUrl: stop.imageUrl,
+          tags: [getCategoryLabel(stop.category), ...stop.tags],
+        })),
+      })) ?? [],
+  );
 
   if (!log) {
     return (
@@ -28,6 +41,38 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
     setIsVisible((prev) => !prev);
   };
 
+  const handleAddTag = (dayIndex: number, stopIndex: number, tag: string) => {
+    setDays((prevDays) =>
+      prevDays.map((day, dIdx) =>
+        dIdx !== dayIndex
+          ? day
+          : {
+              ...day,
+              stops: day.stops.map((stop, sIdx) =>
+                sIdx !== stopIndex ? stop : { ...stop, tags: [...stop.tags, tag] },
+              ),
+            },
+      ),
+    );
+  };
+
+  const handleDeleteTag = (dayIndex: number, stopIndex: number, tagIndex: number) => {
+    setDays((prevDays) =>
+      prevDays.map((day, dIdx) =>
+        dIdx !== dayIndex
+          ? day
+          : {
+              ...day,
+              stops: day.stops.map((stop, sIdx) =>
+                sIdx !== stopIndex
+                  ? stop
+                  : { ...stop, tags: stop.tags.filter((_, tIdx) => tIdx !== tagIndex) },
+              ),
+            },
+      ),
+    );
+  };
+
   return (
     <PageCard>
       <LogDetailContent
@@ -37,19 +82,13 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
           extraCount: log.extraCount,
           duration: log.duration,
           date: log.date,
-          days: log.days.map((day) => ({
-            day: day.day,
-            date: day.date,
-            stops: day.stops.map((stop) => ({
-              time: stop.time,
-              place: stop.place,
-              imageUrl: stop.imageUrl,
-              tags: [getCategoryLabel(stop.category), ...stop.tags],
-            })),
-          })),
+          days,
         }}
         onBack={() => router.back()}
         headerRight={<SwitchButton isPublic={isVisible} onClick={handleVisibilityToggle} />}
+        editableTags
+        onAddTag={handleAddTag}
+        onDeleteTag={handleDeleteTag}
       />
     </PageCard>
   );

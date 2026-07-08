@@ -7,12 +7,7 @@ import Image from "next/image";
 import travelImg from "@/assets/character/travel.png";
 import SuccessIcon from "@/assets/icons/mypage/success.svg";
 import { PageCard, Button, Toast } from "@/components";
-import {
-  ItineraryHeader,
-  DayNavigator,
-  SlidingTimeline,
-  ItineraryModals,
-} from "@/features/itinerary";
+import { ItineraryHeader, SlidingTimeline, ItineraryModals } from "@/features/itinerary";
 import type { ItineraryStop, ModalType } from "@/features/itinerary";
 import { itineraryApi } from "@/shared/api/domains";
 import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";
@@ -362,13 +357,9 @@ function ItineraryMain({
           currentDay={currentDay}
           tripDates={tripDates}
           onAddNewPlace={addNewStop}
+          onDayChange={setCurrentDay}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
-        />
-        <DayNavigator
-          totalDays={stopsPerDay.length}
-          currentDay={currentDay}
-          onDayChange={setCurrentDay}
         />
       </PageCard>
 
