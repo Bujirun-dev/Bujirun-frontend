@@ -31,7 +31,7 @@ import {
   PlaceSearchItem,
 } from "@/features/itinerary";
 import { HomeItineraryItem, DogamProgressBar } from "@/features/home";
-import { itineraryApi, spotApi, travelLogApi, groupApi } from "@/shared/api/domains";
+import { itineraryApi, spotApi, travelLogApi, groupApi, transitApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 
 const IMG = "https://picsum.photos/400/300";
@@ -468,6 +468,55 @@ export default function TestPage() {
       setJoinError(formatApiError(e));
     } finally {
       setJoinLoading(false);
+    }
+  };
+
+  // 19. 그룹 일정 자동생성
+  const [groupGenGroupIdInput, setGroupGenGroupIdInput] = useState("");
+  const [groupGenStartDateInput, setGroupGenStartDateInput] = useState("");
+  const [groupGenEndDateInput, setGroupGenEndDateInput] = useState("");
+  const [groupGenLoading, setGroupGenLoading] = useState(false);
+  const [groupGenResult, setGroupGenResult] = useState<unknown>(null);
+  const [groupGenError, setGroupGenError] = useState<string | null>(null);
+
+  const handleTestGenerateGroupItinerary = async () => {
+    setGroupGenLoading(true);
+    setGroupGenError(null);
+    setGroupGenResult(null);
+    try {
+      const data = await itineraryApi.generateGroupItinerary(groupGenGroupIdInput.trim(), {
+        startDate: groupGenStartDateInput,
+        endDate: groupGenEndDateInput,
+      });
+      setGroupGenResult(data);
+    } catch (e) {
+      setGroupGenError(formatApiError(e));
+    } finally {
+      setGroupGenLoading(false);
+    }
+  };
+
+  // 20. 버스 실시간 도착정보
+  const [busArsIdInput, setBusArsIdInput] = useState("");
+  const [busRouteNoInput, setBusRouteNoInput] = useState("");
+  const [busLoading, setBusLoading] = useState(false);
+  const [busResult, setBusResult] = useState<unknown>(null);
+  const [busError, setBusError] = useState<string | null>(null);
+
+  const handleTestGetBusArrival = async () => {
+    setBusLoading(true);
+    setBusError(null);
+    setBusResult(null);
+    try {
+      const data = await transitApi.getBusArrival({
+        arsId: busArsIdInput.trim(),
+        routeNo: busRouteNoInput.trim(),
+      });
+      setBusResult(data);
+    } catch (e) {
+      setBusError(formatApiError(e));
+    } finally {
+      setBusLoading(false);
     }
   };
 
@@ -957,6 +1006,75 @@ export default function TestPage() {
         {joinResult !== null && (
           <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
             {JSON.stringify(joinResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>
+          19. POST /api/itineraries/group/{"{groupId}"}/generate (그룹 일정 자동생성 — 위 방 생성 결과의 groupId)
+        </ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={groupGenGroupIdInput}
+            onChange={(e) => setGroupGenGroupIdInput(e.target.value)}
+            placeholder="groupId 붙여넣기"
+          />
+        </div>
+        <div className="flex gap-2">
+          <TextInput
+            value={groupGenStartDateInput}
+            onChange={(e) => setGroupGenStartDateInput(e.target.value)}
+            placeholder="시작일 YYYY-MM-DD"
+          />
+          <TextInput
+            value={groupGenEndDateInput}
+            onChange={(e) => setGroupGenEndDateInput(e.target.value)}
+            placeholder="종료일 YYYY-MM-DD"
+          />
+        </div>
+        <Button
+          variant="primary"
+          onClick={handleTestGenerateGroupItinerary}
+          disabled={groupGenLoading}
+        >
+          {groupGenLoading ? "요청 중..." : "그룹 일정 자동생성 테스트"}
+        </Button>
+        {groupGenError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {groupGenError}
+          </pre>
+        )}
+        {groupGenResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(groupGenResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>
+          20. GET /api/transit/arrival/bus (버스 실시간 도착정보 — 부산 정류소ID/노선번호 필요)
+        </ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={busArsIdInput}
+            onChange={(e) => setBusArsIdInput(e.target.value)}
+            placeholder="arsId (정류소 ID)"
+          />
+          <TextInput
+            value={busRouteNoInput}
+            onChange={(e) => setBusRouteNoInput(e.target.value)}
+            placeholder="routeNo (노선번호, 예: 2012)"
+          />
+          <Button variant="primary" onClick={handleTestGetBusArrival} disabled={busLoading}>
+            {busLoading ? "요청 중..." : "도착정보 테스트"}
+          </Button>
+        </div>
+        {busError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {busError}
+          </pre>
+        )}
+        {busResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(busResult, null, 2)}
           </pre>
         )}
       </section>
