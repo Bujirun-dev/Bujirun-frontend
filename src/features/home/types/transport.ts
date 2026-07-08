@@ -6,6 +6,9 @@ export interface TransportStep {
   from: string;
   to: string;
   arrivalText?: string;
+  // 버스 실시간 도착정보(GET /api/transit/arrival/bus) 폴링용 — 둘 다 있을 때만 실시간 조회
+  arsId?: string;
+  routeNo?: string;
 }
 
 export interface TransportOption {
