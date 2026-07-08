@@ -1,18 +1,39 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, use, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { groupApi } from "@/shared/api/domains";
+import { useAuthStore } from "@/shared/stores/useAuthStore";
+import { savePendingInvite } from "@/shared/utils/pendingInvite";
+import { KakaoLoginButton } from "@/components/ui/KakaoLoginButton";
 
-type JoinStatus = "joining" | "success" | "error";
+type JoinStatus = "unauthenticated" | "joining" | "success" | "error";
 
 export default function JoinGroupPage({ params }: { params: Promise<{ code: string }> }) {
+  return (
+    <Suspense fallback={null}>
+      <JoinGroupContent params={params} />
+    </Suspense>
+  );
+}
+
+function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
   const { code } = use(params);
   const router = useRouter();
-  const [status, setStatus] = useState<JoinStatus>("joining");
+  const searchParams = useSearchParams();
+  const count = searchParams.get("count") ?? undefined;
+  const days = searchParams.get("days") ?? undefined;
+  const [status, setStatus] = useState<JoinStatus>(() =>
+    useAuthStore.getState().accessToken ? "joining" : "unauthenticated",
+  );
   const [groupName, setGroupName] = useState("");
 
   useEffect(() => {
+    if (!useAuthStore.getState().accessToken) {
+      savePendingInvite({ code, count, days });
+      return;
+    }
+
     let cancelled = false;
 
     groupApi
@@ -21,8 +42,11 @@ export default function JoinGroupPage({ params }: { params: Promise<{ code: stri
         if (cancelled) return;
         setGroupName(group.name ?? "여행");
         setStatus("success");
+        const inviteParams = new URLSearchParams({ groupId: group.id ?? "" });
+        if (count) inviteParams.set("count", count);
+        if (days) inviteParams.set("days", days);
         const timer = window.setTimeout(() => {
-          router.replace(`/itinerary/trips/invite?groupId=${group.id ?? ""}`);
+          router.replace(`/itinerary/trips/invite?${inviteParams.toString()}`);
         }, 1200);
         return () => window.clearTimeout(timer);
       })
@@ -33,11 +57,26 @@ export default function JoinGroupPage({ params }: { params: Promise<{ code: stri
     return () => {
       cancelled = true;
     };
-  }, [code, router]);
+  }, [code, count, days, router]);
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pb-16">
       <div className="w-full rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-6 py-[40px] backdrop-blur-[15px] flex flex-col items-center">
+        {status === "unauthenticated" && (
+          <>
+            <p
+              className="font-paperlogy font-medium text-xl text-text-heading text-center"
+              style={{ lineHeight: "23px" }}
+            >
+              여행 초대를 받았어요! ✈️
+              <br />
+              로그인하고 참여해보세요
+            </p>
+            <div className="mt-[27px] w-full">
+              <KakaoLoginButton />
+            </div>
+          </>
+        )}
         {status === "joining" && (
           <p
             className="font-paperlogy font-medium text-xl text-text-heading text-center"

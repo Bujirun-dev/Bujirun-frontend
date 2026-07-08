@@ -41,7 +41,8 @@ function TripInviteContent() {
   }, [days, joinedCount, totalSlots, router]);
 
   const handleInvite = async () => {
-    const inviteUrl = `${window.location.origin}/join/${inviteCode}`;
+    const params = new URLSearchParams({ count: String(totalSlots), days });
+    const inviteUrl = `${window.location.origin}/join/${inviteCode}?${params.toString()}`;
     await navigator.clipboard.writeText(inviteUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
