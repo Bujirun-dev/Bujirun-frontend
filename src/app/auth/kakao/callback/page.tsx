@@ -37,9 +37,6 @@ function CallbackContent() {
 
         setAccessToken(data.accessToken);
 
-        // TODO: 임시 확인용 (refresh token 구현 전 제거)
-        localStorage.setItem("accessToken", data.accessToken);
-
         // 신규 유저는 회원가입(추가정보) 화면으로 분기
         router.replace(data.isNewUser ? "/signup" : "/");
       })

@@ -17,10 +17,7 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const storeToken = useAuthStore.getState().accessToken;
-  const localToken = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-
-  const accessToken = storeToken ?? localToken;
+  const accessToken = useAuthStore.getState().accessToken;
 
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
