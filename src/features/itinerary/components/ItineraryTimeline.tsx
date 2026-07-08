@@ -198,8 +198,8 @@ export function ItineraryTimeline({ stops, date }: ItineraryTimelineProps) {
   };
 
   return (
-    <div className="relative min-h-full min-w-0" onClick={handleRootClick}>
-      {/* 세로 타임라인 선 */}
+    <div className="relative min-w-0 pb-16" onClick={handleRootClick}>
+      {/* 세로 타임라인 선 — 마지막 관광지 이후로 살짝만 이어지도록 고정 여백만 부여 */}
       <div className="absolute top-0 bottom-0 left-[45px] w-[2px] rounded-full bg-sub-lightgray" />
 
       <div className="flex flex-col gap-5" style={{ paddingBottom: popupScrollSpace }}>

@@ -7,6 +7,14 @@ import { Providers } from "./providers";
 export const metadata: Metadata = {
   title: "Bujirun",
   description: "Bujirun frontend application",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Bujirun",
+  },
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {
