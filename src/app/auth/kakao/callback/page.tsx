@@ -49,6 +49,8 @@ function CallbackContent() {
         const joinParams = new URLSearchParams();
         if (pendingInvite.count) joinParams.set("count", pendingInvite.count);
         if (pendingInvite.days) joinParams.set("days", pendingInvite.days);
+        if (pendingInvite.startDate) joinParams.set("startDate", pendingInvite.startDate);
+        if (pendingInvite.endDate) joinParams.set("endDate", pendingInvite.endDate);
         const query = joinParams.toString();
         router.replace(`/join/${pendingInvite.code}${query ? `?${query}` : ""}`);
       })

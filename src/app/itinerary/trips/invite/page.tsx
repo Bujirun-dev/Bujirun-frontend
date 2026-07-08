@@ -24,6 +24,8 @@ function TripInviteContent() {
   const groupId = searchParams.get("groupId") ?? "";
   const inviteCode = searchParams.get("inviteCode") ?? "";
   const tripName = searchParams.get("name") ?? "여행";
+  const startDate = searchParams.get("startDate") ?? "";
+  const endDate = searchParams.get("endDate") ?? "";
   const [showShareModal, setShowShareModal] = useState(false);
 
   const { data: members } = useQuery({
@@ -46,10 +48,18 @@ function TripInviteContent() {
   useEffect(() => {
     if (joinedCount < totalSlots) return;
     const timer = setTimeout(() => {
-      router.push(`/itinerary/trips/personality?count=${totalSlots}&days=${days}`);
+      const nextParams = new URLSearchParams({
+        count: String(totalSlots),
+        days,
+        groupId,
+        name: tripName,
+        startDate,
+        endDate,
+      });
+      router.push(`/itinerary/trips/personality?${nextParams.toString()}`);
     }, 1000);
     return () => clearTimeout(timer);
-  }, [days, joinedCount, totalSlots, router]);
+  }, [days, joinedCount, totalSlots, router, groupId, tripName, startDate, endDate]);
 
   const nickname = myProfile?.nickname ?? "친구";
   const inviteUrl =
@@ -58,6 +68,8 @@ function TripInviteContent() {
       : `${window.location.origin}/join/${inviteCode}?${new URLSearchParams({
           count: String(totalSlots),
           days,
+          startDate,
+          endDate,
         }).toString()}`;
   const shareImageUrl =
     typeof window === "undefined" ? "" : `${window.location.origin}${seaCharacterImg.src}`;

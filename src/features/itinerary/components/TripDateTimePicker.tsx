@@ -26,6 +26,9 @@ export const formatTripDateTime = (date: Date) =>
     date.getMinutes(),
   )}`;
 
+// "YYYY.MM.DD HH:mm" -> "YYYY-MM-DD" (백엔드 date 파라미터 포맷)
+export const toApiDate = (value: string) => value.split(" ")[0].replaceAll(".", "-");
+
 const getCalendarDays = (monthDate: Date) => {
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();

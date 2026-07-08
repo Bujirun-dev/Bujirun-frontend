@@ -4,6 +4,8 @@ export interface PendingInvite {
   code: string;
   count?: string;
   days?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 // 초대 링크(/join/[code])로 들어온 비로그인 유저가 로그인·회원가입을 마치고

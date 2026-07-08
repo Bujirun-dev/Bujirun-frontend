@@ -9,7 +9,12 @@ import TitleIcon from "@/assets/icons/itinerary/title.svg?svgr";
 import NoIcon from "@/assets/icons/login-register/no.svg?svgr";
 import YesIcon from "@/assets/icons/login-register/yes.svg?svgr";
 import { Counter } from "@/components";
-import { TripDateTimePicker, formatTripDateTime, parseTripDateTime } from "./TripDateTimePicker";
+import {
+  TripDateTimePicker,
+  formatTripDateTime,
+  parseTripDateTime,
+  toApiDate,
+} from "./TripDateTimePicker";
 import { cn } from "@/shared/utils";
 import { groupApi } from "@/shared/api/domains";
 
@@ -60,6 +65,8 @@ export function TripSetupForm() {
         groupId: group.id ?? "",
         inviteCode: group.inviteCode ?? "",
         name: group.name ?? tripName,
+        startDate: toApiDate(startDate),
+        endDate: toApiDate(endDate),
       });
       router.push(`/itinerary/trips/invite?${params.toString()}`);
     } finally {

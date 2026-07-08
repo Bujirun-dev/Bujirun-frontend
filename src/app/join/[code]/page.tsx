@@ -23,6 +23,8 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
   const searchParams = useSearchParams();
   const count = searchParams.get("count") ?? undefined;
   const days = searchParams.get("days") ?? undefined;
+  const startDate = searchParams.get("startDate") ?? undefined;
+  const endDate = searchParams.get("endDate") ?? undefined;
   const [status, setStatus] = useState<JoinStatus>(() =>
     useAuthStore.getState().accessToken ? "joining" : "unauthenticated",
   );
@@ -30,7 +32,7 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
 
   useEffect(() => {
     if (!useAuthStore.getState().accessToken) {
-      savePendingInvite({ code, count, days });
+      savePendingInvite({ code, count, days, startDate, endDate });
       return;
     }
 
@@ -46,6 +48,8 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
         if (count) inviteParams.set("count", count);
         if (days) inviteParams.set("days", days);
         if (group.name) inviteParams.set("name", group.name);
+        if (startDate) inviteParams.set("startDate", startDate);
+        if (endDate) inviteParams.set("endDate", endDate);
         const timer = window.setTimeout(() => {
           router.replace(`/itinerary/trips/invite?${inviteParams.toString()}`);
         }, 1200);
@@ -58,7 +62,7 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
     return () => {
       cancelled = true;
     };
-  }, [code, count, days, router]);
+  }, [code, count, days, startDate, endDate, router]);
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pb-16">
