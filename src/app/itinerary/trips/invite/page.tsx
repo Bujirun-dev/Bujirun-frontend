@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Toast } from "@/components";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
-import { groupApi } from "@/shared/api/domains";
+import { groupApi, userApi } from "@/shared/api/domains";
 import { initKakaoShare, shareInviteLink } from "@/shared/utils/kakaoShare";
+import seaCharacterImg from "@/assets/character/sea.png";
 
 export default function TripInvitePage() {
   return (
@@ -33,6 +34,11 @@ function TripInviteContent() {
   });
   const joinedCount = Math.max(1, members?.length ?? 1);
 
+  const { data: myProfile } = useQuery({
+    queryKey: userApi.keys.me(),
+    queryFn: userApi.getMyProfile,
+  });
+
   useEffect(() => {
     initKakaoShare();
   }, []);
@@ -49,9 +55,11 @@ function TripInviteContent() {
     const params = new URLSearchParams({ count: String(totalSlots), days });
     const inviteUrl = `${window.location.origin}/join/${inviteCode}?${params.toString()}`;
 
+    const nickname = myProfile?.nickname ?? "친구";
     const shared = shareInviteLink({
-      title: "부지런 여행 초대장 ✈️",
-      description: "친구가 부산 여행에 초대했어요! 함께 일정을 만들어봐요.",
+      title: `${nickname}님이 부산 여행에 초대했어요 🌊`,
+      description: "광안대교 보러 갈 사람~ 지금 참여하고 같이 일정 짜요 ✈️",
+      imageUrl: `${window.location.origin}${seaCharacterImg.src}`,
       inviteUrl,
     });
     if (shared) return;

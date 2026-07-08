@@ -26,11 +26,17 @@ export function initKakaoShare() {
 interface ShareInviteLinkParams {
   title: string;
   description: string;
+  imageUrl: string;
   inviteUrl: string;
 }
 
 // 카카오톡 공유 카드로 전송을 시도한다. SDK가 준비돼 있지 않으면 false를 반환한다.
-export function shareInviteLink({ title, description, inviteUrl }: ShareInviteLinkParams): boolean {
+export function shareInviteLink({
+  title,
+  description,
+  imageUrl,
+  inviteUrl,
+}: ShareInviteLinkParams): boolean {
   if (typeof window === "undefined" || !window.Kakao?.isInitialized()) return false;
 
   window.Kakao.Share.sendDefault({
@@ -38,7 +44,7 @@ export function shareInviteLink({ title, description, inviteUrl }: ShareInviteLi
     content: {
       title,
       description,
-      imageUrl: `${window.location.origin}/icons/icon-512.png`,
+      imageUrl,
       link: { mobileWebUrl: inviteUrl, webUrl: inviteUrl },
     },
     buttons: [
