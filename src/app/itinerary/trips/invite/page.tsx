@@ -96,8 +96,8 @@ function TripInviteContent() {
       <ShareInviteModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
-        title={`${nickname}님이 '${tripName}'에 초대했어요 ✈️`}
-        description="지금 참여하고 같이 일정을 짜러 가볼까요?"
+        title={`${nickname}님이 '${tripName}'에 초대했어요 🌊`}
+        description="지금 참여하고 같이 일정을 짜러 가볼까요? ✈️"
         imageUrl={shareImageUrl}
         inviteUrl={inviteUrl}
       />
