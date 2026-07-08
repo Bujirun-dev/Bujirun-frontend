@@ -3,10 +3,9 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Toast } from "@/components";
-import { ParticipantAvatarGrid } from "@/features/itinerary/components";
+import { ParticipantAvatarGrid, ShareInviteModal } from "@/features/itinerary/components";
 import { groupApi, userApi } from "@/shared/api/domains";
-import { initKakaoShare, shareInviteLink } from "@/shared/utils/kakaoShare";
+import { initKakaoShare } from "@/shared/utils/kakaoShare";
 import seaCharacterImg from "@/assets/character/sea.png";
 
 export default function TripInvitePage() {
@@ -24,7 +23,7 @@ function TripInviteContent() {
   const days = searchParams.get("days") ?? "1";
   const groupId = searchParams.get("groupId") ?? "";
   const inviteCode = searchParams.get("inviteCode") ?? "";
-  const [copied, setCopied] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const { data: members } = useQuery({
     queryKey: groupApi.keys.members(groupId),
@@ -51,24 +50,16 @@ function TripInviteContent() {
     return () => clearTimeout(timer);
   }, [days, joinedCount, totalSlots, router]);
 
-  const handleInvite = async () => {
-    const params = new URLSearchParams({ count: String(totalSlots), days });
-    const inviteUrl = `${window.location.origin}/join/${inviteCode}?${params.toString()}`;
-
-    const nickname = myProfile?.nickname ?? "친구";
-    const shared = shareInviteLink({
-      title: `${nickname}님이 부산 여행에 초대했어요 🌊`,
-      description: "광안대교 보러 갈 사람~ 지금 참여하고 같이 일정 짜요 ✈️",
-      imageUrl: `${window.location.origin}${seaCharacterImg.src}`,
-      inviteUrl,
-    });
-    if (shared) return;
-
-    // 카카오톡 공유(Kakao Link) 설정 전이면 기존처럼 링크 복사로 대체
-    await navigator.clipboard.writeText(inviteUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const nickname = myProfile?.nickname ?? "친구";
+  const inviteUrl =
+    typeof window === "undefined"
+      ? ""
+      : `${window.location.origin}/join/${inviteCode}?${new URLSearchParams({
+          count: String(totalSlots),
+          days,
+        }).toString()}`;
+  const shareImageUrl =
+    typeof window === "undefined" ? "" : `${window.location.origin}${seaCharacterImg.src}`;
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pb-16">
@@ -94,14 +85,21 @@ function TripInviteContent() {
         {/* 친구 초대 링크 */}
         <button
           type="button"
-          onClick={handleInvite}
+          onClick={() => setShowShareModal(true)}
           className="mt-[27px] font-paperlogy font-normal text-sm text-text-primary underline decoration-solid underline-offset-2"
         >
           친구 초대하기
         </button>
-
-        <Toast isVisible={copied} message="링크가 복사되었어요 !" onHide={() => setCopied(false)} />
       </div>
+
+      <ShareInviteModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        title={`${nickname}님이 부산 여행에 초대했어요 🌊`}
+        description="광안대교 보러 갈 사람~ 지금 참여하고 같이 일정 짜요 ✈️"
+        imageUrl={shareImageUrl}
+        inviteUrl={inviteUrl}
+      />
     </div>
   );
 }
