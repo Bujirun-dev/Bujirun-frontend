@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Toast } from "@/components";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { groupApi } from "@/shared/api/domains";
+import { initKakaoShare, shareInviteLink } from "@/shared/utils/kakaoShare";
 
 export default function TripInvitePage() {
   return (
@@ -33,6 +34,10 @@ function TripInviteContent() {
   const joinedCount = Math.max(1, members?.length ?? 1);
 
   useEffect(() => {
+    initKakaoShare();
+  }, []);
+
+  useEffect(() => {
     if (joinedCount < totalSlots) return;
     const timer = setTimeout(() => {
       router.push(`/itinerary/trips/personality?count=${totalSlots}&days=${days}`);
@@ -43,6 +48,15 @@ function TripInviteContent() {
   const handleInvite = async () => {
     const params = new URLSearchParams({ count: String(totalSlots), days });
     const inviteUrl = `${window.location.origin}/join/${inviteCode}?${params.toString()}`;
+
+    const shared = shareInviteLink({
+      title: "부지런 여행 초대장 ✈️",
+      description: "친구가 부산 여행에 초대했어요! 함께 일정을 만들어봐요.",
+      inviteUrl,
+    });
+    if (shared) return;
+
+    // 카카오톡 공유(Kakao Link) 설정 전이면 기존처럼 링크 복사로 대체
     await navigator.clipboard.writeText(inviteUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
