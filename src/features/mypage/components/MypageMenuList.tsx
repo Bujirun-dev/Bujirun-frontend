@@ -6,6 +6,8 @@ import { Bookmark, FileText, LogOut } from "lucide-react";
 import { MenuItem } from "./MenuItem";
 import { PrivacyPolicyModal } from "./PrivacyPolicyModal";
 import { LogoutModal } from "./LogoutModal";
+import { logout } from "@/shared/api/domains/auth";
+import { useAuthStore } from "@/shared/stores/useAuthStore";
 
 export function MypageMenuList() {
   const router = useRouter();
@@ -18,14 +20,12 @@ export function MypageMenuList() {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:8080/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await logout();
     } catch (e) {
       console.error("로그아웃 실패:", e);
     } finally {
-      localStorage.removeItem("accessToken");
+      // accessToken은 메모리(Zustand)에만 있으므로 store를 비운다
+      useAuthStore.getState().clear();
       setIsLogoutOpen(false);
       router.replace("/login");
     }
