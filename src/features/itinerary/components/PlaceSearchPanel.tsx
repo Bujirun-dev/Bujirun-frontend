@@ -11,11 +11,12 @@ import { CategoryFilterDropdown } from "./CategoryFilterDropdown";
 import type { Category } from "@/components";
 import { cn } from "@/shared/utils";
 import { spotApi } from "@/shared/api/domains";
-import { CATEGORY_LABEL, getCategoryFromKo } from "@/shared/constants/category";
+import { getCategoryFromKo } from "@/shared/constants/category";
+import type { SpotSearchCategory } from "@/shared/constants/category";
 import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
 
 type SortOption = "추천순" | "이름순";
-type CategoryFilter = Category | "all";
+type CategoryFilter = SpotSearchCategory | "all";
 
 const SORT_OPTIONS: SortOption[] = ["추천순", "이름순"];
 
@@ -130,14 +131,14 @@ export function PlaceSearchPanel({ onClose, onPlaceSelect }: PlaceSearchPanelPro
   const { data: searchResults, isLoading } = useQuery({
     queryKey: spotApi.keys.search({
       keyword: debouncedSearchValue || undefined,
-      category: categoryFilter === "all" ? undefined : CATEGORY_LABEL[categoryFilter].replace("#", ""),
-      sort: sortBy === "추천순" ? "RECOMMEND" : undefined,
+      category: categoryFilter === "all" ? undefined : categoryFilter,
+      sort: sortBy === "추천순" ? "RECOMMEND" : "NAME",
     }),
     queryFn: () =>
       spotApi.searchSpots({
         keyword: debouncedSearchValue || undefined,
-        category: categoryFilter === "all" ? undefined : CATEGORY_LABEL[categoryFilter].replace("#", ""),
-        sort: sortBy === "추천순" ? "RECOMMEND" : undefined,
+        category: categoryFilter === "all" ? undefined : categoryFilter,
+        sort: sortBy === "추천순" ? "RECOMMEND" : "NAME",
       }),
   });
 

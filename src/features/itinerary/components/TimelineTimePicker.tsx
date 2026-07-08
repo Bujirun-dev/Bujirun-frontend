@@ -8,7 +8,7 @@ import { cn } from "@/shared/utils";
 const ITEM_H = 24;
 const VISIBLE = 5;
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
-const MINUTES = Array.from({ length: 60 }, (_, i) => i);
+const MINUTES = Array.from({ length: 6 }, (_, i) => i * 10);
 
 function ScrollColumn({
   items,
@@ -28,12 +28,16 @@ function ScrollColumn({
     isProgrammatic.current = true;
     const behavior = isFirstRender.current ? "instant" : "smooth";
     isFirstRender.current = false;
-    ref.current.scrollTo({ top: selected * ITEM_H, behavior });
+    const closestIndex = items.reduce(
+      (closest, v, i) => (Math.abs(v - selected) < Math.abs(items[closest] - selected) ? i : closest),
+      0,
+    );
+    ref.current.scrollTo({ top: closestIndex * ITEM_H, behavior });
     const t = setTimeout(() => {
       isProgrammatic.current = false;
     }, 400);
     return () => clearTimeout(t);
-  }, [selected]);
+  }, [selected, items]);
 
   const handleScroll = () => {
     if (isProgrammatic.current) return;

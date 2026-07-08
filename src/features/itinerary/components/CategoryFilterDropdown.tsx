@@ -4,25 +4,19 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import triangleIcon from "@/assets/icons/itinerary/triangle.svg?url";
 import { cn } from "@/shared/utils";
-import { CATEGORY_LABEL } from "@/shared/constants/category";
-import type { Category } from "@/components";
+import { SPOT_SEARCH_CATEGORIES, SPOT_SEARCH_CATEGORY_EMOJI } from "@/shared/constants/category";
+import type { SpotSearchCategory } from "@/shared/constants/category";
 
-type CategoryFilter = Category | "all";
+type CategoryFilter = SpotSearchCategory | "all";
 
 const CATEGORY_EMOJI: Record<string, string> = {
   all: "⭐",
-  sea: "🌊",
-  nature: "🌿",
-  culture: "🏛",
-  experience: "🎡",
+  ...SPOT_SEARCH_CATEGORY_EMOJI,
 };
 
 const CATEGORY_OPTIONS: { label: string; value: CategoryFilter }[] = [
   { label: "전체", value: "all" },
-  ...Object.entries(CATEGORY_LABEL).map(([value, label]) => ({
-    label: label.replace("#", ""),
-    value: value as Category,
-  })),
+  ...SPOT_SEARCH_CATEGORIES.map((value) => ({ label: value, value })),
 ];
 
 interface CategoryFilterDropdownProps {

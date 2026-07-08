@@ -5,6 +5,7 @@ interface TripDateTimePickerProps {
   value: string;
   onChange: (value: string) => void;
   minValue?: string;
+  maxValue?: string;
   className?: string;
 }
 
@@ -40,14 +41,19 @@ const getCalendarDays = (monthDate: Date) => {
 const isBeforeMinute = (date: Date, target: Date) =>
   date.getTime() < new Date(target).setSeconds(0, 0);
 
+const isAfterMinute = (date: Date, target: Date) =>
+  date.getTime() > new Date(target).setSeconds(0, 0);
+
 export function TripDateTimePicker({
   value,
   onChange,
   minValue,
+  maxValue,
   className,
 }: TripDateTimePickerProps) {
   const selectedDate = parseTripDateTime(value);
   const minDate = minValue ? parseTripDateTime(minValue) : null;
+  const maxDate = maxValue ? parseTripDateTime(maxValue) : null;
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -77,6 +83,12 @@ export function TripDateTimePicker({
       onChange(formatTripDateTime(minDate));
       setHourInput(pad(minDate.getHours()));
       setMinuteInput(pad(minDate.getMinutes()));
+      return;
+    }
+    if (maxDate && isAfterMinute(date, maxDate)) {
+      onChange(formatTripDateTime(maxDate));
+      setHourInput(pad(maxDate.getHours()));
+      setMinuteInput(pad(maxDate.getMinutes()));
       return;
     }
 
@@ -131,9 +143,12 @@ export function TripDateTimePicker({
   };
   const isDisabledDate = (day: number) =>
     Boolean(
-      minDate &&
-      new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day, 23, 59).getTime() <
-        minDate.getTime(),
+      (minDate &&
+        new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day, 23, 59).getTime() <
+          minDate.getTime()) ||
+        (maxDate &&
+          new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day, 0, 0).getTime() >
+            maxDate.getTime()),
     );
   const handleTimeInput = (type: TimeInputType, inputValue: string) => {
     const numericValue = inputValue.replace(/\D/g, "").slice(0, 2);
@@ -143,8 +158,11 @@ export function TripDateTimePicker({
 
     if (!numericValue) return;
 
-    const maxValue = type === "hour" ? 23 : 59;
-    const nextValue = Math.min(maxValue, Number(numericValue));
+    const maxValue = type === "hour" ? 23 : 50;
+    let nextValue = Math.min(maxValue, Number(numericValue));
+    if (type === "minute") {
+      nextValue = Math.min(50, Math.round(nextValue / 10) * 10);
+    }
     const nextDate = new Date(selectedDate);
 
     if (type === "hour") {
@@ -158,8 +176,11 @@ export function TripDateTimePicker({
   const handleTimeInputBlur = (type: TimeInputType) => {
     const inputValue = type === "hour" ? hourInput : minuteInput;
     const selectedValue = type === "hour" ? selectedDate.getHours() : selectedDate.getMinutes();
-    const maxValue = type === "hour" ? 23 : 59;
-    const nextValue = inputValue ? Math.min(maxValue, Number(inputValue)) : selectedValue;
+    const maxValue = type === "hour" ? 23 : 50;
+    let nextValue = inputValue ? Math.min(maxValue, Number(inputValue)) : selectedValue;
+    if (type === "minute") {
+      nextValue = Math.min(50, Math.round(nextValue / 10) * 10);
+    }
     const nextInput = pad(nextValue);
 
     if (type === "hour") {

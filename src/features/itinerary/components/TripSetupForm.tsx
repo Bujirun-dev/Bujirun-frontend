@@ -34,6 +34,12 @@ export function TripSetupForm() {
   const isNameValid = nameLength >= 2 && nameLength <= 15;
   const hasName = nameLength > 0;
 
+  const getMaxEndDate = () => {
+    const start = parseTripDateTime(startDate);
+    const max = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 3, 23, 50);
+    return formatTripDateTime(max);
+  };
+
   const getTotalDays = () => {
     const start = parseTripDateTime(startDate);
     const end = parseTripDateTime(endDate);
@@ -136,6 +142,7 @@ export function TripSetupForm() {
               value={endDate}
               onChange={setEndDate}
               minValue={startDate}
+              maxValue={getMaxEndDate()}
               className="flex-1"
             />
           </div>
