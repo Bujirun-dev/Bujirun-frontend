@@ -17,10 +17,15 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const accessToken = useAuthStore.getState().accessToken;
+  const storeToken = useAuthStore.getState().accessToken;
+  const localToken = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+
+  const accessToken = storeToken ?? localToken;
+
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
+
   return config;
 });
 
