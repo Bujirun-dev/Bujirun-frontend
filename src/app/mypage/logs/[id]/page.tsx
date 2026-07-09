@@ -1,18 +1,64 @@
 "use client";
 
+// src/app/mypage/logs/[id]/page.tsx
+// GET /api/logs/{id} → TravelLogDetailResponse
+
 import { use } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { PageCard } from "@/components";
 import { LogDetailContent } from "@/components/log/LogDetailContent";
-import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";
+import { travelLogApi } from "@/shared/api/domains";
+import { useAuthStore } from "@/shared/stores/useAuthStore";
 
-// 마이페이지(북마크) 전용 로그 상세보기
-// - 일정 탭의 itinerary/logs/[id]와 화면 구성은 동일하지만, 일정 추가 버튼은 넣지 않음
-// - URL이 /mypage/... 로 시작해서 하단 네비게이션도 마이페이지 탭으로 정상 유지됨
+// TravelLogDetailResponse → LogDetailContent props 변환
+function toLogDetailData(log: NonNullable<ReturnType<typeof useLogDetail>["data"]>) {
+  return {
+    title: log.title ?? "",
+    placeName: "", // API에 없음 - 첫 번째 spot 이름으로 대체 가능
+    extraCount: log.totalSpots != null && log.totalSpots > 1 ? log.totalSpots - 1 : undefined,
+    duration: "", // API에 없음
+    date: log.startDate?.replace(/-/g, ".") ?? "",
+    days: (log.days ?? []).map((day) => ({
+      day: day.dayNumber ?? 1,
+      date: day.date?.replace(/-/g, ".") ?? "",
+      stops: (day.items ?? []).map((item) => ({
+        time: item.arrivalTime ?? "",
+        place: item.spotName ?? "",
+        imageUrl:
+          item.photos?.find((p) => p.representative)?.photoUrl ??
+          item.photos?.[0]?.photoUrl ??
+          undefined,
+        tags: item.hashtags?.map((h) => `#${h.tag}`) ?? [],
+      })),
+    })),
+  };
+}
+
+// useQuery를 밖에서 타입 추론용으로 사용
+function useLogDetail(id: string) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  return useQuery({
+    queryKey: travelLogApi.keys.detail(id),
+    queryFn: () => travelLogApi.getLog(id),
+    enabled: !!accessToken && !!id,
+  });
+}
+
 export default function MypageLogDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const log = SAMPLE_LOGS.find((l) => l.id === id);
+  const { data: log, isLoading } = useLogDetail(id);
+
+  if (isLoading) {
+    return (
+      <PageCard>
+        <div className="flex flex-1 items-center justify-center text-sub-gray text-sm">
+          불러오는 중...
+        </div>
+      </PageCard>
+    );
+  }
 
   if (!log) {
     return (
@@ -26,26 +72,7 @@ export default function MypageLogDetailPage({ params }: { params: Promise<{ id: 
 
   return (
     <PageCard>
-      <LogDetailContent
-        log={{
-          title: log.title,
-          placeName: log.placeName,
-          extraCount: log.extraCount,
-          duration: log.duration,
-          date: log.date,
-          days: log.days.map((day) => ({
-            day: day.day,
-            date: day.date,
-            stops: day.stops.map((stop) => ({
-              time: stop.time,
-              place: stop.place,
-              imageUrl: stop.imageUrl,
-              tags: stop.tags,
-            })),
-          })),
-        }}
-        onBack={() => router.back()}
-      />
+      <LogDetailContent log={toLogDetailData(log)} onBack={() => router.back()} />
     </PageCard>
   );
 }
