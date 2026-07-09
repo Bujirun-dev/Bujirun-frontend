@@ -13,6 +13,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * 방문 인증
+         * @description 위치 정보를 기반으로 사용자가 해당 장소를 실제 방문했는지 인증합니다.
+         */
         post: operations["verify"];
         delete?: never;
         options?: never;
@@ -29,6 +33,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * S3 업로드용 Presigned URL 발급
+         * @description 클라이언트가 이미지를 S3에 직접 PUT 업로드할 수 있는 presigned URL을 발급합니다. 응답의 publicUrl을 photoUrl/profileImageUrl 등 기존 필드에 그대로 사용하면 됩니다.
+         */
         post: operations["presign"];
         delete?: never;
         options?: never;
@@ -45,6 +53,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * 여행 기록 생성
+         * @description 새로운 여행 기록(로그)을 생성합니다.
+         */
         post: operations["create"];
         delete?: never;
         options?: never;
@@ -61,6 +73,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * 사진 추가
+         * @description 여행 기록의 특정 방문 항목에 사진을 추가합니다.
+         */
         post: operations["addPhoto"];
         delete?: never;
         options?: never;
@@ -77,6 +93,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * 해시태그 추가
+         * @description 여행 기록의 방문 항목에 해시태그를 추가합니다.
+         */
         post: operations["addHashtag"];
         delete?: never;
         options?: never;
@@ -91,8 +111,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 내 일정 목록 조회
+         * @description 로그인한 사용자가 만든 일정 목록을 요약 정보로 조회합니다.
+         */
         get: operations["getList"];
         put?: never;
+        /**
+         * 일정 생성
+         * @description 새로운 여행 일정을 생성합니다.
+         */
         post: operations["create_1"];
         delete?: never;
         options?: never;
@@ -109,6 +137,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * 일차 추가
+         * @description 일정에 새로운 여행 일차(Day)를 추가합니다.
+         */
         post: operations["addDay"];
         delete?: never;
         options?: never;
@@ -125,6 +157,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * 방문 항목 추가
+         * @description 특정 일차에 방문할 장소(항목)를 추가합니다.
+         */
         post: operations["addItem"];
         delete?: never;
         options?: never;
@@ -141,6 +177,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * 그룹 일정 자동 생성
+         * @description 그룹 멤버들의 스와이프 결과를 종합하여 그룹 일정을 자동 생성합니다.
+         */
         post: operations["generate"];
         delete?: never;
         options?: never;
@@ -157,6 +197,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * 일정 자동 생성
+         * @description 사용자의 스와이프(좋아요/싫어요) 결과를 기반으로 A/B/C 3가지 일정 후보를 자동 생성합니다.
+         */
         post: operations["generateItinerary"];
         delete?: never;
         options?: never;
@@ -173,6 +217,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * 그룹 생성
+         * @description 새로운 여행 그룹을 생성합니다.
+         */
         post: operations["create_2"];
         delete?: never;
         options?: never;
@@ -189,8 +237,36 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * 그룹 참여
+         * @description 초대 코드를 이용해 기존 그룹에 참여합니다.
+         */
         post: operations["join"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bookmarks/{spotId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 북마크 추가
+         * @description 관광지를 북마크에 추가합니다.
+         */
+        post: operations["addBookmark"];
+        /**
+         * 북마크 삭제
+         * @description 관광지에 대한 북마크를 삭제합니다.
+         */
+        delete: operations["removeBookmark"];
         options?: never;
         head?: never;
         patch?: never;
@@ -205,6 +281,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Access Token 재발급
+         * @description 쿠키에 저장된 Refresh Token을 검증하여 새로운 Access Token을 발급합니다.
+         */
         post: operations["reissue"];
         delete?: never;
         options?: never;
@@ -221,6 +301,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * 로그아웃
+         * @description Redis에 저장된 Refresh Token을 삭제하고 쿠키를 만료시킵니다.
+         */
         post: operations["logout"];
         delete?: never;
         options?: never;
@@ -237,6 +321,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * 카카오 로그인
+         * @description 카카오 인가 코드로 액세스 토큰과 사용자 정보를 받아 회원가입/로그인을 처리하고 서비스 자체 토큰을 발급합니다.
+         */
         post: operations["kakaoLogin"];
         delete?: never;
         options?: never;
@@ -267,12 +355,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 내 프로필 조회
+         * @description 로그인한 사용자의 프로필 정보를 조회합니다.
+         */
         get: operations["getMyProfile"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
+        /**
+         * 내 프로필 수정
+         * @description 로그인한 사용자의 닉네임, 프로필 이미지 등 프로필 정보를 수정합니다.
+         */
         patch: operations["updateMyProfile"];
         trace?: never;
     };
@@ -289,6 +385,10 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        /**
+         * 대표 사진 설정
+         * @description 방문 항목에 포함된 사진 중 하나를 대표 사진으로 지정합니다.
+         */
         patch: operations["setRepresentative"];
         trace?: never;
     };
@@ -299,12 +399,24 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 여행 기록 상세 조회
+         * @description 여행 기록 ID로 사진, 해시태그를 포함한 상세 정보를 조회합니다.
+         */
         get: operations["getDetail"];
         put?: never;
         post?: never;
+        /**
+         * 여행 기록 삭제
+         * @description 여행 기록을 삭제합니다.
+         */
         delete: operations["delete"];
         options?: never;
         head?: never;
+        /**
+         * 여행 기록 수정
+         * @description 여행 기록의 내용을 수정합니다.
+         */
         patch: operations["update"];
         trace?: never;
     };
@@ -318,9 +430,17 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
+        /**
+         * 방문 항목 삭제
+         * @description 일차에서 특정 방문 항목을 삭제합니다.
+         */
         delete: operations["deleteItem"];
         options?: never;
         head?: never;
+        /**
+         * 방문 항목 수정
+         * @description 일차에 속한 방문 항목의 시간, 순서 등 정보를 수정합니다.
+         */
         patch: operations["updateItem"];
         trace?: never;
     };
@@ -331,13 +451,45 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 일정 상세 조회
+         * @description 일정 ID로 일차 및 방문 항목을 포함한 일정 상세 정보를 조회합니다.
+         */
         get: operations["getById"];
         put?: never;
         post?: never;
+        /**
+         * 일정 삭제
+         * @description 일정을 삭제합니다.
+         */
         delete: operations["delete_1"];
         options?: never;
         head?: never;
+        /**
+         * 일정 수정
+         * @description 일정의 제목, 기간 등 기본 정보를 수정합니다.
+         */
         patch: operations["update_1"];
+        trace?: never;
+    };
+    "/api/itineraries/days/{dayId}/optimize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 일정 재최적화
+         * @description 좌표 기반 동선 재정렬 + 운영시간 반영
+         */
+        patch: operations["optimize"];
         trace?: never;
     };
     "/health": {
@@ -347,6 +499,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 서버 상태 확인
+         * @description 서버가 정상적으로 동작 중인지 확인합니다.
+         */
         get: operations["health"];
         put?: never;
         post?: never;
@@ -363,6 +519,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 버스 실시간 도착정보 조회
+         * @description 정류소 ID와 노선번호로 버스의 실시간 도착 예정시간(분)을 조회합니다. 프론트엔드 폴링용 API입니다.
+         */
         get: operations["getBusArrival"];
         put?: never;
         post?: never;
@@ -379,6 +539,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 관광지 검색
+         * @description 키워드, 지역(시군구), 카테고리, 정렬 기준으로 관광지를 검색합니다.
+         */
         get: operations["search"];
         put?: never;
         post?: never;
@@ -395,6 +559,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 여행지별 기록 조회
+         * @description 특정 여행지(스팟)에 대한 여행 기록 목록을 조회합니다.
+         */
         get: operations["getLogsBySpot"];
         put?: never;
         post?: never;
@@ -411,6 +579,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 공개 여행 기록 목록 조회
+         * @description 다른 사용자들에게 공개된 여행 기록을 카테고리, 정렬 기준으로 조회합니다.
+         */
         get: operations["getPublicLogs"];
         put?: never;
         post?: never;
@@ -427,6 +599,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 내 여행 기록 목록 조회
+         * @description 로그인한 사용자가 작성한 여행 기록 목록을 조회합니다.
+         */
         get: operations["getMyLogs"];
         put?: never;
         post?: never;
@@ -443,6 +619,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 그룹 멤버 조회
+         * @description 특정 그룹에 속한 멤버 목록을 조회합니다.
+         */
         get: operations["members"];
         put?: never;
         post?: never;
@@ -459,6 +639,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 내 그룹 목록 조회
+         * @description 현재 로그인한 사용자가 속한 그룹 목록을 조회합니다.
+         */
         get: operations["myGroups"];
         put?: never;
         post?: never;
@@ -475,6 +659,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 찜 목록 조회
+         * @description 로그인한 사용자가 찜한 여행지 목록을 조회합니다.
+         */
         get: operations["getBoard"];
         put?: never;
         post?: never;
@@ -491,10 +679,38 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 찜 상세 조회
+         * @description 찜한 특정 여행지의 상세 정보를 조회합니다.
+         */
         get: operations["getDetail_1"];
         put?: never;
         post?: never;
+        /**
+         * 찜 취소
+         * @description 여행지에 대한 찜을 취소합니다.
+         */
         delete: operations["cancel"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bookmarks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 북마크 목록 조회
+         * @description 로그인한 사용자가 북마크한 관광지 목록을 조회합니다.
+         */
+        get: operations["getBookmarks"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -510,6 +726,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
+        /**
+         * 사진 삭제
+         * @description 여행 기록의 방문 항목에서 특정 사진을 삭제합니다.
+         */
         delete: operations["deletePhoto"];
         options?: never;
         head?: never;
@@ -526,6 +746,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
+        /**
+         * 해시태그 삭제
+         * @description 여행 기록의 방문 항목에서 특정 해시태그를 삭제합니다.
+         */
         delete: operations["deleteHashtag"];
         options?: never;
         head?: never;
@@ -542,6 +766,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
+        /**
+         * 일차 삭제
+         * @description 일정에서 특정 일차(Day)를 삭제합니다.
+         */
         delete: operations["deleteDay"];
         options?: never;
         head?: never;
@@ -849,6 +1077,8 @@ export interface components {
             /** Format: date */
             endDate: string;
             optimizationType?: string;
+            /** Format: int32 */
+            activityHours?: number;
         };
         CreateGroupRequest: {
             name?: string;
@@ -942,6 +1172,22 @@ export interface components {
             /** Format: date */
             endAt?: string;
             status?: string;
+        };
+        ItineraryOptimizeRequest: {
+            optimizationType?: string;
+            startTime?: string;
+        };
+        ItineraryOptimizeResponse: {
+            spots?: components["schemas"]["OptimizedSpot"][];
+            routes?: components["schemas"]["TransitRouteResponse"][];
+            reason?: string;
+        };
+        OptimizedSpot: {
+            contentId?: string;
+            name?: string;
+            /** Format: int32 */
+            order?: number;
+            arrivalTime?: string;
         };
         ApiResponseString: {
             success?: boolean;
@@ -1038,6 +1284,17 @@ export interface components {
             collected?: boolean;
             /** Format: date-time */
             collectedAt?: string;
+        };
+        BookmarkListResponse: {
+            /** Format: uuid */
+            spotId?: string;
+            name?: string;
+            category?: string;
+            /** Format: int32 */
+            sigunguId?: number;
+            thumbnailUrl?: string;
+            /** Format: date-time */
+            bookmarkedAt?: string;
         };
     };
     responses: never;
@@ -1366,6 +1623,46 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["ApiResponseGroupResponse"];
                 };
+            };
+        };
+    };
+    addBookmark: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spotId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    removeBookmark: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spotId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -1705,6 +2002,32 @@ export interface operations {
             };
         };
     };
+    optimize: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dayId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItineraryOptimizeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ItineraryOptimizeResponse"];
+                };
+            };
+        };
+    };
     health: {
         parameters: {
             query?: never;
@@ -1939,6 +2262,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    getBookmarks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BookmarkListResponse"][];
+                };
             };
         };
     };
