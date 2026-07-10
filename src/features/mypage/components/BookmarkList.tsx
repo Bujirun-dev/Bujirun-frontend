@@ -12,8 +12,15 @@ import type { Category } from "@/components";
 // API category 문자열 → Category 타입 변환
 const VALID_CATEGORIES = ["sea", "nature", "culture", "experience"] as const;
 
-function toCategory(value?: string): Category | undefined {
-  return VALID_CATEGORIES.includes(value as Category) ? (value as Category) : undefined;
+function toCategory(value?: string, name?: string): Category | undefined {
+  if (!value && !name) return undefined;
+  if (name?.includes("해수욕장") || name?.includes("해변")) return "sea";
+  if (!value) return undefined;
+  if (value.includes("자연")) return "nature";
+  if (value.includes("문화") || value.includes("역사")) return "culture";
+  if (value.includes("체험") || value.includes("놀이")) return "experience";
+  if (value.includes("바다") || value.includes("해수욕")) return "sea";
+  return undefined;
 }
 
 export function BookmarkList() {
@@ -58,7 +65,7 @@ export function BookmarkList() {
         <BookmarkCard
           key={item.spotId}
           name={item.name ?? ""}
-          category={toCategory(item.category)}
+          category={toCategory(item.category, item.name ?? "")}
           isBookmarked={true}
           imageUrl={item.thumbnailUrl ?? undefined}
           onBookmarkToggle={() => item.spotId && removeBookmark(item.spotId)}
