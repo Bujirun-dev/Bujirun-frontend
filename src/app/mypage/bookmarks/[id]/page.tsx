@@ -11,8 +11,15 @@ import type { Category } from "@/components";
 
 const VALID_CATEGORIES = ["sea", "nature", "culture", "experience"] as const;
 
-function toCategory(value?: string): Category {
-  return VALID_CATEGORIES.includes(value as Category) ? (value as Category) : "sea";
+//카테고리
+function toCategory(value?: string, name?: string): Category {
+  if (name?.includes("해수욕장") || name?.includes("해변")) return "sea";
+  if (!value) return "nature";
+  if (value.includes("자연")) return "nature";
+  if (value.includes("문화") || value.includes("역사")) return "culture";
+  if (value.includes("체험") || value.includes("놀이")) return "experience";
+  if (value.includes("바다") || value.includes("해수욕")) return "sea";
+  return "nature";
 }
 
 export default function BookmarkDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -65,7 +72,7 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
         place={{
           imageUrl: spot?.thumbnailUrl ?? `https://picsum.photos/seed/${id}/400/300`,
           name: spot?.name ?? "",
-          category: toCategory(spot?.category),
+          category: toCategory(spot?.category, spot?.name),
           description: spot?.overview ?? "",
           address: spot?.address ?? "",
           isBookmarked,
