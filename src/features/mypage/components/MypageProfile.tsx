@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Image from "next/image";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ProfileImageSelectModal } from "./ProfileImageSelectModal";
 import { NicknameInlineEdit } from "./NicknameInlineEdit";
 import { ProfileStats } from "./ProfileStats";
@@ -10,31 +11,68 @@ import { Toast } from "@/components/ui/Toast";
 import { Card } from "@/components/ui/Card";
 import { CategoryChip } from "@/components/ui/CategoryChip";
 import type { Category } from "@/components/ui/CategoryChip";
+import { userApi } from "@/shared/api/domains";
 import SuccessIcon from "@/assets/icons/mypage/success.svg?svgr";
 import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
 
-// TODO: API 연결 시 useQuery로 교체 (visits, itineraries, travel_logs 카운트 조회)
-const MOCK_USER = {
-  nickname: "은지미",
-  profileImageId: 1,
-  tags: ["sea", "culture"] as Category[],
-  visitedCount: 12,
-  completedItineraryCount: 5,
-  travelLogCount: 8,
+// TODO: 백엔드 스키마에 통계 필드 추가되면 API로 교체
+const MOCK_STATS = {
+  visitedCount: 0,
+  completedItineraryCount: 0,
+  travelLogCount: 0,
 };
+
+// TODO: 백엔드에서 태그 데이터 내려오면 API로 교체
+const MOCK_TAGS: Category[] = [];
 
 const AVATAR_SIZE = 100;
 
-export function MypageProfile() {
-  const { tags, visitedCount, completedItineraryCount, travelLogCount } = MOCK_USER;
+// profileImageUrl이 숫자 문자열("1"~"9")이면 로컬 이미지로 매핑
+function resolveProfileImage(profileImageUrl?: string | null) {
+  if (!profileImageUrl) return PROFILE_IMAGES[0];
+  const id = Number(profileImageUrl);
+  if (!isNaN(id)) {
+    return PROFILE_IMAGES.find((img) => img.id === id) ?? PROFILE_IMAGES[0];
+  }
+  return { id: -1, src: profileImageUrl };
+}
 
-  const [nickname, setNickname] = useState(MOCK_USER.nickname);
-  const [currentImageId, setCurrentImageId] = useState(MOCK_USER.profileImageId);
+export function MypageProfile() {
+  const queryClient = useQueryClient();
+
   const [isProfileImageModalOpen, setIsProfileImageModalOpen] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  const currentImage = PROFILE_IMAGES.find((img) => img.id === currentImageId) ?? PROFILE_IMAGES[0];
+  // 유저 프로필 조회
+  const { data: profile, isLoading } = useQuery({
+    queryKey: userApi.keys.me(),
+    queryFn: userApi.getMyProfile,
+  });
+
+  // 닉네임 수정
+  const { mutate: updateNickname } = useMutation({
+    mutationFn: (nickname: string) => userApi.updateMyProfile({ nickname }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userApi.keys.me() });
+      showToast("닉네임이 변경되었어요");
+    },
+    onError: () => {
+      showToast("닉네임 변경에 실패했어요");
+    },
+  });
+
+  // 프로필 이미지 수정
+  const { mutate: updateProfileImage } = useMutation({
+    mutationFn: (imageId: number) => userApi.updateMyProfile({ profileImageUrl: String(imageId) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userApi.keys.me() });
+      showToast("프로필 사진이 변경되었어요");
+    },
+    onError: () => {
+      showToast("프로필 사진 변경에 실패했어요");
+    },
+  });
 
   const showToast = useCallback((message: string) => {
     setToastMessage(message);
@@ -42,6 +80,27 @@ export function MypageProfile() {
   }, []);
 
   const hideToast = useCallback(() => setToastVisible(false), []);
+
+  const currentImage = resolveProfileImage(profile?.profileImageUrl);
+  const nickname = profile?.nickname ?? "";
+
+  // 현재 이미지 ID (로컬 이미지인 경우에만 유효)
+  const currentImageId = currentImage.id !== -1 ? currentImage.id : null;
+
+  if (isLoading) {
+    return (
+      <Card variant="white" className="w-full pt-[24px] pb-[24px]">
+        <div className="flex flex-col items-center gap-5">
+          <div
+            style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
+            className="rounded-full bg-system-navbg animate-pulse"
+          />
+          <div className="h-5 w-20 rounded bg-system-navbg animate-pulse" />
+          <div className="h-14 w-full rounded-2xl bg-system-navbg animate-pulse" />
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -74,25 +133,26 @@ export function MypageProfile() {
             </button>
           </div>
 
+          {/* 닉네임 인라인 편집 — 확인 시 API 호출 */}
           <NicknameInlineEdit
             nickname={nickname}
-            onConfirm={(newNickname) => {
-              setNickname(newNickname);
-              showToast("닉네임이 변경되었어요");
-            }}
+            onConfirm={(newNickname) => updateNickname(newNickname)}
           />
 
-          <div className="flex flex-wrap justify-center gap-1.5">
-            {tags.map((tag) => (
-              <CategoryChip key={tag} category={tag} />
-            ))}
-          </div>
+          {/* TODO: 백엔드에서 태그 데이터 내려오면 profile에서 읽도록 교체 */}
+          {MOCK_TAGS.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-1.5">
+              {MOCK_TAGS.map((tag) => (
+                <CategoryChip key={tag} category={tag} />
+              ))}
+            </div>
+          )}
 
-          {/* 활동 지표 - visits/itineraries/travel_logs 테이블 기준 */}
+          {/* 활동 지표 — TODO: 백엔드 통계 API 추가되면 교체 */}
           <ProfileStats
-            visitedCount={visitedCount}
-            completedItineraryCount={completedItineraryCount}
-            travelLogCount={travelLogCount}
+            visitedCount={MOCK_STATS.visitedCount}
+            completedItineraryCount={MOCK_STATS.completedItineraryCount}
+            travelLogCount={MOCK_STATS.travelLogCount}
           />
         </div>
       </Card>
@@ -102,10 +162,7 @@ export function MypageProfile() {
         onClose={() => setIsProfileImageModalOpen(false)}
         images={PROFILE_IMAGES}
         currentId={currentImageId}
-        onConfirm={(id) => {
-          setCurrentImageId(id);
-          showToast("프로필 사진이 변경되었어요");
-        }}
+        onConfirm={(id) => updateProfileImage(id)}
       />
 
       <Toast
