@@ -42,8 +42,10 @@ export default function HomePage() {
       <Card variant="glass-lg" className="relative shrink-0 rounded-[32px] mt-[-28px] mb-2 py-6">
         <div className="flex items-center gap-2">
           <h2 className="font-ssurround text-xl text-text-heading">부산도감</h2>
-          <MegaphoneIcon />
-          <p className="text-xs text-text-primary">부산의 명소를 방문하고 도감을 채워보세요.</p>
+          <div className="flex items-center gap-1">
+            <MegaphoneIcon />
+            <p className="text-xs text-text-primary">부산의 명소를 방문하고 도감을 채워보세요.</p>
+          </div>
         </div>
 
         <div className="mt-4 flex items-center gap-4">
