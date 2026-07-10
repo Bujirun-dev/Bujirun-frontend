@@ -2,24 +2,49 @@
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BackButton, PageCard } from "@/components";
 import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
-import { travelLogApi } from "@/shared/api/domains";
+import { travelLogApi, spotApi, bookmarkApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
+import type { Category } from "@/components";
+
+const VALID_CATEGORIES = ["sea", "nature", "culture", "experience"] as const;
+
+function toCategory(value?: string): Category {
+  return VALID_CATEGORIES.includes(value as Category) ? (value as Category) : "sea";
+}
 
 export default function BookmarkDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
 
-  const [isBookmarked, setIsBookmarked] = useState(true);
+  // 관광지 상세 조회
+  const { data: spot } = useQuery({
+    queryKey: spotApi.keys.detail(id),
+    queryFn: () => spotApi.getSpot(id),
+    enabled: !!accessToken && !!id,
+  });
 
-  // GET /api/logs/spot/{spotId}
+  // 관련 로그 조회
   const { data: logs = [] } = useQuery({
     queryKey: travelLogApi.keys.bySpot(id),
     queryFn: () => travelLogApi.getLogsBySpot(id),
     enabled: !!accessToken && !!id,
+  });
+
+  // 북마크 상태 (spot.collected 기준)
+  const [isBookmarked, setIsBookmarked] = useState(true);
+
+  // 북마크 토글
+  const { mutate: toggleBookmark } = useMutation({
+    mutationFn: () => (isBookmarked ? bookmarkApi.removeBookmark(id) : bookmarkApi.addBookmark(id)),
+    onSuccess: () => {
+      setIsBookmarked((prev) => !prev);
+      queryClient.invalidateQueries({ queryKey: bookmarkApi.keys.list() });
+    },
   });
 
   // TravelLogSummaryResponse → PlaceDetailRelatedLog (미리보기용 2개)
@@ -36,21 +61,22 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
         <h1 className="font-ssurround font-bold text-lg text-text-heading">관광지 상세보기</h1>
       </div>
 
-      {/* TODO: 관광지 상세 API(GET /api/spots/{spotId}) 추가되면 아래 mock 데이터 교체 */}
       <PlaceDetailContent
         place={{
-          imageUrl: `https://picsum.photos/seed/${id}/400/300`,
-          name: "관광지",
-          category: "sea",
-          description: "",
-          address: "",
+          imageUrl: spot?.thumbnailUrl ?? `https://picsum.photos/seed/${id}/400/300`,
+          name: spot?.name ?? "",
+          category: toCategory(spot?.category),
+          description: spot?.overview ?? "",
+          address: spot?.address ?? "",
           isBookmarked,
-          infoItems: [],
+          infoItems: [
+            ...(spot?.operatingHours
+              ? [{ type: "clock" as const, label: "운영시간", value: spot.operatingHours }]
+              : []),
+            ...(spot?.tel ? [{ type: "call" as const, label: "문의", value: spot.tel }] : []),
+          ],
         }}
-        onBookmark={() => {
-          setIsBookmarked((prev) => !prev);
-          // TODO: 북마크 API 연결
-        }}
+        onBookmark={() => toggleBookmark()}
         relatedLogs={relatedLogs}
         onViewMoreLogs={() => router.push(`/mypage/bookmarks/${id}/related-logs`)}
         getRelatedLogHref={(logId) => `/mypage/logs/${logId}`}

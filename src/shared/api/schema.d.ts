@@ -44,6 +44,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/swipes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 스와이프 결과 제출
+         * @description 사용자의 스와이프(좋아요/싫어요) 결과를 세션 단위로 저장합니다. groupId를 함께 지정하면 그룹 일정 자동 생성(/api/itineraries/group/{groupId}/generate) 시 취합 대상이 됩니다.
+         */
+        post: operations["submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/logs": {
         parameters: {
             query?: never;
@@ -168,6 +188,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/itineraries/vote-sessions/{sessionId}/votes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 투표 참여
+         * @description A/B/C안 중 하나에 투표합니다.
+         */
+        post: operations["castVote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/itineraries/vote-sessions/{sessionId}/finalize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 일정 확정 (리더 전용)
+         * @description 투표 결과 최다득표안을 확정합니다. 동률이면 selectedPlan을 지정해야 합니다. freePass=true면 투표 결과와 무관하게 selectedPlan으로 즉시 확정합니다.
+         */
+        post: operations["finalize"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/itineraries/group/{groupId}/generate": {
         parameters: {
             query?: never;
@@ -199,7 +259,7 @@ export interface paths {
         put?: never;
         /**
          * 일정 자동 생성
-         * @description 사용자의 스와이프(좋아요/싫어요) 결과를 기반으로 A/B/C 3가지 일정 후보를 자동 생성합니다.
+         * @description 사용자의 스와이프(좋아요/싫어요) 결과를 기반으로 A/B 2가지 일정 후보를 자동 생성합니다.
          */
         post: operations["generateItinerary"];
         delete?: never;
@@ -486,7 +546,7 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * 일정 재최적화
+         * 일정 최적화
          * @description 좌표 기반 동선 재정렬 + 운영시간 반영
          */
         patch: operations["optimize"];
@@ -524,6 +584,26 @@ export interface paths {
          * @description 정류소 ID와 노선번호로 버스의 실시간 도착 예정시간(분)을 조회합니다. 프론트엔드 폴링용 API입니다.
          */
         get: operations["getBusArrival"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/spots/{spotId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 관광지 상세 조회
+         * @description spotId로 관광지 상세 정보(DB 기본정보 + TourAPI 개요/이미지)를 조회합니다.
+         */
+        get: operations["getDetail_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -612,6 +692,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/itineraries/vote-sessions/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 투표 현황 조회 */
+        get: operations["getStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/groups/{groupId}/members": {
         parameters: {
             query?: never;
@@ -683,7 +780,7 @@ export interface paths {
          * 찜 상세 조회
          * @description 찜한 특정 여행지의 상세 정보를 조회합니다.
          */
-        get: operations["getDetail_1"];
+        get: operations["getDetail_2"];
         put?: never;
         post?: never;
         /**
@@ -811,6 +908,31 @@ export interface components {
         PresignUploadResponse: {
             uploadUrl?: string;
             publicUrl?: string;
+        };
+        SwipeItem: {
+            contentId?: string;
+            liked?: boolean;
+        };
+        SwipeSubmitRequest: {
+            swipes: components["schemas"]["SwipeItem"][];
+            /** Format: uuid */
+            groupId?: string;
+        };
+        ApiResponseSwipeSessionResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["SwipeSessionResponse"];
+        };
+        SwipeSessionResponse: {
+            /** Format: uuid */
+            sessionId?: string;
+            /** Format: uuid */
+            groupId?: string;
+            status?: string;
+            /** Format: int32 */
+            resultCount?: number;
+            /** Format: date-time */
+            createdAt?: string;
         };
         CreateLogRequest: {
             /** Format: uuid */
@@ -985,6 +1107,47 @@ export interface components {
             message?: string;
             data?: components["schemas"]["ItineraryItemResponse"];
         };
+        CastVoteRequest: {
+            votedPlan: string;
+        };
+        ApiResponseVoteStatusResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["VoteStatusResponse"];
+        };
+        VoteStatusResponse: {
+            /** Format: uuid */
+            sessionId?: string;
+            status?: string;
+            voteCounts?: {
+                [key: string]: number;
+            };
+            /** Format: int32 */
+            totalVotes?: number;
+        };
+        DayInput: {
+            /** Format: int32 */
+            day?: number;
+            spotContentIds?: string[];
+        };
+        FinalizeItineraryRequest: {
+            freePass: boolean;
+            selectedPlan?: string;
+            title: string;
+            /** Format: date */
+            startDate: string;
+            /** Format: date */
+            endDate: string;
+            days?: components["schemas"]["DayInput"][];
+            /** Format: uuid */
+            requesterId?: string;
+        };
+        ApiResponseUUID: {
+            success?: boolean;
+            message?: string;
+            /** Format: uuid */
+            data?: string;
+        };
         GroupItineraryRequest: {
             /** Format: date */
             startDate: string;
@@ -992,16 +1155,21 @@ export interface components {
             endDate: string;
             optimizationType?: string;
         };
-        ApiResponseItineraryGenerateResponse: {
+        ApiResponseGroupItineraryGenerateResponse: {
             success?: boolean;
             message?: string;
-            data?: components["schemas"]["ItineraryGenerateResponse"];
+            data?: components["schemas"]["GroupItineraryGenerateResponse"];
         };
         DayPlan: {
             /** Format: int32 */
             day?: number;
             spots?: components["schemas"]["SpotInfo"][];
             routes?: components["schemas"]["TransitRouteResponse"][];
+        };
+        GroupItineraryGenerateResponse: {
+            /** Format: uuid */
+            voteSessionId?: string;
+            plans?: components["schemas"]["ItineraryGenerateResponse"];
         };
         ItineraryGenerateResponse: {
             planA?: components["schemas"]["PlanOption"];
@@ -1066,10 +1234,6 @@ export interface components {
         TransitRouteResponse: {
             options?: components["schemas"]["TransitOption"][];
         };
-        SwipeItem: {
-            contentId?: string;
-            liked?: boolean;
-        };
         SwipeRequest: {
             swipes: components["schemas"]["SwipeItem"][];
             /** Format: date */
@@ -1079,6 +1243,11 @@ export interface components {
             optimizationType?: string;
             /** Format: int32 */
             activityHours?: number;
+        };
+        ApiResponseItineraryGenerateResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ItineraryGenerateResponse"];
         };
         CreateGroupRequest: {
             name?: string;
@@ -1199,6 +1368,21 @@ export interface components {
             message?: string;
             /** Format: int32 */
             data?: number;
+        };
+        SpotDetailResponse: {
+            spotId?: string;
+            contentId?: string;
+            name?: string;
+            category?: string;
+            address?: string;
+            lat?: number;
+            lng?: number;
+            thumbnailUrl?: string;
+            operatingHours?: string;
+            overview?: string;
+            tel?: string;
+            homepage?: string;
+            collected?: boolean;
         };
         SpotSearchResponse: {
             /** Format: uuid */
@@ -1349,6 +1533,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponsePresignUploadResponse"];
+                };
+            };
+        };
+    };
+    submit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SwipeSubmitRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSwipeSessionResponse"];
                 };
             };
         };
@@ -1528,6 +1736,58 @@ export interface operations {
             };
         };
     };
+    castVote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CastVoteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoteStatusResponse"];
+                };
+            };
+        };
+    };
+    finalize: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FinalizeItineraryRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseUUID"];
+                };
+            };
+        };
+    };
     generate: {
         parameters: {
             query?: never;
@@ -1549,7 +1809,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ApiResponseItineraryGenerateResponse"];
+                    "*/*": components["schemas"]["ApiResponseGroupItineraryGenerateResponse"];
                 };
             };
         };
@@ -2071,6 +2331,28 @@ export interface operations {
             };
         };
     };
+    getDetail_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spotId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SpotDetailResponse"];
+                };
+            };
+        };
+    };
     search: {
         parameters: {
             query?: {
@@ -2161,6 +2443,28 @@ export interface operations {
             };
         };
     };
+    getStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoteStatusResponse"];
+                };
+            };
+        };
+    };
     members: {
         parameters: {
             query?: never;
@@ -2223,7 +2527,7 @@ export interface operations {
             };
         };
     };
-    getDetail_1: {
+    getDetail_2: {
         parameters: {
             query?: never;
             header?: never;
