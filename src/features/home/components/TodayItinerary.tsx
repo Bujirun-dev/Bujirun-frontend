@@ -26,7 +26,12 @@ export function TodayItinerary() {
   const router = useRouter();
   const { day, items: plans, hasSchedule, isLoading, isError } = useTodayItinerary();
   const [selectedTransportGroup, setSelectedTransportGroup] = useState<TransportGroup | null>(null);
-  const [selectedVerifyPlaceName, setSelectedVerifyPlaceName] = useState<string | null>(null);
+  const [selectedVerifySpot, setSelectedVerifySpot] = useState<{
+    spotId: string;
+    placeName: string;
+    gpsLat: number;
+    gpsLng: number;
+  } | null>(null);
   const [verifiedPlaceNames, setVerifiedPlaceNames] = useState<Set<string>>(() => new Set());
   const [selectedOptionIdByRoute, setSelectedOptionIdByRoute] = useState<Record<string, string>>(
     {},
@@ -38,20 +43,25 @@ export function TodayItinerary() {
 
   const closeTransportModal = () => setSelectedTransportGroup(null);
 
-  const openVerifyModal = (placeName: string) => {
-    setSelectedVerifyPlaceName(placeName);
+  const openVerifyModal = (spotId: string, placeName: string, gpsLat: number, gpsLng: number) => {
+    setSelectedVerifySpot({
+      spotId,
+      placeName,
+      gpsLat,
+      gpsLng,
+    });
   };
 
   const closeVerifyModal = () => {
-    setSelectedVerifyPlaceName(null);
+    setSelectedVerifySpot(null);
   };
 
   const handleVerifyPlace = () => {
-    if (!selectedVerifyPlaceName) return;
+    if (!selectedVerifySpot) return;
 
     setVerifiedPlaceNames((prev) => {
       const next = new Set(prev);
-      next.add(selectedVerifyPlaceName);
+      next.add(selectedVerifySpot.placeName);
       return next;
     });
   };
@@ -106,6 +116,9 @@ export function TodayItinerary() {
       <ol className="mt-4">
         {plans.map((plan, index) => {
           const placeName = plan.spot?.name ?? "이름 없는 장소";
+          const spotId = plan.spot?.id;
+          const gpsLat = plan.spot?.lat;
+          const gpsLng = plan.spot?.lng;
           const isPlanVerified =
             Boolean(plan.spot?.isCollected) || verifiedPlaceNames.has(placeName);
           const nextPlan = plans[index + 1];
@@ -165,7 +178,11 @@ export function TodayItinerary() {
                 <button
                   type="button"
                   className="mt-[7px] shrink-0"
-                  onClick={() => openVerifyModal(placeName)}
+                  onClick={() => {
+                    if (!spotId || gpsLat == null || gpsLng == null) return;
+
+                    openVerifyModal(spotId, placeName, gpsLat, gpsLng);
+                  }}
                 >
                   <StatusBadge status="verify" className="px-2.5 py-1.5 text-sm" />
                 </button>
@@ -191,13 +208,18 @@ export function TodayItinerary() {
           openKakaoMapRoute(selectedTransportGroup.fromPlace, selectedTransportGroup.toPlace)
         }
       />
-      <ArrivalVerifyModal
-        isOpen={selectedVerifyPlaceName !== null}
-        placeName={selectedVerifyPlaceName ?? ""}
-        onClose={closeVerifyModal}
-        onVerify={handleVerifyPlace}
-        onLater={closeVerifyModal}
-      />
+      {selectedVerifySpot && (
+        <ArrivalVerifyModal
+          spotId={selectedVerifySpot.spotId}
+          gpsLat={selectedVerifySpot.gpsLat}
+          gpsLng={selectedVerifySpot.gpsLng}
+          isOpen
+          placeName={selectedVerifySpot.placeName}
+          onClose={closeVerifyModal}
+          onVerify={handleVerifyPlace}
+          onLater={closeVerifyModal}
+        />
+      )}
     </div>
   );
 }
