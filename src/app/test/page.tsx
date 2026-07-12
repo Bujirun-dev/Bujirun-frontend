@@ -633,7 +633,9 @@ export default function TestPage() {
           </Button>
         </div>
 
-        <ComponentLabel>2. GET /api/spots/search (스와이프 생성용 spotId 확보는 여기서 먼저)</ComponentLabel>
+        <ComponentLabel>
+          2. GET /api/spots/search (스와이프 생성용 spotId 확보는 여기서 먼저)
+        </ComponentLabel>
         <div className="flex gap-2">
           <TextInput
             value={searchKeyword}
@@ -656,7 +658,8 @@ export default function TestPage() {
         )}
 
         <ComponentLabel>
-          3. POST /api/itineraries/generate (⚠️ 저장 안 됨 — planA/B/C 미리보기만 반환, id 없음. 위 검색 결과의 spotId 사용)
+          3. POST /api/itineraries/generate (⚠️ 저장 안 됨 — planA/B/C 미리보기만 반환, id 없음. 위
+          검색 결과의 spotId 사용)
         </ComponentLabel>
         <div className="flex gap-2">
           <TextInput
@@ -677,11 +680,7 @@ export default function TestPage() {
             placeholder="종료일 YYYY-MM-DD"
           />
         </div>
-        <Button
-          variant="primary"
-          onClick={handleTestGenerateItinerary}
-          disabled={generateLoading}
-        >
+        <Button variant="primary" onClick={handleTestGenerateItinerary} disabled={generateLoading}>
           {generateLoading ? "요청 중..." : "스와이프 일정 생성 테스트"}
         </Button>
         {generateError && (
@@ -696,7 +695,8 @@ export default function TestPage() {
         )}
 
         <ComponentLabel>
-          4. POST /api/itineraries (여행 생성 — ⚠️ swipe_sessions FK 문제로 500. 현재 일정을 저장하는 유일한 API인데 막혀있음, 백엔드 수정 필요)
+          4. POST /api/itineraries (여행 생성 — ⚠️ swipe_sessions FK 문제로 500. 현재 일정을
+          저장하는 유일한 API인데 막혀있음, 백엔드 수정 필요)
         </ComponentLabel>
         <div className="flex gap-2">
           <TextInput
@@ -744,7 +744,9 @@ export default function TestPage() {
           </pre>
         )}
 
-        <ComponentLabel>6. GET /api/itineraries/{"{id}"} (위 목록 결과의 id 붙여넣기)</ComponentLabel>
+        <ComponentLabel>
+          6. GET /api/itineraries/{"{id}"} (위 목록 결과의 id 붙여넣기)
+        </ComponentLabel>
         <div className="flex gap-2">
           <TextInput
             value={itineraryIdInput}
@@ -1059,7 +1061,9 @@ export default function TestPage() {
           </pre>
         )}
 
-        <ComponentLabel>17. GET /api/groups/{"{groupId}"}/members (위 방 생성 결과의 id 붙여넣기)</ComponentLabel>
+        <ComponentLabel>
+          17. GET /api/groups/{"{groupId}"}/members (위 방 생성 결과의 id 붙여넣기)
+        </ComponentLabel>
         <div className="flex gap-2">
           <TextInput
             value={groupIdInput}
@@ -1106,7 +1110,8 @@ export default function TestPage() {
         )}
 
         <ComponentLabel>
-          19. POST /api/itineraries/group/{"{groupId}"}/generate (그룹 일정 자동생성 — 위 방 생성 결과의 groupId)
+          19. POST /api/itineraries/group/{"{groupId}"}/generate (그룹 일정 자동생성 — 위 방 생성
+          결과의 groupId)
         </ComponentLabel>
         <div className="flex gap-2">
           <TextInput
@@ -1184,11 +1189,7 @@ export default function TestPage() {
             onChange={(e) => setVoteStatusSessionIdInput(e.target.value)}
             placeholder="voteSessionId 붙여넣기"
           />
-          <Button
-            variant="primary"
-            onClick={handleTestGetVoteStatus}
-            disabled={voteStatusLoading}
-          >
+          <Button variant="primary" onClick={handleTestGetVoteStatus} disabled={voteStatusLoading}>
             {voteStatusLoading ? "요청 중..." : "투표 현황 조회 테스트"}
           </Button>
         </div>
@@ -1307,7 +1308,8 @@ export default function TestPage() {
         )}
         {busFetched && (
           <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
-            {JSON.stringify(busResult, null, 2) ?? "null (도착 예정 정보 없음 — arsId/routeNo 조합 확인)"}
+            {JSON.stringify(busResult, null, 2) ??
+              "null (도착 예정 정보 없음 — arsId/routeNo 조합 확인)"}
           </pre>
         )}
       </section>

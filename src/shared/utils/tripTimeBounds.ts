@@ -11,7 +11,10 @@ export interface TripTimeBounds {
 export function saveTripTimeBounds(itineraryId: string, startTime: string, endTime: string) {
   if (!itineraryId || !startTime || !endTime) return;
   try {
-    window.localStorage.setItem(`${KEY_PREFIX}${itineraryId}`, JSON.stringify({ startTime, endTime }));
+    window.localStorage.setItem(
+      `${KEY_PREFIX}${itineraryId}`,
+      JSON.stringify({ startTime, endTime }),
+    );
   } catch {
     // localStorage 사용 불가 환경이면 조용히 무시 (시간 제약 없이 동작)
   }

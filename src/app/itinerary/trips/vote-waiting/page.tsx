@@ -75,7 +75,12 @@ function VoteWaitingContent() {
           endDate,
           // C안(자유 편집형)은 AI가 만든 내용이 없어서, 빈 Day만 일수에 맞게 만들어달라고 명시해야 한다.
           ...(planType === "C"
-            ? { days: Array.from({ length: totalDays }, (_, i) => ({ day: i + 1, spotContentIds: [] })) }
+            ? {
+                days: Array.from({ length: totalDays }, (_, i) => ({
+                  day: i + 1,
+                  spotContentIds: [],
+                })),
+              }
             : {}),
         });
         if (newItineraryId) saveTripTimeBounds(newItineraryId, startTime, endTime);

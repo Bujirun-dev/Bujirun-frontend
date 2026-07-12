@@ -29,7 +29,8 @@ function ScrollColumn({
     const behavior = isFirstRender.current ? "instant" : "smooth";
     isFirstRender.current = false;
     const closestIndex = items.reduce(
-      (closest, v, i) => (Math.abs(v - selected) < Math.abs(items[closest] - selected) ? i : closest),
+      (closest, v, i) =>
+        Math.abs(v - selected) < Math.abs(items[closest] - selected) ? i : closest,
       0,
     );
     ref.current.scrollTo({ top: closestIndex * ITEM_H, behavior });

@@ -66,7 +66,18 @@ function TripInviteContent() {
     const timer = setTimeout(goToPersonality, 1000);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [days, joinedCount, totalSlots, router, groupId, tripName, startDate, endDate, startTime, endTime]);
+  }, [
+    days,
+    joinedCount,
+    totalSlots,
+    router,
+    groupId,
+    tripName,
+    startDate,
+    endDate,
+    startTime,
+    endTime,
+  ]);
 
   const nickname = myProfile?.nickname ?? "친구";
   const inviteUrl =

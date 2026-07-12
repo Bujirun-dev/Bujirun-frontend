@@ -79,7 +79,10 @@ export function ShareInviteModal({
             </span>
           </button>
 
-          <Card variant="glass-sm" className="mt-1 rounded-xl px-4 py-3 flex flex-col gap-1 text-left">
+          <Card
+            variant="glass-sm"
+            className="mt-1 rounded-xl px-4 py-3 flex flex-col gap-1 text-left"
+          >
             <p className="font-semibold text-sm text-text-heading">{title}</p>
             <p className="text-xs text-sub-gray line-clamp-2">{description}</p>
             <p className="text-xs font-medium text-main-blue">{getShortUrl(inviteUrl)}</p>

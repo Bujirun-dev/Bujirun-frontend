@@ -149,9 +149,9 @@ export function TripDateTimePicker({
       (minDate &&
         new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day, 23, 59).getTime() <
           minDate.getTime()) ||
-        (maxDate &&
-          new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day, 0, 0).getTime() >
-            maxDate.getTime()),
+      (maxDate &&
+        new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day, 0, 0).getTime() >
+          maxDate.getTime()),
     );
   const handleTimeInput = (type: TimeInputType, inputValue: string) => {
     const numericValue = inputValue.replace(/\D/g, "").slice(0, 2);

@@ -23,8 +23,7 @@ function useLiveBusArrivalText(leg: TransportLegItemData) {
 
   const { data, isError, refetch } = useQuery({
     queryKey: transitApi.keys.busArrival({ arsId: leg.arsId ?? "", routeNo: leg.routeNo ?? "" }),
-    queryFn: () =>
-      transitApi.getBusArrival({ arsId: leg.arsId ?? "", routeNo: leg.routeNo ?? "" }),
+    queryFn: () => transitApi.getBusArrival({ arsId: leg.arsId ?? "", routeNo: leg.routeNo ?? "" }),
     enabled: canPoll,
     refetchInterval: BUS_ARRIVAL_POLL_MS,
   });

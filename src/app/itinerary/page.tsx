@@ -295,8 +295,7 @@ function ItineraryMain({
           .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
           .map((optimized) => {
             const matchIdx = remaining.findIndex((s) => s.placeName === optimized.name);
-            const existing =
-              matchIdx >= 0 ? remaining.splice(matchIdx, 1)[0] : remaining.shift();
+            const existing = matchIdx >= 0 ? remaining.splice(matchIdx, 1)[0] : remaining.shift();
             return existing
               ? { ...existing, time: normalizeTime(optimized.arrivalTime, existing.time) }
               : null;

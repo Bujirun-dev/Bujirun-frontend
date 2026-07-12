@@ -69,7 +69,11 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center gap-2">
             <DateTimeLabel label="시작 시간" />
-            <TripDateTimePicker value={startDate} onChange={setStartDate} className="flex-1 w-auto" />
+            <TripDateTimePicker
+              value={startDate}
+              onChange={setStartDate}
+              className="flex-1 w-auto"
+            />
           </div>
           <div className="flex items-center gap-2">
             <DateTimeLabel label="종료 시간" />
