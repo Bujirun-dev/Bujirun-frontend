@@ -9,8 +9,6 @@ import { travelLogApi, spotApi, bookmarkApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import type { Category } from "@/components";
 
-const VALID_CATEGORIES = ["sea", "nature", "culture", "experience"] as const;
-
 //카테고리
 function toCategory(value?: string, name?: string): Category {
   if (name?.includes("해수욕장") || name?.includes("해변")) return "sea";

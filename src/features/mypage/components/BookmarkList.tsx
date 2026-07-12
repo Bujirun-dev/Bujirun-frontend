@@ -9,9 +9,6 @@ import { bookmarkApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import type { Category } from "@/components";
 
-// API category 문자열 → Category 타입 변환
-const VALID_CATEGORIES = ["sea", "nature", "culture", "experience"] as const;
-
 function toCategory(value?: string, name?: string): Category | undefined {
   if (!value && !name) return undefined;
   if (name?.includes("해수욕장") || name?.includes("해변")) return "sea";
