@@ -368,11 +368,15 @@ export default function TestPage() {
         icon={<Image src={removeWhiteIcon} alt="삭제" width={12} height={12} />}
       />
       <ArrivalVerifyModal
+        spotId="3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        itineraryId="3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        logId="3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        itemId="3fa85f64-5717-4562-b3fc-2c963f66afa6"
         isOpen={showArrivalModal}
         onClose={() => setShowArrivalModal(false)}
         placeName="송도 해수욕장"
-        onVerify={() => {}}
-        onLater={() => {}}
+        onVerify={() => setShowArrivalModal(false)}
+        onLater={() => setShowArrivalModal(false)}
       />
       <PlaceDetailSheet
         isOpen={showDetailSheet}
