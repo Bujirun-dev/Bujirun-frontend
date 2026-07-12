@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bookmark, FileText, LogOut } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { MenuItem } from "./MenuItem";
 import { PrivacyPolicyModal } from "./PrivacyPolicyModal";
 import { LogoutModal } from "./LogoutModal";
@@ -11,6 +12,7 @@ import { useAuthStore } from "@/shared/stores/useAuthStore";
 
 export function MypageMenuList() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
@@ -24,8 +26,8 @@ export function MypageMenuList() {
     } catch (e) {
       console.error("로그아웃 실패:", e);
     } finally {
-      // accessToken은 메모리(Zustand)에만 있으므로 store를 비운다
-      useAuthStore.getState().clear();
+      useAuthStore.getState().clear(); // accessToken 초기화
+      queryClient.clear(); // 이전 유저 캐시 전체 제거
       setIsLogoutOpen(false);
       router.replace("/login");
     }
