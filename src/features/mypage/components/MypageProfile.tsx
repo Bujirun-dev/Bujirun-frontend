@@ -11,7 +11,7 @@ import { Toast } from "@/components/ui/Toast";
 import { Card } from "@/components/ui/Card";
 import { CategoryChip } from "@/components/ui/CategoryChip";
 import type { Category } from "@/components/ui/CategoryChip";
-import { userApi, travelLogApi } from "@/shared/api/domains";
+import { userApi, travelLogApi, visitApi } from "@/shared/api/domains";
 import SuccessIcon from "@/assets/icons/mypage/success.svg?svgr";
 import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
 
@@ -47,6 +47,12 @@ export function MypageProfile() {
   const { data: myLogs = [] } = useQuery({
     queryKey: travelLogApi.keys.mine(),
     queryFn: () => travelLogApi.getMyLogs(),
+  });
+
+  // 방문 관광지 개수
+  const { data: visitHistory = [] } = useQuery({
+    queryKey: visitApi.keys.history(), // ← keys 활용
+    queryFn: visitApi.getHistory,
   });
 
   // 닉네임 수정
@@ -151,7 +157,7 @@ export function MypageProfile() {
               - visitedCount, completedItineraryCount: 백엔드 통계 API 추가되면 교체
               - travelLogCount: 내 로그 목록 길이로 실제 값 표시 */}
           <ProfileStats
-            visitedCount={0}
+            visitedCount={visitHistory.length}
             completedItineraryCount={0}
             travelLogCount={myLogs.length}
           />
