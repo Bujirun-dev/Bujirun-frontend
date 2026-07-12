@@ -1,23 +1,36 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrivalVerifyModal } from "@/features/itinerary";
 import { PageCard } from "@/components";
 import characterImg from "@/assets/character/face.png";
 
 export default function VerifyPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const spotId = searchParams.get("spotId");
+  const itineraryId = searchParams.get("itineraryId");
+  const logId = searchParams.get("logId");
+  const itemId = searchParams.get("itemId");
+  const placeName = searchParams.get("placeName") ?? "관광지";
+
+  if (!spotId || !itineraryId || !logId || !itemId) {
+    return null;
+  }
 
   return (
-    <div className="flex h-full flex-col relative">
+    <div className="relative flex h-full flex-col">
       <PageCard />
+
       <ArrivalVerifyModal
-        spotId="3fa85f64-5717-4562-b3fc-2c963f66afa6"
-        gpsLat={35.1587}
-        gpsLng={129.1604}
+        spotId={spotId}
+        itineraryId={itineraryId}
+        logId={logId}
+        itemId={itemId}
         isOpen
         onClose={() => router.back()}
-        placeName="해운대 해수욕장"
+        placeName={placeName}
         characterImageUrl={characterImg.src}
         onVerify={() => router.back()}
         onLater={() => router.back()}
