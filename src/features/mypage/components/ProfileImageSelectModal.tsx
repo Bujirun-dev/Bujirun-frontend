@@ -2,8 +2,7 @@
 
 // src/features/mypage/components/ProfileImageSelectModal.tsx
 // 마이페이지 - 프로필 사진 선택 모달 (공통 Modal 컴포넌트 사용)
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { StaticImageData } from "next/image";
 import { Modal } from "@/components/ui/Modal";
 import { ProfileImageSelector } from "@/components/profile/ProfileImageSelector";
@@ -29,6 +28,11 @@ export function ProfileImageSelectModal({
   onConfirm,
 }: ProfileImageSelectModalProps) {
   const [selectedId, setSelectedId] = useState<number | null>(currentId ?? images[0]?.id ?? null);
+
+  // 모달 열릴 때마다 현재 프로필 이미지로 초기화
+  useEffect(() => {
+    if (isOpen) setSelectedId(currentId ?? images[0]?.id ?? null);
+  }, [isOpen, currentId, images]);
 
   const handleConfirm = () => {
     if (selectedId === null) return;
