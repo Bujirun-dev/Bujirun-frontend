@@ -15,9 +15,9 @@ import { useAuthStore } from "@/shared/stores/useAuthStore";
 function toLogDetailData(log: NonNullable<ReturnType<typeof useLogDetail>["data"]>) {
   return {
     title: log.title ?? "",
-    placeName: "", // API에 없음 - 첫 번째 spot 이름으로 대체 가능
+    placeName: log.days?.[0]?.items?.[0]?.spotName ?? "", // 첫 번째 스팟 이름으로 대체
     extraCount: log.totalSpots != null && log.totalSpots > 1 ? log.totalSpots - 1 : undefined,
-    duration: "", // API에 없음
+    duration: "", // TODO: schema에 endAt 없어서 계산 불가, 백엔드 필드 추가되면 교체
     date: log.startDate?.replace(/-/g, ".") ?? "",
     days: (log.days ?? []).map((day) => ({
       day: day.dayNumber ?? 1,
