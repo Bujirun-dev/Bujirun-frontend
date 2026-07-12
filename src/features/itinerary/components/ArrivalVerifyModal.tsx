@@ -5,8 +5,11 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import mapCharacter from "@/assets/character/map.png";
 import { Button, Modal } from "@/components";
+import { useQueryClient } from "@tanstack/react-query";
+import { keys } from "@/shared/api/domains/itinerary";
 import { useVerifyVisit } from "@/shared/hooks/useVerifyVisit";
 import { presignUpload } from "@/shared/api/domains/upload";
+import { addPhoto } from "@/shared/api/domains/travel-log";
 import type { VerifyStep } from "./arrival-verify/ArrivalVerifyStages";
 import { PermissionButton } from "./arrival-verify/ArrivalVerifyShared";
 import {
@@ -23,26 +26,11 @@ import {
   PhotoConfirmStage,
 } from "./arrival-verify/ArrivalVerifyStages";
 
-const GPS_ALLOWED_DISTANCE = 200; // 200m 이내 -> 성공
-const EARTH_RADIUS = 6371000;
-
-function getDistance(lat1: number, lng1: number, lat2: number, lng2: number) {
-  const toRad = (v: number) => (v * Math.PI) / 180;
-
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-
-  return 2 * EARTH_RADIUS * Math.asin(Math.sqrt(a));
-}
-
 interface ArrivalVerifyModalProps {
   spotId: string;
-  gpsLat: number;
-  gpsLng: number;
+  itineraryId: string;
+  logId: string;
+  itemId: string;
   isOpen: boolean;
   onClose: () => void;
   placeName: string;
@@ -55,8 +43,9 @@ interface ArrivalVerifyModalProps {
 
 export function ArrivalVerifyModal({
   spotId,
-  gpsLat,
-  gpsLng,
+  itineraryId,
+  logId,
+  itemId,
   isOpen,
   onClose,
   placeName,
@@ -73,13 +62,11 @@ export function ArrivalVerifyModal({
   const [isCheckingLocation, setIsCheckingLocation] = useState(false);
   const [capturedFile, setCapturedFile] = useState<File | null>(null);
   const [capturedImageUrl, setCapturedImageUrl] = useState<string | null>(null);
-  const [currentLocation, setCurrentLocation] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
+
+  const queryClient = useQueryClient();
 
   const handleRequestLocation = () => {
-    if (isCheckingLocation) return;
+    if (isCheckingLocation || isVerifying) return;
 
     if (!navigator.geolocation) {
       setStep("gps-fail");
@@ -90,30 +77,31 @@ export function ArrivalVerifyModal({
     setStep("gps-loading");
 
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
+      async ({ coords }) => {
         const currentLat = coords.latitude;
         const currentLng = coords.longitude;
 
-        setCurrentLocation({
-          lat: currentLat,
-          lng: currentLng,
-        });
+        try {
+          const response = await verifyVisit({
+            tourSpotId: spotId,
+            gpsLat: currentLat,
+            gpsLng: currentLng,
+          });
 
-        const distance = getDistance(currentLat, currentLng, gpsLat, gpsLng);
-
-        console.log("현재 거리:", distance); // 확인용
-
-        if (distance <= GPS_ALLOWED_DISTANCE) {
-          setStep("gps-success");
-        } else {
+          if (response.verified) {
+            setStep("gps-success");
+          } else {
+            setStep("gps-fail");
+          }
+        } catch (error) {
+          console.error(error);
           setStep("gps-fail");
+        } finally {
+          setIsCheckingLocation(false);
         }
-
-        setIsCheckingLocation(false);
       },
       (error) => {
         console.error(error);
-
         setStep("gps-fail");
         setIsCheckingLocation(false);
       },
@@ -169,19 +157,19 @@ export function ArrivalVerifyModal({
 
     setCapturedFile(null);
     setCapturedImageUrl(null);
-    setCurrentLocation(null);
     onClose();
   };
+
   const finishVerification = async () => {
-    if (!capturedFile || !currentLocation || isVerified || isVerifying) return;
+    if (!capturedFile || isVerified || isVerifying) return;
 
     try {
-      const { uploadUrl } = await presignUpload({
+      const { uploadUrl, publicUrl } = await presignUpload({
         contentType: capturedFile.type,
       });
 
-      if (!uploadUrl) {
-        throw new Error("업로드 URL을 받지 못했습니다.");
+      if (!uploadUrl || !publicUrl) {
+        throw new Error("사진 업로드 정보를 받지 못했습니다.");
       }
 
       const uploadResponse = await fetch(uploadUrl, {
@@ -196,22 +184,20 @@ export function ArrivalVerifyModal({
         throw new Error("사진 업로드에 실패했습니다.");
       }
 
-      const response = await verifyVisit({
-        tourSpotId: spotId,
-        gpsLat: currentLocation.lat,
-        gpsLng: currentLocation.lng,
+      await addPhoto(logId, itemId, {
+        photoUrl: publicUrl,
       });
 
-      if (!response.verified) {
-        setStep("gps-fail");
-        return;
-      }
+      await queryClient.invalidateQueries({
+        queryKey: keys.detail(itineraryId),
+      });
 
       setIsVerified(true);
       onVerify();
       setStep("complete");
-    } catch {
-      setStep("gps-fail");
+    } catch (error) {
+      console.error(error);
+      setStep("photo-confirm");
     }
   };
 
