@@ -45,6 +45,7 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
         setGroupName(group.name ?? "여행");
         setStatus("success");
         const inviteParams = new URLSearchParams({ groupId: group.id ?? "" });
+        inviteParams.set("inviteCode", group.inviteCode ?? code);
         if (count) inviteParams.set("count", count);
         if (days) inviteParams.set("days", days);
         if (group.name) inviteParams.set("name", group.name);
