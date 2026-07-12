@@ -11,8 +11,7 @@ interface NicknameInlineEditProps {
   onConfirm: (nickname: string) => void;
 }
 
-// TODO: API 연결 시 중복 확인 API로 교체
-const TAKEN_NICKNAMES = ["유리", "성빈", "은진"];
+const TAKEN_NICKNAMES: string[] = []; // TODO: 중복 확인 API 생기면 교체
 const MAX_NICKNAME_LENGTH = 6;
 
 export function NicknameInlineEdit({ nickname, onConfirm }: NicknameInlineEditProps) {
