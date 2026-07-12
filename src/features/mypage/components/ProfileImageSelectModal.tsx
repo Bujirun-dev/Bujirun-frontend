@@ -19,7 +19,7 @@ interface ProfileImageSelectModalProps {
   currentId?: number | null;
   onConfirm: (id: number) => void;
 }
-
+// ProfileImageSelectModal.tsx - useEffect 제거
 export function ProfileImageSelectModal({
   isOpen,
   onClose,
@@ -28,11 +28,6 @@ export function ProfileImageSelectModal({
   onConfirm,
 }: ProfileImageSelectModalProps) {
   const [selectedId, setSelectedId] = useState<number | null>(currentId ?? images[0]?.id ?? null);
-
-  // 모달 열릴 때마다 현재 프로필 이미지로 초기화
-  useEffect(() => {
-    if (isOpen) setSelectedId(currentId ?? images[0]?.id ?? null);
-  }, [isOpen, currentId, images]);
 
   const handleConfirm = () => {
     if (selectedId === null) return;

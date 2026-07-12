@@ -165,6 +165,7 @@ export function MypageProfile() {
       </Card>
 
       <ProfileImageSelectModal
+        key={currentImageId}
         isOpen={isProfileImageModalOpen}
         onClose={() => setIsProfileImageModalOpen(false)}
         images={PROFILE_IMAGES}
