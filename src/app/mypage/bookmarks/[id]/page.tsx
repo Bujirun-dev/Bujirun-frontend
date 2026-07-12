@@ -40,7 +40,8 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
     enabled: !!accessToken && !!id,
   });
 
-  // 북마크 상태 (spot.collected 기준)
+  // 북마크 목록에서 진입하므로 초기값 true 고정
+  // TODO: 다른 경로 진입 시 spot.bookmarked 필드 필요 (백엔드 확인 필요)
   const [isBookmarked, setIsBookmarked] = useState(true);
 
   // 북마크 토글
