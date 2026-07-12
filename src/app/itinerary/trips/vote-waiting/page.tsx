@@ -1,15 +1,12 @@
 "use client";
 
-import { Fragment, Suspense, useCallback, useEffect, useState } from "react";
+import { Fragment, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { Modal, Toast } from "@/components";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { itineraryApi } from "@/shared/api/domains";
-
-// TODO: API 연동 후 실제 투표 집계 결과로 교체
-// 동률 테스트: { A: 3, B: 3, C: 0 } / 단독 1위 테스트: { A: 3, B: 2, C: 1 }
-const MOCK_VOTE_RESULT: Record<string, number> = { A: 3, B: 3, C: 0 };
-const MOCK_AUTO_COMPLETE_DELAY_MS = 4000;
+import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 
 // TODO: API 연동 시 실제 방장 여부로 교체
 const IS_HOST = true;
@@ -41,47 +38,55 @@ function VoteWaitingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const totalSlots = Math.min(6, Math.max(2, Number(searchParams.get("count")) || 6));
-  const groupId = searchParams.get("groupId") ?? "";
+  const totalDays = Math.max(1, Number(searchParams.get("days")) || 1);
+  const sessionId = searchParams.get("sessionId") ?? "";
   const tripName = searchParams.get("name") ?? "여행";
   const startDate = searchParams.get("startDate") ?? "";
   const endDate = searchParams.get("endDate") ?? "";
-  const [doneCount, setDoneCount] = useState(
-    Math.min(totalSlots, Math.max(0, Number(searchParams.get("done")) || totalSlots - 1)),
-  );
+  const startTime = searchParams.get("startTime") ?? "";
+  const endTime = searchParams.get("endTime") ?? "";
   const [selectedTiePlan, setSelectedTiePlan] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
-  const winnerPlan = getWinnerPlan(MOCK_VOTE_RESULT);
-  const tiedPlans = getTiedPlans(MOCK_VOTE_RESULT);
+
+  const { data: voteStatus } = useQuery({
+    queryKey: itineraryApi.keys.voteStatus(sessionId),
+    queryFn: () => itineraryApi.getVoteStatus(sessionId),
+    enabled: !!sessionId,
+    refetchInterval: 2000,
+  });
+  const voteCounts = voteStatus?.voteCounts ?? {};
+  const doneCount = Math.min(totalSlots, voteStatus?.totalVotes ?? 0);
+  const winnerPlan = getWinnerPlan(voteCounts);
+  const tiedPlans = getTiedPlans(voteCounts);
   const showTieModal = doneCount >= totalSlots && !winnerPlan && !selectedTiePlan;
 
-  // 임시: 일정 시간 후 투표 완료 시뮬레이션
-  useEffect(() => {
-    if (doneCount >= totalSlots) return;
-    const timer = window.setTimeout(() => setDoneCount(totalSlots), MOCK_AUTO_COMPLETE_DELAY_MS);
-    return () => window.clearTimeout(timer);
-  }, [doneCount, totalSlots]);
-
-  const confirmPlan = useCallback(
-    async (planType: string) => {
-      setIsConfirming(true);
-      try {
-        await itineraryApi.createItinerary({
-          planType,
+  const confirmPlan = async (planType: string) => {
+    setIsConfirming(true);
+    try {
+      // 확정은 리더 전용 API라 방장 클라이언트만 실제로 호출하고,
+      // 참여자는 방장이 확정할 때까지 기다렸다가 같은 화면 흐름으로 넘어간다.
+      if (IS_HOST) {
+        const newItineraryId = await itineraryApi.finalizeItinerary(sessionId, {
+          freePass: false,
+          selectedPlan: planType,
           title: tripName,
-          startAt: startDate,
-          endAt: endDate,
-          groupId,
+          startDate,
+          endDate,
+          // C안(자유 편집형)은 AI가 만든 내용이 없어서, 빈 Day만 일수에 맞게 만들어달라고 명시해야 한다.
+          ...(planType === "C"
+            ? { days: Array.from({ length: totalDays }, (_, i) => ({ day: i + 1, spotContentIds: [] })) }
+            : {}),
         });
-        router.push("/itinerary");
-      } catch {
-        setToastMessage("일정을 확정하지 못했어요. 다시 시도해주세요.");
-      } finally {
-        setIsConfirming(false);
+        if (newItineraryId) saveTripTimeBounds(newItineraryId, startTime, endTime);
       }
-    },
-    [tripName, startDate, endDate, groupId, router],
-  );
+      router.push("/itinerary");
+    } catch {
+      setToastMessage("일정을 확정하지 못했어요. 다시 시도해주세요.");
+    } finally {
+      setIsConfirming(false);
+    }
+  };
 
   // 전원 투표 완료 처리
   useEffect(() => {
@@ -100,7 +105,9 @@ function VoteWaitingContent() {
       window.clearTimeout(toastTimer);
       window.clearTimeout(timer);
     };
-  }, [doneCount, totalSlots, winnerPlan, confirmPlan]);
+    // confirmPlan은 매 렌더마다 새로 만들어져서 참조 자체를 deps에 넣으면 안 됨
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doneCount, totalSlots, winnerPlan]);
 
   const handleTiePick = (plan: string) => {
     setSelectedTiePlan(plan);
@@ -134,6 +141,16 @@ function VoteWaitingContent() {
         </p>
 
         <ParticipantAvatarGrid total={totalSlots} activeCount={doneCount} className="mt-5" />
+
+        {/* TEMP: 인원 다 안 모여도 확정 확인용 — 확인 끝나면 지울 것 */}
+        <button
+          type="button"
+          onClick={() => confirmPlan(winnerPlan ?? "A")}
+          disabled={isConfirming}
+          className="mt-3 font-paperlogy font-normal text-xs text-sub-gray underline decoration-solid underline-offset-2 disabled:opacity-50"
+        >
+          {isConfirming ? "확정 중..." : "(테스트) 인원 상관없이 확정하기"}
+        </button>
       </div>
 
       {/* 동률 모달 */}

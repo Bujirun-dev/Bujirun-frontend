@@ -40,6 +40,8 @@ function TripPersonalityContent() {
     name: searchParams.get("name") ?? "",
     startDate: searchParams.get("startDate") ?? "",
     endDate: searchParams.get("endDate") ?? "",
+    startTime: searchParams.get("startTime") ?? "",
+    endTime: searchParams.get("endTime") ?? "",
   }).toString();
 
   return (

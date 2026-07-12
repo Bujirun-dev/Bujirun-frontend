@@ -170,6 +170,17 @@ export function buildDays(scheduleId: string): { days: BaseStop[][]; dates: stri
   return { days, dates };
 }
 
+// 백엔드가 "H:mm:ss" 같은 형태로 시간을 내려줄 때가 있어서, 화면에는 항상
+// 초 없이 0으로 패딩된 "HH:mm" 형태로 통일해서 보여준다.
+export function normalizeTime(raw: string | undefined, fallback = "00:00"): string {
+  if (!raw) return fallback;
+  const [hour, minute] = raw.split(":");
+  const h = Number(hour);
+  const m = Number(minute);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return fallback;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
 const API_TRAVEL_MODE_MAP: Record<string, TransportType> = {
   transit: "버스",
   bus: "버스",
@@ -177,9 +188,50 @@ const API_TRAVEL_MODE_MAP: Record<string, TransportType> = {
   taxi: "택시",
 };
 
+interface TripTimeBoundsLike {
+  startTime: string;
+  endTime: string;
+}
+
+// 백엔드에서 아직 도착시간이 안 정해진(null) 항목에 아침/오후/저녁 순으로 대략적인
+// 시간을 미리 배정한다. 첫날은 여행 시작 시간, 마지막날은 종료 시간을 벗어나지 않게 한다.
+const DEFAULT_DAY_SLOTS = [
+  { time: "10:00", hour: 10 },
+  { time: "14:00", hour: 14 },
+  { time: "18:00", hour: 18 },
+];
+
+function getDefaultItemTime(
+  dayIdx: number,
+  totalDays: number,
+  itemIdx: number,
+  bounds?: TripTimeBoundsLike | null,
+): string {
+  let slots = DEFAULT_DAY_SLOTS;
+  if (dayIdx === 0 && bounds?.startTime) {
+    const startHour = Number(bounds.startTime.split(":")[0]);
+    if (Number.isFinite(startHour)) {
+      if (startHour >= 18) slots = slots.filter((s) => s.hour >= 18);
+      else if (startHour >= 12) slots = slots.filter((s) => s.hour >= 12);
+    }
+  }
+  if (dayIdx === totalDays - 1 && bounds?.endTime) {
+    const endHour = Number(bounds.endTime.split(":")[0]);
+    if (Number.isFinite(endHour)) {
+      if (endHour < 12) slots = slots.filter((s) => s.hour < 12);
+      else if (endHour < 18) slots = slots.filter((s) => s.hour < 18);
+    }
+  }
+  if (slots.length === 0) slots = DEFAULT_DAY_SLOTS;
+  return slots[itemIdx % slots.length]?.time ?? "10:00";
+}
+
 // GET /api/itineraries/{id} 응답을 타임라인 UI가 쓰는 BaseStop[][] 구조로 변환한다.
 // dayIds는 stopsPerDay와 같은 인덱스로 대응하는 실제 dayId — 일차별 쓰기 API(PATCH/DELETE)에 필요.
-export function mapItineraryDetailToDays(detail: ItineraryDetailResponse): {
+export function mapItineraryDetailToDays(
+  detail: ItineraryDetailResponse,
+  timeBounds?: TripTimeBoundsLike | null,
+): {
   days: BaseStop[][];
   dates: string[];
   dayIds: string[];
@@ -187,8 +239,9 @@ export function mapItineraryDetailToDays(detail: ItineraryDetailResponse): {
   const sortedDays = [...(detail.days ?? [])].sort(
     (a, b) => (a.dayNumber ?? 0) - (b.dayNumber ?? 0),
   );
+  const totalDays = sortedDays.length;
 
-  const days = sortedDays.map((day) => {
+  const days = sortedDays.map((day, dayIdx) => {
     const items = [...(day.items ?? [])].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
 
     return items.map((item, idx): BaseStop => {
@@ -199,7 +252,9 @@ export function mapItineraryDetailToDays(detail: ItineraryDetailResponse): {
 
       return {
         id: item.id ?? `${day.id}-${idx}`,
-        time: item.arrivalTime ?? "00:00",
+        time: item.arrivalTime
+          ? normalizeTime(item.arrivalTime)
+          : getDefaultItemTime(dayIdx, totalDays, idx, timeBounds),
         placeName,
         imageUrl: item.spot?.thumbnailUrl || FALLBACK_IMAGE,
         category: getCategoryFromKo(item.spot?.category ?? ""),

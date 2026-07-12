@@ -59,6 +59,9 @@ export function TripSetupForm() {
     setIsCreating(true);
     try {
       const group = await groupApi.createGroup({ name: tripName });
+      const startDT = parseTripDateTime(startDate);
+      const endDT = parseTripDateTime(endDate);
+      const pad2 = (n: number) => String(n).padStart(2, "0");
       const params = new URLSearchParams({
         count: String(friendCount),
         days: String(getTotalDays()),
@@ -67,6 +70,8 @@ export function TripSetupForm() {
         name: group.name ?? tripName,
         startDate: toApiDate(startDate),
         endDate: toApiDate(endDate),
+        startTime: `${pad2(startDT.getHours())}:${pad2(startDT.getMinutes())}`,
+        endTime: `${pad2(endDT.getHours())}:${pad2(endDT.getMinutes())}`,
       });
       router.push(`/itinerary/trips/invite?${params.toString()}`);
     } finally {

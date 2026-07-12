@@ -26,6 +26,8 @@ function TripInviteContent() {
   const tripName = searchParams.get("name") ?? "여행";
   const startDate = searchParams.get("startDate") ?? "";
   const endDate = searchParams.get("endDate") ?? "";
+  const startTime = searchParams.get("startTime") ?? "";
+  const endTime = searchParams.get("endTime") ?? "";
   const [showShareModal, setShowShareModal] = useState(false);
 
   const { data: members } = useQuery({
@@ -45,21 +47,26 @@ function TripInviteContent() {
     initKakaoShare();
   }, []);
 
+  const goToPersonality = () => {
+    const nextParams = new URLSearchParams({
+      count: String(totalSlots),
+      days,
+      groupId,
+      name: tripName,
+      startDate,
+      endDate,
+      startTime,
+      endTime,
+    });
+    router.push(`/itinerary/trips/personality?${nextParams.toString()}`);
+  };
+
   useEffect(() => {
     if (joinedCount < totalSlots) return;
-    const timer = setTimeout(() => {
-      const nextParams = new URLSearchParams({
-        count: String(totalSlots),
-        days,
-        groupId,
-        name: tripName,
-        startDate,
-        endDate,
-      });
-      router.push(`/itinerary/trips/personality?${nextParams.toString()}`);
-    }, 1000);
+    const timer = setTimeout(goToPersonality, 1000);
     return () => clearTimeout(timer);
-  }, [days, joinedCount, totalSlots, router, groupId, tripName, startDate, endDate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [days, joinedCount, totalSlots, router, groupId, tripName, startDate, endDate, startTime, endTime]);
 
   const nickname = myProfile?.nickname ?? "친구";
   const inviteUrl =
@@ -102,6 +109,15 @@ function TripInviteContent() {
           className="mt-[27px] font-paperlogy font-normal text-sm text-text-primary underline decoration-solid underline-offset-2"
         >
           친구 초대하기
+        </button>
+
+        {/* TEMP: 인원 다 안 모여도 뒷 화면 확인용 — 확인 끝나면 지울 것 */}
+        <button
+          type="button"
+          onClick={goToPersonality}
+          className="mt-3 font-paperlogy font-normal text-xs text-sub-gray underline decoration-solid underline-offset-2"
+        >
+          (테스트) 인원 상관없이 다음 화면으로
         </button>
       </div>
 

@@ -2,7 +2,7 @@
 
 import { Suspense, useRef, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import travelImg from "@/assets/character/travel.png";
 import SuccessIcon from "@/assets/icons/mypage/success.svg";
@@ -16,8 +16,10 @@ import {
   buildDaysFromLog,
   mapItineraryDetailToDays,
   nextTempStopId,
+  normalizeTime,
   rebuildTransport,
 } from "@/features/itinerary/utils/scheduleUtils";
+import { getTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import type { SearchPlace } from "@/features/itinerary/components/PlaceSearchPanel";
 import type { RouteOption } from "@/features/itinerary";
 
@@ -44,12 +46,27 @@ function ItineraryEmptyState() {
 }
 
 export default function ItineraryPage() {
+  return (
+    <Suspense fallback={null}>
+      <ItineraryPageContent />
+    </Suspense>
+  );
+}
+
+function ItineraryPageContent() {
+  const searchParams = useSearchParams();
+  const requestedTripId = searchParams.get("tripId");
+
   const { data: itineraries, isLoading: isListLoading } = useQuery({
     queryKey: itineraryApi.keys.lists(),
     queryFn: itineraryApi.getItineraries,
   });
 
-  const itineraryId = itineraries?.[0]?.id;
+  // 목록에서 특정 여행을 골라 들어온 경우 그 tripId를 우선하고,
+  // 하단 네비게이션처럼 지정 없이 들어온 경우에만 첫 번째 여행으로 대체한다.
+  const selectedItinerary =
+    itineraries?.find((itinerary) => itinerary.id === requestedTripId) ?? itineraries?.[0];
+  const itineraryId = selectedItinerary?.id;
 
   const { data: detail, isLoading: isDetailLoading } = useQuery({
     queryKey: itineraryApi.keys.detail(itineraryId ?? ""),
@@ -62,18 +79,19 @@ export default function ItineraryPage() {
     return <ItineraryEmptyState />;
   }
 
-  const { days, dates, dayIds } = mapItineraryDetailToDays(detail);
+  const tripTimeBounds = getTripTimeBounds(itineraryId);
+  const { days, dates, dayIds } = mapItineraryDetailToDays(detail, tripTimeBounds);
 
   return (
-    <Suspense fallback={null}>
-      <ItineraryMain
-        itineraryId={itineraryId}
-        tripTitle={detail.title ?? itineraries[0].title}
-        initialDays={days}
-        initialDates={dates}
-        dayIds={dayIds}
-      />
-    </Suspense>
+    <ItineraryMain
+      key={itineraryId}
+      itineraryId={itineraryId}
+      tripTitle={detail.title ?? selectedItinerary?.title}
+      initialDays={days}
+      initialDates={dates}
+      dayIds={dayIds}
+      tripTimeBounds={tripTimeBounds}
+    />
   );
 }
 
@@ -83,20 +101,41 @@ function ItineraryMain({
   initialDays: initialDaysData,
   initialDates: initialDatesData,
   dayIds,
+  tripTimeBounds,
 }: {
   itineraryId: string;
   tripTitle?: string;
   initialDays: BaseStop[][];
   initialDates: string[];
   dayIds: string[];
+  tripTimeBounds: ReturnType<typeof getTripTimeBounds>;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const invalidateDetail = () =>
+    queryClient.invalidateQueries({ queryKey: itineraryApi.keys.detail(itineraryId) });
   const searchParams = useSearchParams();
   const importedLogId = searchParams.get("importedLogId");
   const requestedDays = Math.max(1, Number(searchParams.get("days")) || initialDaysData.length);
   const initialDays = initialDaysData.slice(0, requestedDays);
   const initialDates = initialDatesData.slice(0, requestedDays);
   const dayIdsSliced = dayIds.slice(0, requestedDays);
+  // 확정 시점에 정한 시작/종료 시간 — 첫날은 시작 시간 이전, 마지막날은 종료 시간 이후로
+  // 일정을 옮기지 못하게 막는 데 쓴다. 백엔드엔 시간이 저장되지 않아 로컬에만 있을 수 있다.
+  const validateStopTime = (dayIdx: number, time: string): string | null => {
+    if (!tripTimeBounds) return null;
+    if (dayIdx === 0 && tripTimeBounds.startTime && time < tripTimeBounds.startTime) {
+      return `첫날 일정은 여행 시작 시간(${tripTimeBounds.startTime}) 이후로만 설정할 수 있어요.`;
+    }
+    if (
+      dayIdx === dayIdsSliced.length - 1 &&
+      tripTimeBounds.endTime &&
+      time > tripTimeBounds.endTime
+    ) {
+      return `마지막날 일정은 여행 종료 시간(${tripTimeBounds.endTime}) 이전으로만 설정할 수 있어요.`;
+    }
+    return null;
+  };
 
   const [currentDay, setCurrentDay] = useState(0);
   const [stopsPerDay, setStopsPerDay] = useState<BaseStop[][]>(initialDays);
@@ -107,6 +146,7 @@ function ItineraryMain({
   const [activeDayIdx, setActiveDayIdx] = useState(0);
   const [timeValue, setTimeValue] = useState({ hour: 12, minute: 0 });
   const [selectedRouteOptionId, setSelectedRouteOptionId] = useState<string>("transit");
+  const [optimizeDone, setOptimizeDone] = useState<boolean | undefined>(undefined);
 
   const touchStartX = useRef(0);
 
@@ -162,7 +202,9 @@ function ItineraryMain({
     const stopId = activeStopId;
     setStopsPerDay((prev) => {
       const next = [...prev];
-      next[activeDayIdx] = next[activeDayIdx].filter((s) => s.id !== activeStopId);
+      next[activeDayIdx] = rebuildTransport(
+        next[activeDayIdx].filter((s) => s.id !== activeStopId),
+      );
       return next;
     });
     closeModal();
@@ -170,11 +212,17 @@ function ItineraryMain({
     if (dayId && stopId) {
       itineraryApi
         .deleteItem(itineraryId, dayId, stopId)
+        .then(invalidateDetail)
         .catch(() => setToastMessage("삭제 저장에 실패했어요."));
     }
   };
   const confirmTime = () => {
     const timeStr = `${String(timeValue.hour).padStart(2, "0")}:${String(timeValue.minute).padStart(2, "0")}`;
+    const validationError = validateStopTime(activeDayIdx, timeStr);
+    if (validationError) {
+      setToastMessage(validationError);
+      return;
+    }
     const dayId = dayIdsSliced[activeDayIdx];
     const stopId = activeStopId;
     setStopsPerDay((prev) => {
@@ -190,6 +238,7 @@ function ItineraryMain({
     if (dayId && stopId) {
       itineraryApi
         .updateItem(itineraryId, dayId, stopId, { arrivalTime: timeStr })
+        .then(invalidateDetail)
         .catch(() => setToastMessage("시간 변경 저장에 실패했어요."));
     }
   };
@@ -224,6 +273,44 @@ function ItineraryMain({
       );
       return next;
     });
+  };
+
+  const startOptimize = async () => {
+    setModal("optimizing");
+    setOptimizeDone(false);
+    const dayId = dayIdsSliced[currentDay];
+    try {
+      if (!dayId) throw new Error("dayId missing");
+      const result = await itineraryApi.optimizeDay(dayId, {});
+      invalidateDetail();
+      // 응답에 item id가 없어 장소 이름으로 기존 stop을 찾아 순서/도착시간만 갱신한다.
+      setStopsPerDay((prev) => {
+        const next = [...prev];
+        const currentStops = next[currentDay];
+        // 이름이 겹치는 스팟이 있어도 같은 stop을 두 번 재사용해 id가 중복되지 않도록,
+        // 매칭된 stop은 remaining에서 바로 제거한다.
+        const remaining = [...currentStops];
+        const reordered = (result.spots ?? [])
+          .slice()
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+          .map((optimized) => {
+            const matchIdx = remaining.findIndex((s) => s.placeName === optimized.name);
+            const existing =
+              matchIdx >= 0 ? remaining.splice(matchIdx, 1)[0] : remaining.shift();
+            return existing
+              ? { ...existing, time: normalizeTime(optimized.arrivalTime, existing.time) }
+              : null;
+          })
+          .filter((s): s is BaseStop => s !== null);
+        next[currentDay] = rebuildTransport(reordered);
+        return next;
+      });
+      setToastMessage("일정이 최적화됐어요.");
+    } catch {
+      setToastMessage("일정 최적화에 실패했어요.");
+    } finally {
+      setOptimizeDone(true);
+    }
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -273,11 +360,17 @@ function ItineraryMain({
           next[dayIdx] = next[dayIdx].map((s) => (s.id === stopId ? { ...s, id: newItem.id! } : s));
           return next;
         });
+        invalidateDetail();
       })
       .catch(() => setToastMessage("장소 변경 저장에 실패했어요."));
   };
 
   const confirmTimeInline = (dayIdx: number, stopId: string, time: string) => {
+    const validationError = validateStopTime(dayIdx, time);
+    if (validationError) {
+      setToastMessage(validationError);
+      return;
+    }
     setStopsPerDay((prev) => {
       const next = [...prev];
       const sorted = [...next[dayIdx]]
@@ -292,6 +385,7 @@ function ItineraryMain({
     if (dayId) {
       itineraryApi
         .updateItem(itineraryId, dayId, stopId, { arrivalTime: time })
+        .then(invalidateDetail)
         .catch(() => setToastMessage("시간 변경 저장에 실패했어요."));
     }
   };
@@ -326,6 +420,7 @@ function ItineraryMain({
           next[dayIdx] = next[dayIdx].map((s) => (s.id === tempId ? { ...s, id: newItem.id! } : s));
           return next;
         });
+        invalidateDetail();
       })
       .catch(() => setToastMessage("장소 추가 저장에 실패했어요."));
   };
@@ -375,7 +470,8 @@ function ItineraryMain({
         onConfirmVerify={confirmVerify}
         onVerifyContinue={() => setToastMessage("관광지를 수집했어요!")}
         onTimeChange={setTimeValue}
-        onOptimizeStart={() => setModal("optimizing")}
+        onOptimizeStart={startOptimize}
+        isOptimizeDone={optimizeDone}
       />
 
       <Toast

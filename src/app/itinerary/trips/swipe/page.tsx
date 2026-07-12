@@ -5,7 +5,7 @@ import { Suspense, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import pawIcon from "@/assets/icons/itinerary/paw-print.png";
-import { spotApi, itineraryApi } from "@/shared/api/domains";
+import { spotApi, swipeApi } from "@/shared/api/domains";
 import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
 
 const SWIPE_THRESHOLD = 80;
@@ -28,6 +28,8 @@ function TripSwipeContent() {
   const name = searchParams.get("name") ?? "";
   const startDate = searchParams.get("startDate") ?? "";
   const endDate = searchParams.get("endDate") ?? "";
+  const startTime = searchParams.get("startTime") ?? "";
+  const endTime = searchParams.get("endTime") ?? "";
   const forwardParams = new URLSearchParams({
     count,
     days,
@@ -35,6 +37,8 @@ function TripSwipeContent() {
     name,
     startDate,
     endDate,
+    startTime,
+    endTime,
   }).toString();
 
   const { data: spotsData } = useQuery({
@@ -44,7 +48,7 @@ function TripSwipeContent() {
   const places = useMemo(
     () =>
       (spotsData ?? []).slice(0, MAX_CARDS).map((spot) => ({
-        id: spot.spotId ?? "",
+        id: spot.contentId ?? "",
         name: spot.name ?? "",
         image: spot.thumbnailUrl || FALLBACK_IMAGE,
       })),
@@ -69,12 +73,10 @@ function TripSwipeContent() {
     setTimeout(() => {
       const nextIndex = currentIndex + 1;
       if (nextIndex >= total) {
-        // 개인 스와이프 결과 등록 (그룹 일정 자동생성이 참고할 세션을 서버에 남기기 위한 호출)
-        if (startDate && endDate) {
-          itineraryApi
-            .generateItinerary({ swipes: swipesRef.current, startDate, endDate })
-            .catch(() => {});
-        }
+        // 스와이프 결과 등록 — groupId를 함께 보내야 그룹 일정 자동생성의 취합 대상이 됨
+        swipeApi
+          .submitSwipes({ swipes: swipesRef.current, groupId: groupId || undefined })
+          .catch(() => {});
         router.push(`/itinerary/trips/waiting?${forwardParams}`);
         return;
       }

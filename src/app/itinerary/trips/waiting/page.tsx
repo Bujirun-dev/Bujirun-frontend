@@ -27,6 +27,8 @@ function TripWaitingContent() {
     name: searchParams.get("name") ?? "",
     startDate: searchParams.get("startDate") ?? "",
     endDate: searchParams.get("endDate") ?? "",
+    startTime: searchParams.get("startTime") ?? "",
+    endTime: searchParams.get("endTime") ?? "",
   }).toString();
 
   // 나는 이미 완료 → 1명 done으로 시작

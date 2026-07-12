@@ -20,17 +20,17 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
   const [startDate, setStartDate] = useState(() =>
     formatTripDateTime(parseTripDateTime(trip.startDate)),
   );
-  const [endDate, setEndDate] = useState(() => formatTripDateTime(parseTripDateTime(trip.endDate)));
+  // 처음 생성 시 정한 여행 기간(밤 수)은 수정 화면에서도 그대로 고정한다 —
+  // 줄이는 것도 늘리는 것도 허용하지 않고, 시작일을 옮기면 종료일이 같은 기간만큼 따라 움직인다.
+  const [originalDurationMs] = useState(
+    () => parseTripDateTime(trip.endDate).getTime() - parseTripDateTime(trip.startDate).getTime(),
+  );
+  const endDate = formatTripDateTime(
+    new Date(parseTripDateTime(startDate).getTime() + originalDurationMs),
+  );
 
   if (!isOpen) return null;
 
-  const handleStartDateChange = (nextStartDate: string) => {
-    setStartDate(nextStartDate);
-
-    if (parseTripDateTime(endDate).getTime() < parseTripDateTime(nextStartDate).getTime()) {
-      setEndDate(nextStartDate);
-    }
-  };
   const handleConfirm = () => {
     onConfirm({ ...trip, name, startDate, endDate });
   };
@@ -69,26 +69,19 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center gap-2">
             <DateTimeLabel label="시작 시간" />
-            <TripDateTimePicker
-              value={startDate}
-              onChange={handleStartDateChange}
-              className="flex-1 w-auto"
-            />
+            <TripDateTimePicker value={startDate} onChange={setStartDate} className="flex-1 w-auto" />
           </div>
           <div className="flex items-center gap-2">
             <DateTimeLabel label="종료 시간" />
-            <TripDateTimePicker
-              value={endDate}
-              minValue={startDate}
-              onChange={setEndDate}
-              className="flex-1 w-auto"
-            />
+            <div className="flex h-9 flex-1 items-center rounded-lg border border-main-blue/30 bg-system-navbg px-3 text-xs font-medium text-sub-darkgray">
+              {endDate}
+            </div>
           </div>
         </div>
 
         <Card variant="glass-sm" className="mt-5 w-full rounded-lg px-3 py-2">
           <p className="text-center text-sm font-medium text-sub-darkgray break-keep">
-            * 변경된 여행 기간에 맞춰 일정이 자동으로 조정돼요.
+            * 처음 정한 여행 기간은 그대로 유지돼요. 시작일을 옮기면 종료일도 같이 이동해요.
           </p>
         </Card>
       </div>

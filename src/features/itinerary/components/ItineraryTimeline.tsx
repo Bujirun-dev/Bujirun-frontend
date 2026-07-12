@@ -119,7 +119,26 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
 
     setActiveTimeStopId(stop.id);
   };
-  const closeTimePicker = () => setActiveTimeStopId(null);
+  const closeTimePicker = () => {
+    pendingAutoTimeRef.current = false;
+    setActiveTimeStopId(null);
+  };
+  const pendingAutoTimeRef = useRef(false);
+  const handleAddNewPlace = (place: SearchPlace) => {
+    pendingAutoTimeRef.current = true;
+    onAddNewPlace?.(place);
+  };
+  useEffect(() => {
+    // 추가 직후 임시 id가 실제 id로 교체돼도(같은 길이) 계속 마지막 stop을 기준으로
+    // 다시 열어줘야, 그 사이 팝업이 닫혀버리지 않는다. 사용자가 직접 닫거나 확정하면
+    // closeTimePicker에서 pendingAutoTimeRef를 꺼서 더 이상 재오픈되지 않게 한다.
+    if (!pendingAutoTimeRef.current) return;
+    const newest = stops[stops.length - 1];
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (newest) openTimePicker(newest);
+    // openTimePicker는 매 렌더마다 새로 만들어져서 참조 자체를 deps에 넣으면 안 됨
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stops]);
   const confirmInlineTime = (stop: ItineraryStop) => {
     const timeStr = `${String(inlineTimeValue.hour).padStart(2, "0")}:${String(inlineTimeValue.minute).padStart(2, "0")}`;
     stop.onTimeConfirm?.(timeStr);
@@ -207,13 +226,17 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
     }
   };
 
+  const isEmpty = stops.length === 0;
+
   return (
     <div className="relative min-w-0 pb-16" onClick={handleRootClick}>
-      {/* 세로 타임라인 선 — 마지막 관광지 이후로 살짝만 이어지도록 고정 여백만 부여 */}
-      <div className="absolute top-0 bottom-0 left-[45px] w-[2px] rounded-full bg-sub-lightgray" />
+      {/* 세로 타임라인 선 — 일정이 하나도 없을 땐 그릴 대상이 없으니 숨긴다 */}
+      {!isEmpty && (
+        <div className="absolute top-0 bottom-0 left-[45px] w-[2px] rounded-full bg-sub-lightgray" />
+      )}
 
       <div className="flex flex-col gap-5" style={{ paddingBottom: popupScrollSpace }}>
-        {/* 상단: + 버튼 + 날짜 (검색 중엔 + 버튼만 숨김) */}
+        {/* 상단: + 버튼 + 날짜 (검색 중이거나 빈 날엔 + 버튼만 숨김 — 빈 날은 아래 안내 카드의 버튼으로 대신함) */}
         <div className="relative flex items-center">
           <div className="w-10 shrink-0" />
           <div className="relative z-10 -ml-0.5 flex items-center gap-2.5">
@@ -221,7 +244,7 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
               type="button"
               className={cn(
                 "flex size-[18px] shrink-0 items-center justify-center rounded-md bg-sub-coral active:opacity-70",
-                (activeSearchStopId || isAddingNew) && "invisible",
+                (activeSearchStopId || isAddingNew || isEmpty) && "invisible",
               )}
               onClick={openAddNew}
               aria-label="장소 추가"
@@ -235,10 +258,26 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
             <TimelineSearchPopup
               ref={addNewCardRef}
               onClose={closeAddNew}
-              onAddToItinerary={onAddNewPlace}
+              onAddToItinerary={handleAddNewPlace}
             />
           )}
         </div>
+
+        {isEmpty && !isAddingNew && (
+          <div className="flex flex-col items-center gap-3 rounded-[14px] bg-system-navbg px-4 py-10 text-center">
+            <span className="text-2xl">🧭</span>
+            <p className="font-paperlogy text-sm font-medium text-sub-darkgray">
+              아직 이 날 일정이 없어요.
+            </p>
+            <button
+              type="button"
+              onClick={openAddNew}
+              className="rounded-full bg-sub-coral px-4 py-2 font-paperlogy text-xs font-semibold text-main-white active:opacity-70"
+            >
+              + 일정 추가
+            </button>
+          </div>
+        )}
 
         {stops.map((stop) => {
           const isSearchActive = activeSearchStopId === stop.id;

@@ -15,6 +15,7 @@ import busanStationImg from "@/assets/place/busan-station.png";
 import type { Category } from "@/components/ui/CategoryChip";
 import { itineraryApi } from "@/shared/api/domains";
 import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
+import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import type { components } from "@/shared/api/schema";
 
 // TODO: 그룹 공통 취향 API 연동 전까지는 대표 카테고리 3종 고정 표기
@@ -26,7 +27,7 @@ const PLAN_LABELS: Record<string, string> = {
   C: "자유 편집형",
 };
 
-type Place = { id: string; name: string; image: string };
+type Place = { id: string; name: string; image: string; time?: string };
 type Day = { day: number; label: string; places: Place[] };
 type Plan = { id: string; days: Day[]; voteCount: number };
 
@@ -46,6 +47,34 @@ function mapPlanOption(planId: string, plan?: PlanOption): Plan {
       })),
     })),
   };
+}
+
+// 하루 최대 3곳(아침/오후/저녁) 기준 슬롯. 첫날은 실제 시작 시간, 마지막날은 실제 종료
+// 시간에 맞춰 갈 수 없는 시간대를 걸러낸다 (예: 오후 출발이면 첫날은 오후/저녁 2곳만).
+const DAY_SLOTS = [
+  { label: "아침", time: "10:00", hour: 10 },
+  { label: "오후", time: "14:00", hour: 14 },
+  { label: "저녁", time: "18:00", hour: 18 },
+] as const;
+
+function parseHour(time: string, fallback: number): number {
+  const hour = Number(time.split(":")[0]);
+  return Number.isFinite(hour) ? hour : fallback;
+}
+
+function getDaySlots(dayIndex: number, totalDays: number, startTime: string, endTime: string) {
+  let slots: readonly (typeof DAY_SLOTS)[number][] = DAY_SLOTS;
+  if (dayIndex === 0) {
+    const startHour = parseHour(startTime, 10);
+    if (startHour >= 18) slots = slots.filter((s) => s.hour >= 18);
+    else if (startHour >= 12) slots = slots.filter((s) => s.hour >= 12);
+  }
+  if (dayIndex === totalDays - 1) {
+    const endHour = parseHour(endTime, 18);
+    if (endHour < 12) slots = slots.filter((s) => s.hour < 12);
+    else if (endHour < 18) slots = slots.filter((s) => s.hour < 18);
+  }
+  return slots;
 }
 
 // TODO: API 연동 후 실제 방장 여부로 교체
@@ -85,14 +114,8 @@ function TripResultContent() {
   const tripName = searchParams.get("name") ?? "여행";
   const startDate = searchParams.get("startDate") ?? "";
   const endDate = searchParams.get("endDate") ?? "";
-  const forwardParams = new URLSearchParams({
-    count,
-    days: String(totalDays),
-    groupId,
-    name: tripName,
-    startDate,
-    endDate,
-  }).toString();
+  const startTime = searchParams.get("startTime") || "10:00";
+  const endTime = searchParams.get("endTime") || "17:00";
 
   const {
     data: generated,
@@ -104,15 +127,38 @@ function TripResultContent() {
     enabled: !!groupId && !!startDate && !!endDate,
   });
 
-  // days 수에 맞게 각 플랜 day 슬라이스
+  const sessionId = generated?.voteSessionId ?? "";
+  const forwardParams = new URLSearchParams({
+    count,
+    days: String(totalDays),
+    groupId,
+    name: tripName,
+    startDate,
+    endDate,
+    ...(sessionId ? { sessionId } : {}),
+  }).toString();
+
+  // days 수에 맞게 각 플랜 day 슬라이스 + 하루 최대 3곳(아침/오후/저녁) 슬롯에 맞춰 시간 배정
   const plans: Plan[] = [
     mapPlanOption("A", generated?.plans?.planA),
     mapPlanOption("B", generated?.plans?.planB),
     mapPlanOption("C", generated?.plans?.planC),
-  ].map((plan) => ({
-    ...plan,
-    days: plan.days.slice(0, totalDays),
-  }));
+  ].map((plan) => {
+    const slicedDays = plan.days.slice(0, totalDays);
+    return {
+      ...plan,
+      days: slicedDays.map((day, idx) => {
+        const slots = getDaySlots(idx, slicedDays.length, startTime, endTime);
+        return {
+          ...day,
+          places: day.places.slice(0, slots.length).map((place, i) => ({
+            ...place,
+            time: slots[i]?.time,
+          })),
+        };
+      }),
+    };
+  });
 
   const [activePlan, setActivePlan] = useState<string>("A");
   const [showInfo, setShowInfo] = useState(false);
@@ -130,12 +176,18 @@ function TripResultContent() {
     setVoteConfirmPlan(planId);
   };
 
-  const handleVoteConfirm = () => {
+  const handleVoteConfirm = async () => {
     if (!voteConfirmPlan) return;
-    setActivePlan(voteConfirmPlan);
-    setVotedPlan(voteConfirmPlan);
+    const planToVote = voteConfirmPlan;
     setVoteConfirmPlan(null);
-    router.push(`/itinerary/trips/vote-waiting?${forwardParams}`);
+    try {
+      await itineraryApi.castVote(sessionId, { votedPlan: planToVote });
+      setActivePlan(planToVote);
+      setVotedPlan(planToVote);
+      router.push(`/itinerary/trips/vote-waiting?${forwardParams}`);
+    } catch {
+      setToastMessage("투표에 실패했어요. 다시 시도해주세요.");
+    }
   };
 
   const handleFreepass = () => {
@@ -151,13 +203,18 @@ function TripResultContent() {
     setFreepassModal(null);
     setIsConfirming(true);
     try {
-      await itineraryApi.createItinerary({
-        planType: activePlan,
+      const newItineraryId = await itineraryApi.finalizeItinerary(sessionId, {
+        freePass: true,
+        selectedPlan: activePlan,
         title: tripName,
-        startAt: startDate,
-        endAt: endDate,
-        groupId,
+        startDate,
+        endDate,
+        // C안(자유 편집형)은 AI가 만든 내용이 없어서, 빈 Day만 일수에 맞게 만들어달라고 명시해야 한다.
+        ...(activePlan === "C"
+          ? { days: Array.from({ length: totalDays }, (_, i) => ({ day: i + 1, spotContentIds: [] })) }
+          : {}),
       });
+      if (newItineraryId) saveTripTimeBounds(newItineraryId, startTime, endTime);
       setToastMessage(`방장이 ${activePlan}안을 선택했어요! 🎉`);
       window.setTimeout(() => {
         router.push("/itinerary");
@@ -326,7 +383,7 @@ function TripResultContent() {
                   </div>
                   <SpeechBubble variant="white" tailDirection="left">
                     <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">
-                      10:00 여행 시작!
+                      {startTime} 여행 시작!
                     </span>
                   </SpeechBubble>
                 </div>
@@ -349,7 +406,7 @@ function TripResultContent() {
                           />
                         </div>
                         <span className="font-paperlogy text-xs font-medium text-sub-deepblue">
-                          {day.label.toLowerCase()}
+                          {day.label}
                         </span>
                         <div className="relative ml-[3px] h-[1.5px] w-[235px] rounded-full bg-main-blue">
                           <div className="absolute left-0 right-0 top-[7.5px] flex items-start justify-around">
@@ -378,7 +435,7 @@ function TripResultContent() {
                   </div>
                   <SpeechBubble variant="white" tailDirection="left">
                     <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">
-                      15:00 여행 끝!
+                      {endTime} 여행 끝!
                     </span>
                   </SpeechBubble>
                 </div>

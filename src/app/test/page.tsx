@@ -495,7 +495,101 @@ export default function TestPage() {
     }
   };
 
-  // 20. 버스 실시간 도착정보
+  // 20. 투표 참여
+  const [voteSessionIdInput, setVoteSessionIdInput] = useState("");
+  const [votePlanInput, setVotePlanInput] = useState("");
+  const [voteLoading, setVoteLoading] = useState(false);
+  const [voteResult, setVoteResult] = useState<unknown>(null);
+  const [voteError, setVoteError] = useState<string | null>(null);
+
+  const handleTestCastVote = async () => {
+    setVoteLoading(true);
+    setVoteError(null);
+    setVoteResult(null);
+    try {
+      const data = await itineraryApi.castVote(voteSessionIdInput.trim(), {
+        votedPlan: votePlanInput.trim(),
+      });
+      setVoteResult(data);
+    } catch (e) {
+      setVoteError(formatApiError(e));
+    } finally {
+      setVoteLoading(false);
+    }
+  };
+
+  // 21. 투표 현황 조회
+  const [voteStatusSessionIdInput, setVoteStatusSessionIdInput] = useState("");
+  const [voteStatusLoading, setVoteStatusLoading] = useState(false);
+  const [voteStatusResult, setVoteStatusResult] = useState<unknown>(null);
+  const [voteStatusError, setVoteStatusError] = useState<string | null>(null);
+
+  const handleTestGetVoteStatus = async () => {
+    setVoteStatusLoading(true);
+    setVoteStatusError(null);
+    setVoteStatusResult(null);
+    try {
+      const data = await itineraryApi.getVoteStatus(voteStatusSessionIdInput.trim());
+      setVoteStatusResult(data);
+    } catch (e) {
+      setVoteStatusError(formatApiError(e));
+    } finally {
+      setVoteStatusLoading(false);
+    }
+  };
+
+  // 22. 일정 확정 (리더 전용)
+  const [finalizeSessionIdInput, setFinalizeSessionIdInput] = useState("");
+  const [finalizeSelectedPlanInput, setFinalizeSelectedPlanInput] = useState("");
+  const [finalizeTitleInput, setFinalizeTitleInput] = useState("");
+  const [finalizeStartDateInput, setFinalizeStartDateInput] = useState("");
+  const [finalizeEndDateInput, setFinalizeEndDateInput] = useState("");
+  const [finalizeFreePassInput, setFinalizeFreePassInput] = useState(false);
+  const [finalizeLoading, setFinalizeLoading] = useState(false);
+  const [finalizeResult, setFinalizeResult] = useState<unknown>(null);
+  const [finalizeError, setFinalizeError] = useState<string | null>(null);
+
+  const handleTestFinalize = async () => {
+    setFinalizeLoading(true);
+    setFinalizeError(null);
+    setFinalizeResult(null);
+    try {
+      const data = await itineraryApi.finalizeItinerary(finalizeSessionIdInput.trim(), {
+        freePass: finalizeFreePassInput,
+        selectedPlan: finalizeSelectedPlanInput || undefined,
+        title: finalizeTitleInput,
+        startDate: finalizeStartDateInput,
+        endDate: finalizeEndDateInput,
+      });
+      setFinalizeResult(data);
+    } catch (e) {
+      setFinalizeError(formatApiError(e));
+    } finally {
+      setFinalizeLoading(false);
+    }
+  };
+
+  // 23. 일정 최적화 (Day 단위 동선 재정렬)
+  const [optimizeDayIdInput, setOptimizeDayIdInput] = useState("");
+  const [optimizeLoading, setOptimizeLoading] = useState(false);
+  const [optimizeResult, setOptimizeResult] = useState<unknown>(null);
+  const [optimizeError, setOptimizeError] = useState<string | null>(null);
+
+  const handleTestOptimizeDay = async () => {
+    setOptimizeLoading(true);
+    setOptimizeError(null);
+    setOptimizeResult(null);
+    try {
+      const data = await itineraryApi.optimizeDay(optimizeDayIdInput.trim(), {});
+      setOptimizeResult(data);
+    } catch (e) {
+      setOptimizeError(formatApiError(e));
+    } finally {
+      setOptimizeLoading(false);
+    }
+  };
+
+  // 24. 버스 실시간 도착정보
   const [busArsIdInput, setBusArsIdInput] = useState("");
   const [busRouteNoInput, setBusRouteNoInput] = useState("");
   const [busLoading, setBusLoading] = useState(false);
@@ -1052,7 +1146,144 @@ export default function TestPage() {
         )}
 
         <ComponentLabel>
-          20. GET /api/transit/arrival/bus (버스 실시간 도착정보 — 부산 정류소ID/노선번호 필요)
+          20. POST /api/itineraries/vote-sessions/{"{sessionId}"}/votes (투표 참여 — 위 그룹 일정
+          자동생성 결과의 voteSessionId)
+        </ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={voteSessionIdInput}
+            onChange={(e) => setVoteSessionIdInput(e.target.value)}
+            placeholder="voteSessionId 붙여넣기"
+          />
+          <TextInput
+            value={votePlanInput}
+            onChange={(e) => setVotePlanInput(e.target.value)}
+            placeholder="votedPlan (A/B/C)"
+          />
+          <Button variant="primary" onClick={handleTestCastVote} disabled={voteLoading}>
+            {voteLoading ? "요청 중..." : "투표 테스트"}
+          </Button>
+        </div>
+        {voteError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {voteError}
+          </pre>
+        )}
+        {voteResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(voteResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>
+          21. GET /api/itineraries/vote-sessions/{"{sessionId}"} (투표 현황 조회)
+        </ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={voteStatusSessionIdInput}
+            onChange={(e) => setVoteStatusSessionIdInput(e.target.value)}
+            placeholder="voteSessionId 붙여넣기"
+          />
+          <Button
+            variant="primary"
+            onClick={handleTestGetVoteStatus}
+            disabled={voteStatusLoading}
+          >
+            {voteStatusLoading ? "요청 중..." : "투표 현황 조회 테스트"}
+          </Button>
+        </div>
+        {voteStatusError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {voteStatusError}
+          </pre>
+        )}
+        {voteStatusResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(voteStatusResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>
+          22. POST /api/itineraries/vote-sessions/{"{sessionId}"}/finalize (일정 확정 — 리더 전용,
+          동률이면 selectedPlan 필수, freePass=true면 투표 결과 무시)
+        </ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={finalizeSessionIdInput}
+            onChange={(e) => setFinalizeSessionIdInput(e.target.value)}
+            placeholder="voteSessionId 붙여넣기"
+          />
+          <TextInput
+            value={finalizeSelectedPlanInput}
+            onChange={(e) => setFinalizeSelectedPlanInput(e.target.value)}
+            placeholder="selectedPlan (A/B/C, 선택)"
+          />
+        </div>
+        <div className="flex gap-2">
+          <TextInput
+            value={finalizeTitleInput}
+            onChange={(e) => setFinalizeTitleInput(e.target.value)}
+            placeholder="여행 제목"
+          />
+          <TextInput
+            value={finalizeStartDateInput}
+            onChange={(e) => setFinalizeStartDateInput(e.target.value)}
+            placeholder="시작일 YYYY-MM-DD"
+          />
+          <TextInput
+            value={finalizeEndDateInput}
+            onChange={(e) => setFinalizeEndDateInput(e.target.value)}
+            placeholder="종료일 YYYY-MM-DD"
+          />
+        </div>
+        <label className="flex items-center gap-2 text-sm text-text-primary">
+          <input
+            type="checkbox"
+            checked={finalizeFreePassInput}
+            onChange={(e) => setFinalizeFreePassInput(e.target.checked)}
+          />
+          freePass (방장 프리패스로 즉시 확정)
+        </label>
+        <Button variant="primary" onClick={handleTestFinalize} disabled={finalizeLoading}>
+          {finalizeLoading ? "요청 중..." : "일정 확정 테스트"}
+        </Button>
+        {finalizeError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {finalizeError}
+          </pre>
+        )}
+        {finalizeResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(finalizeResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>
+          23. PATCH /api/itineraries/days/{"{dayId}"}/optimize (일정 최적화 — 좌표 기반 동선 재정렬)
+        </ComponentLabel>
+        <div className="flex gap-2">
+          <TextInput
+            value={optimizeDayIdInput}
+            onChange={(e) => setOptimizeDayIdInput(e.target.value)}
+            placeholder="day id 붙여넣기"
+          />
+          <Button variant="primary" onClick={handleTestOptimizeDay} disabled={optimizeLoading}>
+            {optimizeLoading ? "요청 중..." : "일정 최적화 테스트"}
+          </Button>
+        </div>
+        {optimizeError && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-red-50 p-3 text-xs text-red-600">
+            {optimizeError}
+          </pre>
+        )}
+        {optimizeResult !== null && (
+          <pre className="whitespace-pre-wrap break-all rounded-lg bg-white p-3 text-xs text-text-primary">
+            {JSON.stringify(optimizeResult, null, 2)}
+          </pre>
+        )}
+
+        <ComponentLabel>
+          24. GET /api/transit/arrival/bus (버스 실시간 도착정보 — 부산 정류소ID/노선번호 필요)
         </ComponentLabel>
         <div className="flex gap-2">
           <TextInput
