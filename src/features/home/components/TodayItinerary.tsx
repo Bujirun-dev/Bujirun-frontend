@@ -1,8 +1,9 @@
 "use client";
+
 import { useState } from "react";
-import { SAMPLE_LOGS } from "@/features/home/data/sampleLogs";
-import { StatusBadge } from "@/components";
-import { getClosestDay } from "@/features/home/utils/getClosestDay";
+import { useRouter } from "next/navigation";
+import { Button, Card, StatusBadge } from "@/components";
+import { useTodayItinerary } from "@/features/home/hooks/useTodayItinerary";
 import { TransportSummaryCard } from "@/features/home/components/TransportSummaryCard";
 import { TransportDetailModal } from "@/features/home/components/TransportDetailModal";
 import { ArrivalVerifyModal } from "@/features/itinerary/components/ArrivalVerifyModal";
@@ -17,12 +18,27 @@ import type { TransportGroup, TransportOption } from "@/features/home/types/tran
 const getTransportRouteKey = (transportGroup: TransportGroup) =>
   `${transportGroup.fromPlace}-${transportGroup.toPlace}`;
 
+function formatDate(date: string) {
+  return date.replaceAll("-", ".");
+}
+
 export function TodayItinerary() {
-  const { day } = getClosestDay(SAMPLE_LOGS);
-  const plans = day.stops;
+  const router = useRouter();
+  const {
+    itinerary,
+    logId,
+    day,
+    items: plans,
+    hasSchedule,
+    isLoading,
+    isError,
+  } = useTodayItinerary();
   const [selectedTransportGroup, setSelectedTransportGroup] = useState<TransportGroup | null>(null);
-  const [selectedVerifyPlaceName, setSelectedVerifyPlaceName] = useState<string | null>(null);
-  const [verifiedPlaceNames, setVerifiedPlaceNames] = useState<Set<string>>(() => new Set());
+  const [selectedVerifySpot, setSelectedVerifySpot] = useState<{
+    spotId: string;
+    itemId: string;
+    placeName: string;
+  } | null>(null);
   const [selectedOptionIdByRoute, setSelectedOptionIdByRoute] = useState<Record<string, string>>(
     {},
   );
@@ -33,22 +49,16 @@ export function TodayItinerary() {
 
   const closeTransportModal = () => setSelectedTransportGroup(null);
 
-  const openVerifyModal = (placeName: string) => {
-    setSelectedVerifyPlaceName(placeName);
+  const openVerifyModal = (spotId: string, itemId: string, placeName: string) => {
+    setSelectedVerifySpot({
+      spotId,
+      itemId,
+      placeName,
+    });
   };
 
   const closeVerifyModal = () => {
-    setSelectedVerifyPlaceName(null);
-  };
-
-  const handleVerifyPlace = () => {
-    if (!selectedVerifyPlaceName) return;
-
-    setVerifiedPlaceNames((prev) => {
-      const next = new Set(prev);
-      next.add(selectedVerifyPlaceName);
-      return next;
-    });
+    setSelectedVerifySpot(null);
   };
 
   const handleChangeTransportOption = (option: TransportOption) => {
@@ -60,19 +70,53 @@ export function TodayItinerary() {
     }));
   };
 
+  const handleStartTrip = () => {
+    router.push("/itinerary/trips/new");
+  };
+
+  if (isLoading) {
+    return <div className="min-h-[220px]" aria-label="오늘의 일정 불러오는 중" />;
+  }
+
+  if (isError || !hasSchedule || !day) {
+    return (
+      <div>
+        <div className="flex items-end gap-3">
+          <h2 className="font-ssurround text-lg text-text-heading">오늘의 일정</h2>
+        </div>
+
+        <Card variant="glass-sm" className="mt-4 py-6">
+          <p className="mb-3 text-center text-lg leading-relaxed text-text-primary">
+            아직 여행 일정이 없어요!
+            <br />
+            친구들과 부산 여행을 시작해보세요!
+          </p>
+          <Button type="button" onClick={handleStartTrip}>
+            여행 시작하기
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="flex items-end gap-3">
         <h2 className="font-ssurround text-lg text-text-heading">오늘의 일정</h2>
-        <p className="font-paperlogy text-sm font-semibold text-sub-darkgray">{day.date}</p>
+        <p className="font-paperlogy text-sm font-semibold text-sub-darkgray">
+          {formatDate(day.date ?? "")}
+        </p>
       </div>
 
       <ol className="mt-4">
         {plans.map((plan, index) => {
-          const isPlanVerified = plan.isVerified || verifiedPlaceNames.has(plan.place);
+          const spotId = plan.spot?.id;
+          const placeName = plan.spot?.name ?? "이름 없는 장소";
+          const isVisited = plan.spot?.visited ?? false;
           const nextPlan = plans[index + 1];
-          const transportGroup = nextPlan
-            ? findTransportGroupByPlaces(plan.place, nextPlan.place)
+          const nextPlaceName = nextPlan?.spot?.name;
+          const transportGroup = nextPlaceName
+            ? findTransportGroupByPlaces(placeName, nextPlaceName)
             : null;
           const selectedOptionId = transportGroup
             ? (selectedOptionIdByRoute[getTransportRouteKey(transportGroup)] ??
@@ -84,7 +128,7 @@ export function TodayItinerary() {
 
           return (
             <li
-              key={`${plan.time}-${plan.place}`}
+              key={plan.id ?? `${placeName}-${index}`}
               className="relative flex items-start justify-between gap-2"
             >
               {index < plans.length - 1 && (
@@ -97,14 +141,14 @@ export function TodayItinerary() {
               <div className="flex min-w-0 flex-1 items-start gap-3 pt-[7px]">
                 <span
                   className={
-                    isPlanVerified
+                    isVisited
                       ? "size-4 shrink-0 rounded-full bg-main-blue"
                       : "size-4 shrink-0 rounded-full bg-sub-pink"
                   }
                 />
 
                 <div className="min-w-0 flex-1">
-                  <p className="leading-4 text-md font-medium text-text-primary">{plan.place}</p>
+                  <p className="leading-4 text-md font-medium text-text-primary">{placeName}</p>
                   {transportGroup && selectedOption && (
                     <button
                       type="button"
@@ -117,16 +161,20 @@ export function TodayItinerary() {
                 </div>
               </div>
 
-              {isPlanVerified ? (
+              {isVisited ? (
                 <StatusBadge
                   status="completed"
-                  className="shrink-0 px-2.5 py-1.5 text-sm mt-[7px]"
+                  className="mt-[7px] shrink-0 px-2.5 py-1.5 text-sm"
                 />
               ) : (
                 <button
                   type="button"
-                  className="shrink-0 mt-[7px]"
-                  onClick={() => openVerifyModal(plan.place)}
+                  className="mt-[7px] shrink-0"
+                  onClick={() => {
+                    if (!spotId || !plan.id || !logId) return;
+
+                    openVerifyModal(spotId, plan.id, placeName);
+                  }}
                 >
                   <StatusBadge status="verify" className="px-2.5 py-1.5 text-sm" />
                 </button>
@@ -135,6 +183,7 @@ export function TodayItinerary() {
           );
         })}
       </ol>
+
       <TransportDetailModal
         isOpen={selectedTransportGroup !== null}
         transportGroup={selectedTransportGroup ?? DEFAULT_TRANSPORT_GROUP}
@@ -151,13 +200,19 @@ export function TodayItinerary() {
           openKakaoMapRoute(selectedTransportGroup.fromPlace, selectedTransportGroup.toPlace)
         }
       />
-      <ArrivalVerifyModal
-        isOpen={selectedVerifyPlaceName !== null}
-        placeName={selectedVerifyPlaceName ?? ""}
-        onClose={closeVerifyModal}
-        onVerify={handleVerifyPlace}
-        onLater={closeVerifyModal}
-      />
+      {selectedVerifySpot && logId && itinerary?.id && (
+        <ArrivalVerifyModal
+          spotId={selectedVerifySpot.spotId}
+          itineraryId={itinerary.id}
+          logId={logId}
+          itemId={selectedVerifySpot.itemId}
+          isOpen
+          placeName={selectedVerifySpot.placeName}
+          onClose={closeVerifyModal}
+          onVerify={closeVerifyModal}
+          onLater={closeVerifyModal}
+        />
+      )}
     </div>
   );
 }

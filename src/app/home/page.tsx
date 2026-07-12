@@ -2,13 +2,10 @@
 import Image from "next/image";
 import { Card, PageCard, StaircaseGlassCard } from "@/components";
 import marineCharacter from "@/assets/character/marine.png";
+import { useCollectionProgress } from "@/shared/hooks/useCollectionProgress";
 import { CollectionProgress } from "@/features/home/components/CollectionProgress";
 import { TodayItinerary } from "@/features/home/components/TodayItinerary";
 import { PlaceSection } from "@/features/home/components/PlaceSection";
-import { PLACES } from "@/features/home/data/places";
-
-const COLLECTION_TOTAL = PLACES.length;
-const COLLECTION_COUNT = PLACES.filter((place) => place.isCollected).length;
 
 function MegaphoneIcon() {
   return (
@@ -23,6 +20,7 @@ function MegaphoneIcon() {
 }
 
 export default function HomePage() {
+  const { total: collectionTotal, count: collectionCount } = useCollectionProgress();
   return (
     <main className="flex h-full flex-col">
       <div className="flex shrink-0 items-start justify-between gap-4 px-4">
@@ -44,12 +42,14 @@ export default function HomePage() {
       <Card variant="glass-lg" className="relative shrink-0 rounded-[32px] mt-[-28px] mb-2 py-6">
         <div className="flex items-center gap-2">
           <h2 className="font-ssurround text-xl text-text-heading">부산도감</h2>
-          <MegaphoneIcon />
-          <p className="text-xs text-text-primary">부산의 명소를 방문하고 도감을 채워보세요.</p>
+          <div className="flex items-center gap-1">
+            <MegaphoneIcon />
+            <p className="text-xs text-text-primary">부산의 명소를 방문하고 도감을 채워보세요.</p>
+          </div>
         </div>
 
         <div className="mt-4 flex items-center gap-4">
-          <CollectionProgress count={COLLECTION_COUNT} total={COLLECTION_TOTAL} />
+          <CollectionProgress count={collectionCount} total={collectionTotal} />
 
           <div className="flex flex-1 flex-col gap-3">
             <div className="origin-left">
@@ -63,8 +63,8 @@ export default function HomePage() {
               />
             </div>
             <p>
-              <span className="text-2xl font-semibold text-sub-deepblue">{COLLECTION_COUNT}</span>
-              <span className="text-md font-medium text-sub-darkgray">{` / ${COLLECTION_TOTAL} 수집완료`}</span>
+              <span className="text-2xl font-semibold text-sub-deepblue">{collectionCount}</span>
+              <span className="text-md font-medium text-sub-darkgray">{` / ${collectionTotal} 수집완료`}</span>
             </p>
           </div>
         </div>

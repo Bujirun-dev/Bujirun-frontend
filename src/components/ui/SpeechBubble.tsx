@@ -73,8 +73,12 @@ export function SpeechBubble({
     );
   }
 
+  const clampedTailPosition = `clamp(18px, ${tailPosition}px, calc(100% - 26px))`;
+
   const outerTailStyle: React.CSSProperties = {
-    ...(tailCenter ? { left: "50%", transform: "translateX(-50%)" } : { left: tailPosition }),
+    ...(tailCenter
+      ? { left: "50%", transform: "translateX(-50%)" }
+      : { left: clampedTailPosition }),
     ...(isBottom
       ? {
           borderLeft: "7px solid transparent",
@@ -89,7 +93,9 @@ export function SpeechBubble({
   };
 
   const innerTailStyle: React.CSSProperties = {
-    ...(tailCenter ? { left: "50%", transform: "translateX(-50%)" } : { left: tailPosition + 1 }),
+    ...(tailCenter
+      ? { left: "50%", transform: "translateX(-50%)" }
+      : { left: `calc(${clampedTailPosition} + 1px)` }),
     ...(isBottom
       ? {
           borderLeft: "6px solid transparent",
@@ -109,11 +115,20 @@ export function SpeechBubble({
         {children}
       </div>
       <div
-        className={cn("absolute w-0 h-0", isBottom ? "bottom-[1px]" : "top-[1px]")}
+        className={cn("absolute h-[2px] w-[16px]", isBottom ? "bottom-[7px]" : "top-[7px]")}
+        style={{
+          backgroundColor: tailFill,
+          ...(tailCenter
+            ? { left: "50%", transform: "translateX(-50%)" }
+            : { left: `calc(${clampedTailPosition} - 1px)` }),
+        }}
+      />
+      <div
+        className={cn("absolute w-0 h-0", isBottom ? "bottom-[0px]" : "top-[2px]")}
         style={outerTailStyle}
       />
       <div
-        className={cn("absolute w-0 h-0", isBottom ? "bottom-[2px]" : "top-[2px]")}
+        className={cn("absolute w-0 h-0", isBottom ? "bottom-[1px]" : "top-[3px]")}
         style={innerTailStyle}
       />
     </div>
