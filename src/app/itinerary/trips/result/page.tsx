@@ -106,9 +106,9 @@ function TripResultContent() {
 
   // days 수에 맞게 각 플랜 day 슬라이스
   const plans: Plan[] = [
-    mapPlanOption("A", generated?.planA),
-    mapPlanOption("B", generated?.planB),
-    mapPlanOption("C", generated?.planC),
+    mapPlanOption("A", generated?.plans?.planA),
+    mapPlanOption("B", generated?.plans?.planB),
+    mapPlanOption("C", generated?.plans?.planC),
   ].map((plan) => ({
     ...plan,
     days: plan.days.slice(0, totalDays),

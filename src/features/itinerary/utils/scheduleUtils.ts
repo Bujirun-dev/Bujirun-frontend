@@ -211,7 +211,7 @@ export function mapItineraryDetailToDays(detail: ItineraryDetailResponse): {
         mapUrl: item.spot
           ? `https://map.kakao.com/link/map/${encodeURIComponent(placeName)},${item.spot.lat},${item.spot.lng}`
           : `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,
-        isBookmarked: item.spot?.isCollected,
+        isBookmarked: item.spot?.collected,
         transport: nextItem
           ? {
               from: placeName,
