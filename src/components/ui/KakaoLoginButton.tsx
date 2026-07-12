@@ -25,7 +25,7 @@ export function KakaoLoginButton({ className }: KakaoLoginButtonProps) {
       className={cn("w-full transition-opacity active:opacity-80", className)}
       onClick={handleLogin}
     >
-      <Image src={kakaoLoginImg} alt="카카오 로그인" className="w-full h-auto" />
+      <Image src={kakaoLoginImg} alt="카카오 로그인" className="w-full h-auto" priority />
     </button>
   );
 }

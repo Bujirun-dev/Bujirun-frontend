@@ -33,6 +33,16 @@ function TripPersonalityContent() {
   const searchParams = useSearchParams();
   const totalSlots = Math.min(6, Math.max(2, Number(searchParams.get("count")) || TOTAL_SLOTS));
   const days = searchParams.get("days") ?? "1";
+  const forwardParams = new URLSearchParams({
+    count: String(totalSlots),
+    days,
+    groupId: searchParams.get("groupId") ?? "",
+    name: searchParams.get("name") ?? "",
+    startDate: searchParams.get("startDate") ?? "",
+    endDate: searchParams.get("endDate") ?? "",
+    startTime: searchParams.get("startTime") ?? "",
+    endTime: searchParams.get("endTime") ?? "",
+  }).toString();
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pb-8">
@@ -88,14 +98,14 @@ function TripPersonalityContent() {
         <div className="mt-[24px] flex w-full gap-3">
           <button
             type="button"
-            onClick={() => router.push(`/itinerary/trips/waiting?count=${totalSlots}&days=${days}`)}
+            onClick={() => router.push(`/itinerary/trips/waiting?${forwardParams}`)}
             className="flex-1 h-[40px] rounded-[10px] border border-main-blue bg-white font-ssurround font-bold text-md text-sub-deepblue"
           >
             난 다 좋아!
           </button>
           <button
             type="button"
-            onClick={() => router.push(`/itinerary/trips/swipe?count=${totalSlots}&days=${days}`)}
+            onClick={() => router.push(`/itinerary/trips/swipe?${forwardParams}`)}
             className="flex-1 h-[40px] rounded-[10px] bg-main-blue font-ssurround font-bold text-md text-white"
           >
             취향분석 할래!

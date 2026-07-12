@@ -1,6 +1,8 @@
 import { cn } from "@/shared/utils";
 import type { TransportType } from "@/features/home/components/TransportIcons";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { transitApi } from "@/shared/api/domains";
 
 export interface TransportLegItemData {
   type: TransportType;
@@ -8,6 +10,27 @@ export interface TransportLegItemData {
   from: string;
   to: string;
   arrivalText?: string;
+  arsId?: string;
+  routeNo?: string;
+}
+
+const BUS_ARRIVAL_POLL_MS = 30000;
+
+// 버스 실시간 도착정보(GET /api/transit/arrival/bus)를 30초 간격으로 폴링해서 보여준다.
+// arsId/routeNo가 없으면(지하철 등) 기존 정적 arrivalText로 대체된다.
+function useLiveBusArrivalText(leg: TransportLegItemData) {
+  const canPoll = leg.type === "버스" && !!leg.arsId && !!leg.routeNo;
+
+  const { data, isError, refetch } = useQuery({
+    queryKey: transitApi.keys.busArrival({ arsId: leg.arsId ?? "", routeNo: leg.routeNo ?? "" }),
+    queryFn: () => transitApi.getBusArrival({ arsId: leg.arsId ?? "", routeNo: leg.routeNo ?? "" }),
+    enabled: canPoll,
+    refetchInterval: BUS_ARRIVAL_POLL_MS,
+  });
+
+  if (!canPoll || isError) return { text: leg.arrivalText, refetch };
+  if (data === undefined) return { text: "도착정보 조회 중...", refetch };
+  return { text: `${data}분 후 도착`, refetch };
 }
 
 interface TransportLegItemProps {
@@ -29,10 +52,12 @@ export function TransportLegItem({ leg, metaText, className }: TransportLegItemP
   );
 
   const [isRotating, setIsRotating] = useState(false);
+  const { text: arrivalText, refetch } = useLiveBusArrivalText(leg);
 
   const handleArrivalClick = () => {
     if (isRotating) return;
     setIsRotating(true);
+    refetch();
   };
 
   return (
@@ -60,7 +85,7 @@ export function TransportLegItem({ leg, metaText, className }: TransportLegItemP
         <span className="break-words">{leg.to}</span>
       </div>
 
-      {leg.arrivalText && shouldShowArrival ? (
+      {arrivalText && shouldShowArrival ? (
         <div
           onClick={handleArrivalClick}
           className={cn(
@@ -68,7 +93,7 @@ export function TransportLegItem({ leg, metaText, className }: TransportLegItemP
             ARRIVAL_COLORS[leg.type as (typeof ARRIVAL_VISIBLE_TYPES)[number]],
           )}
         >
-          <span>{leg.arrivalText}</span>
+          <span>{arrivalText}</span>
           <svg
             viewBox="0 0 512 512"
             onAnimationEnd={() => setIsRotating(false)}
