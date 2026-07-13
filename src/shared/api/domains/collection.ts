@@ -13,9 +13,10 @@ export function getCollectionBoard() {
   return apiClient.get<OpResponse<"getBoard">>("/api/collections").then((res) => res.data);
 }
 
+//getDetail_1이 getDetail_2로 바뀜
 export function getCollectionDetail(spotId: string) {
   return apiClient
-    .get<OpResponse<"getDetail_1">>(`/api/collections/${spotId}`)
+    .get<OpResponse<"getDetail_2">>(`/api/collections/${spotId}`)
     .then((res) => res.data);
 }
 

@@ -11,16 +11,9 @@ import { Toast } from "@/components/ui/Toast";
 import { Card } from "@/components/ui/Card";
 import { CategoryChip } from "@/components/ui/CategoryChip";
 import type { Category } from "@/components/ui/CategoryChip";
-import { userApi } from "@/shared/api/domains";
+import { userApi, travelLogApi, visitApi } from "@/shared/api/domains";
 import SuccessIcon from "@/assets/icons/mypage/success.svg?svgr";
 import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
-
-// TODO: 백엔드 스키마에 통계 필드 추가되면 API로 교체
-const MOCK_STATS = {
-  visitedCount: 0,
-  completedItineraryCount: 0,
-  travelLogCount: 0,
-};
 
 // TODO: 백엔드에서 태그 데이터 내려오면 API로 교체
 const MOCK_TAGS: Category[] = [];
@@ -48,6 +41,18 @@ export function MypageProfile() {
   const { data: profile, isLoading } = useQuery({
     queryKey: userApi.keys.me(),
     queryFn: userApi.getMyProfile,
+  });
+
+  // 내 여행 로그 목록 조회 — 개수를 ProfileStats에 표시하기 위해 사용
+  const { data: myLogs = [] } = useQuery({
+    queryKey: travelLogApi.keys.mine(),
+    queryFn: () => travelLogApi.getMyLogs(),
+  });
+
+  // 방문 관광지 개수
+  const { data: visitHistory = [] } = useQuery({
+    queryKey: visitApi.keys.history(), // ← keys 활용
+    queryFn: visitApi.getHistory,
   });
 
   // 닉네임 수정
@@ -148,16 +153,19 @@ export function MypageProfile() {
             </div>
           )}
 
-          {/* 활동 지표 — TODO: 백엔드 통계 API 추가되면 교체 */}
+          {/* 활동 지표
+              - visitedCount, completedItineraryCount: 백엔드 통계 API 추가되면 교체
+              - travelLogCount: 내 로그 목록 길이로 실제 값 표시 */}
           <ProfileStats
-            visitedCount={MOCK_STATS.visitedCount}
-            completedItineraryCount={MOCK_STATS.completedItineraryCount}
-            travelLogCount={MOCK_STATS.travelLogCount}
+            visitedCount={visitHistory.length}
+            completedItineraryCount={0}
+            travelLogCount={myLogs.length}
           />
         </div>
       </Card>
 
       <ProfileImageSelectModal
+        key={currentImageId}
         isOpen={isProfileImageModalOpen}
         onClose={() => setIsProfileImageModalOpen(false)}
         images={PROFILE_IMAGES}

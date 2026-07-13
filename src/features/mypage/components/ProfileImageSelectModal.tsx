@@ -2,8 +2,7 @@
 
 // src/features/mypage/components/ProfileImageSelectModal.tsx
 // 마이페이지 - 프로필 사진 선택 모달 (공통 Modal 컴포넌트 사용)
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { StaticImageData } from "next/image";
 import { Modal } from "@/components/ui/Modal";
 import { ProfileImageSelector } from "@/components/profile/ProfileImageSelector";
@@ -20,7 +19,7 @@ interface ProfileImageSelectModalProps {
   currentId?: number | null;
   onConfirm: (id: number) => void;
 }
-
+// ProfileImageSelectModal.tsx - useEffect 제거
 export function ProfileImageSelectModal({
   isOpen,
   onClose,

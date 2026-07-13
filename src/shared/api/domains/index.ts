@@ -8,4 +8,5 @@ export * as spotApi from "./spot";
 export * as transitApi from "./transit";
 export * as uploadApi from "./upload";
 export * as visitApi from "./visit";
+export * as bookmarkApi from "./bookmark";
 export * as swipeApi from "./swipe";
