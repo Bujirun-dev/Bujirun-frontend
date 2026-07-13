@@ -20,6 +20,16 @@ function TripWaitingContent() {
   const searchParams = useSearchParams();
   const totalSlots = Math.min(6, Math.max(2, Number(searchParams.get("count")) || 6));
   const days = searchParams.get("days") ?? "1";
+  const forwardParams = new URLSearchParams({
+    count: String(totalSlots),
+    days,
+    groupId: searchParams.get("groupId") ?? "",
+    name: searchParams.get("name") ?? "",
+    startDate: searchParams.get("startDate") ?? "",
+    endDate: searchParams.get("endDate") ?? "",
+    startTime: searchParams.get("startTime") ?? "",
+    endTime: searchParams.get("endTime") ?? "",
+  }).toString();
 
   // 나는 이미 완료 → 1명 done으로 시작
   const [doneCount, setDoneCount] = useState(1);
@@ -35,10 +45,10 @@ function TripWaitingContent() {
   useEffect(() => {
     if (doneCount < totalSlots) return;
     const timer = window.setTimeout(() => {
-      router.push(`/itinerary/trips/result?count=${totalSlots}&days=${days}`);
+      router.push(`/itinerary/trips/result?${forwardParams}`);
     }, 1500);
     return () => window.clearTimeout(timer);
-  }, [doneCount, totalSlots, router, days]);
+  }, [doneCount, totalSlots, router, forwardParams]);
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pb-16">

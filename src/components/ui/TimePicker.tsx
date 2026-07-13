@@ -16,7 +16,7 @@ interface TimePickerProps {
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
-const MINUTES = Array.from({ length: 60 }, (_, i) => i);
+const MINUTES = Array.from({ length: 6 }, (_, i) => i * 10);
 const ITEM_H = 44;
 const VISIBLE = 5;
 
@@ -33,8 +33,13 @@ function ScrollColumn({
 
   useEffect(() => {
     if (!ref.current) return;
-    ref.current.scrollTo({ top: selected * ITEM_H, behavior: "smooth" });
-  }, [selected]);
+    const closestIndex = items.reduce(
+      (closest, v, i) =>
+        Math.abs(v - selected) < Math.abs(items[closest] - selected) ? i : closest,
+      0,
+    );
+    ref.current.scrollTo({ top: closestIndex * ITEM_H, behavior: "smooth" });
+  }, [selected, items]);
 
   const handleScroll = () => {
     if (!ref.current) return;

@@ -20,6 +20,7 @@ export default function LoginPage() {
             width={320}
             height={320}
             className="object-contain"
+            priority
           />
         </div>
 

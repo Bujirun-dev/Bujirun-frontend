@@ -1,12 +1,13 @@
 import type { ItineraryStop } from "./ItineraryTimeline";
 import { ItineraryTimeline } from "./ItineraryTimeline";
+import type { SearchPlace } from "./PlaceSearchPanel";
 import { DayNavigator } from "./DayNavigator";
 
 interface SlidingTimelineProps {
   allDayStops: ItineraryStop[][];
   currentDay: number;
   tripDates: string[];
-  onAdd: () => void;
+  onAddNewPlace: (dayIdx: number, place: SearchPlace) => void;
   onDayChange: (day: number) => void;
   onTouchStart: (e: React.TouchEvent) => void;
   onTouchEnd: (e: React.TouchEvent) => void;
@@ -16,7 +17,7 @@ export function SlidingTimeline({
   allDayStops,
   currentDay,
   tripDates,
-  onAdd,
+  onAddNewPlace,
   onDayChange,
   onTouchStart,
   onTouchEnd,
@@ -30,11 +31,19 @@ export function SlidingTimeline({
         {allDayStops.map((dayStops, dayIdx) => (
           <div
             key={dayIdx}
-            className="box-border w-full min-w-0 h-full shrink-0 overflow-y-auto pl-3 pr-1 pb-6"
+            className="box-border flex w-full min-w-0 h-full shrink-0 flex-col"
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
           >
-            <ItineraryTimeline stops={dayStops} date={tripDates[dayIdx]} onAdd={onAdd} />
+            <div className="min-h-0 flex-1 overflow-y-auto pl-3 pr-1 pb-6">
+              <ItineraryTimeline
+                stops={dayStops}
+                date={tripDates[dayIdx]}
+                onAddNewPlace={(place) => onAddNewPlace(dayIdx, place)}
+              />
+            </div>
+            {/* 관광지 수에 따라 타임라인 길이는 자연스럽게 유지하되,
+                페이지네이션은 항상 화면 맨 아래에 고정해 위치가 들쭉날쭉하지 않게 한다. */}
             <DayNavigator
               totalDays={allDayStops.length}
               currentDay={currentDay}

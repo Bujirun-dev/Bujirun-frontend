@@ -29,6 +29,7 @@ interface ItineraryModalsProps {
   onVerifyContinue?: () => void;
   onTimeChange: (value: { hour: number; minute: number }) => void;
   onOptimizeStart: () => void;
+  isOptimizeDone?: boolean;
 }
 
 export function ItineraryModals({
@@ -44,6 +45,7 @@ export function ItineraryModals({
   onVerifyContinue,
   onTimeChange,
   onOptimizeStart,
+  isOptimizeDone,
 }: ItineraryModalsProps) {
   return (
     <>
@@ -57,6 +59,7 @@ export function ItineraryModals({
         isOpen={modal === "optimizing"}
         onClose={onClose}
         onComplete={onClose}
+        isDone={isOptimizeDone}
       />
 
       <Modal

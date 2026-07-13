@@ -3,33 +3,63 @@
 import { useState, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import plusSmallIcon from "@/assets/icons/itinerary/plus-small.svg?url";
 import { PageCard } from "@/components";
 import { TripCard, TripEditModal, TripDeleteModal, TripDeleteToast } from "@/features/itinerary";
 import type { Trip } from "@/features/itinerary";
-
-// TODO: API 연동 시 이 데이터를 fetch로 교체
-const MOCK_TRIPS: Trip[] = [
-  { id: "1", name: "부지렁즈", startDate: "2026.05.18", endDate: "2026.05.20" },
-  { id: "2", name: "영도 감성 코스", startDate: "2026.06.02", endDate: "2026.06.03" },
-  { id: "3", name: "기장 바다 드라이브", startDate: "2026.06.14", endDate: "2026.06.15" },
-  { id: "4", name: "서면 문화 탐방", startDate: "2026.06.22", endDate: "2026.06.22" },
-  { id: "5", name: "낙동강 노을 산책", startDate: "2026.07.03", endDate: "2026.07.04" },
-  { id: "6", name: "오시리아 체험 여행", startDate: "2026.08.01", endDate: "2026.08.02" },
-];
+import { itineraryApi } from "@/shared/api/domains";
 
 type ModalState = { type: "edit"; trip: Trip } | { type: "delete"; trip: Trip } | null;
 
+function toTripDate(apiDate?: string): string {
+  if (!apiDate) {
+    const today = new Date();
+    return `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, "0")}.${String(today.getDate()).padStart(2, "0")} 00:00`;
+  }
+  return `${apiDate.replaceAll("-", ".")} 00:00`;
+}
+
+function toApiDate(tripDate: string): string {
+  return tripDate.split(" ")[0].replaceAll(".", "-");
+}
+
 export default function TripsPage() {
   const router = useRouter();
-  // TODO: API 연동 시 useState 초기값을 빈 배열로 바꾸고 useEffect로 fetch
-  const [trips, setTrips] = useState<Trip[]>(MOCK_TRIPS);
+  const queryClient = useQueryClient();
   const [modal, setModal] = useState<ModalState>(null);
   const [showDeleteToast, setShowDeleteToast] = useState(false);
 
+  const { data: summaries } = useQuery({
+    queryKey: itineraryApi.keys.lists(),
+    queryFn: itineraryApi.getItineraries,
+  });
+
+  // 목록 API엔 여행 기간이 없어서, 카드에 표시할 기간은 상세 조회로 보충한다.
+  const detailQueries = useQueries({
+    queries: (summaries ?? []).map((s) => ({
+      queryKey: itineraryApi.keys.detail(s.id ?? ""),
+      queryFn: () => itineraryApi.getItinerary(s.id as string),
+      enabled: !!s.id,
+    })),
+  });
+
+  const trips: Trip[] = (summaries ?? []).map((s, idx) => {
+    const detail = detailQueries[idx]?.data;
+    return {
+      id: s.id ?? "",
+      name: s.title ?? "제목 없음",
+      startDate: toTripDate(detail?.startAt),
+      endDate: toTripDate(detail?.endAt),
+    };
+  });
+
+  const invalidateTrips = () => {
+    queryClient.invalidateQueries({ queryKey: itineraryApi.keys.all });
+  };
+
   const handleSelect = useCallback(
     (id: string) => {
-      // TODO: API 연동 시 선택된 tripId를 전역 상태/URL 파라미터로 전달
       router.push(`/itinerary?tripId=${id}`);
     },
     [router],
@@ -51,18 +81,34 @@ export default function TripsPage() {
     [trips],
   );
 
-  const handleEditConfirm = useCallback((updated: Trip) => {
-    // TODO: API 연동 시 PATCH /trips/:id 호출
-    setTrips((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-    setModal(null);
-  }, []);
+  const handleEditConfirm = useCallback(
+    async (updated: Trip) => {
+      setModal(null);
+      try {
+        await itineraryApi.updateItinerary(updated.id, {
+          title: updated.name,
+          startAt: toApiDate(updated.startDate),
+          endAt: toApiDate(updated.endDate),
+        });
+      } finally {
+        invalidateTrips();
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
-  const handleDeleteConfirm = useCallback(() => {
+  const handleDeleteConfirm = useCallback(async () => {
     if (modal?.type !== "delete") return;
-    // TODO: API 연동 시 DELETE /trips/:id 호출
-    setTrips((prev) => prev.filter((t) => t.id !== modal.trip.id));
+    const tripId = modal.trip.id;
     setModal(null);
-    setShowDeleteToast(true);
+    try {
+      await itineraryApi.deleteItinerary(tripId);
+    } finally {
+      invalidateTrips();
+      setShowDeleteToast(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modal]);
 
   const closeModal = useCallback(() => setModal(null), []);
