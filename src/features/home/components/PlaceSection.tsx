@@ -1,14 +1,58 @@
 "use client";
 
 import Image from "next/image";
-
 import { useRouter } from "next/navigation";
-import { PLACES } from "@/features/home/data/places";
+import { useQuery } from "@tanstack/react-query";
+import { keys, searchSpots } from "@/shared/api/domains/spot";
 import { CategoryChip } from "@/components";
+import type { Category } from "@/components";
+
+function toCategory(value?: string): Category {
+  if (!value) return "experience";
+
+  if (value.includes("자연")) return "nature";
+  if (value.includes("바다")) return "sea";
+  if (value.includes("문화")) return "culture";
+
+  return "experience";
+}
 
 export function PlaceSection() {
   const router = useRouter();
-  const recommendedPlaces = PLACES.filter((place) => !place.isCollected).slice(0, 6);
+
+  const {
+    data: spots = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: keys.search(),
+    queryFn: () => searchSpots(),
+  });
+
+  const recommendedPlaces = [...spots]
+    .filter(
+      (spot) =>
+        Boolean(spot.spotId && spot.name && spot.thumbnailUrl) &&
+        ((spot.isCollection && !spot.collected) || (!spot.isCollection && !spot.visited)),
+    )
+    .sort((a, b) => {
+      const getPriority = (spot: (typeof spots)[number]) => {
+        if (spot.isCollection && !spot.collected) return 0;
+        if (!spot.isCollection && !spot.visited) return 1;
+        return 2;
+      };
+
+      return getPriority(a) - getPriority(b);
+    })
+    .slice(0, 6);
+
+  if (isLoading) {
+    return <div className="h-[90px]" />;
+  }
+
+  if (isError) {
+    return null;
+  }
 
   return (
     <div>
@@ -28,26 +72,26 @@ export function PlaceSection() {
       <div className="flex gap-4 overflow-x-auto pb-2">
         {recommendedPlaces.map((place) => (
           <button
-            key={place.id}
+            key={place.spotId}
             type="button"
             className="relative h-[90px] w-[144px] shrink-0 overflow-hidden rounded-[15px] active:opacity-80"
-            onClick={() => router.push(`/home/recommend/${place.id}`)}
+            onClick={() => router.push(`/home/recommend/${place.spotId}`)}
           >
             <Image
-              src={place.imageUrl}
-              alt={place.name}
+              src={place.thumbnailUrl ?? ""}
+              alt={place.name ?? "관광지"}
               fill
               className="object-cover"
               sizes="144px"
             />
 
             <div className="absolute right-2 top-2">
-              <CategoryChip category={place.category} variant="strong" />
+              <CategoryChip category={toCategory(place.category)} variant="strong" />
             </div>
 
             <div className="absolute bottom-2 left-2">
               <span className="inline-flex rounded-[8px] bg-system-blackbg px-2.5 py-1.5 text-xs font-semibold text-main-white backdrop-blur-sm">
-                {place.name}
+                {place.name ?? "이름 없는 관광지"}
               </span>
             </div>
           </button>
