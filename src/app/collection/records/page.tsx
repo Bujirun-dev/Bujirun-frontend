@@ -46,7 +46,7 @@ export default function CollectionRecordsPage() {
     const count = collectedPlaces.reduce<Partial<Record<Category, number>>>((acc, place) => {
       const category = getCategoryFromKo(place.category);
 
-      if (!category) return acc;
+      acc[category] = (acc[category] ?? 0) + 1;
 
       acc[category] = (acc[category] ?? 0) + 1;
 

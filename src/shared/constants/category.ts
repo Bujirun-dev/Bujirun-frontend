@@ -18,15 +18,15 @@ export function getCategoryLabel(category: Category): string {
   return CATEGORY_LABEL[category];
 }
 
-export function getCategoryFromKo(ko?: string): Category | undefined {
-  if (!ko) return undefined;
+export function getCategoryFromKo(ko?: string): Category {
+  if (!ko) return "nature";
 
   if (ko.includes("바다")) return "sea";
   if (ko.includes("자연")) return "nature";
   if (ko.includes("문화")) return "culture";
   if (ko.includes("체험")) return "experience";
 
-  return CATEGORY_LABEL_KO[ko];
+  return CATEGORY_LABEL_KO[ko] ?? "nature";
 }
 
 export function getCategoryFromEN(en: string): Category {
