@@ -20,6 +20,8 @@ export interface LogDetailStop {
   time: string;
   place: string;
   imageUrl?: string | StaticImageData;
+  photoId?: string;
+  representative?: boolean;
   /** 4개 카테고리(바다/자연/문화/체험)와 일치하는 태그만 해당 카테고리 색으로, 나머지는 기본색으로 표시 */
   tags: string[];
 }
@@ -48,6 +50,9 @@ interface LogDetailContentProps {
   editableTags?: boolean;
   onAddTag?: (dayIndex: number, stopIndex: number, tag: string) => void;
   onDeleteTag?: (dayIndex: number, stopIndex: number, tagIndex: number) => void;
+  editableRepresentativePhoto?: boolean;
+
+  onSetRepresentativePhoto?: (dayIndex: number, stopIndex: number) => void;
 }
 
 export function LogDetailContent({
@@ -57,6 +62,8 @@ export function LogDetailContent({
   editableTags = false,
   onAddTag,
   onDeleteTag,
+  editableRepresentativePhoto = false,
+  onSetRepresentativePhoto,
 }: LogDetailContentProps) {
   const summaryPlace =
     log.extraCount && log.extraCount > 0
@@ -134,6 +141,27 @@ export function LogDetailContent({
                     {stop.imageUrl && (
                       <div className="relative w-[254px] h-[118px] rounded-lg overflow-hidden border-[0.3px] border-system-glassborder shrink-0">
                         <Image src={stop.imageUrl} alt={stop.place} fill className="object-cover" />
+
+                        {editableRepresentativePhoto && (
+                          <button
+                            type="button"
+                            onClick={
+                              stop.representative
+                                ? undefined
+                                : () => onSetRepresentativePhoto?.(dayIdx, idx)
+                            }
+                            disabled={stop.representative}
+                            aria-pressed={stop.representative}
+                            className={cn(
+                              "absolute right-2 top-2 rounded-lg px-2.5 py-1.5 text-xs font-medium",
+                              stop.representative
+                                ? "cursor-default bg-main-blue text-main-white"
+                                : "cursor-pointer bg-system-whitebg backdrop-blur-sm text-system-blackbg",
+                            )}
+                          >
+                            대표사진
+                          </button>
+                        )}
                       </div>
                     )}
 
