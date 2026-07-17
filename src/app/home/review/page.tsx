@@ -1,26 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { MOOD_VALUE } from "@/features/home/components/MoodOptions";
+import { travelLogApi, userApi } from "@/shared/api/domains";
 import { ReviewPromptModal } from "@/features/home/components/ReviewPromptModal";
 import { TripReceiptModal } from "@/features/receipt/components/TripReceiptModal";
-import { tripReceipts } from "@/features/receipt/data/tripReceipts";
 import type { ReceiptData, ReviewPromptSubmitData } from "@/features/receipt/types/receipt";
+import { convertTripLogToReceipt } from "@/features/receipt/utils/convertTripLogToReceipt";
 
 export default function HomeReceiptPage() {
-  const baseReceipt = tripReceipts[0];
   const router = useRouter();
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const logId = searchParams.get("logId");
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(true);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [generatedReceipt, setGeneratedReceipt] = useState<ReceiptData | undefined>();
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setIsReviewModalOpen(true);
-    }, 0);
+  const { data: travelLog } = useQuery({
+    queryKey: travelLogApi.keys.detail(logId ?? ""),
+    queryFn: () => travelLogApi.getLog(logId as string),
+    enabled: !!logId,
+  });
 
-    return () => window.clearTimeout(timer);
-  }, []);
+  const { data: myProfile } = useQuery({
+    queryKey: userApi.keys.me(),
+    queryFn: userApi.getMyProfile,
+  });
 
   const closeReviewModal = () => {
     setIsReviewModalOpen(false);
@@ -30,24 +37,37 @@ export default function HomeReceiptPage() {
     setIsReceiptModalOpen(false);
   };
 
-  const handleCreateReceipt = ({ mood, theme }: ReviewPromptSubmitData) => {
-    if (!baseReceipt) return;
+  const handleCreateReceipt = async ({ mood, theme }: ReviewPromptSubmitData) => {
+    if (!logId || !travelLog) return;
 
-    setGeneratedReceipt({
-      ...baseReceipt,
-      mood,
+    // mood, theme 저장
+    await travelLogApi.updateLog(logId, {
+      isPublic: true,
+      mood: MOOD_VALUE[mood],
       theme,
     });
+
+    // 저장된 최신 로그를 다시 조회
+    const latestTravelLog = await travelLogApi.getLog(logId);
+
+    const receipt = convertTripLogToReceipt(
+      latestTravelLog,
+      myProfile?.id ?? "",
+      myProfile?.nickname ?? "",
+    );
+
+    setGeneratedReceipt(receipt);
+
     setIsReviewModalOpen(false);
     setIsReceiptModalOpen(true);
   };
 
   return (
     <main className="relative flex h-full flex-col">
-      {baseReceipt && (
+      {travelLog && (
         <ReviewPromptModal
           isOpen={isReviewModalOpen}
-          tripTitle={baseReceipt.title}
+          tripTitle={travelLog.title ?? "여행 기록"}
           onClose={closeReviewModal}
           onConfirm={handleCreateReceipt}
         />

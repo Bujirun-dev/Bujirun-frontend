@@ -14,3 +14,11 @@ export const createArchiveNumber = (startDate: string, tripOrder: number) => {
 export const createBarcode = (startDate: string, endDate: string) => {
   return `${startDate.replaceAll("-", "")}${endDate.replaceAll("-", "")}`;
 };
+
+const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"] as const;
+
+export const getWeekday = (date: string) => {
+  if (!date) return "";
+
+  return WEEKDAYS[new Date(`${date}T00:00:00`).getDay()];
+};
