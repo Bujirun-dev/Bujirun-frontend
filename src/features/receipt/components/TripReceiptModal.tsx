@@ -33,7 +33,7 @@ const waitForImages = async (element: HTMLElement) => {
 
 const sanitizeFileName = (fileName: string) => fileName.replace(/[\\/:*?"<>|]/g, "").trim();
 
-const createReceiptFileName = (title: string, tripId: number) => {
+const createReceiptFileName = (title: string, tripId: string | number) => {
   const safeTitle = sanitizeFileName(title);
   return safeTitle ? `[bujirun]${safeTitle}.png` : `[bujirun]receipt-${tripId}.png`;
 };

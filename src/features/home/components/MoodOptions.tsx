@@ -6,6 +6,14 @@ export const MOOD_OPTIONS = ["🥰", "😆", "😌", "🫠", "😡"] as const;
 
 export type MoodValue = (typeof MOOD_OPTIONS)[number];
 
+export const MOOD_VALUE: Record<MoodValue, number> = {
+  "🥰": 0,
+  "😆": 1,
+  "😌": 2,
+  "🫠": 3,
+  "😡": 4,
+};
+
 interface MoodOptionsProps {
   selectedMood: MoodValue | null;
   onSelect: (mood: MoodValue) => void;
