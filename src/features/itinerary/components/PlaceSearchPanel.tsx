@@ -219,7 +219,10 @@ export function PlaceSearchPanel({ onClose, onPlaceSelect }: PlaceSearchPanelPro
 
       {/* 목록 */}
       {isLoading ? (
-        <LoadingState message="검색하는 중이에요" className="pb-[30%]" />
+        <LoadingState
+          message={debouncedSearchValue ? "검색하는 중이에요" : "관광지 목록을 불러오는 중이에요"}
+          className="pb-[30%]"
+        />
       ) : filtered.length === 0 ? (
         <EmptyState
           title="검색 결과가 없어요"

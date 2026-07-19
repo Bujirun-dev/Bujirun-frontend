@@ -97,28 +97,12 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
     setActiveDetailStopId(null);
     setPopupScrollSpace(0);
   };
-  const [pickerPosition, setPickerPosition] = useState({ top: 0, left: 0 });
-
   const openTimePicker = (stop: ItineraryStop) => {
     closeSearch();
     closeDetail();
     closeAddNew();
     const [h, m] = stop.time.split(":").map(Number);
     setInlineTimeValue({ hour: h, minute: m });
-
-    const el = stopRefs.current.get(stop.id);
-    const appRoot = document.getElementById("app-root");
-    if (el && appRoot) {
-      const elRect = el.getBoundingClientRect();
-      const rootRect = appRoot.getBoundingClientRect();
-      const rawTop = elRect.top - rootRect.top;
-      const safeTop = Math.min(rawTop, rootRect.height - 228);
-      setPickerPosition({
-        top: Math.max(8, safeTop),
-        left: elRect.left - rootRect.left + 52 + 12,
-      });
-    }
-
     setActiveTimeStopId(stop.id);
   };
   const closeTimePicker = () => {
@@ -339,11 +323,7 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
 
                   {/* 관광지 상세 카드 */}
                   {isDetailActive && (
-                    <TimelinePlaceDetailPopup
-                      ref={detailCardRef}
-                      stop={stop}
-                      onClose={closeDetail}
-                    />
+                    <TimelinePlaceDetailPopup ref={detailCardRef} stop={stop} onClose={closeDetail} />
                   )}
 
                   {/* 시간 변경 카드 */}
@@ -352,8 +332,6 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
                       ref={timePickerRef}
                       hour={inlineTimeValue.hour}
                       minute={inlineTimeValue.minute}
-                      top={pickerPosition.top}
-                      left={pickerPosition.left}
                       onChange={(h, m) => setInlineTimeValue({ hour: h, minute: m })}
                       onConfirm={() => confirmInlineTime(stop)}
                       onClose={closeTimePicker}
