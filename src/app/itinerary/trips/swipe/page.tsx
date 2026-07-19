@@ -128,10 +128,8 @@ function TripSwipeContent() {
 
   if (!place) {
     return (
-      <div className="flex h-full flex-col items-center justify-center px-6">
-        <p className="font-paperlogy font-medium text-md text-text-heading">
-          관광지를 불러오고 있어요...
-        </p>
+      <div className="flex h-full flex-col">
+        <LoadingState message="관광지를 불러오는 중이에요" />
       </div>
     );
   }

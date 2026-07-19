@@ -91,6 +91,15 @@ function TripWaitingContent() {
 
         {/* 친구 아바타 - 친구 수별 행 배치 */}
         <ParticipantAvatarGrid total={totalSlots} activeCount={doneCount} className="mt-5" />
+
+        {/* TEMP: 인원 다 안 모여도 뒷 화면 확인용 — 확인 끝나면 지울 것 */}
+        <button
+          type="button"
+          onClick={() => router.push(`/itinerary/trips/result?${forwardParams}`)}
+          className="mt-3 font-paperlogy font-normal text-xs text-sub-gray underline decoration-solid underline-offset-2"
+        >
+          (테스트) 취향분석 상관없이 다음 화면으로
+        </button>
       </div>
     </div>
   );

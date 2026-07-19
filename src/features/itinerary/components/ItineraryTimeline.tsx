@@ -126,8 +126,12 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
     setActiveTimeStopId(null);
   };
   const pendingAutoTimeRef = useRef(false);
+  // 추가 직후 시간 변경 팝업을 곧바로 띄우면 너무 급하게 느껴져서, 처음 한 번만
+  // 살짝 텀을 두고 연다 (그 사이 "추가되었어요" 토스트가 먼저 보이도록).
+  const autoOpenDelayedRef = useRef(false);
   const handleAddNewPlace = (place: SearchPlace) => {
     pendingAutoTimeRef.current = true;
+    autoOpenDelayedRef.current = false;
     onAddNewPlace?.(place);
   };
   useEffect(() => {
@@ -136,8 +140,15 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
     // closeTimePicker에서 pendingAutoTimeRef를 꺼서 더 이상 재오픈되지 않게 한다.
     if (!pendingAutoTimeRef.current) return;
     const newest = stops[stops.length - 1];
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (newest) openTimePicker(newest);
+    if (!newest) return;
+
+    if (!autoOpenDelayedRef.current) {
+      autoOpenDelayedRef.current = true;
+      const timer = window.setTimeout(() => openTimePicker(newest), 700);
+      return () => window.clearTimeout(timer);
+    }
+
+    openTimePicker(newest);
     // openTimePicker는 매 렌더마다 새로 만들어져서 참조 자체를 deps에 넣으면 안 됨
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stops]);
@@ -281,80 +292,87 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
           </div>
         )}
 
-        {stops.map((stop) => {
-          const isSearchActive = activeSearchStopId === stop.id;
-          const isDetailActive = activeDetailStopId === stop.id;
-          const isTimeActive = activeTimeStopId === stop.id;
-          return (
-            <div
-              key={stop.id}
-              ref={(el) => {
-                if (el) stopRefs.current.set(stop.id, el);
-                else stopRefs.current.delete(stop.id);
-              }}
-              className="min-w-0"
-            >
-              <div className="relative flex min-w-0 items-center">
-                <TimelineSearchTrigger
-                  time={stop.time}
-                  isActive={isSearchActive}
-                  isTimeActive={isTimeActive}
-                  onTimeClick={() => openTimePicker(stop)}
-                />
-
-                <div className="min-w-0 flex-1 pl-3">
-                  <PlaceCard
-                    imageUrl={stop.imageUrl}
-                    name={stop.placeName}
-                    category={stop.category}
-                    status={stop.status}
-                    onDelete={stop.onDelete}
-                    onClick={() => openDetail(stop)}
-                    onVerify={stop.onVerify}
+        {/* 관광지 검색창이 떠 있는 동안엔 상단바/타임라인 선은 그대로 두고
+            나머지 일정/교통수단 아이템들만 가린다. */}
+        {!isAddingNew &&
+          stops.map((stop) => {
+            const isSearchActive = activeSearchStopId === stop.id;
+            const isDetailActive = activeDetailStopId === stop.id;
+            const isTimeActive = activeTimeStopId === stop.id;
+            return (
+              <div
+                key={stop.id}
+                ref={(el) => {
+                  if (el) stopRefs.current.set(stop.id, el);
+                  else stopRefs.current.delete(stop.id);
+                }}
+                className="min-w-0"
+              >
+                <div className="relative flex min-w-0 items-center">
+                  <TimelineSearchTrigger
+                    time={stop.time}
+                    isActive={isSearchActive}
+                    isTimeActive={isTimeActive}
+                    onTimeClick={() => openTimePicker(stop)}
                   />
+
+                  <div className="min-w-0 flex-1 pl-3">
+                    <PlaceCard
+                      imageUrl={stop.imageUrl}
+                      name={stop.placeName}
+                      category={stop.category}
+                      status={stop.status}
+                      onDelete={stop.onDelete}
+                      onClick={() => openDetail(stop)}
+                      onVerify={stop.onVerify}
+                    />
+                  </div>
+
+                  {/* 검색 카드 */}
+                  {isSearchActive && (
+                    <TimelineSearchPopup
+                      ref={searchCardRef}
+                      onClose={closeSearch}
+                      onAddToItinerary={stop.onAddPlace}
+                    />
+                  )}
+
+                  {/* 관광지 상세 카드 */}
+                  {isDetailActive && (
+                    <TimelinePlaceDetailPopup
+                      ref={detailCardRef}
+                      stop={stop}
+                      onClose={closeDetail}
+                    />
+                  )}
+
+                  {/* 시간 변경 카드 */}
+                  {isTimeActive && (
+                    <TimelineTimePicker
+                      ref={timePickerRef}
+                      hour={inlineTimeValue.hour}
+                      minute={inlineTimeValue.minute}
+                      top={pickerPosition.top}
+                      left={pickerPosition.left}
+                      onChange={(h, m) => setInlineTimeValue({ hour: h, minute: m })}
+                      onConfirm={() => confirmInlineTime(stop)}
+                      onClose={closeTimePicker}
+                    />
+                  )}
                 </div>
 
-                {/* 검색 카드 */}
-                {isSearchActive && (
-                  <TimelineSearchPopup
-                    ref={searchCardRef}
-                    onClose={closeSearch}
-                    onAddToItinerary={stop.onAddPlace}
-                  />
-                )}
-
-                {/* 관광지 상세 카드 */}
-                {isDetailActive && (
-                  <TimelinePlaceDetailPopup ref={detailCardRef} stop={stop} onClose={closeDetail} />
-                )}
-
-                {/* 시간 변경 카드 */}
-                {isTimeActive && (
-                  <TimelineTimePicker
-                    ref={timePickerRef}
-                    hour={inlineTimeValue.hour}
-                    minute={inlineTimeValue.minute}
-                    top={pickerPosition.top}
-                    left={pickerPosition.left}
-                    onChange={(h, m) => setInlineTimeValue({ hour: h, minute: m })}
-                    onConfirm={() => confirmInlineTime(stop)}
-                    onClose={closeTimePicker}
-                  />
+                {/* 교통수단 카드 */}
+                {stop.transport && (
+                  <div className="mt-5 flex min-w-0">
+                    <div className="w-16 shrink-0" />
+                    <button className="min-w-0 flex-1 text-left" onClick={stop.onTransportClick}>
+                      <TransportCard {...stop.transport} />
+                    </button>
+                  </div>
                 )}
               </div>
-
-              {/* 교통수단 카드 */}
-              {stop.transport && (
-                <div className="mt-5 flex min-w-0">
-                  <div className="w-16 shrink-0" />
-                  <button className="min-w-0 flex-1 text-left" onClick={stop.onTransportClick}>
-                    <TransportCard {...stop.transport} />
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
     </div>
   );

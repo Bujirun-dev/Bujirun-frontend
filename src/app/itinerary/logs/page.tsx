@@ -140,7 +140,7 @@ export default function LogsPage() {
             ))}
             {/* 무한 스크롤 감지 sentinel */}
             <div ref={sentinelRef} className="h-1 shrink-0" />
-            {isLoading && <p className="text-center text-sm text-sub-gray pb-2">불러오는 중...</p>}
+            {isLoading && <LoadingState message="더 불러오는 중이에요" className="py-4" />}
           </>
         )}
       </div>

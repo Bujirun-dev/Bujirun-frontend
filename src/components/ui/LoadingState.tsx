@@ -29,7 +29,13 @@ export function LoadingState({ message = "불러오는 중이에요", className 
           <Image src={sitCharacter} alt="" width={160} height={160} className="relative" />
         </motion.div>
       </div>
-      <p className="font-paperlogy text-md text-sub-gray">{message}</p>
+      <motion.p
+        animate={{ opacity: [0.5, 1, 0.5] }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+        className="font-ssurround text-md font-bold text-sub-deepblue"
+      >
+        {message}
+      </motion.p>
     </div>
   );
 }
