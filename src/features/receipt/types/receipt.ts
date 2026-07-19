@@ -38,6 +38,7 @@ export interface ReceiptData {
   mood: MoodValue;
   theme: string;
   collection: number;
+  collectedSpots: number;
   archiveNumber: string;
   days: ReceiptDay[];
 }
