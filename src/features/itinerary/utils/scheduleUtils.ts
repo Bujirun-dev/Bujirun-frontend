@@ -252,6 +252,7 @@ export function mapItineraryDetailToDays(
 
       return {
         id: item.id ?? `${day.id}-${idx}`,
+        spotId: item.spot?.id,
         time: item.arrivalTime
           ? normalizeTime(item.arrivalTime)
           : getDefaultItemTime(dayIdx, totalDays, idx, timeBounds),

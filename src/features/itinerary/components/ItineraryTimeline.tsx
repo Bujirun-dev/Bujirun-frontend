@@ -26,6 +26,8 @@ interface TransportInfo {
 
 export interface ItineraryStop {
   id: string;
+  // 인증하기(ArrivalVerifyModal)에 넘길 실제 관광지 ID. item.id(=id, 일정 아이템 ID)와는 다르다.
+  spotId?: string;
   time: string;
   placeName: string;
   imageUrl: string;
@@ -229,7 +231,7 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
   const isEmpty = stops.length === 0;
 
   return (
-    <div className="relative min-w-0 pb-16" onClick={handleRootClick}>
+    <div className="relative min-h-full min-w-0 pb-16" onClick={handleRootClick}>
       {/* 세로 타임라인 선 — 일정이 하나도 없을 땐 그릴 대상이 없으니 숨긴다 */}
       {!isEmpty && (
         <div className="absolute top-0 bottom-0 left-[45px] w-[2px] rounded-full bg-sub-lightgray" />

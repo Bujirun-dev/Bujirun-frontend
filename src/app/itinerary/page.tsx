@@ -3,13 +3,11 @@
 import { Suspense, useRef, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import Image from "next/image";
-import travelImg from "@/assets/character/travel.png";
 import SuccessIcon from "@/assets/icons/mypage/success.svg";
-import { PageCard, Button, Toast } from "@/components";
+import { PageCard, Toast, EmptyState, LoadingState } from "@/components";
 import { ItineraryHeader, SlidingTimeline, ItineraryModals } from "@/features/itinerary";
 import type { ItineraryStop, ModalType } from "@/features/itinerary";
-import { itineraryApi } from "@/shared/api/domains";
+import { itineraryApi, travelLogApi } from "@/shared/api/domains";
 import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";
 import {
   type BaseStop,
@@ -27,20 +25,18 @@ function ItineraryEmptyState() {
   const router = useRouter();
   return (
     <PageCard>
-      <div className="flex-1 flex flex-col items-center justify-center gap-6 pb-10 px-5">
-        <Image src={travelImg} alt="여행" width={160} height={160} />
-        <div className="flex flex-col items-center gap-2 text-center">
-          <p className="font-bold text-xl text-text-heading">아직 여행 일정이 없어요</p>
-          <p className="text-sm text-sub-gray">
+      <EmptyState
+        title="아직 여행 일정이 없어요"
+        description={
+          <>
             부지런즈와 함께
             <br />
             여행을 시작해볼까요?
-          </p>
-        </div>
-        <Button variant="primary" onClick={() => router.push("/itinerary/trips")}>
-          여행 목록 보기
-        </Button>
-      </div>
+          </>
+        }
+        actionLabel="여행 목록 보기"
+        onAction={() => router.push("/itinerary/trips")}
+      />
     </PageCard>
   );
 }
@@ -74,7 +70,13 @@ function ItineraryPageContent() {
     enabled: !!itineraryId,
   });
 
-  if (isListLoading || isDetailLoading) return null;
+  if (isListLoading || isDetailLoading) {
+    return (
+      <PageCard>
+        <LoadingState message="일정을 불러오는 중이에요" />
+      </PageCard>
+    );
+  }
   if (!itineraries || itineraries.length === 0 || !itineraryId || !detail) {
     return <ItineraryEmptyState />;
   }
@@ -114,6 +116,12 @@ function ItineraryMain({
   const queryClient = useQueryClient();
   const invalidateDetail = () =>
     queryClient.invalidateQueries({ queryKey: itineraryApi.keys.detail(itineraryId) });
+  // 인증하기(ArrivalVerifyModal)용 로그 ID. 홈 탭(useTodayItinerary)과 동일하게
+  // 일정과 1:1로 연결된 로그를 itineraryId로 조회한다.
+  const { data: verifyLog } = useQuery({
+    queryKey: travelLogApi.keys.detail(itineraryId),
+    queryFn: () => travelLogApi.getLog(itineraryId),
+  });
   const searchParams = useSearchParams();
   const importedLogId = searchParams.get("importedLogId");
   const requestedDays = Math.max(1, Number(searchParams.get("days")) || initialDaysData.length);
@@ -460,6 +468,8 @@ function ItineraryMain({
       <ItineraryModals
         modal={modal}
         activeStop={activeStop}
+        itineraryId={itineraryId}
+        logId={verifyLog?.id}
         timeValue={timeValue}
         selectedRouteOptionId={selectedRouteOptionId}
         onClose={closeModal}
