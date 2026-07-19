@@ -5,7 +5,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/shared/utils";
-import { CategoryChip, Modal, SpeechBubble, Toast } from "@/components";
+import { CategoryChip, Modal, SpeechBubble, Toast, LoadingState, ErrorState } from "@/components";
 import checkIcon from "@/assets/icons/itinerary/check.png";
 import infoIcon from "@/assets/icons/itinerary/info.png";
 import freepassBlueIcon from "@/assets/icons/itinerary/freepass-blue.png";
@@ -121,6 +121,7 @@ function TripResultContent() {
     data: generated,
     isLoading: isGenerating,
     isError: isGenerateError,
+    refetch: refetchGenerate,
   } = useQuery({
     queryKey: itineraryApi.keys.groupGenerate(groupId, startDate, endDate),
     queryFn: () => itineraryApi.generateGroupItinerary(groupId, { startDate, endDate }),
@@ -233,22 +234,21 @@ function TripResultContent() {
 
   if (isGenerating) {
     return (
-      <div className="flex h-full flex-col items-center justify-center px-6">
-        <p className="font-paperlogy font-medium text-md text-text-heading">
-          일정을 생성하고 있어요...
-        </p>
+      <div className="flex h-full flex-col">
+        <LoadingState message="일정을 생성하고 있어요" />
       </div>
     );
   }
 
   if (isGenerateError) {
     return (
-      <div className="flex h-full flex-col items-center justify-center px-6">
-        <p className="font-paperlogy font-medium text-md text-text-heading text-center">
-          일정 생성에 실패했어요.
-          <br />
-          잠시 후 다시 시도해주세요.
-        </p>
+      <div className="flex h-full flex-col">
+        <ErrorState
+          code={503}
+          title="일정 생성에 실패했어요"
+          description="잠시 후 다시 시도해주세요."
+          onRetry={() => refetchGenerate()}
+        />
       </div>
     );
   }

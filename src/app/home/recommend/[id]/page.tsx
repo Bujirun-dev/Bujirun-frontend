@@ -3,7 +3,7 @@
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BackButton, PageCard } from "@/components";
+import { BackButton, PageCard, LoadingState, ErrorState } from "@/components";
 import type { Category } from "@/components";
 import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
 import { bookmarkApi, spotApi, travelLogApi } from "@/shared/api/domains";
@@ -97,9 +97,7 @@ export default function RecommendedPlaceDetailPage({
   if (isLoading) {
     return (
       <PageCard>
-        <div className="flex flex-1 items-center justify-center text-sm text-sub-gray">
-          관광지 정보를 불러오는 중입니다.
-        </div>
+        <LoadingState message="관광지 정보를 불러오는 중이에요" />
       </PageCard>
     );
   }
@@ -107,9 +105,11 @@ export default function RecommendedPlaceDetailPage({
   if (isError || !spot || !spot.name) {
     return (
       <PageCard>
-        <div className="flex flex-1 items-center justify-center text-sm text-sub-gray">
-          관광지를 찾을 수 없습니다.
-        </div>
+        <ErrorState
+          code={404}
+          title="관광지를 찾을 수 없어요"
+          description="삭제되었거나 존재하지 않는 페이지예요."
+        />
       </PageCard>
     );
   }

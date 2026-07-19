@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
-import { SearchBar } from "@/components";
+import { SearchBar, LoadingState, EmptyState } from "@/components";
 import { PlaceSearchItem } from "./PlaceSearchItem";
 import { ConsonantIndexBar } from "./ConsonantIndexBar";
 import { CategoryFilterDropdown } from "./CategoryFilterDropdown";
@@ -219,16 +219,19 @@ export function PlaceSearchPanel({ onClose, onPlaceSelect }: PlaceSearchPanelPro
 
       {/* 목록 */}
       {isLoading ? (
-        <div className="flex flex-1 items-center justify-center pb-[50%]">
-          <p className="text-sm text-sub-gray">검색 중...</p>
-        </div>
+        <LoadingState message="검색하는 중이에요" className="pb-[30%]" />
       ) : filtered.length === 0 ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-1 pb-[50%]">
-          <p className="text-sm text-sub-gray">
-            <span>&quot;{searchValue}&quot;</span>에 대한 검색 결과가 없어요.
-          </p>
-          <p className="text-sm text-sub-gray">관광지 이름을 다시 확인해보세요.</p>
-        </div>
+        <EmptyState
+          title="검색 결과가 없어요"
+          description={
+            <>
+              <span>&quot;{searchValue}&quot;</span>에 대한 결과를 찾지 못했어요.
+              <br />
+              관광지 이름을 다시 확인해보세요.
+            </>
+          }
+          className="pb-[30%]"
+        />
       ) : sortBy === "추천순" ? (
         <div className="flex flex-col gap-2.5 overflow-y-auto overflow-x-hidden">
           {filtered.map((place) => (

@@ -13,7 +13,7 @@ import { RecordDeleteModal } from "@/features/collection/components/RecordDelete
 import { TripReceiptModal } from "@/features/receipt/components/TripReceiptModal";
 import type { ReceiptData } from "@/features/receipt/types/receipt";
 import bookIcon from "@/assets/icons/collection/book.png";
-import { Card, CategoryChip, PageCard, Toast } from "@/components";
+import { Card, CategoryChip, PageCard, Toast, LoadingState, ErrorState, EmptyState } from "@/components";
 import type { Category } from "@/components/ui/CategoryChip";
 import { TripRecordItem } from "@/features/collection/components/TripRecordItem";
 import { getCategoryFromKo } from "@/shared/constants/category";
@@ -25,6 +25,7 @@ export default function CollectionRecordsPage() {
     data: myLogs = [],
     isLoading: isLogsLoading,
     isError: isLogsError,
+    refetch: refetchLogs,
   } = useQuery({
     queryKey: travelLogApi.keys.mine(),
     queryFn: travelLogApi.getMyLogs,
@@ -201,21 +202,19 @@ export default function CollectionRecordsPage() {
 
       {/* 하단 여행 기록 */}
       <PageCard>
-        <div className="flex flex-col gap-5">
-          {isLogsLoading && (
-            <p className="py-8 text-center text-sm text-sub-gray">여행 기록을 불러오는 중이에요.</p>
-          )}
+        <div className="flex flex-1 flex-col gap-5">
+          {isLogsLoading && <LoadingState message="여행 기록을 불러오는 중이에요" />}
 
           {isLogsError && (
-            <p className="py-8 text-center text-sm text-sub-coral">
-              여행 기록을 불러오지 못했어요.
-            </p>
+            <ErrorState
+              title="여행 기록을 불러오지 못했어요"
+              description="잠시 후 다시 시도해주세요."
+              onRetry={() => refetchLogs()}
+            />
           )}
 
           {!isLogsLoading && !isLogsError && records.length === 0 && (
-            <p className="py-8 text-center text-sm text-sub-gray">
-              아직 저장된 여행 기록이 없어요.
-            </p>
+            <EmptyState title="아직 저장된 여행 기록이 없어요" />
           )}
 
           {!isLogsLoading &&
