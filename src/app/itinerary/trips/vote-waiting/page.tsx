@@ -3,7 +3,7 @@
 import { Fragment, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Modal, Toast } from "@/components";
+import { Modal, Toast, LoadingState } from "@/components";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { itineraryApi } from "@/shared/api/domains";
 import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
@@ -26,9 +26,17 @@ function getTiedPlans(votes: Record<string, number>): string[] {
     .map(([k]) => k);
 }
 
+function PageLoadingFallback() {
+  return (
+    <div className="flex h-full flex-col">
+      <LoadingState />
+    </div>
+  );
+}
+
 export default function VoteWaitingPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageLoadingFallback />}>
       <VoteWaitingContent />
     </Suspense>
   );

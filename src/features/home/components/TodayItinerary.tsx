@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card, StatusBadge } from "@/components";
+import { Card, StatusBadge, LoadingState, EmptyState } from "@/components";
 import { useTodayItinerary } from "@/features/home/hooks/useTodayItinerary";
 import { TransportSummaryCard } from "@/features/home/components/TransportSummaryCard";
 import { TransportDetailModal } from "@/features/home/components/TransportDetailModal";
@@ -75,7 +75,11 @@ export function TodayItinerary() {
   };
 
   if (isLoading) {
-    return <div className="min-h-[220px]" aria-label="오늘의 일정 불러오는 중" />;
+    return (
+      <div className="flex min-h-[220px] flex-col">
+        <LoadingState message="오늘의 일정을 불러오는 중이에요" />
+      </div>
+    );
   }
 
   if (isError || !hasSchedule || !day) {
@@ -85,15 +89,14 @@ export function TodayItinerary() {
           <h2 className="font-ssurround text-lg text-text-heading">오늘의 일정</h2>
         </div>
 
-        <Card variant="glass-sm" className="mt-4 py-6">
-          <p className="mb-3 text-center text-lg leading-relaxed text-text-primary">
-            아직 여행 일정이 없어요!
-            <br />
-            친구들과 부산 여행을 시작해보세요!
-          </p>
-          <Button type="button" onClick={handleStartTrip}>
-            여행 시작하기
-          </Button>
+        <Card variant="glass-sm" className="mt-4">
+          <EmptyState
+            size="sm"
+            title="아직 여행 일정이 없어요!"
+            description="친구들과 부산 여행을 시작해보세요!"
+            actionLabel="여행 시작하기"
+            onAction={handleStartTrip}
+          />
         </Card>
       </div>
     );
