@@ -1,8 +1,10 @@
 name: Deploy to GitHub Pages
 
+# 이 워크플로우는 Vite 기준(./dist, VITE_ 환경변수)으로 만들어져 있어서
+# 현재 Next.js 구조와 안 맞아 main push마다 실패함. 실제 배포는 Vercel이
+# main push 시 자동으로 처리하고 있어서, 고치기 전까지는 수동 실행만 가능하게 꺼둠.
 on:
-  push:
-    branches: [main] # main 브랜치에 푸시될 때마다 실행
+  workflow_dispatch:
 
 permissions:
   contents: read
