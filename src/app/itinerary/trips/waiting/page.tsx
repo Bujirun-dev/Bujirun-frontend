@@ -6,7 +6,8 @@ import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { LoadingState } from "@/components";
 
 // TODO: API 연동 시 실시간 완료 인원으로 교체
-const MOCK_AUTO_COMPLETE_DELAY_MS = 4000;
+// 백엔드 테스트를 위해 자동 완료 시뮬레이션을 잠시 꺼둠 (아래 useEffect와 함께 주석 처리됨)
+// const MOCK_AUTO_COMPLETE_DELAY_MS = 4000;
 
 function PageLoadingFallback() {
   return (
@@ -44,11 +45,12 @@ function TripWaitingContent() {
   const [doneCount, setDoneCount] = useState(1);
 
   // 임시: 일정 시간 후 전원 완료 시뮬레이션
-  useEffect(() => {
-    if (doneCount >= totalSlots) return;
-    const timer = window.setTimeout(() => setDoneCount(totalSlots), MOCK_AUTO_COMPLETE_DELAY_MS);
-    return () => window.clearTimeout(timer);
-  }, [doneCount, totalSlots]);
+  // 백엔드에서 실제 대기 화면 동작을 테스트할 수 있도록 자동 완료를 잠시 주석 처리함.
+  // useEffect(() => {
+  //   if (doneCount >= totalSlots) return;
+  //   const timer = window.setTimeout(() => setDoneCount(totalSlots), MOCK_AUTO_COMPLETE_DELAY_MS);
+  //   return () => window.clearTimeout(timer);
+  // }, [doneCount, totalSlots]);
 
   // 전원 완료 시 결과 페이지로 이동
   useEffect(() => {
