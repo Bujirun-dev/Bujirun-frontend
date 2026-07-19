@@ -60,6 +60,8 @@ export function BookmarkList() {
               북마크에 담아보세요
             </>
           }
+          actionLabel="관광지 둘러보러 가기"
+          onAction={() => router.push("/")}
         />
       </div>
     );

@@ -91,11 +91,11 @@ export function TodayItinerary() {
 
         <Card variant="glass-sm" className="mt-4">
           <EmptyState
+            size="sm"
             title="아직 여행 일정이 없어요!"
             description="친구들과 부산 여행을 시작해보세요!"
             actionLabel="여행 시작하기"
             onAction={handleStartTrip}
-            className="py-4"
           />
         </Card>
       </div>

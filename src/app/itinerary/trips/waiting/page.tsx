@@ -3,13 +3,22 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
+import { LoadingState } from "@/components";
 
 // TODO: API 연동 시 실시간 완료 인원으로 교체
 const MOCK_AUTO_COMPLETE_DELAY_MS = 4000;
 
+function PageLoadingFallback() {
+  return (
+    <div className="flex h-full flex-col">
+      <LoadingState />
+    </div>
+  );
+}
+
 export default function TripWaitingPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageLoadingFallback />}>
       <TripWaitingContent />
     </Suspense>
   );

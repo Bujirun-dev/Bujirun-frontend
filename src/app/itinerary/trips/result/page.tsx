@@ -96,9 +96,17 @@ function ResultPlaceNode({ place }: { place: Place }) {
   );
 }
 
+function PageLoadingFallback() {
+  return (
+    <div className="flex h-full flex-col">
+      <LoadingState />
+    </div>
+  );
+}
+
 export default function TripResultPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageLoadingFallback />}>
       <TripResultContent />
     </Suspense>
   );

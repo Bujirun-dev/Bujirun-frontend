@@ -214,7 +214,12 @@ export default function CollectionRecordsPage() {
           )}
 
           {!isLogsLoading && !isLogsError && records.length === 0 && (
-            <EmptyState title="아직 저장된 여행 기록이 없어요" />
+            <EmptyState
+              title="아직 저장된 여행 기록이 없어요"
+              description="여행을 시작하고 기록을 남겨보세요!"
+              actionLabel="여행 시작하기"
+              onAction={() => router.push("/itinerary/trips/new")}
+            />
           )}
 
           {!isLogsLoading &&

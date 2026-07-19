@@ -41,9 +41,17 @@ function ItineraryEmptyState() {
   );
 }
 
+function RouteLoadingFallback() {
+  return (
+    <PageCard>
+      <LoadingState />
+    </PageCard>
+  );
+}
+
 export default function ItineraryPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<RouteLoadingFallback />}>
       <ItineraryPageContent />
     </Suspense>
   );

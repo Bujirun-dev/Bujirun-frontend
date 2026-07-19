@@ -3,7 +3,7 @@
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BackButton, PageCard, LoadingState, ErrorState } from "@/components";
+import { PageCard, LoadingState, ErrorState } from "@/components";
 import type { Category } from "@/components";
 import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
 import { bookmarkApi, spotApi, travelLogApi } from "@/shared/api/domains";
@@ -122,13 +122,8 @@ export default function RecommendedPlaceDetailPage({
 
   return (
     <PageCard>
-      <div className="flex shrink-0 items-center gap-3 pb-4">
-        <BackButton className="bg-transparent" onClick={() => router.back()} />
-
-        <h1 className="font-ssurround text-lg font-bold text-text-heading">여기는 어때요?</h1>
-      </div>
-
       <PlaceDetailContent
+        onBack={() => router.back()}
         place={{
           imageUrl: spot.thumbnailUrl ?? `https://picsum.photos/seed/${id}/400/300`,
           name: spot.name,

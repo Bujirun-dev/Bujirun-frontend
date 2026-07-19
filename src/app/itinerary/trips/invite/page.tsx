@@ -7,10 +7,19 @@ import { ParticipantAvatarGrid, ShareInviteModal } from "@/features/itinerary/co
 import { groupApi, userApi } from "@/shared/api/domains";
 import { initKakaoShare } from "@/shared/utils/kakaoShare";
 import seaCharacterImg from "@/assets/character/sea.png";
+import { LoadingState } from "@/components";
+
+function PageLoadingFallback() {
+  return (
+    <div className="flex h-full flex-col">
+      <LoadingState />
+    </div>
+  );
+}
 
 export default function TripInvitePage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageLoadingFallback />}>
       <TripInviteContent />
     </Suspense>
   );
