@@ -290,7 +290,7 @@ function ItineraryMain({
         // 이름이 겹치는 스팟이 있어도 같은 stop을 두 번 재사용해 id가 중복되지 않도록,
         // 매칭된 stop은 remaining에서 바로 제거한다.
         const remaining = [...currentStops];
-        const reordered = (result.spots ?? [])
+        const reordered = (result.data?.spots ?? [])
           .slice()
           .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
           .map((optimized) => {

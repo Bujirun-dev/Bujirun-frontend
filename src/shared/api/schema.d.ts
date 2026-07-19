@@ -1010,6 +1010,13 @@ export interface components {
             message?: string;
             data?: components["schemas"]["TravelLogDetailResponse"];
         };
+        GroupMemberResponse: {
+            /** Format: uuid */
+            userId?: string;
+            nickname?: string;
+            /** Format: date-time */
+            joinedAt?: string;
+        };
         TravelLogDayResponse: {
             /** Format: int32 */
             dayNumber?: number;
@@ -1025,6 +1032,8 @@ export interface components {
             title?: string;
             /** Format: int32 */
             totalSpots?: number;
+            /** Format: int32 */
+            collectedSpots?: number;
             duration?: string;
             /** Format: date */
             startDate?: string;
@@ -1033,9 +1042,12 @@ export interface components {
             /** Format: int32 */
             mood?: number;
             theme?: string;
+            /** Format: int32 */
+            travelNumber?: number;
             /** Format: date-time */
             createdAt?: string;
             days?: components["schemas"]["TravelLogDayResponse"][];
+            groupMembers?: components["schemas"]["GroupMemberResponse"][];
         };
         TravelLogHashtagResponse: {
             /** Format: uuid */
@@ -1048,6 +1060,7 @@ export interface components {
             /** Format: uuid */
             itineraryItemId?: string;
             spotName?: string;
+            spotCategory?: string;
             arrivalTime?: string;
             /** Format: int32 */
             orderIndex?: number;
@@ -1081,8 +1094,10 @@ export interface components {
             title?: string;
             /** Format: date */
             startAt?: string;
+            startTime?: string;
             /** Format: date */
             endAt?: string;
+            endTime?: string;
             /** Format: uuid */
             groupId?: string;
             /** Format: uuid */
@@ -1223,8 +1238,10 @@ export interface components {
         GroupItineraryRequest: {
             /** Format: date */
             startDate: string;
+            startTime?: string;
             /** Format: date */
             endDate: string;
+            endTime?: string;
             optimizationType?: string;
         };
         ApiResponseGroupItineraryGenerateResponse: {
@@ -1310,8 +1327,10 @@ export interface components {
             swipes: components["schemas"]["SwipeItem"][];
             /** Format: date */
             startDate: string;
+            startTime?: string;
             /** Format: date */
             endDate: string;
+            endTime?: string;
             optimizationType?: string;
             /** Format: int32 */
             activityHours?: number;
@@ -1413,13 +1432,20 @@ export interface components {
             title?: string;
             /** Format: date */
             startAt?: string;
+            startTime?: string;
             /** Format: date */
             endAt?: string;
+            endTime?: string;
             status?: string;
         };
         ItineraryOptimizeRequest: {
             optimizationType?: string;
             startTime?: string;
+        };
+        ApiResponseItineraryOptimizeResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ItineraryOptimizeResponse"];
         };
         ItineraryOptimizeResponse: {
             spots?: components["schemas"]["OptimizedSpot"][];
@@ -1509,12 +1535,16 @@ export interface components {
             startDate?: string;
             /** Format: int32 */
             totalSpots?: number;
+            /** Format: int32 */
+            collectedSpots?: number;
             authorNickname?: string;
             /** Format: int32 */
             addedCount?: number;
             /** Format: int32 */
             mood?: number;
             theme?: string;
+            /** Format: int32 */
+            travelNumber?: number;
             /** Format: date-time */
             createdAt?: string;
         };
@@ -1538,13 +1568,6 @@ export interface components {
             success?: boolean;
             message?: string;
             data?: components["schemas"]["GroupMemberResponse"][];
-        };
-        GroupMemberResponse: {
-            /** Format: uuid */
-            userId?: string;
-            nickname?: string;
-            /** Format: date-time */
-            joinedAt?: string;
         };
         ApiResponseListGroupResponse: {
             success?: boolean;
@@ -2429,7 +2452,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ItineraryOptimizeResponse"];
+                    "*/*": components["schemas"]["ApiResponseItineraryOptimizeResponse"];
                 };
             };
         };

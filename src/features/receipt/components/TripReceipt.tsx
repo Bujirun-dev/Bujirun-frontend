@@ -5,11 +5,9 @@ import { cn } from "@/shared/utils";
 import receiptBackground from "@/assets/receipt/receipt_background.png";
 import { ReceiptBarcode } from "@/features/receipt/components/ReceiptBarcode";
 import type { ReceiptData } from "@/features/receipt/types/receipt";
-import { PLACES } from "@/features/collection/data/places";
 
 import {
   formatDateWithDots,
-  createArchiveNumber,
   createBarcode,
   calculateTotalDays,
 } from "@/features/receipt/utils/receipt";
@@ -19,16 +17,12 @@ interface TripReceiptProps {
 }
 
 export function TripReceipt({ receipt }: TripReceiptProps) {
-  const tripOrder = receipt.tripId;
-  const archiveNumber = createArchiveNumber(receipt.period.startDate, tripOrder);
+  const archiveNumber = receipt.archiveNumber;
   const issuedOn = formatDateWithDots(receipt.period.endDate);
   const barcode = createBarcode(receipt.period.startDate, receipt.period.endDate);
   const totalDays = calculateTotalDays(receipt.period.startDate, receipt.period.endDate);
 
   const spotsVisited = receipt.days.reduce((count, day) => count + day.places.length, 0);
-  const totalCollectionCount = PLACES.length;
-  const collectedCount = PLACES.filter((place) => place.isCollected).length;
-  const collectionRate = Math.round((collectedCount / totalCollectionCount) * 100);
 
   const receiptInfo = [
     ["TRAVELER", receipt.traveler],
@@ -42,7 +36,7 @@ export function TripReceipt({ receipt }: TripReceiptProps) {
     ["MOOD", receipt.mood],
     ["THEME", receipt.theme],
     ["SPOTS VISITED", `${spotsVisited} PLACES`],
-    ["COLLECTION", `${collectedCount}/${totalCollectionCount} (${collectionRate}%)`],
+    ["COLLECTION", `${receipt.collectedSpots} / ${receipt.collection}`],
   ] satisfies [string, string][];
 
   return (

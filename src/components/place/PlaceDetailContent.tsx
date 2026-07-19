@@ -114,7 +114,9 @@ export function PlaceDetailContent({
         {/* 소개 */}
         <section className="flex flex-col gap-2">
           <h2 className="text-lg font-bold text-text-heading">소개</h2>
-          <p className="text-md leading-relaxed text-text-primary">{description}</p>
+          <p className="text-md leading-relaxed text-text-primary">
+            {description?.trim() || "등록된 내용이 없습니다."}
+          </p>
         </section>
 
         <hr className="border-[0.3px] border-sub-lightgray" />
@@ -163,27 +165,26 @@ export function PlaceDetailContent({
             <section className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold text-text-heading">관련 로그</h2>
-                {relatedLogs.length > 0 &&
-                  (relatedLogsHref ? (
-                    <Link
-                      href={relatedLogsHref}
+                {relatedLogsHref ? (
+                  <Link
+                    href={relatedLogsHref}
+                    className="flex items-center gap-1 active:opacity-70"
+                  >
+                    <span className="text-xs font-semibold text-sub-gray">더보기</span>
+                    <span className="text-xs text-sub-gray">›</span>
+                  </Link>
+                ) : (
+                  onViewMoreLogs && (
+                    <button
+                      type="button"
                       className="flex items-center gap-1 active:opacity-70"
+                      onClick={onViewMoreLogs}
                     >
                       <span className="text-xs font-semibold text-sub-gray">더보기</span>
                       <span className="text-xs text-sub-gray">›</span>
-                    </Link>
-                  ) : (
-                    onViewMoreLogs && (
-                      <button
-                        type="button"
-                        className="flex items-center gap-1 active:opacity-70"
-                        onClick={onViewMoreLogs}
-                      >
-                        <span className="text-xs font-semibold text-sub-gray">더보기</span>
-                        <span className="text-xs text-sub-gray">›</span>
-                      </button>
-                    )
-                  ))}
+                    </button>
+                  )
+                )}
               </div>
               <div className="flex gap-4">
                 {relatedLogs.length === 0 ? (
@@ -234,14 +235,15 @@ export function PlaceDetailContent({
 
 function InfoRow({ icon, label, value }: { icon: StaticImageData; label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[5px] border-[0.1px] border-main-blue bg-system-navbg">
-          <Image src={icon} alt="" width={14} height={14} aria-hidden />
-        </div>
-        <span className="text-md text-text-primary">{label}</span>
+    <div className="flex items-center gap-3">
+      <div className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[5px] border-[0.1px] border-main-blue bg-system-navbg">
+        <Image src={icon} alt="" width={14} height={14} aria-hidden />
       </div>
-      <span className="text-md text-text-primary">{value}</span>
+
+      <p className="shrink-0 text-md font-semibold text-text-primary">{label}</p>
+      <p className="min-w-0 flex-1 text-right break-keep whitespace-pre-line text-sm text-text-primary">
+        {value.replace(/<br\s*\/?>\s*/gi, "\n")}
+      </p>
     </div>
   );
 }
