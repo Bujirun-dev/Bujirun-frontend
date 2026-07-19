@@ -5,11 +5,10 @@ import { Suspense, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import pawIcon from "@/assets/icons/itinerary/paw-print.png";
-import { spotApi, swipeApi } from "@/shared/api/domains";
+import { collectionApi, swipeApi } from "@/shared/api/domains";
 import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
 
 const SWIPE_THRESHOLD = 80;
-const MAX_CARDS = 15;
 
 export default function TripSwipePage() {
   return (
@@ -42,12 +41,12 @@ function TripSwipeContent() {
   }).toString();
 
   const { data: spotsData } = useQuery({
-    queryKey: spotApi.keys.search(),
-    queryFn: () => spotApi.searchSpots(),
+    queryKey: collectionApi.keys.swipeDeck(),
+    queryFn: () => collectionApi.getSwipeDeck(),
   });
   const places = useMemo(
     () =>
-      (spotsData ?? []).slice(0, MAX_CARDS).map((spot) => ({
+      (spotsData ?? []).map((spot) => ({
         id: spot.contentId ?? "",
         name: spot.name ?? "",
         image: spot.thumbnailUrl || FALLBACK_IMAGE,

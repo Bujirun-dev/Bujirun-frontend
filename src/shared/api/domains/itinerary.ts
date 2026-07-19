@@ -46,8 +46,8 @@ export function deleteDay(itineraryId: string, dayId: string) {
 }
 
 // 좌표 기반 동선 재정렬 + 운영시간 반영. PATCH라 서버에 바로 반영되며,
-// 재정렬된 spots/routes를 그대로 응답으로 돌려준다.
-// 다른 API와 달리 success/message/data 래퍼 없이 결과가 바로 내려온다.
+// 재정렬된 spots/routes를 응답으로 돌려준다. 호출부(itinerary/page.tsx)가
+// res.data.spots 형태로 쓰므로 unwrap하지 않고 envelope째로 반환한다.
 export function optimizeDay(dayId: string, body: OpBody<"optimize">) {
   return apiClient
     .patch<OpResponse<"optimize">>(`/api/itineraries/days/${dayId}/optimize`, body)
