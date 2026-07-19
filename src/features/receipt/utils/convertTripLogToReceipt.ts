@@ -1,13 +1,7 @@
 import type { MoodValue } from "@/features/home/components/MoodOptions";
 import { travelLogApi } from "@/shared/api/domains";
 import type { ReceiptData } from "../types/receipt";
-import {
-  calculateTotalDays,
-  createArchiveNumber,
-  createBarcode,
-  formatDateWithDots,
-  getWeekday,
-} from "./receipt";
+import { calculateTotalDays, createArchiveNumber, formatDateWithDots, getWeekday } from "./receipt";
 
 interface TravelLogGroupMember {
   userId?: string;
@@ -64,7 +58,8 @@ export function convertTripLogToReceipt(
     mood: MOOD_EMOJI[tripLog.mood ?? 0] ?? "😌",
     theme: tripLog.theme ?? "",
     collection: tripLog.totalSpots ?? 0,
-    archiveNumber: createArchiveNumber(startDate, 1),
+    collectedSpots: tripLog.collectedSpots ?? 0,
+    archiveNumber: createArchiveNumber(startDate, tripLog.travelNumber ?? 0),
     days:
       tripLog.days?.map((day) => ({
         day: (day.dayNumber ?? 0) + 1,
@@ -75,8 +70,8 @@ export function convertTripLogToReceipt(
             id: item.id ?? "",
             time: item.arrivalTime ?? "",
             name: item.spotName ?? "",
-            category: item.hashtags?.[0]?.tag ?? "",
-            categoryIcon: CATEGORY_ICON[item.hashtags?.[0]?.tag ?? ""] ?? "",
+            category: item.spotCategory ?? "",
+            categoryIcon: CATEGORY_ICON[item.spotCategory ?? ""] ?? "",
             image:
               item.photos?.find((photo) => photo.representative)?.photoUrl ??
               item.photos?.[0]?.photoUrl ??

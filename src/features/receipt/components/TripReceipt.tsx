@@ -36,8 +36,7 @@ export function TripReceipt({ receipt }: TripReceiptProps) {
     ["MOOD", receipt.mood],
     ["THEME", receipt.theme],
     ["SPOTS VISITED", `${spotsVisited} PLACES`],
-    // 임시 데이터
-    ["COLLECTION", `${spotsVisited} / ${receipt.collection}`],
+    ["COLLECTION", `${receipt.collectedSpots} / ${receipt.collection}`],
   ] satisfies [string, string][];
 
   return (
