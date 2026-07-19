@@ -1,7 +1,5 @@
 import { forwardRef } from "react";
-import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?url";
 import { PlaceDetailContent, StatusBadge } from "@/components";
 import type { PlaceDetailInfoItem } from "@/components";
 import { bookmarkApi, travelLogApi } from "@/shared/api/domains";
@@ -62,25 +60,8 @@ export const TimelinePlaceDetailPopup = forwardRef<HTMLDivElement, TimelinePlace
     return (
       <div ref={ref} className="absolute left-[52px] right-0 top-0 z-20 pl-3">
         <div className="flex h-[470px] w-full flex-col overflow-hidden rounded-3xl border-[0.5px] border-system-glassborder bg-main-white px-4 py-5 shadow-[2px_2px_10px_0px_var(--color-system-glassborder)]">
-          <div className="mb-3 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex items-center justify-center -translate-y-0.5"
-              aria-label="관광지 상세 닫기"
-            >
-              <Image
-                src={angleLeftIcon}
-                alt=""
-                width={12}
-                height={12}
-                className="icon-darkgray"
-                aria-hidden
-              />
-            </button>
-          </div>
-
           <PlaceDetailContent
+            onBack={onClose}
             place={{
               imageUrl: stop.imageUrl,
               name: stop.placeName,

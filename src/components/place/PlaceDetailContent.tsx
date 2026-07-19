@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { StaticImageData } from "next/image";
 import bookmarkOffIcon from "@/assets/icons/itinerary/bookmark-off.png";
 import bookmarkOnIcon from "@/assets/icons/itinerary/bookmark-on.png";
@@ -82,13 +82,27 @@ export function PlaceDetailContent({
 }: PlaceDetailContentProps) {
   const { imageUrl, name, category, description, address, mapUrl, isBookmarked, infoItems } = place;
   const compact = size === "compact";
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const nameRowRef = useRef<HTMLDivElement>(null);
   const [showStickyName, setShowStickyName] = useState(false);
+  const headerHeight = compact ? 36 : 44;
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const nameRowBottom = nameRowRef.current?.offsetTop ?? 0;
-    setShowStickyName(e.currentTarget.scrollTop >= nameRowBottom);
-  };
+  // scrollTop/offsetTop 계산은 padding·offsetParent에 따라 어긋나기 쉬워서,
+  // sticky 헤더 높이만큼 root를 줄인 IntersectionObserver로 "이름 줄이 헤더 밑으로
+  // 넘어갔는지"를 직접 관찰한다.
+  useEffect(() => {
+    if (!onBack) return;
+    const root = scrollContainerRef.current;
+    const target = nameRowRef.current;
+    if (!root || !target) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyName(!entry.isIntersecting),
+      { root, rootMargin: `-${headerHeight}px 0px 0px 0px`, threshold: 0 },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [onBack, headerHeight]);
 
   const nameRow = (
     <div
@@ -294,18 +308,30 @@ export function PlaceDetailContent({
   if (onBack) {
     return (
       <div className="relative flex h-full flex-col">
-        <div className="absolute inset-x-0 top-0 z-20 flex h-11 shrink-0 items-center gap-3 bg-main-white">
+        <div
+          className={cn(
+            "absolute inset-x-0 top-0 z-20 flex shrink-0 items-center gap-3 bg-main-white",
+            compact ? "h-9" : "h-11",
+          )}
+        >
           <BackButton className="bg-transparent" onClick={onBack} />
           <span
             className={cn(
-              "truncate text-xl font-bold text-text-heading transition-opacity duration-200",
+              "truncate font-bold text-text-heading transition-opacity duration-200",
+              compact ? "text-md" : "text-xl",
               showStickyName ? "opacity-100" : "pointer-events-none opacity-0",
             )}
           >
             {name}
           </span>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pt-11" onScroll={handleScroll}>
+        <div
+          ref={scrollContainerRef}
+          className={cn(
+            "min-h-0 flex-1 overflow-y-auto overflow-x-hidden",
+            compact ? "pt-9" : "pt-11",
+          )}
+        >
           {image}
           {nameRow}
           <hr className="border-[0.3px] border-sub-lightgray" />
