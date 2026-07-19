@@ -1,14 +1,13 @@
 "use client";
 
 import { forwardRef, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import CloseIcon from "@/assets/icons/mypage/close.svg?svgr";
 import { cn } from "@/shared/utils";
 
 const ITEM_H = 24;
 const VISIBLE = 5;
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
-const MINUTES = Array.from({ length: 60 }, (_, i) => i);
+const MINUTES = Array.from({ length: 6 }, (_, i) => i * 10);
 
 function ScrollColumn({
   items,
@@ -28,12 +27,17 @@ function ScrollColumn({
     isProgrammatic.current = true;
     const behavior = isFirstRender.current ? "instant" : "smooth";
     isFirstRender.current = false;
-    ref.current.scrollTo({ top: selected * ITEM_H, behavior });
+    const closestIndex = items.reduce(
+      (closest, v, i) =>
+        Math.abs(v - selected) < Math.abs(items[closest] - selected) ? i : closest,
+      0,
+    );
+    ref.current.scrollTo({ top: closestIndex * ITEM_H, behavior });
     const t = setTimeout(() => {
       isProgrammatic.current = false;
     }, 400);
     return () => clearTimeout(t);
-  }, [selected]);
+  }, [selected, items]);
 
   const handleScroll = () => {
     if (isProgrammatic.current) return;
@@ -81,28 +85,25 @@ function ScrollColumn({
 interface TimelineTimePickerProps {
   hour: number;
   minute: number;
-  top: number;
-  left: number;
   onChange: (hour: number, minute: number) => void;
   onConfirm: () => void;
   onClose: () => void;
 }
 
+// 다른 타임라인 팝업(검색/상세)과 동일하게 해당 행 안에서 absolute로 띄운다.
+// 예전엔 createPortal + getBoundingClientRect로 픽셀 좌표를 한 번만 계산해서
+// app-root에 붙였는데, 그 뒤에 타임라인을 스크롤하면 팝업이 원래 시간 위치에서
+// 떨어져 보이는 문제가 있었다. 행 안에 두면 스크롤에 자연히 같이 따라온다.
 export const TimelineTimePicker = forwardRef<HTMLDivElement, TimelineTimePickerProps>(
-  function TimelineTimePicker({ hour, minute, top, left, onChange, onConfirm, onClose }, ref) {
-    if (typeof document === "undefined") return null;
-    const appRoot = document.getElementById("app-root");
-    if (!appRoot) return null;
-
-    return createPortal(
+  function TimelineTimePicker({ hour, minute, onChange, onConfirm, onClose }, ref) {
+    return (
       <div
         ref={ref}
-        className="absolute z-20"
-        style={{ top, left }}
+        className="absolute left-[52px] top-0 z-20"
         onClick={(e) => e.stopPropagation()}
       >
         <div
-          className="relative flex flex-col gap-2 rounded-2xl bg-main-white"
+          className="relative flex flex-col gap-2 rounded-2xl bg-main-white shadow-[2px_2px_10px_0px_var(--color-system-glassborder)]"
           style={{ width: 163, padding: "20px 16px" }}
         >
           <button
@@ -144,8 +145,7 @@ export const TimelineTimePicker = forwardRef<HTMLDivElement, TimelineTimePickerP
             완료
           </button>
         </div>
-      </div>,
-      appRoot,
+      </div>
     );
   },
 );

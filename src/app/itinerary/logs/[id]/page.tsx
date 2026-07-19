@@ -4,7 +4,7 @@ import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import calendarPlusIcon from "@/assets/icons/itinerary/calendar-plus.svg?url";
-import { PageCard } from "@/components";
+import { PageCard, ErrorState } from "@/components";
 import { LogDetailContent } from "@/components/log/LogDetailContent";
 import { ImportLogModal } from "@/features/itinerary";
 import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";
@@ -44,9 +44,11 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
   if (!log) {
     return (
       <PageCard>
-        <div className="flex flex-1 items-center justify-center text-sub-gray text-sm">
-          로그를 찾을 수 없습니다.
-        </div>
+        <ErrorState
+          code={404}
+          title="로그를 찾을 수 없어요"
+          description="삭제되었거나 존재하지 않는 로그예요."
+        />
       </PageCard>
     );
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image, { type StaticImageData } from "next/image";
 import CheckCircleIcon from "@/assets/icons/itinerary/check-circle.svg?svgr";
 import AntennaIcon from "@/assets/icons/itinerary/antenna.svg?svgr";
@@ -30,6 +30,8 @@ type CommonProps = {
   placeName: string;
   setStep: (step: VerifyStep) => void;
   characterImageUrl?: string | StaticImageData;
+  capturedImageUrl?: string;
+  onCapture?: (file: File, previewUrl: string) => void;
 };
 
 const MOCK_LOADING_DURATION_MS = 3000;
@@ -177,38 +179,162 @@ export function CameraPermissionStage({ placeName }: Pick<CommonProps, "placeNam
 export function CameraCaptureStage({
   placeName,
   setStep,
-}: Pick<CommonProps, "placeName" | "setStep">) {
+  onCapture,
+}: Pick<CommonProps, "placeName" | "setStep" | "onCapture">) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [cameraError, setCameraError] = useState(false);
+
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+    let isCancelled = false;
+
+    const startCamera = async () => {
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: "environment" },
+          },
+          audio: false,
+        });
+
+        if (isCancelled) {
+          mediaStream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+
+        stream = mediaStream;
+
+        if (!videoRef.current) {
+          mediaStream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+
+        videoRef.current.srcObject = mediaStream;
+      } catch (error) {
+        if (!isCancelled) {
+          console.error("카메라 접근 실패:", error);
+          setCameraError(true);
+        }
+      }
+    };
+
+    void startCamera();
+
+    return () => {
+      isCancelled = true;
+
+      stream?.getTracks().forEach((track) => track.stop());
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+    };
+  }, []);
+
+  const handleCapture = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    if (!video || !canvas || video.videoWidth === 0 || video.videoHeight === 0) {
+      setCameraError(true);
+      return;
+    }
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      setCameraError(true);
+      return;
+    }
+
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          setCameraError(true);
+          return;
+        }
+
+        const file = new File([blob], `visit-${Date.now()}.jpg`, {
+          type: "image/jpeg",
+        });
+
+        const previewUrl = URL.createObjectURL(blob);
+
+        onCapture?.(file, previewUrl);
+        setStep("photo-confirm");
+      },
+      "image/jpeg",
+      0.9,
+    );
+  };
+
   return (
     <>
       <div className="relative mb-6 h-[310px] w-full overflow-hidden rounded-[10px] bg-text-heading">
-        <Image src={samplePlaceImage} alt={placeName} fill className="object-cover" />
+        {cameraError ? (
+          <div className="flex h-full items-center justify-center px-5 text-center font-paperlogy text-sm text-main-white">
+            카메라를 불러오지 못했어요. 카메라 권한을 확인해주세요.
+          </div>
+        ) : (
+          <video
+            ref={videoRef}
+            aria-label={`${placeName} 촬영 화면`}
+            autoPlay
+            playsInline
+            muted
+            className="h-full w-full object-cover"
+          />
+        )}
+
         <div className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl bg-main-white/60 px-3 py-2 text-2xs font-medium text-main-white [writing-mode:vertical-rl]">
           관광지가 잘 보이도록 촬영해주세요!
         </div>
+
         <button
           type="button"
           aria-label="촬영"
-          className="absolute bottom-5 left-1/2 size-[54px] -translate-x-1/2 rounded-full border-4 border-main-white bg-main-white/70"
-          onClick={() => setStep("photo-confirm")}
+          className="absolute bottom-5 left-1/2 size-[54px] -translate-x-1/2 rounded-full border-4 border-main-white bg-main-white/70 disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={handleCapture}
+          disabled={cameraError}
         />
       </div>
+
+      <canvas ref={canvasRef} className="hidden" />
     </>
   );
 }
 
-export function PhotoConfirmStage({ placeName }: Pick<CommonProps, "placeName">) {
+export function PhotoConfirmStage({
+  placeName,
+  capturedImageUrl,
+}: Pick<CommonProps, "placeName" | "capturedImageUrl">) {
   return (
     <>
       <h2 className="mb-[25px] text-lg font-ssurround font-bold text-text-heading">
         사진 촬영이 완료되었어요.
       </h2>
+
       <div className="relative mb-[22px] h-[153px] w-[273px] overflow-hidden rounded-[10px]">
-        <Image src={samplePlaceImage} alt={placeName} fill className="object-cover" />
+        <Image
+          src={capturedImageUrl ?? samplePlaceImage}
+          alt={placeName}
+          fill
+          unoptimized={Boolean(capturedImageUrl)}
+          className="object-cover"
+        />
       </div>
+
       <p className="mb-5 flex items-center justify-center gap-1 font-paperlogy text-sm font-medium text-text-primary">
         <CheckCircleIcon width={14} height={14} className="fill-main-blue" aria-hidden />
         관광지가 잘 보이나요?
       </p>
+
       <div className="w-full">
         <Notice>* 마음에 들지 않는다면 다시 촬영할 수 있어요!</Notice>
       </div>
@@ -216,7 +342,10 @@ export function PhotoConfirmStage({ placeName }: Pick<CommonProps, "placeName">)
   );
 }
 
-export function CompleteStage({ placeName }: Pick<CommonProps, "placeName">) {
+export function CompleteStage({
+  placeName,
+  capturedImageUrl,
+}: Pick<CommonProps, "placeName" | "capturedImageUrl">) {
   return (
     <>
       <CharacterImage
@@ -229,7 +358,13 @@ export function CompleteStage({ placeName }: Pick<CommonProps, "placeName">) {
         <h2 className="text-lg font-paperlogy font-bold text-text-heading">인증이 완료되었어요!</h2>
       </div>
       <div className="relative mb-[14px] h-[153px] w-full overflow-hidden rounded-[10px]">
-        <Image src={samplePlaceImage} alt={placeName} fill className="object-cover" />
+        <Image
+          src={capturedImageUrl ?? samplePlaceImage}
+          alt={placeName}
+          fill
+          unoptimized={Boolean(capturedImageUrl)}
+          className="object-cover"
+        />
       </div>
       <Card
         variant="glass-sm"

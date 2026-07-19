@@ -9,8 +9,14 @@ import TitleIcon from "@/assets/icons/itinerary/title.svg?svgr";
 import NoIcon from "@/assets/icons/login-register/no.svg?svgr";
 import YesIcon from "@/assets/icons/login-register/yes.svg?svgr";
 import { Counter } from "@/components";
-import { TripDateTimePicker, formatTripDateTime, parseTripDateTime } from "./TripDateTimePicker";
+import {
+  TripDateTimePicker,
+  formatTripDateTime,
+  parseTripDateTime,
+  toApiDate,
+} from "./TripDateTimePicker";
 import { cn } from "@/shared/utils";
+import { groupApi } from "@/shared/api/domains";
 
 function getDefaultDates() {
   const now = new Date();
@@ -27,10 +33,17 @@ export function TripSetupForm() {
   const [startDate, setStartDate] = useState(DEFAULTS.start);
   const [endDate, setEndDate] = useState(DEFAULTS.end);
   const [friendCount, setFriendCount] = useState(2);
+  const [isCreating, setIsCreating] = useState(false);
 
   const nameLength = tripName.length;
   const isNameValid = nameLength >= 2 && nameLength <= 15;
   const hasName = nameLength > 0;
+
+  const getMaxEndDate = () => {
+    const start = parseTripDateTime(startDate);
+    const max = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 3, 23, 50);
+    return formatTripDateTime(max);
+  };
 
   const getTotalDays = () => {
     const start = parseTripDateTime(startDate);
@@ -41,10 +54,29 @@ export function TripSetupForm() {
     return nights + 1;
   };
 
-  const handleInvite = () => {
-    if (!isNameValid) return;
-    // TODO: API 연동 - trip 생성 후 친구 초대 페이지로 이동
-    router.push(`/itinerary/trips/invite?count=${friendCount}&days=${getTotalDays()}`);
+  const handleInvite = async () => {
+    if (!isNameValid || isCreating) return;
+    setIsCreating(true);
+    try {
+      const group = await groupApi.createGroup({ name: tripName });
+      const startDT = parseTripDateTime(startDate);
+      const endDT = parseTripDateTime(endDate);
+      const pad2 = (n: number) => String(n).padStart(2, "0");
+      const params = new URLSearchParams({
+        count: String(friendCount),
+        days: String(getTotalDays()),
+        groupId: group.id ?? "",
+        inviteCode: group.inviteCode ?? "",
+        name: group.name ?? tripName,
+        startDate: toApiDate(startDate),
+        endDate: toApiDate(endDate),
+        startTime: `${pad2(startDT.getHours())}:${pad2(startDT.getMinutes())}`,
+        endTime: `${pad2(endDT.getHours())}:${pad2(endDT.getMinutes())}`,
+      });
+      router.push(`/itinerary/trips/invite?${params.toString()}`);
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -123,6 +155,7 @@ export function TripSetupForm() {
               value={endDate}
               onChange={setEndDate}
               minValue={startDate}
+              maxValue={getMaxEndDate()}
               className="flex-1"
             />
           </div>
@@ -142,7 +175,7 @@ export function TripSetupForm() {
       <button
         type="button"
         onClick={handleInvite}
-        disabled={!isNameValid}
+        disabled={!isNameValid || isCreating}
         className={cn(
           "mt-1 h-[40px] w-full rounded-[10px] font-ssurround font-bold text-sm transition-colors",
           isNameValid
@@ -150,7 +183,7 @@ export function TripSetupForm() {
             : "border-2 border-main-blue text-main-blue bg-transparent",
         )}
       >
-        친구 초대하기
+        {isCreating ? "생성 중..." : "친구 초대하기"}
       </button>
     </div>
   );

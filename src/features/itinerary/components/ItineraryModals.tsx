@@ -19,6 +19,8 @@ export type ModalType = "optimize" | "optimizing" | "delete" | "time" | "transpo
 interface ItineraryModalsProps {
   modal: ModalType | null;
   activeStop: BaseStop | undefined;
+  itineraryId: string;
+  logId?: string;
   timeValue: { hour: number; minute: number };
   selectedRouteOptionId: string;
   onClose: () => void;
@@ -29,11 +31,14 @@ interface ItineraryModalsProps {
   onVerifyContinue?: () => void;
   onTimeChange: (value: { hour: number; minute: number }) => void;
   onOptimizeStart: () => void;
+  isOptimizeDone?: boolean;
 }
 
 export function ItineraryModals({
   modal,
   activeStop,
+  itineraryId,
+  logId,
   timeValue,
   selectedRouteOptionId,
   onClose,
@@ -44,6 +49,7 @@ export function ItineraryModals({
   onVerifyContinue,
   onTimeChange,
   onOptimizeStart,
+  isOptimizeDone,
 }: ItineraryModalsProps) {
   return (
     <>
@@ -57,6 +63,7 @@ export function ItineraryModals({
         isOpen={modal === "optimizing"}
         onClose={onClose}
         onComplete={onClose}
+        isDone={isOptimizeDone}
       />
 
       <Modal
@@ -135,15 +142,20 @@ export function ItineraryModals({
         );
       })()}
 
-      <ArrivalVerifyModal
-        isOpen={modal === "verify"}
-        onClose={onClose}
-        placeName={activeStop?.placeName ?? ""}
-        characterImageUrl={characterImg.src}
-        onVerify={onConfirmVerify}
-        onContinue={onVerifyContinue}
-        onLater={onClose}
-      />
+      {activeStop?.spotId && logId && (
+        <ArrivalVerifyModal
+          isOpen={modal === "verify"}
+          spotId={activeStop.spotId}
+          itineraryId={itineraryId}
+          logId={logId}
+          itemId={activeStop.id}
+          placeName={activeStop.placeName}
+          characterImageUrl={characterImg.src}
+          onClose={onClose}
+          onVerify={onConfirmVerify}
+          onLater={onVerifyContinue ?? onClose}
+        />
+      )}
     </>
   );
 }

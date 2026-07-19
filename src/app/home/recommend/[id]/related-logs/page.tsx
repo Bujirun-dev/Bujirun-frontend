@@ -1,26 +1,34 @@
 "use client";
 
 import { use } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { RelatedLogsContent } from "@/components";
-import { PLACES } from "@/features/home/data/places";
-import { SAMPLE_LOGS } from "@/features/home/data/sampleLogs";
+import { travelLogApi, spotApi } from "@/shared/api/domains";
+import { useAuthStore } from "@/shared/stores/useAuthStore";
 
-// TODO: API 연결 시 useQuery로 교체 — GET /tour-spots/:spotId/logs
 export default function RelatedLogsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const place = PLACES.find((p) => String(p.id) === id);
-  const placeName = place?.name ?? "";
-  const relatedLogs = SAMPLE_LOGS.filter(
-    (log) =>
-      log.placeName === placeName ||
-      log.days.some((day) => day.stops.some((stop) => stop.place === placeName)),
-  );
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  // 관광지명을 RelatedLogsContent에 전달하기 위해 spot 조회
+  const { data: spot } = useQuery({
+    queryKey: spotApi.keys.detail(id),
+    queryFn: () => spotApi.getSpot(id),
+    enabled: !!accessToken && !!id,
+  });
+
+  // 해당 관광지의 공개 여행 기록 목록 조회
+  const { data: relatedLogs = [], isLoading } = useQuery({
+    queryKey: travelLogApi.keys.bySpot(id),
+    queryFn: () => travelLogApi.getLogsBySpot(id),
+    enabled: !!accessToken && !!id,
+  });
 
   return (
     <RelatedLogsContent
-      placeName={placeName}
-      category={place?.category}
+      placeName={spot?.name ?? ""}
       relatedLogs={relatedLogs}
+      isLoading={isLoading}
       logHrefBase="/home/logs"
     />
   );

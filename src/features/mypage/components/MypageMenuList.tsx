@@ -3,12 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bookmark, FileText, LogOut } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { MenuItem } from "./MenuItem";
 import { PrivacyPolicyModal } from "./PrivacyPolicyModal";
 import { LogoutModal } from "./LogoutModal";
+import { logout } from "@/shared/api/domains/auth";
+import { useAuthStore } from "@/shared/stores/useAuthStore";
 
 export function MypageMenuList() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
@@ -18,14 +22,12 @@ export function MypageMenuList() {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:8080/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await logout();
     } catch (e) {
       console.error("로그아웃 실패:", e);
     } finally {
-      localStorage.removeItem("accessToken");
+      useAuthStore.getState().clear(); // accessToken 초기화
+      queryClient.clear(); // 이전 유저 캐시 전체 제거
       setIsLogoutOpen(false);
       router.replace("/login");
     }

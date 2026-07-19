@@ -4,23 +4,44 @@ import { useRouter } from "next/navigation";
 import { BackButton } from "@/components/ui/BackButton";
 import { CategoryChip } from "@/components/ui/CategoryChip";
 import { PageCard } from "@/components/layout/PageCard";
+import { LoadingState } from "@/components/ui/LoadingState";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { LogCard } from "@/features/itinerary";
 import type { Category } from "@/components/ui/CategoryChip";
-import type { RelatedLog } from "@/shared/types/relatedLog";
+import type { components } from "@/shared/api/schema.d";
+
+type TravelLogSummary = components["schemas"]["TravelLogSummaryResponse"];
 
 interface RelatedLogsContentProps {
   placeName?: string;
   category?: Category;
-  relatedLogs: RelatedLog[];
-  // 로그 상세 이동 경로 prefix (예: "/itinerary/logs", "/mypage/logs")
-  // Server Component에서도 문자열은 넘길 수 있어서 함수(onLogClick) 대신 사용
+  relatedLogs: TravelLogSummary[];
+  isLoading?: boolean;
   logHrefBase: string;
+}
+
+// TravelLogSummaryResponse → LogCard props 변환
+function toLogCardProps(log: TravelLogSummary) {
+  const date = log.startDate?.replace(/-/g, ".") ?? "";
+  const placeName = "부산 여행";
+  const extraCount = log.totalSpots != null && log.totalSpots > 1 ? log.totalSpots - 1 : undefined;
+
+  return {
+    imageUrl: log.thumbnailPhotoUrl ?? "",
+    placeName,
+    extraCount,
+    author: log.authorNickname ?? "",
+    duration: "",
+    date,
+    downloadCount: log.addedCount ?? 0,
+  };
 }
 
 export function RelatedLogsContent({
   placeName,
   category,
   relatedLogs,
+  isLoading,
   logHrefBase,
 }: RelatedLogsContentProps) {
   const router = useRouter();
@@ -42,28 +63,23 @@ export function RelatedLogsContent({
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto pb-6">
-        {relatedLogs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3 pb-16">
-            <span className="text-4xl">📭</span>
-            <p className="text-sm text-sub-gray font-medium">아직 관련 로그가 없어요</p>
-          </div>
+      <div className="flex flex-1 flex-col overflow-y-auto pb-6">
+        {isLoading ? (
+          <LoadingState message="관련 로그를 불러오는 중이에요" />
+        ) : relatedLogs.length === 0 ? (
+          <EmptyState title="아직 관련 로그가 없어요" />
         ) : (
           <div className="flex flex-col gap-4">
-            {relatedLogs.map((log) => (
-              <LogCard
-                key={log.id}
-                imageUrl={log.imageUrl}
-                placeName={log.placeName}
-                extraCount={log.extraCount}
-                author={log.author}
-                duration={log.duration}
-                date={log.date}
-                downloadCount={log.downloadCount}
-                // 경로 prefix + id 조합으로 이동 (부모가 함수를 넘길 필요 없음)
-                onClick={() => router.push(`${logHrefBase}/${log.id}`)}
-              />
-            ))}
+            {relatedLogs.map((log) => {
+              const cardProps = toLogCardProps(log);
+              return (
+                <LogCard
+                  key={log.id}
+                  {...cardProps}
+                  onClick={() => log.id && router.push(`${logHrefBase}/${log.id}`)}
+                />
+              );
+            })}
           </div>
         )}
       </div>

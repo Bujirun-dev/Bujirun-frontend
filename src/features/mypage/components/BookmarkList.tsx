@@ -2,42 +2,67 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BookmarkCard } from "./BookmarkCard";
-import { PLACES } from "@/features/collection/data/places";
-import { Toast } from "@/components";
+import { Toast, LoadingState, EmptyState } from "@/components";
+import { bookmarkApi } from "@/shared/api/domains";
+import { useAuthStore } from "@/shared/stores/useAuthStore";
 import type { Category } from "@/components";
 
-type StatusType = "completed" | "verify" | "pending" | "uncollected" | "collected";
-
-// TODO: API 연결 시 useQuery로 교체 (isCollected → 실제 북마크 여부로 변경)
-const MOCK_BOOKMARKS = PLACES.slice(0, 7).map((p) => ({
-  ...p,
-  category: p.category as Category,
-  isBookmarked: true,
-  status: (p.isCollected ? "collected" : "uncollected") as StatusType,
-  imageUrl: `https://picsum.photos/seed/${p.id}/136/91`,
-}));
+function toCategory(value?: string, name?: string): Category | undefined {
+  if (!value && !name) return undefined;
+  if (name?.includes("해수욕장") || name?.includes("해변")) return "sea";
+  if (!value) return undefined;
+  if (value.includes("자연")) return "nature";
+  if (value.includes("문화") || value.includes("역사")) return "culture";
+  if (value.includes("체험") || value.includes("놀이")) return "experience";
+  if (value.includes("바다") || value.includes("해수욕")) return "sea";
+  return undefined;
+}
 
 export function BookmarkList() {
+  const accessToken = useAuthStore((s) => s.accessToken);
   const router = useRouter();
-
-  // 북마크 목록 상태 (더미데이터 기반, API 연결 전까지 useState로 관리)
-  const [bookmarks, setBookmarks] = useState(MOCK_BOOKMARKS);
-  // 북마크 해제 토스트 노출 여부
+  const queryClient = useQueryClient();
   const [toastVisible, setToastVisible] = useState(false);
 
-  // 북마크 해제 시 목록에서 즉시 제거 + 토스트 노출
-  const handleBookmarkToggle = (id: number) => {
-    setBookmarks((prev) => prev.filter((item) => item.id !== id));
-    // TODO: API 연결 시 mutate(id) 호출 + onError 시 롤백 처리
-    setToastVisible(true);
-  };
+  const { data: bookmarks = [], isLoading } = useQuery({
+    queryKey: bookmarkApi.keys.list(),
+    queryFn: () => bookmarkApi.getBookmarks(),
+    enabled: !!accessToken,
+  });
 
-  // 북마크 목록이 비어있을 때 빈 상태 표시
+  const { mutate: removeBookmark } = useMutation({
+    mutationFn: (spotId: string) => bookmarkApi.removeBookmark(spotId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: bookmarkApi.keys.list() });
+      setToastVisible(true);
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full flex-col">
+        <LoadingState message="북마크를 불러오는 중이에요" />
+      </div>
+    );
+  }
+
   if (bookmarks.length === 0) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <p className="text-sm text-sub-gray">저장된 북마크가 없어요.</p>
+      <div className="flex h-full flex-col">
+        <EmptyState
+          title="저장된 북마크가 없어요"
+          description={
+            <>
+              마음에 드는 관광지를
+              <br />
+              북마크에 담아보세요
+            </>
+          }
+          actionLabel="관광지 둘러보러 가기"
+          onAction={() => router.push("/")}
+        />
       </div>
     );
   }
@@ -46,18 +71,16 @@ export function BookmarkList() {
     <div className="flex flex-col gap-4">
       {bookmarks.map((item) => (
         <BookmarkCard
-          key={item.id}
-          name={item.name}
-          category={item.category}
-          status={item.status}
-          isBookmarked={item.isBookmarked}
-          imageUrl={item.imageUrl}
-          onBookmarkToggle={() => handleBookmarkToggle(item.id)}
-          onClick={() => router.push(`/mypage/bookmarks/${item.id}`)}
+          key={item.spotId}
+          name={item.name ?? ""}
+          category={toCategory(item.category, item.name ?? "")}
+          isBookmarked={true}
+          imageUrl={item.thumbnailUrl ?? undefined}
+          onBookmarkToggle={() => item.spotId && removeBookmark(item.spotId)}
+          onClick={() => item.spotId && router.push(`/mypage/bookmarks/${item.spotId}`)}
         />
       ))}
 
-      {/* 북마크 해제 알림 토스트 */}
       <Toast
         isVisible={toastVisible}
         message="북마크가 해제되었어요"

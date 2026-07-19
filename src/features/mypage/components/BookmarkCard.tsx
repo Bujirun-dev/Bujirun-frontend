@@ -13,7 +13,7 @@ type StatusType = "completed" | "verify" | "pending" | "uncollected" | "collecte
 interface BookmarkCardProps {
   imageUrl?: StaticImageData | string;
   name: string;
-  category: Category;
+  category?: Category; //카테고리
   status?: StatusType;
   isBookmarked?: boolean;
   onBookmarkToggle?: () => void;
@@ -66,7 +66,7 @@ export function BookmarkCard({
         </div>
 
         {/* 중간: 카테고리 칩 */}
-        <CategoryChip category={category} size="md" className="mt-1 self-start" />
+        {category && <CategoryChip category={category} size="md" className="mt-1 self-start" />}
 
         {/* 하단: 수집 상태 */}
         <div className="mt-auto flex justify-end">

@@ -2,75 +2,91 @@
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BackButton, PageCard } from "@/components";
 import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
-import { PLACES } from "@/features/collection/data/places";
-import { getRelatedLogs } from "@/features/mypage/data/relatedLogs";
+import { travelLogApi, spotApi, bookmarkApi } from "@/shared/api/domains";
+import { useAuthStore } from "@/shared/stores/useAuthStore";
+import type { Category } from "@/components";
 
-// TODO: API 연결 시 useQuery로 교체
-const MOCK_PLACE = {
-  id: "1",
-  name: "송도 해수욕장",
-  category: "sea" as const,
-  description:
-    "부산의 대표적인 해수욕장 중 하나로, 아름다운 백사장과 맑은 바다가 펼쳐지는 곳입니다. 케이블카와 다양한 해양 액티비티를 즐길 수 있으며, 주변에 맛집과 카페가 즐비합니다.",
-  address: "부산 서구 송도해변로 100 일대 (암남동)",
-  hours: "09:00 - 18:00",
-  fee: "무료",
-  parking: "공영 주차장",
-  phone: "051-240-4000",
-  isBookmarked: true,
-};
+//카테고리
+function toCategory(value?: string, name?: string): Category {
+  if (name?.includes("해수욕장") || name?.includes("해변")) return "sea";
+  if (!value) return "nature";
+  if (value.includes("자연")) return "nature";
+  if (value.includes("문화") || value.includes("역사")) return "culture";
+  if (value.includes("체험") || value.includes("놀이")) return "experience";
+  if (value.includes("바다") || value.includes("해수욕")) return "sea";
+  return "nature";
+}
 
 export default function BookmarkDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
 
-  // TODO: API 연결 시 id로 관광지 상세 fetch
-  const placeInfo = PLACES.find((p) => p.id === Number(id));
-  const place = {
-    ...MOCK_PLACE,
-    name: placeInfo?.name ?? MOCK_PLACE.name,
-    category: (placeInfo?.category ?? MOCK_PLACE.category) as typeof MOCK_PLACE.category,
-  };
+  // 관광지 상세 조회
+  const { data: spot } = useQuery({
+    queryKey: spotApi.keys.detail(id),
+    queryFn: () => spotApi.getSpot(id),
+    enabled: !!accessToken && !!id,
+  });
 
-  const [isBookmarked, setIsBookmarked] = useState(place.isBookmarked);
+  // 관련 로그 조회
+  const { data: logs = [] } = useQuery({
+    queryKey: travelLogApi.keys.bySpot(id),
+    queryFn: () => travelLogApi.getLogsBySpot(id),
+    enabled: !!accessToken && !!id,
+  });
 
-  // TODO: API 연결 시 GET /tour-spots/:id/logs 로 교체
-  const relatedLogs = getRelatedLogs(Number(id));
+  // 북마크 목록에서 진입하므로 초기값 true 고정
+  // TODO: 다른 경로 진입 시 spot.bookmarked 필드 필요 (백엔드 확인 필요)
+  const [isBookmarked, setIsBookmarked] = useState(true);
+
+  // 북마크 토글
+  const { mutate: toggleBookmark } = useMutation({
+    mutationFn: () => (isBookmarked ? bookmarkApi.removeBookmark(id) : bookmarkApi.addBookmark(id)),
+    onSuccess: () => {
+      setIsBookmarked((prev) => !prev);
+      queryClient.invalidateQueries({ queryKey: bookmarkApi.keys.list() });
+    },
+  });
+
+  // TravelLogSummaryResponse → PlaceDetailRelatedLog (미리보기용 2개)
+  const relatedLogs = logs.slice(0, 2).map((log) => ({
+    id: log.id ?? "",
+    imageUrl: log.thumbnailPhotoUrl ?? "",
+    author: log.authorNickname ?? "",
+  }));
 
   return (
     <PageCard>
-      {/* 헤더 */}
       <div className="flex items-center gap-3 pb-4 shrink-0">
         <BackButton className="bg-transparent" onClick={() => router.back()} />
         <h1 className="font-ssurround font-bold text-lg text-text-heading">관광지 상세보기</h1>
       </div>
 
-      {/* 공통 관광지 상세 콘텐츠 */}
       <PlaceDetailContent
         place={{
-          imageUrl: `https://picsum.photos/seed/${id}/400/300`,
-          name: place.name,
-          category: place.category,
-          description: place.description,
-          address: place.address,
+          imageUrl: spot?.thumbnailUrl ?? `https://picsum.photos/seed/${id}/400/300`,
+          name: spot?.name ?? "",
+          category: toCategory(spot?.category, spot?.name),
+          description: spot?.overview ?? "",
+          address: spot?.address ?? "",
           isBookmarked,
           infoItems: [
-            { type: "clock", label: "운영시간", value: place.hours },
-            { type: "fee", label: "입장료", value: place.fee },
-            { type: "parking", label: "주차", value: place.parking },
-            { type: "call", label: "문의", value: place.phone },
+            ...(spot?.operatingHours
+              ? [{ type: "clock" as const, label: "운영시간", value: spot.operatingHours }]
+              : []),
+            ...(spot?.tel ? [{ type: "call" as const, label: "문의", value: spot.tel }] : []),
           ],
         }}
-        onBookmark={() => {
-          setIsBookmarked((prev) => !prev);
-          // TODO: 북마크 on/off API 연결
-        }}
+        onBookmark={() => toggleBookmark()}
         relatedLogs={relatedLogs}
         onViewMoreLogs={() => router.push(`/mypage/bookmarks/${id}/related-logs`)}
-        getRelatedLogHref={(logId) => `/mypage/logs/${logId}`} // 변경
-        onLogClick={(logId) => router.push(`/mypage/logs/${logId}`)} // 변경
+        getRelatedLogHref={(logId) => `/mypage/logs/${logId}`}
+        onLogClick={(logId) => router.push(`/mypage/logs/${logId}`)}
       />
     </PageCard>
   );

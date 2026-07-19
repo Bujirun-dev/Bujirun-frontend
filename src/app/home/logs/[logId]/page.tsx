@@ -1,49 +1,75 @@
 "use client";
 
-import { use } from "react";
+import { use, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { PageCard } from "@/components";
+import { PageCard, LoadingState, ErrorState } from "@/components";
 import { LogDetailContent } from "@/components/log/LogDetailContent";
-import { SAMPLE_LOGS } from "@/features/home/data/sampleLogs";
-import { getCategoryLabel } from "@/shared/constants/category";
+import { useQuery } from "@tanstack/react-query";
+import { getLog, keys } from "@/shared/api/domains/travel-log";
 
 export default function LogDetailPage({ params }: { params: Promise<{ logId: string }> }) {
   const { logId } = use(params);
   const router = useRouter();
-  const log = SAMPLE_LOGS.find((l) => l.id === logId);
 
-  if (!log) {
+  const {
+    data: log,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: keys.detail(logId),
+    queryFn: () => getLog(logId),
+  });
+
+  const detailLog = useMemo(() => {
+    if (!log) {
+      return null;
+    }
+
+    return {
+      title: log.title ?? "제목 없는 로그",
+      placeName: log.title ?? "부산 여행 로그",
+      extraCount: Math.max((log.totalSpots ?? 0) - 1, 0),
+      duration: log.duration ?? "",
+      date: log.startDate ?? "",
+      days: (log.days ?? []).map((day) => ({
+        day: day.dayNumber ?? 0,
+        date: day.date ?? "",
+        stops: (day.items ?? []).map((item) => ({
+          time: item.arrivalTime ?? "",
+          place: item.spotName ?? "",
+          imageUrl:
+            item.photos?.find((photo) => photo.representative)?.photoUrl ??
+            item.photos?.[0]?.photoUrl ??
+            "",
+          tags: (item.hashtags ?? []).map((hashtag) => hashtag.tag ?? ""),
+        })),
+      })),
+    };
+  }, [log]);
+
+  if (isLoading) {
     return (
       <PageCard>
-        <div className="flex flex-1 items-center justify-center text-sub-gray text-sm">
-          로그를 찾을 수 없습니다.
-        </div>
+        <LoadingState message="로그를 불러오는 중이에요" />
+      </PageCard>
+    );
+  }
+
+  if (isError || !detailLog) {
+    return (
+      <PageCard>
+        <ErrorState
+          code={404}
+          title="로그를 찾을 수 없어요"
+          description="삭제되었거나 존재하지 않는 로그예요."
+        />
       </PageCard>
     );
   }
 
   return (
     <PageCard>
-      <LogDetailContent
-        log={{
-          title: log.title,
-          placeName: log.placeName,
-          extraCount: log.extraCount,
-          duration: log.duration,
-          date: log.date,
-          days: log.days.map((day) => ({
-            day: day.day,
-            date: day.date,
-            stops: day.stops.map((stop) => ({
-              time: stop.time,
-              place: stop.place,
-              imageUrl: stop.imageUrl,
-              tags: [getCategoryLabel(stop.category), ...stop.tags],
-            })),
-          })),
-        }}
-        onBack={() => router.back()}
-      />
+      <LogDetailContent log={detailLog} onBack={() => router.back()} />
     </PageCard>
   );
 }

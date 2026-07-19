@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { consumePendingInvite } from "@/shared/utils/pendingInvite";
 import congsImg from "@/assets/character/congs.png";
 
 interface SignUpSuccessModalProps {
@@ -18,8 +19,20 @@ export function SignUpSuccessModal({ isOpen, onClose }: SignUpSuccessModalProps)
 
   const handleStart = () => {
     // 회원가입 완료 → 홈으로 이동 (accessToken은 콜백에서 이미 저장됨)
+    // 초대 링크를 통해 들어온 신규 유저라면 초대 참여 흐름으로 복귀
     onClose();
-    router.push("/");
+    const pendingInvite = consumePendingInvite();
+    if (!pendingInvite) {
+      router.push("/");
+      return;
+    }
+    const joinParams = new URLSearchParams();
+    if (pendingInvite.count) joinParams.set("count", pendingInvite.count);
+    if (pendingInvite.days) joinParams.set("days", pendingInvite.days);
+    if (pendingInvite.startDate) joinParams.set("startDate", pendingInvite.startDate);
+    if (pendingInvite.endDate) joinParams.set("endDate", pendingInvite.endDate);
+    const query = joinParams.toString();
+    router.push(`/join/${pendingInvite.code}${query ? `?${query}` : ""}`);
   };
 
   return (

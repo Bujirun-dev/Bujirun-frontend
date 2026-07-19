@@ -3,8 +3,9 @@
 import Image from "next/image";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/shared/utils";
-import { CategoryChip, Modal, SpeechBubble, Toast } from "@/components";
+import { CategoryChip, Modal, SpeechBubble, Toast, LoadingState, ErrorState } from "@/components";
 import checkIcon from "@/assets/icons/itinerary/check.png";
 import infoIcon from "@/assets/icons/itinerary/info.png";
 import freepassBlueIcon from "@/assets/icons/itinerary/freepass-blue.png";
@@ -12,8 +13,12 @@ import flagImg from "@/assets/place/flag.png";
 import houseImg from "@/assets/place/house.png";
 import busanStationImg from "@/assets/place/busan-station.png";
 import type { Category } from "@/components/ui/CategoryChip";
+import { itineraryApi } from "@/shared/api/domains";
+import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
+import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
+import type { components } from "@/shared/api/schema";
 
-// TODO: API 연동 후 실제 데이터로 교체
+// TODO: 그룹 공통 취향 API 연동 전까지는 대표 카테고리 3종 고정 표기
 const COMMON_CATEGORIES: Category[] = ["sea", "culture", "nature"];
 
 const PLAN_LABELS: Record<string, string> = {
@@ -22,110 +27,55 @@ const PLAN_LABELS: Record<string, string> = {
   C: "자유 편집형",
 };
 
-type Place = { id: number; name: string; image: string };
+type Place = { id: string; name: string; image: string; time?: string };
 type Day = { day: number; label: string; places: Place[] };
 type Plan = { id: string; days: Day[]; voteCount: number };
 
-const MOCK_PLANS: Plan[] = [
-  {
-    id: "A",
-    voteCount: 3,
-    days: [
-      {
-        day: 1,
-        label: "Day 1",
-        places: [
-          { id: 1, name: "광안리 해수욕장", image: "https://picsum.photos/seed/place1/200/200" },
-          {
-            id: 2,
-            name: "해운대 해수욕장 놀이공원",
-            image: "https://picsum.photos/seed/place2/200/200",
-          },
-          { id: 3, name: "동백섬", image: "https://picsum.photos/seed/place3/200/200" },
-        ],
-      },
-      {
-        day: 2,
-        label: "Day 2",
-        places: [
-          { id: 4, name: "감천 문화마을", image: "https://picsum.photos/seed/place4/200/200" },
-          { id: 5, name: "국제시장", image: "https://picsum.photos/seed/place5/200/200" },
-        ],
-      },
-      {
-        day: 3,
-        label: "Day 3",
-        places: [
-          { id: 6, name: "태종대", image: "https://picsum.photos/seed/place6/200/200" },
-          { id: 7, name: "영도대교", image: "https://picsum.photos/seed/place7/200/200" },
-          { id: 8, name: "송도 해수욕장", image: "https://picsum.photos/seed/place8/200/200" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "B",
-    voteCount: 1,
-    days: [
-      {
-        day: 1,
-        label: "Day 1",
-        places: [
-          { id: 9, name: "용두산공원", image: "https://picsum.photos/seed/place9/200/200" },
-          { id: 10, name: "BIFF 광장", image: "https://picsum.photos/seed/place10/200/200" },
-        ],
-      },
-      {
-        day: 2,
-        label: "Day 2",
-        places: [
-          { id: 11, name: "흰여울 문화마을", image: "https://picsum.photos/seed/place11/200/200" },
-          { id: 12, name: "절영해안산책로", image: "https://picsum.photos/seed/place12/200/200" },
-          { id: 13, name: "영도등대", image: "https://picsum.photos/seed/place13/200/200" },
-        ],
-      },
-      {
-        day: 3,
-        label: "Day 3",
-        places: [
-          { id: 14, name: "기장 해안도로", image: "https://picsum.photos/seed/place14/200/200" },
-          { id: 15, name: "일광 해수욕장", image: "https://picsum.photos/seed/place15/200/200" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "C",
+type PlanOption = components["schemas"]["PlanOption"];
+
+function mapPlanOption(planId: string, plan?: PlanOption): Plan {
+  return {
+    id: planId,
     voteCount: 0,
-    days: [
-      {
-        day: 1,
-        label: "Day 1",
-        places: [
-          { id: 16, name: "부산시립미술관", image: "https://picsum.photos/seed/place16/200/200" },
-          { id: 17, name: "F1963", image: "https://picsum.photos/seed/place17/200/200" },
-        ],
-      },
-      {
-        day: 2,
-        label: "Day 2",
-        places: [
-          { id: 18, name: "부산박물관", image: "https://picsum.photos/seed/place18/200/200" },
-          { id: 19, name: "임시수도기념관", image: "https://picsum.photos/seed/place19/200/200" },
-          { id: 20, name: "UN기념공원", image: "https://picsum.photos/seed/place20/200/200" },
-        ],
-      },
-      {
-        day: 3,
-        label: "Day 3",
-        places: [
-          { id: 21, name: "어린이대공원", image: "https://picsum.photos/seed/place21/200/200" },
-          { id: 22, name: "금강공원", image: "https://picsum.photos/seed/place22/200/200" },
-        ],
-      },
-    ],
-  },
-];
+    days: (plan?.days ?? []).map((d, i) => ({
+      day: d.day ?? i + 1,
+      label: `Day ${d.day ?? i + 1}`,
+      places: (d.spots ?? []).map((s, j) => ({
+        id: s.contentId ?? `${planId}-${i}-${j}`,
+        name: s.name ?? "",
+        image: s.thumbnailUrl || FALLBACK_IMAGE,
+      })),
+    })),
+  };
+}
+
+// 하루 최대 3곳(아침/오후/저녁) 기준 슬롯. 첫날은 실제 시작 시간, 마지막날은 실제 종료
+// 시간에 맞춰 갈 수 없는 시간대를 걸러낸다 (예: 오후 출발이면 첫날은 오후/저녁 2곳만).
+const DAY_SLOTS = [
+  { label: "아침", time: "10:00", hour: 10 },
+  { label: "오후", time: "14:00", hour: 14 },
+  { label: "저녁", time: "18:00", hour: 18 },
+] as const;
+
+function parseHour(time: string, fallback: number): number {
+  const hour = Number(time.split(":")[0]);
+  return Number.isFinite(hour) ? hour : fallback;
+}
+
+function getDaySlots(dayIndex: number, totalDays: number, startTime: string, endTime: string) {
+  let slots: readonly (typeof DAY_SLOTS)[number][] = DAY_SLOTS;
+  if (dayIndex === 0) {
+    const startHour = parseHour(startTime, 10);
+    if (startHour >= 18) slots = slots.filter((s) => s.hour >= 18);
+    else if (startHour >= 12) slots = slots.filter((s) => s.hour >= 12);
+  }
+  if (dayIndex === totalDays - 1) {
+    const endHour = parseHour(endTime, 18);
+    if (endHour < 12) slots = slots.filter((s) => s.hour < 12);
+    else if (endHour < 18) slots = slots.filter((s) => s.hour < 18);
+  }
+  return slots;
+}
 
 // TODO: API 연동 후 실제 방장 여부로 교체
 const IS_HOST = true;
@@ -146,9 +96,17 @@ function ResultPlaceNode({ place }: { place: Place }) {
   );
 }
 
+function PageLoadingFallback() {
+  return (
+    <div className="flex h-full flex-col">
+      <LoadingState />
+    </div>
+  );
+}
+
 export default function TripResultPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageLoadingFallback />}>
       <TripResultContent />
     </Suspense>
   );
@@ -160,12 +118,56 @@ function TripResultContent() {
   const count = searchParams.get("count") ?? "6";
   const days = searchParams.get("days") ?? "3";
   const totalDays = Math.max(1, Number(days) || 3);
+  const groupId = searchParams.get("groupId") ?? "";
+  const tripName = searchParams.get("name") ?? "여행";
+  const startDate = searchParams.get("startDate") ?? "";
+  const endDate = searchParams.get("endDate") ?? "";
+  const startTime = searchParams.get("startTime") || "10:00";
+  const endTime = searchParams.get("endTime") || "17:00";
 
-  // days 수에 맞게 MOCK_PLANS day 슬라이스
-  const plans = MOCK_PLANS.map((plan) => ({
-    ...plan,
-    days: plan.days.slice(0, totalDays),
-  }));
+  const {
+    data: generated,
+    isLoading: isGenerating,
+    isError: isGenerateError,
+    refetch: refetchGenerate,
+  } = useQuery({
+    queryKey: itineraryApi.keys.groupGenerate(groupId, startDate, endDate),
+    queryFn: () => itineraryApi.generateGroupItinerary(groupId, { startDate, endDate }),
+    enabled: !!groupId && !!startDate && !!endDate,
+  });
+
+  const sessionId = generated?.voteSessionId ?? "";
+  const forwardParams = new URLSearchParams({
+    count,
+    days: String(totalDays),
+    groupId,
+    name: tripName,
+    startDate,
+    endDate,
+    ...(sessionId ? { sessionId } : {}),
+  }).toString();
+
+  // days 수에 맞게 각 플랜 day 슬라이스 + 하루 최대 3곳(아침/오후/저녁) 슬롯에 맞춰 시간 배정
+  const plans: Plan[] = [
+    mapPlanOption("A", generated?.plans?.planA),
+    mapPlanOption("B", generated?.plans?.planB),
+    mapPlanOption("C", generated?.plans?.planC),
+  ].map((plan) => {
+    const slicedDays = plan.days.slice(0, totalDays);
+    return {
+      ...plan,
+      days: slicedDays.map((day, idx) => {
+        const slots = getDaySlots(idx, slicedDays.length, startTime, endTime);
+        return {
+          ...day,
+          places: day.places.slice(0, slots.length).map((place, i) => ({
+            ...place,
+            time: slots[i]?.time,
+          })),
+        };
+      }),
+    };
+  });
 
   const [activePlan, setActivePlan] = useState<string>("A");
   const [showInfo, setShowInfo] = useState(false);
@@ -174,6 +176,7 @@ function TripResultContent() {
   const [freepassModal, setFreepassModal] = useState<FreepassModalStep>(null);
   const [isFreepassMode, setIsFreepassMode] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
   const currentPlan = plans.find((p) => p.id === activePlan) ?? plans[0];
 
   const getVoteCount = (plan: Plan) => plan.voteCount + (votedPlan === plan.id ? 1 : 0);
@@ -182,12 +185,18 @@ function TripResultContent() {
     setVoteConfirmPlan(planId);
   };
 
-  const handleVoteConfirm = () => {
+  const handleVoteConfirm = async () => {
     if (!voteConfirmPlan) return;
-    setActivePlan(voteConfirmPlan);
-    setVotedPlan(voteConfirmPlan);
+    const planToVote = voteConfirmPlan;
     setVoteConfirmPlan(null);
-    router.push(`/itinerary/trips/vote-waiting?count=${count}&days=${totalDays}`);
+    try {
+      await itineraryApi.castVote(sessionId, { votedPlan: planToVote });
+      setActivePlan(planToVote);
+      setVotedPlan(planToVote);
+      router.push(`/itinerary/trips/vote-waiting?${forwardParams}`);
+    } catch {
+      setToastMessage("투표에 실패했어요. 다시 시도해주세요.");
+    }
   };
 
   const handleFreepass = () => {
@@ -199,13 +208,58 @@ function TripResultContent() {
     setFreepassModal(null);
   };
 
-  const handleFreepassConfirm = () => {
+  const handleFreepassConfirm = async () => {
     setFreepassModal(null);
-    setToastMessage(`방장이 ${activePlan}안을 선택했어요! 🎉`);
-    window.setTimeout(() => {
-      router.push(`/itinerary?count=${count}&days=${totalDays}&plan=${activePlan}`);
-    }, 1800);
+    setIsConfirming(true);
+    try {
+      const newItineraryId = await itineraryApi.finalizeItinerary(sessionId, {
+        freePass: true,
+        selectedPlan: activePlan,
+        title: tripName,
+        startDate,
+        endDate,
+        // C안(자유 편집형)은 AI가 만든 내용이 없어서, 빈 Day만 일수에 맞게 만들어달라고 명시해야 한다.
+        ...(activePlan === "C"
+          ? {
+              days: Array.from({ length: totalDays }, (_, i) => ({
+                day: i + 1,
+                spotContentIds: [],
+              })),
+            }
+          : {}),
+      });
+      if (newItineraryId) saveTripTimeBounds(newItineraryId, startTime, endTime);
+      setToastMessage(`방장이 ${activePlan}안을 선택했어요! 🎉`);
+      window.setTimeout(() => {
+        router.push("/itinerary");
+      }, 1800);
+    } catch {
+      setToastMessage("일정을 확정하지 못했어요. 다시 시도해주세요.");
+    } finally {
+      setIsConfirming(false);
+    }
   };
+
+  if (isGenerating) {
+    return (
+      <div className="flex h-full flex-col">
+        <LoadingState message="일정을 생성하고 있어요" />
+      </div>
+    );
+  }
+
+  if (isGenerateError) {
+    return (
+      <div className="flex h-full flex-col">
+        <ErrorState
+          code={503}
+          title="일정 생성에 실패했어요"
+          description="잠시 후 다시 시도해주세요."
+          onRetry={() => refetchGenerate()}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -342,7 +396,7 @@ function TripResultContent() {
                   </div>
                   <SpeechBubble variant="white" tailDirection="left">
                     <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">
-                      10:00 여행 시작!
+                      {startTime} 여행 시작!
                     </span>
                   </SpeechBubble>
                 </div>
@@ -365,7 +419,7 @@ function TripResultContent() {
                           />
                         </div>
                         <span className="font-paperlogy text-xs font-medium text-sub-deepblue">
-                          {day.label.toLowerCase()}
+                          {day.label}
                         </span>
                         <div className="relative ml-[3px] h-[1.5px] w-[235px] rounded-full bg-main-blue">
                           <div className="absolute left-0 right-0 top-[7.5px] flex items-start justify-around">
@@ -394,7 +448,7 @@ function TripResultContent() {
                   </div>
                   <SpeechBubble variant="white" tailDirection="left">
                     <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">
-                      15:00 여행 끝!
+                      {endTime} 여행 끝!
                     </span>
                   </SpeechBubble>
                 </div>
@@ -414,13 +468,15 @@ function TripResultContent() {
                   : handleFreepass
                 : undefined
             }
-            disabled={!IS_HOST}
+            disabled={!IS_HOST || isConfirming}
             className={cn(
               "flex h-[44px] w-full items-center justify-center gap-2 rounded-[10px] font-ssurround font-bold text-md text-main-white transition-opacity",
               IS_HOST ? "bg-main-blue" : "bg-sub-gray cursor-not-allowed",
             )}
           >
-            {isFreepassMode ? (
+            {isConfirming ? (
+              <span>일정 확정 중...</span>
+            ) : isFreepassMode ? (
               <span>✦ {activePlan} 일정으로 선택</span>
             ) : (
               <>

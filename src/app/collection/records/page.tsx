@@ -6,28 +6,59 @@ import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import { useMemo, useState, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { travelLogApi, userApi, spotApi } from "@/shared/api/domains";
+import { convertTripLogToReceipt } from "@/features/receipt/utils/convertTripLogToReceipt";
 import { RecordDeleteModal } from "@/features/collection/components/RecordDeleteModal";
 import { TripReceiptModal } from "@/features/receipt/components/TripReceiptModal";
-import { tripReceipts } from "@/features/receipt/data/tripReceipts";
 import type { ReceiptData } from "@/features/receipt/types/receipt";
 import bookIcon from "@/assets/icons/collection/book.png";
-import { Card, CategoryChip, PageCard, Toast } from "@/components";
+import {
+  Card,
+  CategoryChip,
+  PageCard,
+  Toast,
+  LoadingState,
+  ErrorState,
+  EmptyState,
+} from "@/components";
 import type { Category } from "@/components/ui/CategoryChip";
 import { TripRecordItem } from "@/features/collection/components/TripRecordItem";
-import { PLACES } from "@/features/collection/data/places";
-import { TRIP_RECORDS } from "@/features/collection/data/tripRecords";
+import { getCategoryFromKo } from "@/shared/constants/category";
 
 export default function CollectionRecordsPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const {
+    data: myLogs = [],
+    isLoading: isLogsLoading,
+    isError: isLogsError,
+    refetch: refetchLogs,
+  } = useQuery({
+    queryKey: travelLogApi.keys.mine(),
+    queryFn: travelLogApi.getMyLogs,
+  });
+  const { data: spots = [] } = useQuery({
+    queryKey: spotApi.keys.search(),
+    queryFn: () => spotApi.searchSpots(),
+  });
+
   // 수집된 장소 목록
-  const collectedPlaces = useMemo(() => PLACES.filter((place) => place.isCollected), []);
+  const collectedPlaces = useMemo(
+    () => spots.filter((spot) => spot.isCollection && spot.collected),
+    [spots],
+  );
   const collectedPlaceCount = collectedPlaces.length;
 
   // 최애 카테고리 계산
   const favoriteCategory = useMemo(() => {
     const count = collectedPlaces.reduce<Partial<Record<Category, number>>>((acc, place) => {
-      const category = place.category as Category;
+      const category = getCategoryFromKo(place.category);
+
       acc[category] = (acc[category] ?? 0) + 1;
+
+      acc[category] = (acc[category] ?? 0) + 1;
+
       return acc;
     }, {});
 
@@ -55,7 +86,16 @@ export default function CollectionRecordsPage() {
   );
 
   // 여행 기록 관련 상태
-  const [records, setRecords] = useState(TRIP_RECORDS);
+  const records = useMemo(
+    () =>
+      myLogs.map((log, index) => ({
+        id: index + 1,
+        logId: log.id ?? "",
+        title: log.title ?? "여행 기록",
+        period: log.startDate ?? "",
+      })),
+    [myLogs],
+  );
   const [selectedDeleteTripId, setSelectedDeleteTripId] = useState<number | null>(null);
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
@@ -86,26 +126,44 @@ export default function CollectionRecordsPage() {
 
   const selectedDeleteTrip = records.find((record) => record.id === selectedDeleteTripId) ?? null;
 
-  const selectedBaseReceipt =
-    selectedTripId === null
-      ? undefined
-      : tripReceipts.find((receipt) => receipt.tripId === selectedTripId);
+  const selectedLogId = records.find((record) => record.id === selectedTripId)?.logId ?? "";
 
-  const selectedReceipt: ReceiptData | undefined = selectedBaseReceipt
-    ? {
-        ...selectedBaseReceipt,
-        mood: selectedBaseReceipt.mood ?? "",
-        theme: selectedBaseReceipt.theme ?? "",
-      }
-    : undefined;
+  const { data: selectedTravelLog, isLoading: isReceiptLoading } = useQuery({
+    queryKey: travelLogApi.keys.detail(selectedLogId),
+    queryFn: () => travelLogApi.getLog(selectedLogId),
+    enabled: isReceiptOpen && !!selectedLogId,
+  });
+
+  const { data: me } = useQuery({
+    queryKey: userApi.keys.me(),
+    queryFn: userApi.getMyProfile,
+  });
+
+  const selectedReceipt: ReceiptData | undefined =
+    selectedTravelLog && me?.id && me?.nickname
+      ? convertTripLogToReceipt(selectedTravelLog, me.id, me.nickname)
+      : undefined;
 
   // 여행 기록 삭제
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (selectedDeleteTripId === null) return;
 
-    setRecords((prevRecords) => prevRecords.filter((record) => record.id !== selectedDeleteTripId));
+    const targetRecord = records.find((record) => record.id === selectedDeleteTripId);
+
+    if (!targetRecord?.logId) return;
+
+    await travelLogApi.deleteLog(targetRecord.logId);
+
+    await queryClient.invalidateQueries({
+      queryKey: travelLogApi.keys.mine(),
+    });
+
     closeDeleteModal();
-    setToast({ message: "여행 기록이 삭제되었어요.", icon: deleteToastIcon });
+
+    setToast({
+      message: "여행 기록이 삭제되었어요.",
+      icon: deleteToastIcon,
+    });
   };
 
   return (
@@ -152,17 +210,38 @@ export default function CollectionRecordsPage() {
 
       {/* 하단 여행 기록 */}
       <PageCard>
-        <div className="flex flex-col gap-5">
-          {records.map((record) => (
-            <TripRecordItem
-              key={record.id}
-              id={record.id}
-              title={record.title}
-              period={record.period}
-              onDelete={openDeleteModal}
-              onTitleClick={openReceiptModal}
+        <div className="flex flex-1 flex-col gap-5">
+          {isLogsLoading && <LoadingState message="여행 기록을 불러오는 중이에요" />}
+
+          {isLogsError && (
+            <ErrorState
+              title="여행 기록을 불러오지 못했어요"
+              description="잠시 후 다시 시도해주세요."
+              onRetry={() => refetchLogs()}
             />
-          ))}
+          )}
+
+          {!isLogsLoading && !isLogsError && records.length === 0 && (
+            <EmptyState
+              title="아직 저장된 여행 기록이 없어요"
+              description="여행을 시작하고 기록을 남겨보세요!"
+              actionLabel="여행 시작하기"
+              onAction={() => router.push("/itinerary/trips/new")}
+            />
+          )}
+
+          {!isLogsLoading &&
+            !isLogsError &&
+            records.map((record) => (
+              <TripRecordItem
+                key={record.logId}
+                id={record.id}
+                title={record.title}
+                period={record.period}
+                onDelete={openDeleteModal}
+                onTitleClick={openReceiptModal}
+              />
+            ))}
         </div>
       </PageCard>
 
@@ -177,7 +256,7 @@ export default function CollectionRecordsPage() {
 
       {/* 여행 영수증 모달 */}
       <TripReceiptModal
-        isOpen={isReceiptOpen}
+        isOpen={isReceiptOpen && !isReceiptLoading}
         receipt={selectedReceipt}
         onDownloadComplete={() =>
           setToast({
@@ -192,9 +271,13 @@ export default function CollectionRecordsPage() {
           })
         }
         onDetail={() => {
-          if (selectedTripId !== null) {
-            router.push(`/collection/records/log/${selectedTripId}`);
-          }
+          if (selectedTripId === null) return;
+
+          const selectedRecord = records.find((record) => record.id === selectedTripId);
+
+          if (!selectedRecord?.logId) return;
+
+          router.push(`/collection/records/log/${selectedRecord.logId}`);
         }}
         onClose={closeReceiptModal}
       />

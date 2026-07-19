@@ -6,7 +6,7 @@ interface DayNavigatorProps {
 
 export function DayNavigator({ totalDays, currentDay, onDayChange }: DayNavigatorProps) {
   return (
-    <div className="flex items-center justify-center gap-5 pt-6 pb-2.5">
+    <div className="flex items-center justify-center gap-5 pt-2 pb-1.5">
       {Array.from({ length: totalDays }).map((_, i) =>
         i === currentDay ? (
           <button

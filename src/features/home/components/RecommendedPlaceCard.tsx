@@ -1,10 +1,10 @@
 "use client";
 
-import { PLACES } from "@/features/home/data/places";
+import type { OpResponse } from "@/shared/api/types";
 import { useRouter } from "next/navigation";
 import { PlaceCard } from "@/components/place/PlaceCard";
 
-type Place = (typeof PLACES)[number];
+type Place = OpResponse<"search">[number];
 
 interface RecommendedPlaceCardProps {
   place: Place;
@@ -13,15 +13,27 @@ interface RecommendedPlaceCardProps {
 export function RecommendedPlaceCard({ place }: RecommendedPlaceCardProps) {
   const router = useRouter();
 
+  if (!place.thumbnailUrl || !place.name || !place.spotId || !place.category) {
+    return null;
+  }
+
+  const category = place.category.includes("자연")
+    ? "nature"
+    : place.category.includes("바다")
+      ? "sea"
+      : place.category.includes("문화")
+        ? "culture"
+        : "experience";
+
   return (
     <PlaceCard
-      imageUrl={place.imageUrl.src}
+      imageUrl={place.thumbnailUrl}
       name={place.name}
-      category={place.category}
+      category={category}
       status="pending"
       showBookmark
-      isBookmarked={place.isBookmarked}
-      onClick={() => router.push(`/home/recommend/${place.id}`)}
+      isBookmarked={place.collected}
+      onClick={() => router.push(`/home/recommend/${place.spotId}`)}
     />
   );
 }

@@ -18,6 +18,9 @@ export const SAMPLE_TRANSPORTS: TransportGroup[] = [
             from: "광안리 해수욕장 정류장",
             to: "광안역 정류장",
             arrivalText: "3분 후 도착 | 2정류장 전",
+            // 샘플 정류소 ID — 실제 일정 연동 전까지는 예시 값
+            arsId: "12181",
+            routeNo: "2012",
           },
           {
             type: "지하철",
