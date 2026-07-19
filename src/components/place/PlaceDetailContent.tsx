@@ -159,9 +159,7 @@ export function PlaceDetailContent({
     >
       {/* 소개 */}
       <section className="flex flex-col gap-2">
-        <h2 className={cn("font-bold text-text-heading", compact ? "text-xs" : "text-lg")}>
-          소개
-        </h2>
+        <h2 className={cn("font-bold text-text-heading", compact ? "text-xs" : "text-lg")}>소개</h2>
         <p
           className={cn(
             "leading-relaxed text-text-primary",
@@ -348,7 +346,9 @@ export function PlaceDetailContent({
       {nameRow}
       <hr className="shrink-0 border-[0.3px] border-sub-lightgray" />
       {sections}
-      {footer && <div className={cn("shrink-0", compact ? "pb-0 pt-2" : "pb-6 pt-3")}>{footer}</div>}
+      {footer && (
+        <div className={cn("shrink-0", compact ? "pb-0 pt-2" : "pb-6 pt-3")}>{footer}</div>
+      )}
     </>
   );
 }
@@ -375,7 +375,9 @@ function InfoRow({
         <Image src={icon} alt="" width={compact ? 12 : 14} height={compact ? 12 : 14} aria-hidden />
       </div>
 
-      <p className={cn("shrink-0 font-semibold text-text-primary", compact ? "text-xs" : "text-md")}>
+      <p
+        className={cn("shrink-0 font-semibold text-text-primary", compact ? "text-xs" : "text-md")}
+      >
         {label}
       </p>
       <p

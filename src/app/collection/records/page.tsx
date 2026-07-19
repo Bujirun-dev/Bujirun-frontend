@@ -13,7 +13,15 @@ import { RecordDeleteModal } from "@/features/collection/components/RecordDelete
 import { TripReceiptModal } from "@/features/receipt/components/TripReceiptModal";
 import type { ReceiptData } from "@/features/receipt/types/receipt";
 import bookIcon from "@/assets/icons/collection/book.png";
-import { Card, CategoryChip, PageCard, Toast, LoadingState, ErrorState, EmptyState } from "@/components";
+import {
+  Card,
+  CategoryChip,
+  PageCard,
+  Toast,
+  LoadingState,
+  ErrorState,
+  EmptyState,
+} from "@/components";
 import type { Category } from "@/components/ui/CategoryChip";
 import { TripRecordItem } from "@/features/collection/components/TripRecordItem";
 import { getCategoryFromKo } from "@/shared/constants/category";

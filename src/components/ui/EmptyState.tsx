@@ -65,7 +65,9 @@ export function EmptyState({
           />
         </motion.div>
       </div>
-      <div className={cn("flex flex-col items-center", size === "sm" ? "mt-2 gap-1.5" : "mt-4 gap-3")}>
+      <div
+        className={cn("flex flex-col items-center", size === "sm" ? "mt-2 gap-1.5" : "mt-4 gap-3")}
+      >
         <p
           className={cn(
             "font-ssurround font-bold text-text-heading",

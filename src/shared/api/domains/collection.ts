@@ -28,5 +28,7 @@ export function cancelCollection(spotId: string) {
 // 도감 카테고리(바다/자연/문화/체험)별 랜덤 관광지 10곳. 스와이프 카드용.
 // 응답도 envelope 없이 배열이 그대로 내려온다.
 export function getSwipeDeck() {
-  return apiClient.get<OpResponse<"getSwipeDeck">>("/api/collections/swipe-deck").then((res) => res.data);
+  return apiClient
+    .get<OpResponse<"getSwipeDeck">>("/api/collections/swipe-deck")
+    .then((res) => res.data);
 }

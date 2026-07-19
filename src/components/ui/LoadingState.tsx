@@ -15,10 +15,7 @@ interface LoadingStateProps {
 export function LoadingState({ message = "불러오는 중이에요", className }: LoadingStateProps) {
   return (
     <div
-      className={cn(
-        "flex flex-1 flex-col items-center justify-center gap-3 px-6 py-10",
-        className,
-      )}
+      className={cn("flex flex-1 flex-col items-center justify-center gap-3 px-6 py-10", className)}
     >
       <div className="relative flex items-center justify-center">
         <div className="absolute size-[130px] rounded-full bg-main-blue/25 blur-2xl" />
