@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { BackButton } from "@/components/ui/BackButton";
 import { CategoryChip } from "@/components/ui/CategoryChip";
 import { PageCard } from "@/components/layout/PageCard";
+import { LoadingState } from "@/components/ui/LoadingState";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { LogCard } from "@/features/itinerary";
 import type { Category } from "@/components/ui/CategoryChip";
 import type { components } from "@/shared/api/schema.d";
@@ -61,16 +63,11 @@ export function RelatedLogsContent({
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto pb-6">
+      <div className="flex flex-1 flex-col overflow-y-auto pb-6">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3 pb-16">
-            <p className="text-sm text-sub-gray font-medium">불러오는 중...</p>
-          </div>
+          <LoadingState message="관련 로그를 불러오는 중이에요" />
         ) : relatedLogs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3 pb-16">
-            <span className="text-4xl">📭</span>
-            <p className="text-sm text-sub-gray font-medium">아직 관련 로그가 없어요</p>
-          </div>
+          <EmptyState title="아직 관련 로그가 없어요" />
         ) : (
           <div className="flex flex-col gap-4">
             {relatedLogs.map((log) => {

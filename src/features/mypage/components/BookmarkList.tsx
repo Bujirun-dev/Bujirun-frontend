@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BookmarkCard } from "./BookmarkCard";
-import { Toast } from "@/components";
+import { Toast, LoadingState, EmptyState } from "@/components";
 import { bookmarkApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import type { Category } from "@/components";
@@ -42,16 +42,27 @@ export function BookmarkList() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <p className="text-sm text-sub-gray">불러오는 중...</p>
+      <div className="flex h-full flex-col">
+        <LoadingState message="북마크를 불러오는 중이에요" />
       </div>
     );
   }
 
   if (bookmarks.length === 0) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <p className="text-sm text-sub-gray">저장된 북마크가 없어요.</p>
+      <div className="flex h-full flex-col">
+        <EmptyState
+          title="저장된 북마크가 없어요"
+          description={
+            <>
+              마음에 드는 관광지를
+              <br />
+              북마크에 담아보세요
+            </>
+          }
+          actionLabel="관광지 둘러보러 가기"
+          onAction={() => router.push("/")}
+        />
       </div>
     );
   }

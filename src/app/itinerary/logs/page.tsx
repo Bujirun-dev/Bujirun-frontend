@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import AngleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?svgr";
-import { PageCard, FilterChips } from "@/components";
+import { PageCard, FilterChips, LoadingState, EmptyState } from "@/components";
 import { LogCard } from "@/features/itinerary";
 import { travelLogApi } from "@/shared/api/domains";
 import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
@@ -120,13 +120,9 @@ export default function LogsPage() {
       {/* 로그 목록 */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-7">
         {isFetchingLogs ? (
-          <div className="flex flex-1 items-center justify-center text-sub-gray text-sm pt-20">
-            불러오는 중...
-          </div>
+          <LoadingState message="로그를 불러오는 중이에요" />
         ) : visibleLogs.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center text-sub-gray text-sm pt-20">
-            해당 카테고리의 로그가 없습니다.
-          </div>
+          <EmptyState title="해당 카테고리의 로그가 없어요" />
         ) : (
           <>
             {visibleLogs.map((log) => (
@@ -144,7 +140,7 @@ export default function LogsPage() {
             ))}
             {/* 무한 스크롤 감지 sentinel */}
             <div ref={sentinelRef} className="h-1 shrink-0" />
-            {isLoading && <p className="text-center text-sm text-sub-gray pb-2">불러오는 중...</p>}
+            {isLoading && <LoadingState message="더 불러오는 중이에요" className="py-4" />}
           </>
         )}
       </div>

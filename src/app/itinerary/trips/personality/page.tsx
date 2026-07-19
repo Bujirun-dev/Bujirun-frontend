@@ -1,12 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import faceImg from "@/assets/character/face.png";
 import swipeRightIcon from "@/assets/icons/itinerary/swipe-right.png";
 import swipeLeftIcon from "@/assets/icons/itinerary/swipe-left.png";
-import { SpeechBubble } from "@/components";
+import { SpeechBubble, LoadingState } from "@/components";
+import { collectionApi, swipeApi } from "@/shared/api/domains";
 
 const TOTAL_SLOTS = 6; // mock - 실제로는 searchParams 또는 API
 
@@ -20,9 +21,17 @@ function SmallAvatar() {
   );
 }
 
+function PageLoadingFallback() {
+  return (
+    <div className="flex h-full flex-col">
+      <LoadingState />
+    </div>
+  );
+}
+
 export default function TripPersonalityPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageLoadingFallback />}>
       <TripPersonalityContent />
     </Suspense>
   );
@@ -33,16 +42,40 @@ function TripPersonalityContent() {
   const searchParams = useSearchParams();
   const totalSlots = Math.min(6, Math.max(2, Number(searchParams.get("count")) || TOTAL_SLOTS));
   const days = searchParams.get("days") ?? "1";
+  const groupId = searchParams.get("groupId") ?? "";
   const forwardParams = new URLSearchParams({
     count: String(totalSlots),
     days,
-    groupId: searchParams.get("groupId") ?? "",
+    groupId,
     name: searchParams.get("name") ?? "",
     startDate: searchParams.get("startDate") ?? "",
     endDate: searchParams.get("endDate") ?? "",
     startTime: searchParams.get("startTime") ?? "",
     endTime: searchParams.get("endTime") ?? "",
   }).toString();
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // "난 다 좋아"도 실제 스와이프처럼 서버에 좋아요 기록을 남겨야 그룹 일정
+  // 자동생성이 취합할 스와이프 데이터가 생긴다 (안 보내면 백엔드 generate가 500).
+  const handleLikeAll = async () => {
+    setIsSubmitting(true);
+    try {
+      const deck = await collectionApi.getSwipeDeck();
+      const swipes = (deck ?? [])
+        .map((spot) => spot.contentId)
+        .filter((contentId): contentId is string => !!contentId)
+        .map((contentId) => ({ contentId, liked: true }));
+      if (swipes.length > 0) {
+        await swipeApi.submitSwipes({ swipes, groupId: groupId || undefined });
+      }
+    } catch {
+      // 스와이프 등록에 실패해도 흐름은 진행 — 결과 화면에서 일정 생성 실패로 다시 안내됨
+    } finally {
+      setIsSubmitting(false);
+      router.push(`/itinerary/trips/waiting?${forwardParams}`);
+    }
+  };
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pb-8">
@@ -98,8 +131,9 @@ function TripPersonalityContent() {
         <div className="mt-[24px] flex w-full gap-3">
           <button
             type="button"
-            onClick={() => router.push(`/itinerary/trips/waiting?${forwardParams}`)}
-            className="flex-1 h-[40px] rounded-[10px] border border-main-blue bg-white font-ssurround font-bold text-md text-sub-deepblue"
+            onClick={handleLikeAll}
+            disabled={isSubmitting}
+            className="flex-1 h-[40px] rounded-[10px] border border-main-blue bg-white font-ssurround font-bold text-md text-sub-deepblue disabled:opacity-50"
           >
             난 다 좋아!
           </button>

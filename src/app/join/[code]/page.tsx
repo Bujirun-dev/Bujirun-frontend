@@ -6,12 +6,21 @@ import { groupApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import { savePendingInvite } from "@/shared/utils/pendingInvite";
 import { KakaoLoginButton } from "@/components/ui/KakaoLoginButton";
+import { LoadingState } from "@/components";
 
 type JoinStatus = "unauthenticated" | "joining" | "success" | "error";
 
+function PageLoadingFallback() {
+  return (
+    <div className="flex h-full flex-col">
+      <LoadingState />
+    </div>
+  );
+}
+
 export default function JoinGroupPage({ params }: { params: Promise<{ code: string }> }) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageLoadingFallback />}>
       <JoinGroupContent params={params} />
     </Suspense>
   );

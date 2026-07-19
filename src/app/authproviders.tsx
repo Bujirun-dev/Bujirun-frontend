@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { apiClient, unwrap } from "@/shared/api";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
+import { LoadingState } from "@/components";
 
 type AuthProviderProps = {
   children: ReactNode;
@@ -34,8 +35,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   if (!isReady) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <p className="text-text-primary">로딩 중...</p>
+      <div className="flex h-screen flex-col">
+        <LoadingState message="부지런히 준비하고 있어요" />
       </div>
     );
   }
