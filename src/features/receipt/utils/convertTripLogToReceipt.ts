@@ -58,7 +58,7 @@ export function convertTripLogToReceipt(
     mood: MOOD_EMOJI[tripLog.mood ?? 0] ?? "😌",
     theme: tripLog.theme ?? "",
     collection: tripLog.totalSpots ?? 0,
-    archiveNumber: createArchiveNumber(startDate, 1),
+    archiveNumber: createArchiveNumber(startDate, tripLog.travelNumber ?? 0),
     days:
       tripLog.days?.map((day) => ({
         day: (day.dayNumber ?? 0) + 1,
