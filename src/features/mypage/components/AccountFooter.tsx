@@ -2,16 +2,27 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { WithdrawModal } from "./WithdrawModal";
+import { userApi } from "@/shared/api/domains";
+import { useAuthStore } from "@/shared/stores/useAuthStore";
 
 export function AccountFooter() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 
-  const handleWithdraw = () => {
-    // TODO: 회원탈퇴 API 연결
-    setIsWithdrawOpen(false);
-    router.replace("/login");
+  const handleWithdraw = async () => {
+    try {
+      await userApi.deleteMyAccount();
+    } catch (e) {
+      console.error("회원탈퇴 실패:", e);
+    } finally {
+      useAuthStore.getState().clear();
+      queryClient.clear();
+      setIsWithdrawOpen(false);
+      router.replace("/login");
+    }
   };
 
   return (
