@@ -83,11 +83,6 @@ export default function BookmarkDetailPage({
 
   return (
     <PageCard>
-      <div className="flex items-center gap-3 pb-4 shrink-0">
-        <BackButton className="bg-transparent" onClick={() => router.back()} />
-        <h1 className="font-ssurround font-bold text-lg text-text-heading">관광지 상세보기</h1>
-      </div>
-
       <PlaceDetailContent
         place={{
           // spot API 응답 전엔 목록에서 받은 thumbnail 사용, 그것도 없으면 플레이스홀더
@@ -105,6 +100,7 @@ export default function BookmarkDetailPage({
           ],
         }}
         onBookmark={() => toggleBookmark()}
+        onBack={() => router.back()}
         relatedLogs={relatedLogs}
         onViewMoreLogs={() => router.push(`/mypage/bookmarks/${id}/related-logs`)}
         getRelatedLogHref={(logId) => `/mypage/logs/${logId}`}
