@@ -1,13 +1,29 @@
 "use client";
 
+// src/app/itinerary/logs/[id]/page.tsx
+// 다른 사람 로그 읽기 전용 상세 + 일정 담기 버튼
+// GET /api/logs/{id} → TravelLogDetailResponse
+
 import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import calendarPlusIcon from "@/assets/icons/itinerary/calendar-plus.svg?url";
-import { PageCard, ErrorState } from "@/components";
-import { LogDetailContent } from "@/components/log/LogDetailContent";
+import { PageCard, LoadingState, ErrorState } from "@/components";
+import { LogDetailContent, toLogDetailData } from "@/components/log/LogDetailContent";
 import { ImportLogModal } from "@/features/itinerary";
-import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";
+import { useQuery } from "@tanstack/react-query";
+import { travelLogApi } from "@/shared/api/domains";
+import { useAuthStore } from "@/shared/stores/useAuthStore";
+
+// 로그 상세 데이터 조회 훅
+function useLogDetail(id: string) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  return useQuery({
+    queryKey: travelLogApi.keys.detail(id),
+    queryFn: () => travelLogApi.getLog(id),
+    enabled: !!accessToken && !!id,
+  });
+}
 
 export default function LogDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -15,7 +31,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
   const [showAddModal, setShowAddModal] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const importTimerRef = useRef<number | null>(null);
-  const log = SAMPLE_LOGS.find((l) => l.id === id);
+  const { data: log, isLoading } = useLogDetail(id);
 
   useEffect(() => {
     return () => {
@@ -32,6 +48,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
     setShowAddModal(false);
   };
 
+  // TODO: 실제 일정 담기 API 연동 필요
   const handleImportLog = () => {
     setIsImporting(true);
     importTimerRef.current = window.setTimeout(() => {
@@ -40,6 +57,14 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
       router.push("/itinerary");
     }, 600);
   };
+
+  if (isLoading) {
+    return (
+      <PageCard>
+        <LoadingState message="로그를 불러오는 중이에요" />
+      </PageCard>
+    );
+  }
 
   if (!log) {
     return (
@@ -56,25 +81,10 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
   return (
     <PageCard>
       <LogDetailContent
-        log={{
-          title: log.title,
-          placeName: log.placeName,
-          extraCount: log.extraCount,
-          duration: log.duration,
-          date: log.date,
-          days: log.days.map((day) => ({
-            day: day.day,
-            date: day.date,
-            stops: day.stops.map((stop) => ({
-              time: stop.time,
-              place: stop.place,
-              imageUrl: stop.imageUrl,
-              tags: stop.tags,
-            })),
-          })),
-        }}
+        log={toLogDetailData(log)}
         onBack={() => router.back()}
         headerRight={
+          // 일정 담기 버튼
           <button
             onClick={() => setShowAddModal(true)}
             className="size-[28px] rounded-lg bg-system-scroll border-[0.5px] border-main-blue flex items-center justify-center shrink-0"
@@ -87,7 +97,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
       <ImportLogModal
         isOpen={showAddModal}
         isLoading={isImporting}
-        authorNickname={log?.author}
+        authorNickname={log.days?.[0]?.items?.[0]?.spotName ?? ""}
         onClose={handleCloseAddModal}
         onConfirm={handleImportLog}
       />

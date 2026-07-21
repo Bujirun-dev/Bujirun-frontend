@@ -8,6 +8,7 @@ import { BackButton } from "@/components/ui/BackButton";
 import { cn } from "@/shared/utils";
 import type { Category } from "@/components/ui/CategoryChip";
 import { matchCategoryTag } from "@/shared/constants/category";
+import type { components } from "@/shared/api/schema.d";
 
 const CATEGORY_BG: Record<Category, string> = {
   sea: "bg-category-sea",
@@ -288,4 +289,30 @@ function StopTags({ tags, editable = false, onAddTag, onDeleteTag }: StopTagsPro
         ))}
     </div>
   );
+}
+
+// API 응답 → LogDetailContent props 변환
+type TravelLogDetail = components["schemas"]["TravelLogDetailResponse"];
+
+export function toLogDetailData(log: TravelLogDetail): LogDetailData {
+  return {
+    title: log.title ?? "",
+    placeName: log.days?.[0]?.items?.[0]?.spotName ?? "",
+    extraCount: log.totalSpots != null && log.totalSpots > 1 ? log.totalSpots - 1 : undefined,
+    duration: "",
+    date: log.startDate?.replace(/-/g, ".") ?? "",
+    days: (log.days ?? []).map((day) => ({
+      day: day.dayNumber ?? 1,
+      date: day.date?.replace(/-/g, ".") ?? "",
+      stops: (day.items ?? []).map((item) => ({
+        time: item.arrivalTime ?? "",
+        place: item.spotName ?? "",
+        imageUrl:
+          item.photos?.find((p) => p.representative)?.photoUrl ??
+          item.photos?.[0]?.photoUrl ??
+          undefined,
+        tags: item.hashtags?.map((h) => `#${h.tag}`) ?? [],
+      })),
+    })),
+  };
 }
