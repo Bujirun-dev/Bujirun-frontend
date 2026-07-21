@@ -36,7 +36,13 @@ export default function CollectionPage() {
     router.push("/collection/records");
   };
 
-  const { total: totalCollectionCount, count: collectedCollectionCount } = useCollectionProgress();
+  const { total, count, categoryProgress } = useCollectionProgress();
+
+  const totalCollectionCount =
+    selectedCategory === "전체" ? total : (categoryProgress[selectedCategory]?.total ?? 0);
+
+  const collectedCollectionCount =
+    selectedCategory === "전체" ? count : (categoryProgress[selectedCategory]?.count ?? 0);
 
   // 수집률
   const collectionProgress =
@@ -72,7 +78,7 @@ export default function CollectionPage() {
         onClick={handleRecordClick}
       >
         <Card variant="white" className="rounded-[20px]">
-          <div className="flex flex-col gap-2 px-5">
+          <div className="flex flex-col gap-2 px-4">
             {/* 수집 현황 */}
             <div className="flex items-center pt-3">
               <div className="relative flex-1">
