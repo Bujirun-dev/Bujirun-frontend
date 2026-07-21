@@ -3,13 +3,12 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { BackButton, PageCard } from "@/components";
+import { BackButton, PageCard, LoadingState, Toast } from "@/components"; // LoadingState, Toast 추가
 import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
 import { travelLogApi, spotApi, bookmarkApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import type { Category } from "@/components";
 
-//카테고리
 function toCategory(value?: string, name?: string): Category {
   if (name?.includes("해수욕장") || name?.includes("해변")) return "sea";
   if (!value) return "nature";
@@ -20,45 +19,67 @@ function toCategory(value?: string, name?: string): Category {
   return "nature";
 }
 
-export default function BookmarkDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function BookmarkDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ thumbnail?: string }>;
+}) {
   const { id } = use(params);
+  // 북마크 목록에서 넘겨준 썸네일 — spot API 응답 전 플레이스홀더 대신 사용
+  const { thumbnail } = use(searchParams);
   const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
 
-  // 관광지 상세 조회
-  const { data: spot } = useQuery({
+  // 토스트 상태
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+
+  const { data: spot, isLoading } = useQuery({
+    // isLoading 추가
     queryKey: spotApi.keys.detail(id),
     queryFn: () => spotApi.getSpot(id),
     enabled: !!accessToken && !!id,
   });
 
-  // 관련 로그 조회
   const { data: logs = [] } = useQuery({
     queryKey: travelLogApi.keys.bySpot(id),
     queryFn: () => travelLogApi.getLogsBySpot(id),
     enabled: !!accessToken && !!id,
   });
 
-  // 북마크 목록에서 진입하므로 초기값 true 고정
-  // TODO: 다른 경로 진입 시 spot.bookmarked 필드 필요 (백엔드 확인 필요)
   const [isBookmarked, setIsBookmarked] = useState(true);
 
-  // 북마크 토글
   const { mutate: toggleBookmark } = useMutation({
     mutationFn: () => (isBookmarked ? bookmarkApi.removeBookmark(id) : bookmarkApi.addBookmark(id)),
     onSuccess: () => {
+      // 토스트 메시지 표시
+      setToastMessage(isBookmarked ? "북마크가 해제되었어요" : "북마크에 추가되었어요");
+      setToastVisible(true);
       setIsBookmarked((prev) => !prev);
       queryClient.invalidateQueries({ queryKey: bookmarkApi.keys.list() });
     },
   });
 
-  // TravelLogSummaryResponse → PlaceDetailRelatedLog (미리보기용 2개)
   const relatedLogs = logs.slice(0, 2).map((log) => ({
     id: log.id ?? "",
     imageUrl: log.thumbnailPhotoUrl ?? "",
     author: log.authorNickname ?? "",
   }));
+
+  if (isLoading) {
+    return (
+      <PageCard>
+        <div className="flex items-center gap-3 pb-4 shrink-0">
+          <BackButton className="bg-transparent" onClick={() => router.back()} />
+          <h1 className="font-ssurround font-bold text-lg text-text-heading">관광지 상세보기</h1>
+        </div>
+        <LoadingState message="관광지 정보를 불러오는 중이에요" />
+      </PageCard>
+    );
+  }
 
   return (
     <PageCard>
@@ -69,7 +90,8 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
 
       <PlaceDetailContent
         place={{
-          imageUrl: spot?.thumbnailUrl ?? `https://picsum.photos/seed/${id}/400/300`,
+          // spot API 응답 전엔 목록에서 받은 thumbnail 사용, 그것도 없으면 플레이스홀더
+          imageUrl: spot?.thumbnailUrl ?? thumbnail ?? `https://picsum.photos/seed/${id}/400/300`,
           name: spot?.name ?? "",
           category: toCategory(spot?.category, spot?.name),
           description: spot?.overview ?? "",
@@ -87,6 +109,13 @@ export default function BookmarkDetailPage({ params }: { params: Promise<{ id: s
         onViewMoreLogs={() => router.push(`/mypage/bookmarks/${id}/related-logs`)}
         getRelatedLogHref={(logId) => `/mypage/logs/${logId}`}
         onLogClick={(logId) => router.push(`/mypage/logs/${logId}`)}
+      />
+
+      {/* 북마크 토스트 */}
+      <Toast
+        isVisible={toastVisible}
+        message={toastMessage}
+        onHide={() => setToastVisible(false)}
       />
     </PageCard>
   );
