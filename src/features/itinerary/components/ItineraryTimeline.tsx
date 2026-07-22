@@ -37,10 +37,6 @@ export interface ItineraryStop {
   status: PlaceStatus;
   description?: string;
   address?: string;
-  operatingHours?: string;
-  fee?: string;
-  parking?: string;
-  phone?: string;
   mapUrl?: string;
   isBookmarked?: boolean;
   relatedLogs?: { id: string; imageUrl: string; userName: string }[];

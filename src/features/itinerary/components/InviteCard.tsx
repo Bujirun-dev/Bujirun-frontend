@@ -43,7 +43,13 @@ export function InviteCard({ friends, total, onInvite, className }: InviteCardPr
             >
               {friend?.imageUrl && (
                 <div className="relative w-full h-full">
-                  <Image src={friend.imageUrl} alt={`friend-${i}`} fill className="object-cover" />
+                  <Image
+                    src={friend.imageUrl}
+                    alt={`friend-${i}`}
+                    fill
+                    sizes="56px"
+                    className="object-cover"
+                  />
                 </div>
               )}
             </div>

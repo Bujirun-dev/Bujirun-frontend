@@ -38,7 +38,7 @@ export function CharacterImage({
 }) {
   return (
     <div className={`relative ${className}`}>
-      <Image src={src} alt={alt} fill className="object-contain" />
+      <Image src={src} alt={alt} fill sizes="250px" className="object-contain" />
     </div>
   );
 }

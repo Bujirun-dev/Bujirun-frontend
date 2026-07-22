@@ -65,10 +65,6 @@ interface PlaceDetailContentProps {
   // 버튼 옆에 관광지명이 떠오르는 sticky 헤더로 바뀐다. 없으면 기존처럼 이미지/이름은
   // 고정, 아래 섹션만 스크롤.
   onBack?: () => void;
-  // onBack 버튼의 스타일을 화면마다 다르게 써야 할 때만 넘긴다(기본은 기존과 동일).
-  backButtonClassName?: string;
-  backButtonIconSize?: number;
-  backButtonIconClassName?: string;
 }
 
 export function PlaceDetailContent({
@@ -83,9 +79,6 @@ export function PlaceDetailContent({
   footer,
   size = "default",
   onBack,
-  backButtonClassName,
-  backButtonIconSize,
-  backButtonIconClassName,
 }: PlaceDetailContentProps) {
   const { imageUrl, name, category, description, address, mapUrl, isBookmarked, infoItems } = place;
   const compact = size === "compact";
@@ -157,13 +150,7 @@ export function PlaceDetailContent({
   );
 
   const sections = (
-    <div
-      className={cn(
-        "overflow-x-hidden flex flex-col",
-        onBack ? "" : "flex-1 overflow-y-auto",
-        compact ? "gap-3 py-3" : "gap-5 py-5",
-      )}
-    >
+    <div className={cn("flex flex-col", compact ? "gap-3 py-3" : "gap-5 py-5")}>
       {/* 소개 */}
       <section className="flex flex-col gap-2">
         <h2 className={cn("font-bold text-text-heading", compact ? "text-xs" : "text-lg")}>소개</h2>
@@ -324,12 +311,7 @@ export function PlaceDetailContent({
             compact ? "h-9" : "h-11",
           )}
         >
-          <BackButton
-            className={cn("bg-transparent", backButtonClassName)}
-            iconSize={backButtonIconSize}
-            iconClassName={backButtonIconClassName}
-            onClick={onBack}
-          />
+          <BackButton className="bg-transparent" onClick={onBack} />
           <span
             className={cn(
               "truncate font-bold text-text-heading transition-opacity duration-200",
@@ -358,15 +340,17 @@ export function PlaceDetailContent({
   }
 
   return (
-    <>
-      {image}
-      {nameRow}
-      <hr className="shrink-0 border-[0.3px] border-sub-lightgray" />
-      {sections}
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+        {image}
+        {nameRow}
+        <hr className="border-[0.3px] border-sub-lightgray" />
+        {sections}
+      </div>
       {footer && (
         <div className={cn("shrink-0", compact ? "pb-0 pt-2" : "pb-6 pt-3")}>{footer}</div>
       )}
-    </>
+    </div>
   );
 }
 

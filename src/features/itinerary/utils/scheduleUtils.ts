@@ -149,9 +149,6 @@ export function buildDays(scheduleId: string): { days: BaseStop[][]; dates: stri
         status: "verify",
         description: getPlaceDescription(item.spotName),
         address: place?.address,
-        operatingHours: place?.operatingHours,
-        fee: "무료",
-        parking: "공영 주차장",
         mapUrl: place
           ? `https://map.kakao.com/link/map/${encodeURIComponent(place.name)},${place.lat},${place.lng}`
           : `https://map.kakao.com/link/search/${encodeURIComponent(item.spotName)}`,
