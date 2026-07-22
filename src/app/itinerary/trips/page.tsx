@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import plusSmallIcon from "@/assets/icons/itinerary/plus-small.svg?url";
-import { PageCard } from "@/components";
+import { PageCard, Toast } from "@/components";
 import { TripCard, TripEditModal, TripDeleteModal, TripDeleteToast } from "@/features/itinerary";
 import type { Trip } from "@/features/itinerary";
 import { itineraryApi } from "@/shared/api/domains";
@@ -29,6 +29,7 @@ export default function TripsPage() {
   const queryClient = useQueryClient();
   const [modal, setModal] = useState<ModalState>(null);
   const [showDeleteToast, setShowDeleteToast] = useState(false);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
 
   const { data: summaries } = useQuery({
     queryKey: itineraryApi.keys.lists(),
@@ -104,9 +105,11 @@ export default function TripsPage() {
     setModal(null);
     try {
       await itineraryApi.deleteItinerary(tripId);
+      setShowDeleteToast(true);
+    } catch {
+      setDeleteErrorMessage("여행 삭제에 실패했어요. 다시 시도해주세요.");
     } finally {
       invalidateTrips();
-      setShowDeleteToast(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modal]);
@@ -171,6 +174,12 @@ export default function TripsPage() {
 
       {/* 삭제 토스트 */}
       <TripDeleteToast isVisible={showDeleteToast} onHide={() => setShowDeleteToast(false)} />
+
+      <Toast
+        isVisible={deleteErrorMessage !== null}
+        message={deleteErrorMessage ?? ""}
+        onHide={() => setDeleteErrorMessage(null)}
+      />
     </PageCard>
   );
 }
