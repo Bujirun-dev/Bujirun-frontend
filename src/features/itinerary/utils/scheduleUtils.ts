@@ -86,9 +86,6 @@ export function buildDaysFromLog(log: (typeof SAMPLE_LOGS)[0]): {
         status: "verify" as const,
         description: getPlaceDescription(stop.place),
         address: "부산광역시",
-        operatingHours: "운영 정보 확인 필요",
-        fee: "무료",
-        parking: "주차 정보 확인 필요",
         mapUrl: `https://map.kakao.com/link/search/${encodeURIComponent(stop.place)}`,
         transport: nextStop
           ? {
@@ -150,9 +147,6 @@ export function buildDays(scheduleId: string): { days: BaseStop[][]; dates: stri
         status: "verify",
         description: getPlaceDescription(item.spotName),
         address: place?.address,
-        operatingHours: place?.operatingHours,
-        fee: "무료",
-        parking: "공영 주차장",
         mapUrl: place
           ? `https://map.kakao.com/link/map/${encodeURIComponent(place.name)},${place.lat},${place.lng}`
           : `https://map.kakao.com/link/search/${encodeURIComponent(item.spotName)}`,
@@ -260,10 +254,8 @@ export function mapItineraryDetailToDays(
         imageUrl: item.spot?.thumbnailUrl || FALLBACK_IMAGE,
         category: getCategoryFromKo(item.spot?.category ?? ""),
         status: "verify",
-        description: item.memo || getPlaceDescription(placeName),
+        description: item.memo,
         address: item.spot?.address,
-        fee: "무료",
-        parking: "공영 주차장",
         mapUrl: item.spot
           ? `https://map.kakao.com/link/map/${encodeURIComponent(placeName)},${item.spot.lat},${item.spot.lng}`
           : `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,

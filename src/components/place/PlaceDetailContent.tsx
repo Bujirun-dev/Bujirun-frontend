@@ -150,13 +150,7 @@ export function PlaceDetailContent({
   );
 
   const sections = (
-    <div
-      className={cn(
-        "overflow-x-hidden flex flex-col",
-        onBack ? "" : "flex-1 overflow-y-auto",
-        compact ? "gap-3 py-3" : "gap-5 py-5",
-      )}
-    >
+    <div className={cn("flex flex-col", compact ? "gap-3 py-3" : "gap-5 py-5")}>
       {/* 소개 */}
       <section className="flex flex-col gap-2">
         <h2 className={cn("font-bold text-text-heading", compact ? "text-xs" : "text-lg")}>소개</h2>
@@ -346,15 +340,17 @@ export function PlaceDetailContent({
   }
 
   return (
-    <>
-      {image}
-      {nameRow}
-      <hr className="shrink-0 border-[0.3px] border-sub-lightgray" />
-      {sections}
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+        {image}
+        {nameRow}
+        <hr className="border-[0.3px] border-sub-lightgray" />
+        {sections}
+      </div>
       {footer && (
         <div className={cn("shrink-0", compact ? "pb-0 pt-2" : "pb-6 pt-3")}>{footer}</div>
       )}
-    </>
+    </div>
   );
 }
 

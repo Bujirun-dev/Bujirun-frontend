@@ -33,7 +33,7 @@ export function PlaceSearchItem({
     >
       {imageUrl && (
         <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg">
-          <Image src={imageUrl} alt={name} fill className="object-cover" />
+          <Image src={imageUrl} alt={name} fill sizes="80px" className="object-cover" />
         </div>
       )}
 

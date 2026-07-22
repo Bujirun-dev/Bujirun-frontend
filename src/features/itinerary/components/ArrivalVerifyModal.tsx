@@ -392,7 +392,7 @@ export function ArrivalVerifyModal({
       <div className="relative flex w-full flex-col items-center">
         {userAvatarUrl && (
           <div className="absolute -top-6 left-1/2 size-[56px] -translate-x-1/2 overflow-hidden rounded-full border-4 border-main-white shadow-[0_2px_8px_0_var(--color-system-scroll)]">
-            <Image src={userAvatarUrl} alt="avatar" fill className="object-cover" />
+            <Image src={userAvatarUrl} alt="avatar" fill sizes="56px" className="object-cover" />
           </div>
         )}
 
