@@ -621,6 +621,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/swipes/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 그룹 스와이프 완료 현황 조회 (담당: 유정)
+         * @description 그룹원 중 스와이프를 완료한 인원 수와 전체 인원 수를 조회합니다. 대기 화면에서 폴링용으로 사용됩니다.
+         */
+        get: operations["getStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/spots/{spotId}": {
         parameters: {
             query?: never;
@@ -729,7 +749,7 @@ export interface paths {
             cookie?: never;
         };
         /** 투표 현황 조회 (담당: 유정) */
-        get: operations["getStatus"];
+        get: operations["getStatus_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1499,6 +1519,18 @@ export interface components {
             message?: string;
             /** Format: int32 */
             data?: number;
+        };
+        ApiResponseSwipeStatusResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["SwipeStatusResponse"];
+        };
+        SwipeStatusResponse: {
+            /** Format: int64 */
+            doneCount?: number;
+            /** Format: int64 */
+            totalCount?: number;
+            allDone?: boolean;
         };
         SpotDetailResponse: {
             spotId?: string;
@@ -2534,6 +2566,28 @@ export interface operations {
             };
         };
     };
+    getStatus: {
+        parameters: {
+            query: {
+                groupId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSwipeStatusResponse"];
+                };
+            };
+        };
+    };
     getDetail_1: {
         parameters: {
             query?: never;
@@ -2646,7 +2700,7 @@ export interface operations {
             };
         };
     };
-    getStatus: {
+    getStatus_1: {
         parameters: {
             query?: never;
             header?: never;
