@@ -92,9 +92,11 @@ export function castVote(sessionId: string, body: OpBody<"castVote">) {
 }
 
 // 투표 현황(안별 득표수/총 투표수) 조회
+// operationId가 스와이프 상태 조회(getStatus)와 겹쳐서 codegen이 getStatus_1로 분리함.
+// 백엔드가 operationId를 고유하게 바꿔주면 이 부분도 다시 getStatus로 돌아올 수 있음.
 export function getVoteStatus(sessionId: string) {
   return apiClient
-    .get<OpResponse<"getStatus">>(`/api/itineraries/vote-sessions/${sessionId}`)
+    .get<OpResponse<"getStatus_1">>(`/api/itineraries/vote-sessions/${sessionId}`)
     .then((res) => unwrap(res));
 }
 
