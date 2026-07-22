@@ -7,7 +7,7 @@ import SuccessIcon from "@/assets/icons/mypage/success.svg";
 import { PageCard, Toast, EmptyState, LoadingState } from "@/components";
 import { ItineraryHeader, SlidingTimeline, ItineraryModals } from "@/features/itinerary";
 import type { ItineraryStop, ModalType } from "@/features/itinerary";
-import { itineraryApi, travelLogApi } from "@/shared/api/domains";
+import { itineraryApi, travelLogApi, userApi } from "@/shared/api/domains";
 import { useCollaborativeItinerary } from "@/features/itinerary/collab/useCollaborativeItinerary";
 import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";
 import {
@@ -126,6 +126,11 @@ function ItineraryMain({
     queryKey: travelLogApi.keys.detail(itineraryId),
     queryFn: () => travelLogApi.getLog(itineraryId),
   });
+  // 실시간 공동편집 프레즌스(누가 어떤 항목을 보고 있는지)에 내 이름/아바타를 알리는 용도.
+  const { data: myProfile } = useQuery({
+    queryKey: userApi.keys.me(),
+    queryFn: userApi.getMyProfile,
+  });
   const searchParams = useSearchParams();
   const importedLogId = searchParams.get("importedLogId");
   const requestedDays = Math.max(1, Number(searchParams.get("days")) || initialDaysData.length);
@@ -152,6 +157,8 @@ function ItineraryMain({
   const [currentDay, setCurrentDay] = useState(0);
   const {
     stopsPerDay,
+    collaboratorsByStop,
+    setFocusedStop,
     addStop: addYjsStop,
     deleteStop: deleteYjsStop,
     updateStopTime: updateYjsStopTime,
@@ -159,7 +166,14 @@ function ItineraryMain({
     updateStopTransport: updateYjsStopTransport,
     updateStopStatus: updateYjsStopStatus,
     pushOptimizedOrder: pushYjsOptimizedOrder,
-  } = useCollaborativeItinerary(itineraryId, dayIdsSliced, initialDays);
+  } = useCollaborativeItinerary(
+    itineraryId,
+    dayIdsSliced,
+    initialDays,
+    myProfile?.id && myProfile.nickname
+      ? { id: myProfile.id, nickname: myProfile.nickname, profileImageUrl: myProfile.profileImageUrl }
+      : undefined,
+  );
   const [tripDates, setTripDates] = useState<string[]>(initialDates);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalType | null>(null);
@@ -334,6 +348,7 @@ function ItineraryMain({
   const allDayStops: ItineraryStop[][] = stopsPerDay.map((dayStops, dayIdx) =>
     dayStops.map((stop) => ({
       ...stop,
+      activeEditors: collaboratorsByStop.get(`${dayIdx}:${stop.id}`) ?? [],
       onDelete: () => openDelete(dayIdx, stop.id),
       onTimeClick: () => openTime(dayIdx, stop.id, stop.time),
       onTimeConfirm: (time: string) => confirmTimeInline(dayIdx, stop.id, time),
@@ -361,6 +376,7 @@ function ItineraryMain({
           onDayChange={setCurrentDay}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
+          onFocusChange={setFocusedStop}
         />
       </PageCard>
 

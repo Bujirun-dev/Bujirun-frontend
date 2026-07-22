@@ -11,6 +11,7 @@ interface SlidingTimelineProps {
   onDayChange: (day: number) => void;
   onTouchStart: (e: React.TouchEvent) => void;
   onTouchEnd: (e: React.TouchEvent) => void;
+  onFocusChange?: (dayIdx: number, stopId: string | null) => void;
 }
 
 export function SlidingTimeline({
@@ -21,6 +22,7 @@ export function SlidingTimeline({
   onDayChange,
   onTouchStart,
   onTouchEnd,
+  onFocusChange,
 }: SlidingTimelineProps) {
   return (
     <div className="-ml-6 flex-1 overflow-hidden">
@@ -40,6 +42,7 @@ export function SlidingTimeline({
                 stops={dayStops}
                 date={tripDates[dayIdx]}
                 onAddNewPlace={(place) => onAddNewPlace(dayIdx, place)}
+                onFocusChange={(stopId) => onFocusChange?.(dayIdx, stopId)}
               />
             </div>
             {/* 관광지 수에 따라 타임라인 길이는 자연스럽게 유지하되,

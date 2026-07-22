@@ -12,6 +12,8 @@ import { TimelineTimePicker } from "./TimelineTimePicker";
 import { cn } from "@/shared/utils";
 import type { Category } from "@/components";
 import type { SearchPlace } from "./PlaceSearchPanel";
+import { CollaboratorBadge } from "./CollaboratorBadge";
+import type { CollaboratorInfo } from "@/features/itinerary/collab/useCollaborativeItinerary";
 
 type PlaceStatus = "completed" | "verify";
 
@@ -43,6 +45,8 @@ export interface ItineraryStop {
   isBookmarked?: boolean;
   relatedLogs?: { id: string; imageUrl: string; userName: string }[];
   transport?: TransportInfo;
+  // 지금 이 항목을 보고 있는 다른 참여자 목록 (실시간 공동편집, WS 미연결 시 항상 빈 배열)
+  activeEditors?: CollaboratorInfo[];
   onDelete?: () => void;
   onClick?: () => void;
   onTimeClick?: () => void;
@@ -56,9 +60,16 @@ interface ItineraryTimelineProps {
   stops: ItineraryStop[];
   date?: string;
   onAddNewPlace?: (place: SearchPlace) => void;
+  // 지금 이 날에서 유저가 보고 있는 항목이 바뀔 때마다 알려준다 (실시간 공동편집 프레즌스용)
+  onFocusChange?: (stopId: string | null) => void;
 }
 
-export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimelineProps) {
+export function ItineraryTimeline({
+  stops,
+  date,
+  onAddNewPlace,
+  onFocusChange,
+}: ItineraryTimelineProps) {
   const [activeSearchStopId, setActiveSearchStopId] = useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [activeDetailStopId, setActiveDetailStopId] = useState<string | null>(null);
@@ -72,6 +83,13 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
   const stopRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const isAutoScrollingRef = useRef(false);
   const activePopupStopId = activeSearchStopId ?? activeDetailStopId;
+  const focusedStopId = activeSearchStopId ?? activeDetailStopId ?? activeTimeStopId ?? null;
+
+  useEffect(() => {
+    onFocusChange?.(focusedStopId);
+    return () => onFocusChange?.(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusedStopId]);
 
   const closeSearch = () => {
     setActiveSearchStopId(null);
@@ -300,7 +318,12 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
                     onTimeClick={() => openTimePicker(stop)}
                   />
 
-                  <div className="min-w-0 flex-1 pl-3">
+                  <div className="relative min-w-0 flex-1 pl-3">
+                    {stop.activeEditors && stop.activeEditors.length > 0 && (
+                      <div className="absolute -top-1.5 left-1.5 z-10">
+                        <CollaboratorBadge editors={stop.activeEditors} />
+                      </div>
+                    )}
                     <PlaceCard
                       imageUrl={stop.imageUrl}
                       name={stop.placeName}

@@ -18,6 +18,24 @@ import {
   updateStopTransport as yUpdateStopTransport,
 } from "./itineraryYjsSchema";
 import { flushDayToRest, snapshotFromStops, type DaySnapshot } from "./flushItineraryToRest";
+import { getParticipantColorClass } from "./participantColor";
+
+export interface CollaboratorInfo {
+  name: string;
+  colorClass: string;
+  avatarUrl?: string;
+}
+
+interface CursorState {
+  dayIdx: number;
+  itemId: string;
+}
+
+interface CurrentUser {
+  id: string;
+  nickname: string;
+  profileImageUrl?: string;
+}
 
 // useItineraryYDoc(연결 생명주기)을 감싸 실제 화면이 쓰는 형태로 데이터를 노출한다:
 // Yjs 상태를 BaseStop[][]로 파생시키고, 초기 시딩·이탈시/합류시 DB 반영을 처리한다.
@@ -25,6 +43,7 @@ export function useCollaborativeItinerary(
   itineraryId: string,
   dayIds: string[],
   initialDays: BaseStop[][],
+  currentUser?: CurrentUser,
 ) {
   // 문서를 만드는 시점에 곧바로(=WS 연결 여부와 무관하게) REST 초기값으로 시딩한다.
   // 실시간 협업 서버가 아직 연결이 안 됐거나 아예 없어도 로컬 CRUD(추가/삭제/시간변경)가
@@ -77,22 +96,63 @@ export function useCollaborativeItinerary(
     return observeYjsDays(doc, () => setStopsPerDay(readStopsFromYjs(doc)));
   }, [doc]);
 
-  // 새 인원 합류(awareness에 피어 추가) 시에도 한 번 DB에 반영
+  // 내 프레즌스(이름/색/아바타)를 알린다. currentUser가 나중에 로드되거나 provider가
+  // status 변화(connecting→connected)로 뒤늦게 생겨도 다시 타도록 status를 deps에 둔다.
+  useEffect(() => {
+    const provider = getProvider();
+    if (!provider || !currentUser) return;
+    provider.awareness.setLocalStateField("user", {
+      name: currentUser.nickname,
+      colorClass: getParticipantColorClass(currentUser.id),
+      avatarUrl: currentUser.profileImageUrl,
+    });
+  }, [doc, getProvider, status, currentUser]);
+
+  const [collaboratorsByStop, setCollaboratorsByStop] = useState<Map<string, CollaboratorInfo[]>>(
+    new Map(),
+  );
+
+  // 새 인원 합류(awareness에 피어 추가) 시 DB에 한 번 반영하고, 매 변화마다 "누가 어떤
+  // 항목을 보고 있는지" 맵도 다시 계산한다.
   useEffect(() => {
     const provider = getProvider();
     if (!provider) return;
 
+    const recomputeCollaborators = () => {
+      const map = new Map<string, CollaboratorInfo[]>();
+      provider.awareness.getStates().forEach((state, clientId) => {
+        if (clientId === provider.awareness.clientID) return;
+        const user = state.user as CollaboratorInfo | undefined;
+        const cursor = state.cursor as CursorState | null | undefined;
+        if (!user || !cursor) return;
+        const key = `${cursor.dayIdx}:${cursor.itemId}`;
+        map.set(key, [...(map.get(key) ?? []), user]);
+      });
+      setCollaboratorsByStop(map);
+    };
+
     const handleAwarenessChange = ({ added }: { added: number[] }) => {
       if (added.length > 0) flushAll();
+      recomputeCollaborators();
     };
     provider.awareness.on("change", handleAwarenessChange);
+    recomputeCollaborators();
     return () => provider.awareness.off("change", handleAwarenessChange);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [doc, getProvider]);
+  }, [doc, getProvider, status]);
+
+  const setFocusedStop = (dayIdx: number, itemId: string | null) => {
+    getProvider()?.awareness.setLocalStateField(
+      "cursor",
+      itemId ? ({ dayIdx, itemId } satisfies CursorState) : null,
+    );
+  };
 
   return {
     stopsPerDay,
     status,
+    collaboratorsByStop,
+    setFocusedStop,
     addStop: (dayIdx: number, stop: BaseStop) => yAddStop(doc, dayIdx, stop),
     deleteStop: (dayIdx: number, itemId: string) => yDeleteStop(doc, dayIdx, itemId),
     updateStopTime: (dayIdx: number, itemId: string, time: string) =>
