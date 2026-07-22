@@ -254,7 +254,7 @@ export function mapItineraryDetailToDays(
         imageUrl: item.spot?.thumbnailUrl || FALLBACK_IMAGE,
         category: getCategoryFromKo(item.spot?.category ?? ""),
         status: "verify",
-        description: item.memo || getPlaceDescription(placeName),
+        description: item.memo,
         address: item.spot?.address,
         mapUrl: item.spot
           ? `https://map.kakao.com/link/map/${encodeURIComponent(placeName)},${item.spot.lat},${item.spot.lng}`
