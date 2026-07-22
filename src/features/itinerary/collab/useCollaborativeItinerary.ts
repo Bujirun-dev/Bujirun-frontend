@@ -7,8 +7,11 @@ import { useItineraryYDoc } from "./useItineraryYDoc";
 import {
   addStop as yAddStop,
   deleteStop as yDeleteStop,
+  logActivity as yLogActivity,
+  observeActivityLog,
   observeYjsDays,
   pushOptimizedOrder as yPushOptimizedOrder,
+  readActivityLog,
   readStopsFromYjs,
   replaceStop as yReplaceStop,
   resolveTempId,
@@ -16,6 +19,8 @@ import {
   updateStopStatus as yUpdateStopStatus,
   updateStopTime as yUpdateStopTime,
   updateStopTransport as yUpdateStopTransport,
+  type ActivityAction,
+  type ActivityLogEntry,
 } from "./itineraryYjsSchema";
 import { flushDayToRest, snapshotFromStops, type DaySnapshot } from "./flushItineraryToRest";
 import { getParticipantColorClass } from "./participantColor";
@@ -44,6 +49,7 @@ export function useCollaborativeItinerary(
   dayIds: string[],
   initialDays: BaseStop[][],
   currentUser?: CurrentUser,
+  onRemoteActivity?: (entry: ActivityLogEntry) => void,
 ) {
   // 문서를 만드는 시점에 곧바로(=WS 연결 여부와 무관하게) REST 초기값으로 시딩한다.
   // 실시간 협업 서버가 아직 연결이 안 됐거나 아예 없어도 로컬 CRUD(추가/삭제/시간변경)가
@@ -148,11 +154,37 @@ export function useCollaborativeItinerary(
     );
   };
 
+  // 항상 최신 콜백을 참조하기 위한 ref (stale closure 방지, effect는 [doc]에만 반응).
+  const onRemoteActivityRef = useRef(onRemoteActivity);
+  useEffect(() => {
+    onRemoteActivityRef.current = onRemoteActivity;
+  });
+
+  // 다른 피어가 만든 변경(추가/삭제/시간변경/교체/최적화/로그 불러오기)만 골라서 알려준다.
+  // 내가 만든 변경은 transaction.local === true라서 여기서 걸러진다(내가 한 행동에
+  // 내가 알림을 받는 걸 방지).
+  useEffect(() => {
+    // 마운트 이전 과거 기록까지 다시 알림으로 재생하지 않도록, 지금 길이를 기준점으로 삼는다.
+    const lastSeenLenRef = { current: readActivityLog(doc).length };
+    return observeActivityLog(doc, (transaction) => {
+      if (transaction.local) return;
+      const entries = readActivityLog(doc);
+      const newEntries = entries.slice(lastSeenLenRef.current);
+      lastSeenLenRef.current = entries.length;
+      newEntries.forEach((entry) => onRemoteActivityRef.current?.(entry));
+    });
+  }, [doc]);
+
+  const logActivity = (action: ActivityAction, placeName: string) => {
+    yLogActivity(doc, currentUser?.nickname ?? "누군가", action, placeName);
+  };
+
   return {
     stopsPerDay,
     status,
     collaboratorsByStop,
     setFocusedStop,
+    logActivity,
     addStop: (dayIdx: number, stop: BaseStop) => yAddStop(doc, dayIdx, stop),
     deleteStop: (dayIdx: number, itemId: string) => yDeleteStop(doc, dayIdx, itemId),
     updateStopTime: (dayIdx: number, itemId: string, time: string) =>

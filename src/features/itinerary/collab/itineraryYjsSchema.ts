@@ -4,6 +4,18 @@ import { rebuildTransport } from "@/features/itinerary/utils/scheduleUtils";
 
 const DAYS_KEY = "days";
 const META_KEY = "meta";
+const ACTIVITY_LOG_KEY = "activityLog";
+const MAX_ACTIVITY_LOG = 50;
+
+export type ActivityAction = "add" | "delete" | "time" | "replace" | "optimize" | "import";
+
+export interface ActivityLogEntry {
+  id: string;
+  actorName: string;
+  action: ActivityAction;
+  placeName: string;
+  at: number;
+}
 
 function getDaysArray(doc: Y.Doc): Y.Array<Y.Map<unknown>> {
   return doc.getArray(DAYS_KEY);
@@ -145,4 +157,40 @@ export function resolveTempId(doc: Y.Doc, dayIdx: number, tempId: string, realId
   replaceItemsArray(doc, dayIdx, (stops) =>
     stops.map((stop) => (stop.id === tempId ? { ...stop, id: realId } : stop)),
   );
+}
+
+function getActivityLogArray(doc: Y.Doc): Y.Array<ActivityLogEntry> {
+  return doc.getArray(ACTIVITY_LOG_KEY);
+}
+
+// "누가 뭘 했는지" 기록 — 데이터 mutation 함수와 분리해서 호출부(페이지)가 액션 종류를
+// 직접 고르게 한다(같은 pushOptimizedOrder 호출도 AI 최적화/로그 불러오기처럼 문맥에 따라
+// 다른 액션으로 기록해야 해서, mutation 함수 안에 액션을 못 박아두지 않는다).
+export function logActivity(
+  doc: Y.Doc,
+  actorName: string,
+  action: ActivityAction,
+  placeName: string,
+): void {
+  doc.transact(() => {
+    const log = getActivityLogArray(doc);
+    log.push([{ id: crypto.randomUUID(), actorName, action, placeName, at: Date.now() }]);
+    if (log.length > MAX_ACTIVITY_LOG) log.delete(0, log.length - MAX_ACTIVITY_LOG);
+  });
+}
+
+export function readActivityLog(doc: Y.Doc): ActivityLogEntry[] {
+  return getActivityLogArray(doc).toArray();
+}
+
+// transaction을 그대로 넘겨서(호출부가 transaction.local로 "내가 한 변경인지" 판단할 수
+// 있게) — 로컬 변경까지 토스트로 띄우면 내가 한 행동에 내가 알림을 받는 꼴이 된다.
+export function observeActivityLog(
+  doc: Y.Doc,
+  callback: (transaction: Y.Transaction) => void,
+): () => void {
+  const log = getActivityLogArray(doc);
+  const wrapped = (_events: unknown, transaction: Y.Transaction) => callback(transaction);
+  log.observe(wrapped);
+  return () => log.unobserve(wrapped);
 }

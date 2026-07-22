@@ -19,6 +19,18 @@ import {
 import { getTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import type { SearchPlace } from "@/features/itinerary/components/PlaceSearchPanel";
 import type { RouteOption } from "@/features/itinerary";
+import type { ActivityAction, ActivityLogEntry } from "@/features/itinerary/collab/itineraryYjsSchema";
+
+// 다른 참여자가 만든 변경을 토스트/안내팝업 메시지로 바꾸는 규칙. "누가 뭘 했는지"는
+// activityLog 엔트리에서 그대로 나오고, 여기서는 문구만 고른다.
+const ACTIVITY_MESSAGES: Record<ActivityAction, (entry: ActivityLogEntry) => string> = {
+  add: (e) => `${e.actorName}님이 ${e.placeName}을(를) 추가했어요.`,
+  delete: (e) => `${e.actorName}님이 ${e.placeName}을(를) 삭제했어요.`,
+  time: (e) => `${e.actorName}님이 ${e.placeName}의 시간을 변경했어요.`,
+  replace: (e) => `${e.actorName}님이 장소를 ${e.placeName}(으)로 바꿨어요.`,
+  optimize: (e) => `${e.actorName}님이 일정을 최적화했어요.`,
+  import: (e) => `${e.actorName}님이 다른 여행 기록을 불러왔어요.`,
+};
 
 function ItineraryEmptyState() {
   const router = useRouter();
@@ -155,10 +167,30 @@ function ItineraryMain({
   };
 
   const [currentDay, setCurrentDay] = useState(0);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [modal, setModal] = useState<ModalType | null>(null);
+  const [peerUpdateMessage, setPeerUpdateMessage] = useState<string | undefined>(undefined);
+
+  // 다른 참여자가 만든 변경(추가/삭제/시간변경/교체/최적화/로그 불러오기)을 알려준다.
+  // "로그 불러오기"처럼 일정 전체가 바뀌는 큰 변경은 안내 팝업으로, 나머지는 토스트로.
+  const handleRemoteActivity = (entry: ActivityLogEntry) => {
+    const message = ACTIVITY_MESSAGES[entry.action]?.(entry) ?? `${entry.actorName}님이 일정을 변경했어요.`;
+    if (entry.action === "import") {
+      setPeerUpdateMessage(message);
+      setModal("peerUpdate");
+      window.setTimeout(() => {
+        setModal((current) => (current === "peerUpdate" ? null : current));
+      }, 1800);
+      return;
+    }
+    setToastMessage(message);
+  };
+
   const {
     stopsPerDay,
     collaboratorsByStop,
     setFocusedStop,
+    logActivity,
     addStop: addYjsStop,
     deleteStop: deleteYjsStop,
     updateStopTime: updateYjsStopTime,
@@ -173,10 +205,9 @@ function ItineraryMain({
     myProfile?.id && myProfile.nickname
       ? { id: myProfile.id, nickname: myProfile.nickname, profileImageUrl: myProfile.profileImageUrl }
       : undefined,
+    handleRemoteActivity,
   );
   const [tripDates, setTripDates] = useState<string[]>(initialDates);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [modal, setModal] = useState<ModalType | null>(null);
   const [activeStopId, setActiveStopId] = useState<string | null>(null);
   const [activeDayIdx, setActiveDayIdx] = useState(0);
   const [timeValue, setTimeValue] = useState({ hour: 12, minute: 0 });
@@ -194,6 +225,7 @@ function ItineraryMain({
     days.forEach((dayStops, idx) => {
       if (idx < dayIdsSliced.length) pushYjsOptimizedOrder(idx, dayStops);
     });
+    logActivity("import", "");
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTripDates(dates);
     setCurrentDay(0);
@@ -232,7 +264,10 @@ function ItineraryMain({
   };
 
   const confirmDelete = () => {
-    if (activeStopId) deleteYjsStop(activeDayIdx, activeStopId);
+    if (activeStopId) {
+      logActivity("delete", activeStop?.placeName ?? "장소");
+      deleteYjsStop(activeDayIdx, activeStopId);
+    }
     closeModal();
     setToastMessage("장소가 삭제되었어요.");
   };
@@ -243,7 +278,10 @@ function ItineraryMain({
       setToastMessage(validationError);
       return;
     }
-    if (activeStopId) updateYjsStopTime(activeDayIdx, activeStopId, timeStr);
+    if (activeStopId) {
+      logActivity("time", activeStop?.placeName ?? "장소");
+      updateYjsStopTime(activeDayIdx, activeStopId, timeStr);
+    }
     closeModal();
     setToastMessage("시간이 변경되었어요.");
   };
@@ -287,6 +325,7 @@ function ItineraryMain({
         })
         .filter((s): s is BaseStop => s !== null);
       pushYjsOptimizedOrder(currentDay, reordered);
+      logActivity("optimize", "");
       setToastMessage("일정이 최적화됐어요.");
     } catch {
       setToastMessage("일정 최적화에 실패했어요.");
@@ -318,6 +357,7 @@ function ItineraryMain({
       category: place.category,
       status: place.status === "completed" ? "completed" : "verify",
     });
+    logActivity("replace", place.name);
     setToastMessage("관광지가 추가되었어요.");
   };
 
@@ -327,6 +367,7 @@ function ItineraryMain({
       setToastMessage(validationError);
       return;
     }
+    logActivity("time", stopsPerDay[dayIdx]?.find((s) => s.id === stopId)?.placeName ?? "장소");
     updateYjsStopTime(dayIdx, stopId, time);
     setToastMessage("시간이 변경되었어요.");
   };
@@ -341,6 +382,7 @@ function ItineraryMain({
       category: place.category,
       status: place.status === "completed" ? "completed" : "verify",
     };
+    logActivity("add", place.name);
     addYjsStop(dayIdx, newStop);
     setToastMessage("관광지가 추가되었어요.");
   };
@@ -387,6 +429,7 @@ function ItineraryMain({
         logId={verifyLog?.id}
         timeValue={timeValue}
         selectedRouteOptionId={selectedRouteOptionId}
+        peerUpdateMessage={peerUpdateMessage}
         onClose={closeModal}
         onConfirmDelete={confirmDelete}
         onConfirmTime={confirmTime}
