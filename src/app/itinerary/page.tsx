@@ -168,8 +168,14 @@ function ItineraryMain({
 
   const [currentDay, setCurrentDay] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastVariant, setToastVariant] = useState<"default" | "error">("default");
   const [modal, setModal] = useState<ModalType | null>(null);
   const [peerUpdateMessage, setPeerUpdateMessage] = useState<string | undefined>(undefined);
+
+  const showToast = (message: string, variant: "default" | "error" = "default") => {
+    setToastVariant(variant);
+    setToastMessage(message);
+  };
 
   // 다른 참여자가 만든 변경(추가/삭제/시간변경/교체/최적화/로그 불러오기)을 알려준다.
   // "로그 불러오기"처럼 일정 전체가 바뀌는 큰 변경은 안내 팝업으로, 나머지는 토스트로.
@@ -183,7 +189,7 @@ function ItineraryMain({
       }, 1800);
       return;
     }
-    setToastMessage(message);
+    showToast(message);
   };
 
   const {
@@ -230,7 +236,7 @@ function ItineraryMain({
     setTripDates(dates);
     setCurrentDay(0);
     const timer = window.setTimeout(() => {
-      setToastMessage("일정이 추가되었어요.");
+      showToast("일정이 추가되었어요.");
       window.history.replaceState(null, "", "/itinerary");
     }, 300);
     return () => window.clearTimeout(timer);
@@ -269,13 +275,13 @@ function ItineraryMain({
       deleteYjsStop(activeDayIdx, activeStopId);
     }
     closeModal();
-    setToastMessage("장소가 삭제되었어요.");
+    showToast("장소가 삭제되었어요.");
   };
   const confirmTime = () => {
     const timeStr = `${String(timeValue.hour).padStart(2, "0")}:${String(timeValue.minute).padStart(2, "0")}`;
     const validationError = validateStopTime(activeDayIdx, timeStr);
     if (validationError) {
-      setToastMessage(validationError);
+      showToast(validationError, "error");
       return;
     }
     if (activeStopId) {
@@ -283,7 +289,7 @@ function ItineraryMain({
       updateYjsStopTime(activeDayIdx, activeStopId, timeStr);
     }
     closeModal();
-    setToastMessage("시간이 변경되었어요.");
+    showToast("시간이 변경되었어요.");
   };
   const confirmTransport = (option: RouteOption) => {
     setSelectedRouteOptionId(option.id);
@@ -296,7 +302,7 @@ function ItineraryMain({
       });
     }
     closeModal();
-    setToastMessage("교통수단이 변경되었어요.");
+    showToast("교통수단이 변경되었어요.");
   };
   const confirmVerify = () => {
     if (activeStopId) updateYjsStopStatus(activeDayIdx, activeStopId, "completed");
@@ -326,9 +332,9 @@ function ItineraryMain({
         .filter((s): s is BaseStop => s !== null);
       pushYjsOptimizedOrder(currentDay, reordered);
       logActivity("optimize", "");
-      setToastMessage("일정이 최적화됐어요.");
+      showToast("일정이 최적화됐어요.");
     } catch {
-      setToastMessage("일정 최적화에 실패했어요.");
+      showToast("일정 최적화에 실패했어요.", "error");
     } finally {
       setOptimizeDone(true);
     }
@@ -358,18 +364,18 @@ function ItineraryMain({
       status: place.status === "completed" ? "completed" : "verify",
     });
     logActivity("replace", place.name);
-    setToastMessage("관광지가 추가되었어요.");
+    showToast("관광지가 추가되었어요.");
   };
 
   const confirmTimeInline = (dayIdx: number, stopId: string, time: string) => {
     const validationError = validateStopTime(dayIdx, time);
     if (validationError) {
-      setToastMessage(validationError);
+      showToast(validationError, "error");
       return;
     }
     logActivity("time", stopsPerDay[dayIdx]?.find((s) => s.id === stopId)?.placeName ?? "장소");
     updateYjsStopTime(dayIdx, stopId, time);
-    setToastMessage("시간이 변경되었어요.");
+    showToast("시간이 변경되었어요.");
   };
 
   const addNewStop = (dayIdx: number, place: SearchPlace) => {
@@ -384,7 +390,7 @@ function ItineraryMain({
     };
     logActivity("add", place.name);
     addYjsStop(dayIdx, newStop);
-    setToastMessage("관광지가 추가되었어요.");
+    showToast("관광지가 추가되었어요.");
   };
 
   const allDayStops: ItineraryStop[][] = stopsPerDay.map((dayStops, dayIdx) =>
@@ -435,7 +441,7 @@ function ItineraryMain({
         onConfirmTime={confirmTime}
         onConfirmTransport={confirmTransport}
         onConfirmVerify={confirmVerify}
-        onVerifyContinue={() => setToastMessage("관광지를 수집했어요!")}
+        onVerifyContinue={() => showToast("관광지를 수집했어요!")}
         onTimeChange={setTimeValue}
         onOptimizeStart={startOptimize}
         isOptimizeDone={optimizeDone}
@@ -445,6 +451,7 @@ function ItineraryMain({
         isVisible={toastMessage !== null}
         onHide={() => setToastMessage(null)}
         message={toastMessage ?? ""}
+        variant={toastVariant}
         icon={<SuccessIcon width={12} height={12} className="brightness-0 invert" aria-hidden />}
       />
     </div>
