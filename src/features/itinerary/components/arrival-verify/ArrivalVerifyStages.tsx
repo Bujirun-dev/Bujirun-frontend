@@ -170,7 +170,7 @@ export function CameraPermissionStage({ placeName }: Pick<CommonProps, "placeNam
         <Notice>* 사진을 촬영해서 기록을 남겨봐요!</Notice>
       </div>
       <div className="relative h-[162px] w-full overflow-hidden rounded-[10px]">
-        <Image src={samplePlaceImage} alt={placeName} fill className="object-cover" />
+        <Image src={samplePlaceImage} alt={placeName} fill sizes="390px" className="object-cover" />
       </div>
     </>
   );

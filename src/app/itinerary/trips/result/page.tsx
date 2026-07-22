@@ -90,7 +90,7 @@ function ResultPlaceNode({ place }: { place: Place }) {
       </p>
       <span className="absolute left-1/2 -top-[11px] z-10 size-[11px] -translate-x-1/2 rounded-full border-[1.5px] border-main-blue bg-main-white" />
       <div className="relative h-[35px] w-[53px] overflow-hidden rounded-[8px] border border-main-blue bg-system-navbg">
-        <Image src={place.image} alt={place.name} fill className="object-cover" />
+        <Image src={place.image} alt={place.name} fill sizes="53px" className="object-cover" />
       </div>
     </div>
   );

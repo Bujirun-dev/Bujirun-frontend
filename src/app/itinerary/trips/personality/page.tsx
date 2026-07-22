@@ -15,7 +15,7 @@ function SmallAvatar() {
   return (
     <div className="relative size-[35px] overflow-hidden rounded-full bg-main-blue">
       <div className="relative size-[41px] -translate-x-[3px] -translate-y-[3px]">
-        <Image src={faceImg} alt="" fill className="object-cover" aria-hidden />
+        <Image src={faceImg} alt="" fill sizes="41px" className="object-cover" aria-hidden />
       </div>
     </div>
   );

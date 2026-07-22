@@ -176,6 +176,7 @@ function TripSwipeContent() {
             src={place.image}
             alt={place.name}
             fill
+            sizes="390px"
             className="object-cover pointer-events-none"
             draggable={false}
           />
