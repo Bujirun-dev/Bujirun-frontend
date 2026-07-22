@@ -34,7 +34,13 @@ export function CollaboratorBadge({ editors }: { editors: CollaboratorInfo[] }) 
             title={editor.name}
           >
             {avatarSrc ? (
-              <Image src={avatarSrc} alt={editor.name} width={20} height={20} className="object-cover" />
+              <Image
+                src={avatarSrc}
+                alt={editor.name}
+                width={20}
+                height={20}
+                className="object-cover"
+              />
             ) : (
               <span className="text-[9px] font-semibold text-main-white">
                 {editor.name.slice(0, 1)}

@@ -84,12 +84,8 @@ export function useCollaborativeItinerary(
     dayIdsRef.current.forEach((dayId, dayIdx) => {
       if (!dayId) return;
       const snapshot = (snapshotsRef.current[dayIdx] ??= new Map());
-      flushDayToRest(
-        itineraryId,
-        dayId,
-        currentStops[dayIdx] ?? [],
-        snapshot,
-        (tempId, realId) => resolveTempId(doc, dayIdx, tempId, realId),
+      flushDayToRest(itineraryId, dayId, currentStops[dayIdx] ?? [], snapshot, (tempId, realId) =>
+        resolveTempId(doc, dayIdx, tempId, realId),
       );
     });
   };

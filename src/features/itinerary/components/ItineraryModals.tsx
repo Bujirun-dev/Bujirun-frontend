@@ -82,7 +82,14 @@ export function ItineraryModals({
         isOpen={modal === "peerUpdate"}
         onClose={onClose}
         icon={
-          <Image src={magicWandIcon} alt="" width={22} height={22} className="icon-coral" aria-hidden />
+          <Image
+            src={magicWandIcon}
+            alt=""
+            width={22}
+            height={22}
+            className="icon-coral"
+            aria-hidden
+          />
         }
         iconClassName="bg-sub-coral/10"
         title="일정이 업데이트됐어요"

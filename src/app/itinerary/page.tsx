@@ -19,7 +19,10 @@ import {
 import { getTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import type { SearchPlace } from "@/features/itinerary/components/PlaceSearchPanel";
 import type { RouteOption } from "@/features/itinerary";
-import type { ActivityAction, ActivityLogEntry } from "@/features/itinerary/collab/itineraryYjsSchema";
+import type {
+  ActivityAction,
+  ActivityLogEntry,
+} from "@/features/itinerary/collab/itineraryYjsSchema";
 
 // 다른 참여자가 만든 변경을 토스트/안내팝업 메시지로 바꾸는 규칙. "누가 뭘 했는지"는
 // activityLog 엔트리에서 그대로 나오고, 여기서는 문구만 고른다.
@@ -186,7 +189,8 @@ function ItineraryMain({
   // 다른 참여자가 만든 변경(추가/삭제/시간변경/교체/최적화/로그 불러오기)을 알려준다.
   // "로그 불러오기"처럼 일정 전체가 바뀌는 큰 변경은 안내 팝업으로, 나머지는 토스트로.
   const handleRemoteActivity = (entry: ActivityLogEntry) => {
-    const message = ACTIVITY_MESSAGES[entry.action]?.(entry) ?? `${entry.actorName}님이 일정을 변경했어요.`;
+    const message =
+      ACTIVITY_MESSAGES[entry.action]?.(entry) ?? `${entry.actorName}님이 일정을 변경했어요.`;
     if (entry.action === "import") {
       setPeerUpdateMessage(message);
       setModal("peerUpdate");
@@ -216,7 +220,11 @@ function ItineraryMain({
     dayIdsSliced,
     initialDays,
     myProfile?.id && myProfile.nickname
-      ? { id: myProfile.id, nickname: myProfile.nickname, profileImageUrl: myProfile.profileImageUrl }
+      ? {
+          id: myProfile.id,
+          nickname: myProfile.nickname,
+          profileImageUrl: myProfile.profileImageUrl,
+        }
       : undefined,
     handleRemoteActivity,
   );
