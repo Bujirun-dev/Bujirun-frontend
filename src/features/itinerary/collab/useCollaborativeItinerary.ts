@@ -69,27 +69,40 @@ export function useCollaborativeItinerary(
   // effect/콜백 안에서 최신 값을 읽기 위한 ref (stale closure 방지). 렌더 중 값을 그대로
   // 대입하면 안 되므로(react-hooks/refs) effect에서 매 렌더 최신값으로 갱신한다.
   const dayIdsRef = useRef(dayIds);
-  const stopsPerDayRef = useRef(stopsPerDay);
   const snapshotsRef = useRef<DaySnapshot[]>(initialDays.map(snapshotFromStops));
 
   useEffect(() => {
     dayIdsRef.current = dayIds;
-    stopsPerDayRef.current = stopsPerDay;
   });
 
+  // stopsPerDay(React state)가 아니라 doc에서 매번 직접 읽는다 — Yjs observer가
+  // setStopsPerDay를 부른 직후에도 React가 아직 리렌더를 커밋하기 전이면 stopsPerDay는
+  // 옛 값 그대로라서, "mutate 하자마자 바로 flush" 같은 흐름(예: 로그 불러오기 직후
+  // flushNow)에서 방금 반영한 변경이 아니라 그 이전 상태를 저장해버리는 문제가 있었다.
   const flushAll = () => {
+    const currentStops = readStopsFromYjs(doc);
     dayIdsRef.current.forEach((dayId, dayIdx) => {
       if (!dayId) return;
       const snapshot = (snapshotsRef.current[dayIdx] ??= new Map());
       flushDayToRest(
         itineraryId,
         dayId,
-        stopsPerDayRef.current[dayIdx] ?? [],
+        currentStops[dayIdx] ?? [],
         snapshot,
         (tempId, realId) => resolveTempId(doc, dayIdx, tempId, realId),
       );
     });
   };
+
+  // 편집하고 몇 초 지나면 자동으로 DB에 반영한다("저장 버튼 없음" 전제). 이탈 시/합류 시
+  // 트리거만으로는, 페이지를 나가지 않고 계속 머무는 사용자의 편집이(특히 아직 실시간
+  // 협업 서버가 없어서 이탈 트리거 자체가 잘 안 걸리는 지금 같은 상황엔 더더욱) 전혀
+  // 저장되지 않는 문제가 있었다.
+  useEffect(() => {
+    const timer = window.setTimeout(() => flushAll(), 2000);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stopsPerDay]);
 
   const { status, getProvider } = useItineraryYDoc(itineraryId, doc, flushAll);
 
@@ -185,6 +198,10 @@ export function useCollaborativeItinerary(
     collaboratorsByStop,
     setFocusedStop,
     logActivity,
+    // 로그 불러오기처럼 "한 번에 크게 바뀌는" 확정적인 액션 직후엔, 2초 디바운스를
+    // 기다리지 않고 바로 저장한다 — 사용자가 결과를 보자마자 새로고침해보면 디바운스
+    // 타이머가 끝나기 전에 페이지가 죽어서 저장 기회를 잃을 수 있다.
+    flushNow: flushAll,
     addStop: (dayIdx: number, stop: BaseStop) => yAddStop(doc, dayIdx, stop),
     deleteStop: (dayIdx: number, itemId: string) => yDeleteStop(doc, dayIdx, itemId),
     updateStopTime: (dayIdx: number, itemId: string, time: string) =>
