@@ -7,12 +7,12 @@ import SuccessIcon from "@/assets/icons/mypage/success.svg";
 import { PageCard, Toast, EmptyState, LoadingState } from "@/components";
 import { ItineraryHeader, SlidingTimeline, ItineraryModals } from "@/features/itinerary";
 import type { ItineraryStop, ModalType } from "@/features/itinerary";
-import { itineraryApi, travelLogApi, userApi } from "@/shared/api/domains";
+import { itineraryApi, spotApi, travelLogApi, userApi } from "@/shared/api/domains";
 import { useCollaborativeItinerary } from "@/features/itinerary/collab/useCollaborativeItinerary";
-import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";
 import {
   type BaseStop,
-  buildDaysFromLog,
+  type SpotSearchResponse,
+  buildDaysFromTravelLogDetail,
   mapItineraryDetailToDays,
   normalizeTime,
 } from "@/features/itinerary/utils/scheduleUtils";
@@ -145,6 +145,12 @@ function ItineraryMain({
   });
   const searchParams = useSearchParams();
   const importedLogId = searchParams.get("importedLogId");
+  // 다른 사람의 여행 로그를 이 일정에 그대로 불러오는 기능(로그 상세 페이지의 "일정 담기").
+  const { data: importedLog } = useQuery({
+    queryKey: travelLogApi.keys.detail(importedLogId ?? ""),
+    queryFn: () => travelLogApi.getLog(importedLogId as string),
+    enabled: !!importedLogId,
+  });
   const requestedDays = Math.max(1, Number(searchParams.get("days")) || initialDaysData.length);
   const initialDays = initialDaysData.slice(0, requestedDays);
   const initialDates = initialDatesData.slice(0, requestedDays);
@@ -197,6 +203,7 @@ function ItineraryMain({
     collaboratorsByStop,
     setFocusedStop,
     logActivity,
+    flushNow,
     addStop: addYjsStop,
     deleteStop: deleteYjsStop,
     updateStopTime: updateYjsStopTime,
@@ -223,25 +230,58 @@ function ItineraryMain({
   const touchStartX = useRef(0);
 
   useEffect(() => {
-    if (!importedLogId) return;
-    const log = SAMPLE_LOGS.find((l) => l.id === importedLogId);
-    if (!log) return;
-    const { days, dates } = buildDaysFromLog(log);
-    // 실제 itinerary의 day 수와 다를 수 있어(로그 쪽 day 수 기준), 존재하는 day에만 반영한다.
-    days.forEach((dayStops, idx) => {
-      if (idx < dayIdsSliced.length) pushYjsOptimizedOrder(idx, dayStops);
-    });
-    logActivity("import", "");
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTripDates(dates);
-    setCurrentDay(0);
-    const timer = window.setTimeout(() => {
-      showToast("일정이 추가되었어요.");
-      window.history.replaceState(null, "", "/itinerary");
-    }, 300);
-    return () => window.clearTimeout(timer);
+    if (!importedLogId || !importedLog) return;
+    let cancelled = false;
+    let toastTimer: number | undefined;
+
+    // 로그 응답엔 spotId가 없어서(장소 이름만 내려옴) 실제 관광지 검색으로 하나씩 매칭한다.
+    // spotId가 있어야 우리 상세보기와 같은 실제 정보(주소/썸네일/카테고리)가 나오고,
+    // REST addItem(=DB 저장)도 spotId가 필수라 이 매칭이 지속성에도 필요하다.
+    const importWithRealSpots = async () => {
+      const names = [
+        ...new Set(
+          (importedLog.days ?? [])
+            .flatMap((day) => day.items ?? [])
+            .map((item) => item.spotName)
+            .filter((name): name is string => !!name),
+        ),
+      ];
+      const spotByName = new Map<string, SpotSearchResponse>();
+      await Promise.all(
+        names.map(async (name) => {
+          try {
+            const results = await spotApi.searchSpots({ keyword: name });
+            const matched = results.find((r) => r.name === name) ?? results[0];
+            if (matched) spotByName.set(name, matched);
+          } catch {
+            // 검색 실패한 장소는 플레이스홀더로 남는다(buildDaysFromTravelLogDetail의 기본값)
+          }
+        }),
+      );
+      if (cancelled) return;
+
+      const { days, dates } = buildDaysFromTravelLogDetail(importedLog, spotByName);
+      // 실제 itinerary의 day 수와 다를 수 있어(로그 쪽 day 수 기준), 존재하는 day에만 반영한다.
+      days.forEach((dayStops, idx) => {
+        if (idx < dayIdsSliced.length) pushYjsOptimizedOrder(idx, dayStops);
+      });
+      logActivity("import", "");
+      flushNow();
+      setTripDates(dates);
+      setCurrentDay(0);
+      toastTimer = window.setTimeout(() => {
+        showToast("일정이 추가되었어요.");
+        window.history.replaceState(null, "", "/itinerary");
+      }, 300);
+    };
+
+    importWithRealSpots();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(toastTimer);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [importedLogId]);
+  }, [importedLogId, importedLog]);
 
   const activeStop = stopsPerDay[activeDayIdx]?.find((s) => s.id === activeStopId);
   const closeModal = () => setModal(null);
