@@ -205,6 +205,7 @@ function getDefaultItemTime(
   dayIdx: number,
   totalDays: number,
   itemIdx: number,
+  itemCount: number,
   bounds?: TripTimeBoundsLike | null,
 ): string {
   let slots = DEFAULT_DAY_SLOTS;
@@ -223,7 +224,23 @@ function getDefaultItemTime(
     }
   }
   if (slots.length === 0) slots = DEFAULT_DAY_SLOTS;
-  return slots[itemIdx % slots.length]?.time ?? "10:00";
+  const time = slots[itemIdx % slots.length]?.time ?? "10:00";
+
+  // 위 버킷 필터는 대략적인 시간대만 걸러내서, 여행 전체의 첫/마지막 일정은 여전히
+  // 정확한 시작/종료 시간보다 이르거나 늦게 배정될 수 있다 — 그 두 항목만 정확한
+  // 경계값으로 강제 보정한다(validateStopTime과 동일하게 경계값 자체는 허용).
+  if (dayIdx === 0 && itemIdx === 0 && bounds?.startTime && time < bounds.startTime) {
+    return bounds.startTime;
+  }
+  if (
+    dayIdx === totalDays - 1 &&
+    itemIdx === itemCount - 1 &&
+    bounds?.endTime &&
+    time > bounds.endTime
+  ) {
+    return bounds.endTime;
+  }
+  return time;
 }
 
 // GET /api/itineraries/{id} 응답을 타임라인 UI가 쓰는 BaseStop[][] 구조로 변환한다.
@@ -255,7 +272,7 @@ export function mapItineraryDetailToDays(
         spotId: item.spot?.id,
         time: item.arrivalTime
           ? normalizeTime(item.arrivalTime)
-          : getDefaultItemTime(dayIdx, totalDays, idx, timeBounds),
+          : getDefaultItemTime(dayIdx, totalDays, idx, items.length, timeBounds),
         placeName,
         imageUrl: item.spot?.thumbnailUrl || FALLBACK_IMAGE,
         category: getCategoryFromKo(item.spot?.category ?? ""),
