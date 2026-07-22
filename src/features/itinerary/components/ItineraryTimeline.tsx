@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import PlusIcon from "@/assets/icons/itinerary/plus-small.svg?svgr";
 import type { TransportLeg } from "./TransportCard";
-import { PlaceCard } from "@/components";
+import { PlaceCard, EmptyState } from "@/components";
 import { TransportCard } from "./TransportCard";
 import { TimelinePlaceDetailPopup } from "./TimelinePlaceDetailPopup";
 import { TimelineSearchPopup } from "./TimelineSearchPopup";
@@ -250,7 +250,10 @@ export function ItineraryTimeline({
         <div className="absolute top-0 bottom-0 left-[45px] w-[2px] rounded-full bg-sub-lightgray" />
       )}
 
-      <div className="flex flex-col gap-5" style={{ paddingBottom: popupScrollSpace }}>
+      <div
+        className={cn("flex flex-col gap-5", isEmpty && "h-full")}
+        style={{ paddingBottom: popupScrollSpace }}
+      >
         {/* 상단: + 버튼 + 날짜 (검색 중이거나 빈 날엔 + 버튼만 숨김 — 빈 날은 아래 안내 카드의 버튼으로 대신함) */}
         <div className="relative flex items-center">
           <div className="w-10 shrink-0" />
@@ -279,19 +282,14 @@ export function ItineraryTimeline({
         </div>
 
         {isEmpty && !isAddingNew && (
-          <div className="flex flex-col items-center gap-3 rounded-[14px] bg-system-navbg px-4 py-10 text-center">
-            <span className="text-2xl">🧭</span>
-            <p className="font-paperlogy text-sm font-medium text-sub-darkgray">
-              아직 이 날 일정이 없어요.
-            </p>
-            <button
-              type="button"
-              onClick={openAddNew}
-              className="rounded-full bg-sub-coral px-4 py-2 font-paperlogy text-xs font-semibold text-main-white active:opacity-70"
-            >
-              + 일정 추가
-            </button>
-          </div>
+          <EmptyState
+            size="sm"
+            imageSize={120}
+            title="아직 이 날 일정이 없어요"
+            actionLabel="+ 일정 추가"
+            actionClassName="w-auto px-4"
+            onAction={openAddNew}
+          />
         )}
 
         {/* 관광지 검색창이 떠 있는 동안엔 상단바/타임라인 선은 그대로 두고

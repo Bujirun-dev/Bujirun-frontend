@@ -8,9 +8,13 @@ import { cn } from "@/shared/utils";
 interface BackButtonProps {
   className?: string;
   onClick?: () => void;
+  // 팝업 안에 쓰이는 작은 화살표만 있는 버전처럼, 박스 크기와 다른 아이콘 크기가
+  // 필요한 화면에서만 넘긴다. 기본은 기존과 동일한 16px.
+  iconSize?: number;
+  iconClassName?: string;
 }
 
-export function BackButton({ className, onClick }: BackButtonProps) {
+export function BackButton({ className, onClick, iconSize = 16, iconClassName }: BackButtonProps) {
   const router = useRouter();
 
   return (
@@ -21,7 +25,14 @@ export function BackButton({ className, onClick }: BackButtonProps) {
         className,
       )}
     >
-      <Image src={angleLeftIcon} alt="" width={16} height={16} aria-hidden />
+      <Image
+        src={angleLeftIcon}
+        alt=""
+        width={iconSize}
+        height={iconSize}
+        className={iconClassName}
+        aria-hidden
+      />
     </button>
   );
 }

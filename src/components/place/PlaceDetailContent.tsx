@@ -65,6 +65,10 @@ interface PlaceDetailContentProps {
   // 버튼 옆에 관광지명이 떠오르는 sticky 헤더로 바뀐다. 없으면 기존처럼 이미지/이름은
   // 고정, 아래 섹션만 스크롤.
   onBack?: () => void;
+  // onBack 버튼의 스타일을 화면마다 다르게 써야 할 때만 넘긴다(기본은 기존과 동일).
+  backButtonClassName?: string;
+  backButtonIconSize?: number;
+  backButtonIconClassName?: string;
 }
 
 export function PlaceDetailContent({
@@ -79,6 +83,9 @@ export function PlaceDetailContent({
   footer,
   size = "default",
   onBack,
+  backButtonClassName,
+  backButtonIconSize,
+  backButtonIconClassName,
 }: PlaceDetailContentProps) {
   const { imageUrl, name, category, description, address, mapUrl, isBookmarked, infoItems } = place;
   const compact = size === "compact";
@@ -317,7 +324,12 @@ export function PlaceDetailContent({
             compact ? "h-9" : "h-11",
           )}
         >
-          <BackButton className="bg-transparent" onClick={onBack} />
+          <BackButton
+            className={cn("bg-transparent", backButtonClassName)}
+            iconSize={backButtonIconSize}
+            iconClassName={backButtonIconClassName}
+            onClick={onBack}
+          />
           <span
             className={cn(
               "truncate font-bold text-text-heading transition-opacity duration-200",
