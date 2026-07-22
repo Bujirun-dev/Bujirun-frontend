@@ -2,20 +2,19 @@
 
 import { Suspense, useRef, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import SuccessIcon from "@/assets/icons/mypage/success.svg";
 import { PageCard, Toast, EmptyState, LoadingState } from "@/components";
 import { ItineraryHeader, SlidingTimeline, ItineraryModals } from "@/features/itinerary";
 import type { ItineraryStop, ModalType } from "@/features/itinerary";
 import { itineraryApi, travelLogApi } from "@/shared/api/domains";
+import { useCollaborativeItinerary } from "@/features/itinerary/collab/useCollaborativeItinerary";
 import { SAMPLE_LOGS } from "@/features/itinerary/data/sampleLogs";
 import {
   type BaseStop,
   buildDaysFromLog,
   mapItineraryDetailToDays,
-  nextTempStopId,
   normalizeTime,
-  rebuildTransport,
 } from "@/features/itinerary/utils/scheduleUtils";
 import { getTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import type { SearchPlace } from "@/features/itinerary/components/PlaceSearchPanel";
@@ -121,9 +120,6 @@ function ItineraryMain({
   tripTimeBounds: ReturnType<typeof getTripTimeBounds>;
 }) {
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const invalidateDetail = () =>
-    queryClient.invalidateQueries({ queryKey: itineraryApi.keys.detail(itineraryId) });
   // 인증하기(ArrivalVerifyModal)용 로그 ID. 홈 탭(useTodayItinerary)과 동일하게
   // 일정과 1:1로 연결된 로그를 itineraryId로 조회한다.
   const { data: verifyLog } = useQuery({
@@ -154,7 +150,16 @@ function ItineraryMain({
   };
 
   const [currentDay, setCurrentDay] = useState(0);
-  const [stopsPerDay, setStopsPerDay] = useState<BaseStop[][]>(initialDays);
+  const {
+    stopsPerDay,
+    addStop: addYjsStop,
+    deleteStop: deleteYjsStop,
+    updateStopTime: updateYjsStopTime,
+    replaceStop: replaceYjsStop,
+    updateStopTransport: updateYjsStopTransport,
+    updateStopStatus: updateYjsStopStatus,
+    pushOptimizedOrder: pushYjsOptimizedOrder,
+  } = useCollaborativeItinerary(itineraryId, dayIdsSliced, initialDays);
   const [tripDates, setTripDates] = useState<string[]>(initialDates);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalType | null>(null);
@@ -171,20 +176,19 @@ function ItineraryMain({
     const log = SAMPLE_LOGS.find((l) => l.id === importedLogId);
     if (!log) return;
     const { days, dates } = buildDaysFromLog(log);
+    // 실제 itinerary의 day 수와 다를 수 있어(로그 쪽 day 수 기준), 존재하는 day에만 반영한다.
+    days.forEach((dayStops, idx) => {
+      if (idx < dayIdsSliced.length) pushYjsOptimizedOrder(idx, dayStops);
+    });
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setStopsPerDay(days);
     setTripDates(dates);
     setCurrentDay(0);
     const timer = window.setTimeout(() => {
       setToastMessage("일정이 추가되었어요.");
       window.history.replaceState(null, "", "/itinerary");
     }, 300);
-    // TODO: WebSocket 연결 후 아래 핸들러 등록
-    // ws.on("itinerary_updated", ({ actorNickname, days, dates }) => {
-    //   setStopsPerDay(days); setTripDates(dates); setCurrentDay(0);
-    //   setToastMessage(`${actorNickname}님이 일정을 변경했어요.`);
-    // });
     return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [importedLogId]);
 
   const activeStop = stopsPerDay[activeDayIdx]?.find((s) => s.id === activeStopId);
@@ -214,23 +218,9 @@ function ItineraryMain({
   };
 
   const confirmDelete = () => {
-    const dayId = dayIdsSliced[activeDayIdx];
-    const stopId = activeStopId;
-    setStopsPerDay((prev) => {
-      const next = [...prev];
-      next[activeDayIdx] = rebuildTransport(
-        next[activeDayIdx].filter((s) => s.id !== activeStopId),
-      );
-      return next;
-    });
+    if (activeStopId) deleteYjsStop(activeDayIdx, activeStopId);
     closeModal();
     setToastMessage("장소가 삭제되었어요.");
-    if (dayId && stopId) {
-      itineraryApi
-        .deleteItem(itineraryId, dayId, stopId)
-        .then(invalidateDetail)
-        .catch(() => setToastMessage("삭제 저장에 실패했어요."));
-    }
   };
   const confirmTime = () => {
     const timeStr = `${String(timeValue.hour).padStart(2, "0")}:${String(timeValue.minute).padStart(2, "0")}`;
@@ -239,56 +229,25 @@ function ItineraryMain({
       setToastMessage(validationError);
       return;
     }
-    const dayId = dayIdsSliced[activeDayIdx];
-    const stopId = activeStopId;
-    setStopsPerDay((prev) => {
-      const next = [...prev];
-      const sorted = [...next[activeDayIdx]]
-        .map((s) => (s.id === activeStopId ? { ...s, time: timeStr } : s))
-        .sort((a, b) => a.time.localeCompare(b.time));
-      next[activeDayIdx] = rebuildTransport(sorted);
-      return next;
-    });
+    if (activeStopId) updateYjsStopTime(activeDayIdx, activeStopId, timeStr);
     closeModal();
     setToastMessage("시간이 변경되었어요.");
-    if (dayId && stopId) {
-      itineraryApi
-        .updateItem(itineraryId, dayId, stopId, { arrivalTime: timeStr })
-        .then(invalidateDetail)
-        .catch(() => setToastMessage("시간 변경 저장에 실패했어요."));
-    }
   };
   const confirmTransport = (option: RouteOption) => {
     setSelectedRouteOptionId(option.id);
-    setStopsPerDay((prev) => {
-      const next = [...prev];
-      next[activeDayIdx] = next[activeDayIdx].map((s) =>
-        s.id === activeStopId && s.transport
-          ? {
-              ...s,
-              transport: {
-                ...s.transport,
-                legs: option.legs,
-                durationMin: option.durationMin,
-                cost: option.cost,
-                baseDurationMin: s.transport.baseDurationMin,
-              },
-            }
-          : s,
-      );
-      return next;
-    });
+    if (activeStopId && activeStop?.transport) {
+      updateYjsStopTransport(activeDayIdx, activeStopId, {
+        ...activeStop.transport,
+        legs: option.legs,
+        durationMin: option.durationMin,
+        cost: option.cost,
+      });
+    }
     closeModal();
     setToastMessage("교통수단이 변경되었어요.");
   };
   const confirmVerify = () => {
-    setStopsPerDay((prev) => {
-      const next = [...prev];
-      next[activeDayIdx] = next[activeDayIdx].map((s) =>
-        s.id === activeStopId ? { ...s, status: "completed" as const } : s,
-      );
-      return next;
-    });
+    if (activeStopId) updateYjsStopStatus(activeDayIdx, activeStopId, "completed");
   };
 
   const startOptimize = async () => {
@@ -298,28 +257,22 @@ function ItineraryMain({
     try {
       if (!dayId) throw new Error("dayId missing");
       const result = await itineraryApi.optimizeDay(dayId, {});
-      invalidateDetail();
       // 응답에 item id가 없어 장소 이름으로 기존 stop을 찾아 순서/도착시간만 갱신한다.
-      setStopsPerDay((prev) => {
-        const next = [...prev];
-        const currentStops = next[currentDay];
-        // 이름이 겹치는 스팟이 있어도 같은 stop을 두 번 재사용해 id가 중복되지 않도록,
-        // 매칭된 stop은 remaining에서 바로 제거한다.
-        const remaining = [...currentStops];
-        const reordered = (result.data?.spots ?? [])
-          .slice()
-          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-          .map((optimized) => {
-            const matchIdx = remaining.findIndex((s) => s.placeName === optimized.name);
-            const existing = matchIdx >= 0 ? remaining.splice(matchIdx, 1)[0] : remaining.shift();
-            return existing
-              ? { ...existing, time: normalizeTime(optimized.arrivalTime, existing.time) }
-              : null;
-          })
-          .filter((s): s is BaseStop => s !== null);
-        next[currentDay] = rebuildTransport(reordered);
-        return next;
-      });
+      // 이름이 겹치는 스팟이 있어도 같은 stop을 두 번 재사용해 id가 중복되지 않도록,
+      // 매칭된 stop은 remaining에서 바로 제거한다.
+      const remaining = [...(stopsPerDay[currentDay] ?? [])];
+      const reordered = (result.data?.spots ?? [])
+        .slice()
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        .map((optimized) => {
+          const matchIdx = remaining.findIndex((s) => s.placeName === optimized.name);
+          const existing = matchIdx >= 0 ? remaining.splice(matchIdx, 1)[0] : remaining.shift();
+          return existing
+            ? { ...existing, time: normalizeTime(optimized.arrivalTime, existing.time) }
+            : null;
+        })
+        .filter((s): s is BaseStop => s !== null);
+      pushYjsOptimizedOrder(currentDay, reordered);
       setToastMessage("일정이 최적화됐어요.");
     } catch {
       setToastMessage("일정 최적화에 실패했어요.");
@@ -338,46 +291,20 @@ function ItineraryMain({
     if (diff < 0 && currentDay > 0) setCurrentDay((d) => d - 1);
   };
 
-  const replaceStop = (dayIdx: number, stopId: string, place: SearchPlace) => {
-    const existingTime = stopsPerDay[dayIdx]?.find((s) => s.id === stopId)?.time;
-    setStopsPerDay((prev) => {
-      const next = [...prev];
-      next[dayIdx] = rebuildTransport(
-        next[dayIdx].map((s) =>
-          s.id === stopId
-            ? {
-                ...s,
-                placeName: place.name,
-                imageUrl: place.imageUrl,
-                category: place.category,
-                status: place.status === "completed" ? ("completed" as const) : ("verify" as const),
-              }
-            : s,
-        ),
-      );
-      return next;
+  // PATCH로는 spotId(장소 자체)를 바꿀 수 없어서, 같은 위치에서 통째로 새 장소로 교체한다
+  // (flush 시점에 delete+add로 반영됨 — flushItineraryToRest 참고).
+  const replacePlace = (dayIdx: number, stopId: string, place: SearchPlace) => {
+    const existingTime = stopsPerDay[dayIdx]?.find((s) => s.id === stopId)?.time ?? "00:00";
+    replaceYjsStop(dayIdx, stopId, {
+      id: `temp-${crypto.randomUUID()}`,
+      spotId: place.id,
+      time: existingTime,
+      placeName: place.name,
+      imageUrl: place.imageUrl,
+      category: place.category,
+      status: place.status === "completed" ? "completed" : "verify",
     });
     setToastMessage("관광지가 추가되었어요.");
-
-    // PATCH로는 spotId(장소 자체)를 바꿀 수 없어서, 기존 항목 삭제 후 새 장소로 다시 추가하는 방식으로 처리
-    const dayId = dayIdsSliced[dayIdx];
-    if (!dayId) return;
-    itineraryApi
-      .deleteItem(itineraryId, dayId, stopId)
-      .catch(() => {})
-      .then(() =>
-        itineraryApi.addItem(itineraryId, dayId, { spotId: place.id, arrivalTime: existingTime }),
-      )
-      .then((newItem) => {
-        if (!newItem?.id) return;
-        setStopsPerDay((prev) => {
-          const next = [...prev];
-          next[dayIdx] = next[dayIdx].map((s) => (s.id === stopId ? { ...s, id: newItem.id! } : s));
-          return next;
-        });
-        invalidateDetail();
-      })
-      .catch(() => setToastMessage("장소 변경 저장에 실패했어요."));
   };
 
   const confirmTimeInline = (dayIdx: number, stopId: string, time: string) => {
@@ -386,58 +313,22 @@ function ItineraryMain({
       setToastMessage(validationError);
       return;
     }
-    setStopsPerDay((prev) => {
-      const next = [...prev];
-      const sorted = [...next[dayIdx]]
-        .map((s) => (s.id === stopId ? { ...s, time } : s))
-        .sort((a, b) => a.time.localeCompare(b.time));
-      next[dayIdx] = rebuildTransport(sorted);
-      return next;
-    });
+    updateYjsStopTime(dayIdx, stopId, time);
     setToastMessage("시간이 변경되었어요.");
-
-    const dayId = dayIdsSliced[dayIdx];
-    if (dayId) {
-      itineraryApi
-        .updateItem(itineraryId, dayId, stopId, { arrivalTime: time })
-        .then(invalidateDetail)
-        .catch(() => setToastMessage("시간 변경 저장에 실패했어요."));
-    }
   };
 
   const addNewStop = (dayIdx: number, place: SearchPlace) => {
-    const tempId = nextTempStopId();
     const newStop: BaseStop = {
-      id: tempId,
+      id: `temp-${crypto.randomUUID()}`,
+      spotId: place.id,
       time: "00:00",
       placeName: place.name,
       imageUrl: place.imageUrl,
       category: place.category,
       status: place.status === "completed" ? "completed" : "verify",
     };
-    const orderIndex = stopsPerDay[dayIdx]?.length ?? 0;
-
-    setStopsPerDay((prev) => {
-      const next = [...prev];
-      next[dayIdx] = rebuildTransport([...next[dayIdx], newStop]);
-      return next;
-    });
+    addYjsStop(dayIdx, newStop);
     setToastMessage("관광지가 추가되었어요.");
-
-    const dayId = dayIdsSliced[dayIdx];
-    if (!dayId) return;
-    itineraryApi
-      .addItem(itineraryId, dayId, { spotId: place.id, arrivalTime: "00:00", orderIndex })
-      .then((newItem) => {
-        if (!newItem?.id) return;
-        setStopsPerDay((prev) => {
-          const next = [...prev];
-          next[dayIdx] = next[dayIdx].map((s) => (s.id === tempId ? { ...s, id: newItem.id! } : s));
-          return next;
-        });
-        invalidateDetail();
-      })
-      .catch(() => setToastMessage("장소 추가 저장에 실패했어요."));
   };
 
   const allDayStops: ItineraryStop[][] = stopsPerDay.map((dayStops, dayIdx) =>
@@ -446,7 +337,7 @@ function ItineraryMain({
       onDelete: () => openDelete(dayIdx, stop.id),
       onTimeClick: () => openTime(dayIdx, stop.id, stop.time),
       onTimeConfirm: (time: string) => confirmTimeInline(dayIdx, stop.id, time),
-      onAddPlace: (place: SearchPlace) => replaceStop(dayIdx, stop.id, place),
+      onAddPlace: (place: SearchPlace) => replacePlace(dayIdx, stop.id, place),
       onTransportClick: stop.transport ? () => openTransport(dayIdx, stop.id) : undefined,
       onVerify: stop.status === "verify" ? () => openVerify(dayIdx, stop.id) : undefined,
     })),
