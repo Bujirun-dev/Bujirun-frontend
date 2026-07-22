@@ -1,9 +1,7 @@
 import { forwardRef } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlaceDetailContent, StatusBadge } from "@/components";
 import type { PlaceDetailInfoItem } from "@/components";
-import { bookmarkApi, travelLogApi } from "@/shared/api/domains";
-import { useAuthStore } from "@/shared/stores/useAuthStore";
+import { useSpotDetail } from "@/features/itinerary/hooks/useSpotDetail";
 import type { ItineraryStop } from "./ItineraryTimeline";
 
 interface TimelinePlaceDetailPopupProps {
@@ -13,48 +11,16 @@ interface TimelinePlaceDetailPopupProps {
 
 export const TimelinePlaceDetailPopup = forwardRef<HTMLDivElement, TimelinePlaceDetailPopupProps>(
   function TimelinePlaceDetailPopup({ stop, onClose }, ref) {
-    const accessToken = useAuthStore((s) => s.accessToken);
-    const queryClient = useQueryClient();
     const spotId = stop.spotId;
-
-    // 다른 화면(관광지 상세보기)과 동일하게 실제 북마크 목록/토글, 관련 로그 API로 연결한다.
-    const { data: bookmarks = [] } = useQuery({
-      queryKey: bookmarkApi.keys.list(),
-      queryFn: bookmarkApi.getBookmarks,
-      enabled: Boolean(accessToken),
-    });
-    const isBookmarked = bookmarks.some((bookmark) => bookmark.spotId === spotId);
-
-    const { mutate: toggleBookmark } = useMutation({
-      mutationFn: () =>
-        spotId
-          ? isBookmarked
-            ? bookmarkApi.removeBookmark(spotId)
-            : bookmarkApi.addBookmark(spotId)
-          : Promise.reject(new Error("spotId missing")),
-      onSuccess: async () => {
-        await queryClient.invalidateQueries({ queryKey: bookmarkApi.keys.list() });
-      },
-    });
-
-    const { data: logs = [] } = useQuery({
-      queryKey: travelLogApi.keys.bySpot(spotId ?? ""),
-      queryFn: () => travelLogApi.getLogsBySpot(spotId as string),
-      enabled: Boolean(accessToken && spotId),
-    });
-    const relatedLogs = logs.slice(0, 2).map((log) => ({
-      id: log.id ?? "",
-      imageUrl: log.thumbnailPhotoUrl ?? "",
-      author: log.authorNickname ?? "",
-    }));
+    const { spot, isBookmarked, toggleBookmark, relatedLogs } = useSpotDetail(spotId);
 
     const infoItems: PlaceDetailInfoItem[] = [
-      ...(stop.operatingHours
-        ? [{ type: "clock" as const, label: "운영시간", value: stop.operatingHours }]
-        : []),
-      ...(stop.fee ? [{ type: "fee" as const, label: "입장료", value: stop.fee }] : []),
-      ...(stop.parking ? [{ type: "parking" as const, label: "주차", value: stop.parking }] : []),
-      ...(stop.phone ? [{ type: "call" as const, label: "문의", value: stop.phone }] : []),
+      {
+        type: "clock",
+        label: "운영",
+        value: spot?.operatingHours || "운영 정보가 없습니다.",
+      },
+      { type: "call", label: "문의", value: spot?.tel || "문의처 정보가 없습니다." },
     ];
 
     return (
@@ -66,8 +32,8 @@ export const TimelinePlaceDetailPopup = forwardRef<HTMLDivElement, TimelinePlace
               imageUrl: stop.imageUrl,
               name: stop.placeName,
               category: stop.category,
-              description: stop.description ?? "",
-              address: stop.address ?? "",
+              description: spot?.overview || stop.description || "",
+              address: stop.address || spot?.address || "",
               mapUrl: stop.mapUrl,
               isBookmarked,
               infoItems,
@@ -77,7 +43,7 @@ export const TimelinePlaceDetailPopup = forwardRef<HTMLDivElement, TimelinePlace
                 <StatusBadge status={stop.status === "completed" ? "collected" : "uncollected"} />
               </div>
             }
-            onBookmark={spotId ? () => toggleBookmark() : undefined}
+            onBookmark={spotId ? toggleBookmark : undefined}
             relatedLogs={spotId ? relatedLogs : undefined}
             getRelatedLogHref={(logId) => `/itinerary/logs/${logId}`}
             size="compact"
