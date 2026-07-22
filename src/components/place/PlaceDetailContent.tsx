@@ -253,7 +253,12 @@ export function PlaceDetailContent({
                 relatedLogs.slice(0, compact ? 4 : 2).map((log) => {
                   const content = (
                     <>
-                      <Image src={log.imageUrl} alt="" fill className="object-cover" />
+                      {/* 대표 사진 없으면 회색 배경 처리 */}
+                      {log.imageUrl ? (
+                        <Image src={log.imageUrl} alt="" fill className="object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-system-searchbg" />
+                      )}
                       <div className="absolute bottom-[6px] left-[6px] rounded-[5px] bg-system-blackbg px-1.5 py-0.5">
                         <span className="text-2xs font-medium text-white">{log.author}</span>
                       </div>
@@ -374,7 +379,6 @@ function InfoRow({
       >
         <Image src={icon} alt="" width={compact ? 12 : 14} height={compact ? 12 : 14} aria-hidden />
       </div>
-
       <p
         className={cn("shrink-0 font-semibold text-text-primary", compact ? "text-xs" : "text-md")}
       >

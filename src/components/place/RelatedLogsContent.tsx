@@ -23,12 +23,13 @@ interface RelatedLogsContentProps {
 // TravelLogSummaryResponse → LogCard props 변환
 function toLogCardProps(log: TravelLogSummary) {
   const date = log.startDate?.replace(/-/g, ".") ?? "";
-  const placeName = "부산 여행";
   const extraCount = log.totalSpots != null && log.totalSpots > 1 ? log.totalSpots - 1 : undefined;
 
   return {
-    imageUrl: log.thumbnailPhotoUrl ?? "",
-    placeName,
+    // 썸네일 없으면 플레이스홀더 이미지로 대체
+    imageUrl: log.thumbnailPhotoUrl || "/images/placeholder.png",
+    // 사용자가 입력한 로그 타이틀 사용
+    placeName: log.title ?? "",
     extraCount,
     author: log.authorNickname ?? "",
     duration: "",

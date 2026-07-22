@@ -447,7 +447,11 @@ export interface paths {
         get: operations["getMyProfile"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * 회원탈퇴 (담당: 윤제승)
+         * @description 개인정보를 익명화하고 인증 정보를 만료시킵니다. 여행 데이터는 유지됩니다.
+         */
+        delete: operations["deleteMyAccount"];
         options?: never;
         head?: never;
         /**
@@ -850,6 +854,23 @@ export interface paths {
          * @description 로그인한 사용자가 북마크한 관광지 목록을 조회합니다.
          */
         get: operations["getBookmarks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/migration/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** (담당: 유정) */
+        get: operations["status"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1385,16 +1406,6 @@ export interface components {
             tokenType?: string;
             isNewUser?: boolean;
         };
-        MigrationResult: {
-            /** Format: int32 */
-            total?: number;
-            /** Format: int32 */
-            saved?: number;
-            /** Format: int32 */
-            updated?: number;
-            /** Format: int32 */
-            failed?: number;
-        };
         UpdateProfileRequest: {
             nickname?: string;
             profileImageUrl?: string;
@@ -1516,6 +1527,7 @@ export interface components {
             sigunguName?: string;
             address?: string;
             thumbnailUrl?: string;
+            swipeImageUrl?: string;
             isCollection?: boolean;
             collected?: boolean;
             visited?: boolean;
@@ -2172,7 +2184,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["MigrationResult"];
+                    "*/*": {
+                        [key: string]: string;
+                    };
                 };
             };
         };
@@ -2193,6 +2207,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseUserProfileResponse"];
+                };
+            };
+        };
+    };
+    deleteMyAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
                 };
             };
         };
@@ -2774,6 +2808,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["BookmarkListResponse"][];
+                };
+            };
+        };
+    };
+    status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: unknown;
+                    };
                 };
             };
         };
