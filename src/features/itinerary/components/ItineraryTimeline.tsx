@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import PlusIcon from "@/assets/icons/itinerary/plus-small.svg?svgr";
 import type { TransportLeg } from "./TransportCard";
-import { PlaceCard } from "@/components";
+import { PlaceCard, EmptyState } from "@/components";
 import { TransportCard } from "./TransportCard";
 import { TimelinePlaceDetailPopup } from "./TimelinePlaceDetailPopup";
 import { TimelineSearchPopup } from "./TimelineSearchPopup";
@@ -12,6 +12,8 @@ import { TimelineTimePicker } from "./TimelineTimePicker";
 import { cn } from "@/shared/utils";
 import type { Category } from "@/components";
 import type { SearchPlace } from "./PlaceSearchPanel";
+import { CollaboratorBadge } from "./CollaboratorBadge";
+import type { CollaboratorInfo } from "@/features/itinerary/collab/useCollaborativeItinerary";
 
 type PlaceStatus = "completed" | "verify";
 
@@ -39,6 +41,8 @@ export interface ItineraryStop {
   isBookmarked?: boolean;
   relatedLogs?: { id: string; imageUrl: string; userName: string }[];
   transport?: TransportInfo;
+  // 지금 이 항목을 보고 있는 다른 참여자 목록 (실시간 공동편집, WS 미연결 시 항상 빈 배열)
+  activeEditors?: CollaboratorInfo[];
   onDelete?: () => void;
   onClick?: () => void;
   onTimeClick?: () => void;
@@ -52,9 +56,16 @@ interface ItineraryTimelineProps {
   stops: ItineraryStop[];
   date?: string;
   onAddNewPlace?: (place: SearchPlace) => void;
+  // 지금 이 날에서 유저가 보고 있는 항목이 바뀔 때마다 알려준다 (실시간 공동편집 프레즌스용)
+  onFocusChange?: (stopId: string | null) => void;
 }
 
-export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimelineProps) {
+export function ItineraryTimeline({
+  stops,
+  date,
+  onAddNewPlace,
+  onFocusChange,
+}: ItineraryTimelineProps) {
   const [activeSearchStopId, setActiveSearchStopId] = useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [activeDetailStopId, setActiveDetailStopId] = useState<string | null>(null);
@@ -68,6 +79,13 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
   const stopRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const isAutoScrollingRef = useRef(false);
   const activePopupStopId = activeSearchStopId ?? activeDetailStopId;
+  const focusedStopId = activeSearchStopId ?? activeDetailStopId ?? activeTimeStopId ?? null;
+
+  useEffect(() => {
+    onFocusChange?.(focusedStopId);
+    return () => onFocusChange?.(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusedStopId]);
 
   const closeSearch = () => {
     setActiveSearchStopId(null);
@@ -228,7 +246,10 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
         <div className="absolute top-0 bottom-0 left-[45px] w-[2px] rounded-full bg-sub-lightgray" />
       )}
 
-      <div className="flex flex-col gap-5" style={{ paddingBottom: popupScrollSpace }}>
+      <div
+        className={cn("flex flex-col gap-5", isEmpty && "h-full")}
+        style={{ paddingBottom: popupScrollSpace }}
+      >
         {/* 상단: + 버튼 + 날짜 (검색 중이거나 빈 날엔 + 버튼만 숨김 — 빈 날은 아래 안내 카드의 버튼으로 대신함) */}
         <div className="relative flex items-center">
           <div className="w-10 shrink-0" />
@@ -257,19 +278,14 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
         </div>
 
         {isEmpty && !isAddingNew && (
-          <div className="flex flex-col items-center gap-3 rounded-[14px] bg-system-navbg px-4 py-10 text-center">
-            <span className="text-2xl">🧭</span>
-            <p className="font-paperlogy text-sm font-medium text-sub-darkgray">
-              아직 이 날 일정이 없어요.
-            </p>
-            <button
-              type="button"
-              onClick={openAddNew}
-              className="rounded-full bg-sub-coral px-4 py-2 font-paperlogy text-xs font-semibold text-main-white active:opacity-70"
-            >
-              + 일정 추가
-            </button>
-          </div>
+          <EmptyState
+            size="sm"
+            imageSize={120}
+            title="아직 이 날 일정이 없어요"
+            actionLabel="+ 일정 추가"
+            actionClassName="w-auto px-4"
+            onAction={openAddNew}
+          />
         )}
 
         {/* 관광지 검색창이 떠 있는 동안엔 상단바/타임라인 선은 그대로 두고
@@ -296,7 +312,12 @@ export function ItineraryTimeline({ stops, date, onAddNewPlace }: ItineraryTimel
                     onTimeClick={() => openTimePicker(stop)}
                   />
 
-                  <div className="min-w-0 flex-1 pl-3">
+                  <div className="relative min-w-0 flex-1 pl-3">
+                    {stop.activeEditors && stop.activeEditors.length > 0 && (
+                      <div className="absolute -top-1.5 left-1.5 z-10">
+                        <CollaboratorBadge editors={stop.activeEditors} />
+                      </div>
+                    )}
                     <PlaceCard
                       imageUrl={stop.imageUrl}
                       name={stop.placeName}

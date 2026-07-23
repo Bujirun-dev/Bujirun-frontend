@@ -13,6 +13,7 @@ interface TimelinePlaceDetailPopupProps {
 export const TimelinePlaceDetailPopup = forwardRef<HTMLDivElement, TimelinePlaceDetailPopupProps>(
   function TimelinePlaceDetailPopup({ stop, onClose }, ref) {
     const spotId = stop.spotId;
+
     const { place, isBookmarked, toggleBookmark, relatedLogs } = useSpotDetail(spotId, {
       name: stop.placeName,
       imageUrl: stop.imageUrl,

@@ -102,6 +102,7 @@ export default function CollectionRecordsPage() {
   const [toast, setToast] = useState<{
     message: string;
     icon: ReactNode;
+    variant?: "default" | "error";
   } | null>(null);
 
   // 삭제 모달
@@ -268,6 +269,7 @@ export default function CollectionRecordsPage() {
           setToast({
             message: "영수증 저장에 실패했어요.",
             icon: failureToastIcon,
+            variant: "error",
           })
         }
         onDetail={() => {
@@ -287,6 +289,7 @@ export default function CollectionRecordsPage() {
         onHide={() => setToast(null)}
         message={toast?.message ?? ""}
         icon={toast?.icon}
+        variant={toast?.variant}
       />
     </section>
   );

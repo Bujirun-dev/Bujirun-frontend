@@ -1,12 +1,12 @@
-import type { Category } from "@/components";
 import type { ItineraryStop, RouteOption } from "../components";
-import { SAMPLE_LOGS } from "../data/sampleLogs";
 import { getScheduleById, getPlaceById } from "@/mocks";
 import type { TravelMode } from "@/shared/types";
 import { getCategoryFromKo } from "@/shared/constants/category";
 import type { components } from "@/shared/api/schema";
 
 type ItineraryDetailResponse = components["schemas"]["ItineraryDetailResponse"];
+type TravelLogDetailResponse = components["schemas"]["TravelLogDetailResponse"];
+export type SpotSearchResponse = components["schemas"]["SpotSearchResponse"];
 
 // 서버 응답을 받기 전까지 로컬 state에서 새 항목을 식별하기 위한 임시 id (Date.now/crypto 같은
 // impure 호출을 렌더 함수 안에서 쓰지 않도록 모듈 스코프 카운터로 대체).
@@ -32,31 +32,6 @@ export type BaseStop = Omit<
   "onDelete" | "onClick" | "onTimeClick" | "onTimeConfirm" | "onTransportClick" | "onVerify"
 >;
 
-export function categoryFromTags(tags: string[]): Category {
-  const joined = tags.join("");
-  if (joined.includes("#바다")) return "sea";
-  if (joined.includes("#자연") || joined.includes("#등산") || joined.includes("#산"))
-    return "nature";
-  if (joined.includes("#문화") || joined.includes("#골목") || joined.includes("#역사"))
-    return "culture";
-  if (joined.includes("#체험") || joined.includes("#케이블") || joined.includes("#레저"))
-    return "experience";
-  return "sea";
-}
-
-function parseTimeToMinutes(time: string): number | null {
-  const [hour, minute] = time.split(":").map(Number);
-  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
-  return hour * 60 + minute;
-}
-
-function getImportedTravelDuration(fromTime: string, toTime: string): number {
-  const fromMinutes = parseTimeToMinutes(fromTime);
-  const toMinutes = parseTimeToMinutes(toTime);
-  if (fromMinutes === null || toMinutes === null || toMinutes <= fromMinutes) return 30;
-  return Math.min(Math.max(Math.round((toMinutes - fromMinutes) / 4), 15), 60);
-}
-
 export function getTransportPointName(type: TransportType, placeName: string): string {
   if (type === "버스") return `${placeName} 인근 정류장`;
   if (type === "지하철") return `${placeName}역`;
@@ -67,47 +42,74 @@ function getPlaceDescription(placeName: string): string {
   return `${placeName}은(는) 부산 여행 일정에서 방문하기 좋은 관광지입니다. 주변 관광지와 함께 둘러보기 좋고, 일정 중 잠시 머물며 분위기를 느끼기 좋은 장소예요.`;
 }
 
-export function buildDaysFromLog(log: (typeof SAMPLE_LOGS)[0]): {
+// GET /api/logs/{id}(다른 사람의 여행 로그) 응답을 타임라인 UI가 쓰는 BaseStop[][]로
+// 변환한다. 실제 로그엔 spotId/주소/영업시간 같은 상세 정보가 없어서(스팟 이름만 내려옴)
+// mapItineraryDetailToDays와 동일하게 부족한 필드는 기본값으로 채운다.
+// spotByName: item.spotName → 실제 관광지 검색 결과. 로그 응답 자체엔 spotId가 없어서
+// (스팟 이름만 내려옴) 넘어오면 실제 스팟 정보(주소/썸네일/카테고리/북마크 여부)로 채우고,
+// 없으면(검색에서 못 찾은 극히 일부 경우만) 플레이스홀더로 대체한다. spotId가 있어야
+// REST addItem으로 DB에 실제 저장도 되므로, 매칭 자체가 지속성에도 필요하다.
+export function buildDaysFromTravelLogDetail(
+  log: TravelLogDetailResponse,
+  spotByName?: Map<string, SpotSearchResponse>,
+): {
   days: BaseStop[][];
   dates: string[];
 } {
-  const days = log.days.map((daySchedule) =>
-    daySchedule.stops.map((stop, idx): BaseStop => {
-      const nextStop = daySchedule.stops[idx + 1];
-      const durationMin = nextStop ? getImportedTravelDuration(stop.time, nextStop.time) : 0;
+  const sortedDays = [...(log.days ?? [])].sort((a, b) => (a.dayNumber ?? 0) - (b.dayNumber ?? 0));
+
+  const days = sortedDays.map((day, dayIdx) => {
+    const items = [...(day.items ?? [])].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+
+    return items.map((item, idx): BaseStop => {
+      const nextItem = items[idx + 1];
+      const placeName = item.spotName ?? "장소 미정";
+      const nextPlaceName = nextItem?.spotName ?? "";
       const transportType: TransportType = "버스";
+      const representativePhoto =
+        item.photos?.find((photo) => photo.representative)?.photoUrl ?? item.photos?.[0]?.photoUrl;
+      const matchedSpot = spotByName?.get(placeName);
 
       return {
-        id: `imported-${log.id}-d${daySchedule.day}-${idx}`,
-        time: stop.time,
-        placeName: stop.place,
-        imageUrl: stop.imageUrl || FALLBACK_IMAGE,
-        category: categoryFromTags(stop.tags),
-        status: "verify" as const,
-        description: getPlaceDescription(stop.place),
-        address: "부산광역시",
-        mapUrl: `https://map.kakao.com/link/search/${encodeURIComponent(stop.place)}`,
-        transport: nextStop
+        id: `imported-${log.id}-d${dayIdx}-${idx}`,
+        spotId: matchedSpot?.spotId,
+        time: normalizeTime(item.arrivalTime, "10:00"),
+        placeName,
+        imageUrl: matchedSpot?.thumbnailUrl || representativePhoto || FALLBACK_IMAGE,
+        category: getCategoryFromKo(matchedSpot?.category ?? item.spotCategory ?? ""),
+        status: "verify",
+        // description/운영시간/문의처는 TimelinePlaceDetailPopup이 spotId로 실제 데이터를
+        // 조회해서 보여준다(useSpotDetail) — 여기서 가짜 문구로 채우지 않는다.
+        address: matchedSpot?.address ?? "부산광역시",
+        mapUrl: `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,
+        isBookmarked: matchedSpot?.collected,
+        transport: nextItem
           ? {
-              from: stop.place,
-              to: nextStop.place,
-              durationMin,
-              baseDurationMin: durationMin,
+              from: placeName,
+              to: nextPlaceName,
+              durationMin: 30,
+              baseDurationMin: 30,
               cost: 1500,
               legs: [
                 {
                   type: transportType,
-                  routeName: "버스",
-                  from: getTransportPointName(transportType, stop.place),
-                  to: getTransportPointName(transportType, nextStop.place),
+                  routeName: transportType,
+                  from: getTransportPointName(transportType, placeName),
+                  to: getTransportPointName(transportType, nextPlaceName),
                 },
               ],
             }
           : undefined,
       };
-    }),
-  );
-  const dates = log.days.map((d) => d.date.replace(/-/g, "."));
+    });
+  });
+
+  const dates = sortedDays.map((day) => {
+    if (!day.date) return "";
+    const [year, month, dayNum] = day.date.split("-");
+    return `${year}.${month}.${dayNum}`;
+  });
+
   return { days, dates };
 }
 
@@ -199,6 +201,7 @@ function getDefaultItemTime(
   dayIdx: number,
   totalDays: number,
   itemIdx: number,
+  itemCount: number,
   bounds?: TripTimeBoundsLike | null,
 ): string {
   let slots = DEFAULT_DAY_SLOTS;
@@ -217,7 +220,23 @@ function getDefaultItemTime(
     }
   }
   if (slots.length === 0) slots = DEFAULT_DAY_SLOTS;
-  return slots[itemIdx % slots.length]?.time ?? "10:00";
+  const time = slots[itemIdx % slots.length]?.time ?? "10:00";
+
+  // 위 버킷 필터는 대략적인 시간대만 걸러내서, 여행 전체의 첫/마지막 일정은 여전히
+  // 정확한 시작/종료 시간보다 이르거나 늦게 배정될 수 있다 — 그 두 항목만 정확한
+  // 경계값으로 강제 보정한다(validateStopTime과 동일하게 경계값 자체는 허용).
+  if (dayIdx === 0 && itemIdx === 0 && bounds?.startTime && time < bounds.startTime) {
+    return bounds.startTime;
+  }
+  if (
+    dayIdx === totalDays - 1 &&
+    itemIdx === itemCount - 1 &&
+    bounds?.endTime &&
+    time > bounds.endTime
+  ) {
+    return bounds.endTime;
+  }
+  return time;
 }
 
 // GET /api/itineraries/{id} 응답을 타임라인 UI가 쓰는 BaseStop[][] 구조로 변환한다.
@@ -249,11 +268,13 @@ export function mapItineraryDetailToDays(
         spotId: item.spot?.id,
         time: item.arrivalTime
           ? normalizeTime(item.arrivalTime)
-          : getDefaultItemTime(dayIdx, totalDays, idx, timeBounds),
+          : getDefaultItemTime(dayIdx, totalDays, idx, items.length, timeBounds),
         placeName,
         imageUrl: item.spot?.thumbnailUrl || FALLBACK_IMAGE,
         category: getCategoryFromKo(item.spot?.category ?? ""),
         status: "verify",
+        // 여행 메모(실데이터)만 우선 보여준다 — 없으면 TimelinePlaceDetailPopup이
+        // spotId로 실제 관광지 소개글을 조회해서 보여준다(useSpotDetail).
         description: item.memo,
         address: item.spot?.address,
         mapUrl: item.spot

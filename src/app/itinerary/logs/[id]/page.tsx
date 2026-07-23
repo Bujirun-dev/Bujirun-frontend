@@ -48,13 +48,14 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
     setShowAddModal(false);
   };
 
-  // TODO: 실제 일정 담기 API 연동 필요
+  // 실제 담기 작업(로그 → 일정 변환)은 /itinerary 쪽 useCollaborativeItinerary가
+  // importedLogId 쿼리 파라미터를 보고 처리한다(Yjs로 반영 + 다른 참여자에게도 실시간 전파).
   const handleImportLog = () => {
     setIsImporting(true);
     importTimerRef.current = window.setTimeout(() => {
       setIsImporting(false);
       setShowAddModal(false);
-      router.push("/itinerary");
+      router.push(`/itinerary?importedLogId=${id}`);
     }, 600);
   };
 

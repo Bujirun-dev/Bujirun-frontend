@@ -3,6 +3,7 @@
 import Image from "next/image";
 import characterImg from "@/assets/character/map.png";
 import removeIcon from "@/assets/icons/itinerary/remove.svg?url";
+import magicWandIcon from "@/assets/icons/itinerary/magic-wand.svg?url";
 import { Modal, TimePicker } from "@/components";
 import { openKakaoMapRoute } from "./TransportSelectSheet";
 import { ArrivalVerifyModal } from "./ArrivalVerifyModal";
@@ -14,7 +15,14 @@ import type { RouteOption } from "./TransportSelectSheet";
 import type { BaseStop } from "../utils/scheduleUtils";
 import { buildTransportOptions } from "../utils/scheduleUtils";
 
-export type ModalType = "optimize" | "optimizing" | "delete" | "time" | "transport" | "verify";
+export type ModalType =
+  | "optimize"
+  | "optimizing"
+  | "delete"
+  | "time"
+  | "transport"
+  | "verify"
+  | "peerUpdate";
 
 interface ItineraryModalsProps {
   modal: ModalType | null;
@@ -23,6 +31,7 @@ interface ItineraryModalsProps {
   logId?: string;
   timeValue: { hour: number; minute: number };
   selectedRouteOptionId: string;
+  peerUpdateMessage?: string;
   onClose: () => void;
   onConfirmDelete: () => void;
   onConfirmTime: () => void;
@@ -41,6 +50,7 @@ export function ItineraryModals({
   logId,
   timeValue,
   selectedRouteOptionId,
+  peerUpdateMessage,
   onClose,
   onConfirmDelete,
   onConfirmTime,
@@ -64,6 +74,28 @@ export function ItineraryModals({
         onClose={onClose}
         onComplete={onClose}
         isDone={isOptimizeDone}
+      />
+
+      {/* 다른 참여자가 여행 로그를 불러와 일정이 통째로 바뀌었을 때 알려주는 안내 팝업 —
+          짧게 보여주고 자동으로 닫힌다(호출부의 타이머가 onClose를 부름). */}
+      <Modal
+        isOpen={modal === "peerUpdate"}
+        onClose={onClose}
+        icon={
+          <Image
+            src={magicWandIcon}
+            alt=""
+            width={22}
+            height={22}
+            className="icon-coral"
+            aria-hidden
+          />
+        }
+        iconClassName="bg-sub-coral/10"
+        title="일정이 업데이트됐어요"
+        description={peerUpdateMessage}
+        hideActions
+        hideCloseButton
       />
 
       <Modal

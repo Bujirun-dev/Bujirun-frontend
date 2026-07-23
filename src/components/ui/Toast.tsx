@@ -11,6 +11,8 @@ interface ToastProps {
   icon?: React.ReactNode;
   duration?: number;
   className?: string;
+  // "error"면 실패/유효성 검사 실패 등을 나타내는 색으로 바뀐다. 기본은 기존과 동일.
+  variant?: "default" | "error";
 }
 
 export function Toast({
@@ -20,6 +22,7 @@ export function Toast({
   icon,
   duration = 2500,
   className,
+  variant = "default",
 }: ToastProps) {
   useEffect(() => {
     if (!isVisible) return;
@@ -36,7 +39,8 @@ export function Toast({
     <div className="absolute bottom-[94px] left-1/2 z-50 -translate-x-1/2">
       <div
         className={cn(
-          "flex h-[28px] items-center justify-center gap-1.5 rounded-lg bg-sub-darkgray px-3",
+          "flex h-[28px] items-center justify-center gap-1.5 rounded-lg px-3",
+          variant === "error" ? "bg-sub-coral" : "bg-sub-darkgray",
           className,
         )}
       >
