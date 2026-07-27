@@ -480,7 +480,6 @@ function ItineraryMain({
         modal={modal}
         activeStop={activeStop}
         itineraryId={itineraryId}
-        logId={verifyLog?.id}
         timeValue={timeValue}
         selectedRouteOptionId={selectedRouteOptionId}
         peerUpdateMessage={peerUpdateMessage}
