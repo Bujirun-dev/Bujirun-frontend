@@ -7,7 +7,6 @@ import { PageCard, LoadingState, ErrorState } from "@/components";
 import { LogDetailContent } from "@/components/log/LogDetailContent";
 import { SwitchButton } from "@/features/collection/components/SwitchButton";
 import { travelLogApi } from "@/shared/api/domains";
-import { tr } from "framer-motion/client";
 
 type LogStop = {
   itemId: string;

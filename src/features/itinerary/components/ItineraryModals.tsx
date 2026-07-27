@@ -28,7 +28,6 @@ interface ItineraryModalsProps {
   modal: ModalType | null;
   activeStop: BaseStop | undefined;
   itineraryId: string;
-  logId?: string;
   timeValue: { hour: number; minute: number };
   selectedRouteOptionId: string;
   peerUpdateMessage?: string;
@@ -47,7 +46,6 @@ export function ItineraryModals({
   modal,
   activeStop,
   itineraryId,
-  logId,
   timeValue,
   selectedRouteOptionId,
   peerUpdateMessage,

@@ -48,8 +48,6 @@ export function useTodayItinerary() {
     return getNearestItineraryDay<(typeof schedules)[number]>(schedules);
   }, [itineraryQueries]);
 
-  const itineraryId = nearestSchedule?.itinerary.id;
-
   const items = useMemo(
     () =>
       [...(nearestSchedule?.day.items ?? [])].sort(

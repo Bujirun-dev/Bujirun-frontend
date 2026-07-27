@@ -221,13 +221,15 @@ export function CameraCaptureStage({
 
     void startCamera();
 
+    const videoElement = videoRef.current;
+
     return () => {
       isCancelled = true;
 
       stream?.getTracks().forEach((track) => track.stop());
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
+      if (videoElement) {
+        videoElement.srcObject = null;
       }
     };
   }, []);
