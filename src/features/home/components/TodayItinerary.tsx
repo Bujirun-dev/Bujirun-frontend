@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, StatusBadge, LoadingState, EmptyState } from "@/components";
 import { useTodayItinerary } from "@/features/home/hooks/useTodayItinerary";
@@ -24,19 +24,11 @@ function formatDate(date: string) {
 
 export function TodayItinerary() {
   const router = useRouter();
-  const {
-    itinerary,
-    logId,
-    day,
-    items: plans,
-    hasSchedule,
-    isLoading,
-    isError,
-  } = useTodayItinerary();
+  const hasRedirectedToReviewRef = useRef(false);
+  const { itinerary, day, items: plans, hasSchedule, isLoading, isError } = useTodayItinerary();
   const [selectedTransportGroup, setSelectedTransportGroup] = useState<TransportGroup | null>(null);
   const [selectedVerifySpot, setSelectedVerifySpot] = useState<{
     spotId: string;
-    itemId: string;
     placeName: string;
   } | null>(null);
   const [selectedOptionIdByRoute, setSelectedOptionIdByRoute] = useState<Record<string, string>>(
@@ -49,10 +41,9 @@ export function TodayItinerary() {
 
   const closeTransportModal = () => setSelectedTransportGroup(null);
 
-  const openVerifyModal = (spotId: string, itemId: string, placeName: string) => {
+  const openVerifyModal = (spotId: string, placeName: string) => {
     setSelectedVerifySpot({
       spotId,
-      itemId,
       placeName,
     });
   };
@@ -73,6 +64,19 @@ export function TodayItinerary() {
   const handleStartTrip = () => {
     router.push("/itinerary/trips/new");
   };
+
+  useEffect(() => {
+    if (
+      hasRedirectedToReviewRef.current ||
+      !itinerary?.id ||
+      itinerary.status?.toUpperCase() !== "COMPLETED"
+    ) {
+      return;
+    }
+
+    hasRedirectedToReviewRef.current = true;
+    router.replace(`/home/review?itineraryId=${itinerary.id}`);
+  }, [itinerary?.id, itinerary?.status, router]);
 
   if (isLoading) {
     return (
@@ -174,9 +178,9 @@ export function TodayItinerary() {
                   type="button"
                   className="mt-[7px] shrink-0"
                   onClick={() => {
-                    if (!spotId || !plan.id || !logId) return;
+                    if (!spotId || !plan.id) return;
 
-                    openVerifyModal(spotId, plan.id, placeName);
+                    openVerifyModal(spotId, placeName);
                   }}
                 >
                   <StatusBadge status="verify" className="px-2.5 py-1.5 text-sm" />
@@ -203,12 +207,10 @@ export function TodayItinerary() {
           openKakaoMapRoute(selectedTransportGroup.fromPlace, selectedTransportGroup.toPlace)
         }
       />
-      {selectedVerifySpot && logId && itinerary?.id && (
+      {selectedVerifySpot && itinerary?.id && (
         <ArrivalVerifyModal
           spotId={selectedVerifySpot.spotId}
           itineraryId={itinerary.id}
-          logId={logId}
-          itemId={selectedVerifySpot.itemId}
           isOpen
           placeName={selectedVerifySpot.placeName}
           onClose={closeVerifyModal}

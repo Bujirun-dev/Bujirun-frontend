@@ -19,7 +19,7 @@ export interface paths {
         put?: never;
         /**
          * 방문 인증 (담당: 윤제승)
-         * @description 위치 정보를 기반으로 사용자가 해당 장소를 실제 방문했는지 인증합니다.
+         * @description 위치 정보를 기반으로 사용자가 해당 장소를 실제 방문했는지 인증합니다. itineraryItemId를 함께 보내면 이 인증이 어느 일정의 어느 방문 항목에 대한 것인지 연결됩니다(선택) — 같은 관광지를 여러 일정에서 각각 인증한 경우 특정 일정의 인증만 구분해서 조회하고 싶을 때 사용하세요.
          */
         post: operations["verify"];
         delete?: never;
@@ -142,6 +142,32 @@ export interface paths {
          * @description 여행 기록의 방문 항목에 해시태그를 추가합니다.
          */
         post: operations["addHashtag"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/logs/{id}/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 여행 기록으로 일정 복사 (담당: 윤제승)
+         * @description 공개된(또는 본인) 여행 기록의 일정을 복제해 내 소유의 새 일정으로 생성합니다.
+         *     groupId를 지정하면 그 그룹의 공유 일정으로 생성됩니다(요청자가 해당 그룹 멤버일 때만 허용).
+         *
+         *     아직 그룹이 없어서 친구들을 새로 초대하고 싶다면:
+         *     1) POST /api/groups 로 그룹을 먼저 생성 (생성자는 자동으로 멤버 등록됨)
+         *     2) 그 응답의 groupId를 이 API의 groupId로 그대로 전달
+         *     → 두 호출을 이어붙이면 "새 그룹 생성 후 그 그룹으로 바로 복사" 흐름이 됩니다. 별도의 결합 API는 없습니다.
+         */
+        post: operations["copyToItinerary"];
         delete?: never;
         options?: never;
         head?: never;
@@ -427,6 +453,23 @@ export interface paths {
         put?: never;
         /** (담당: 유정) */
         post: operations["run"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/migration/busan-attraction/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** (담당: 유정) */
+        post: operations["runBusanAttraction"];
         delete?: never;
         options?: never;
         head?: never;
@@ -899,6 +942,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/migration/busan-attraction/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** (담당: 유정) */
+        get: operations["busanAttractionStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/logs/{logId}/items/{itemId}/photos/{photoId}": {
         parameters: {
             query?: never;
@@ -970,6 +1030,8 @@ export interface components {
             gpsLat: number;
             /** Format: double */
             gpsLng: number;
+            /** Format: uuid */
+            itineraryItemId?: string;
         };
         ApiResponseVisitResponse: {
             success?: boolean;
@@ -983,6 +1045,8 @@ export interface components {
             /** Format: double */
             distanceMeters?: number;
             firstVisit?: boolean;
+            /** Format: uuid */
+            itineraryItemId?: string;
         };
         AttachVisitPhotoRequest: {
             photoUrl: string;
@@ -1100,11 +1164,18 @@ export interface components {
             id?: string;
             /** Format: uuid */
             itineraryItemId?: string;
+            /** Format: uuid */
+            spotId?: string;
             spotName?: string;
             spotCategory?: string;
+            spotAddress?: string;
+            spotLat?: number;
+            spotLng?: number;
+            spotThumbnailUrl?: string;
             arrivalTime?: string;
             /** Format: int32 */
             orderIndex?: number;
+            visited?: boolean;
             photos?: components["schemas"]["TravelLogPhotoResponse"][];
             hashtags?: components["schemas"]["TravelLogHashtagResponse"][];
         };
@@ -1130,19 +1201,9 @@ export interface components {
             message?: string;
             data?: components["schemas"]["TravelLogHashtagResponse"];
         };
-        CreateItineraryRequest: {
-            planType?: string;
-            title?: string;
-            /** Format: date */
-            startAt?: string;
-            startTime?: string;
-            /** Format: date */
-            endAt?: string;
-            endTime?: string;
+        CopyLogRequest: {
             /** Format: uuid */
             groupId?: string;
-            /** Format: uuid */
-            sessionId?: string;
         };
         ApiResponseItineraryDetailResponse: {
             success?: boolean;
@@ -1205,6 +1266,20 @@ export interface components {
             thumbnailUrl?: string;
             collected?: boolean;
             visited?: boolean;
+        };
+        CreateItineraryRequest: {
+            planType?: string;
+            title?: string;
+            /** Format: date */
+            startAt?: string;
+            startTime?: string;
+            /** Format: date */
+            endAt?: string;
+            endTime?: string;
+            /** Format: uuid */
+            groupId?: string;
+            /** Format: uuid */
+            sessionId?: string;
         };
         AddDayRequest: {
             /** Format: int32 */
@@ -1513,6 +1588,8 @@ export interface components {
             /** Format: date-time */
             visitedAt?: string;
             photoUrls?: string[];
+            /** Format: uuid */
+            itineraryItemId?: string;
         };
         ApiResponseInteger: {
             success?: boolean;
@@ -1545,6 +1622,10 @@ export interface components {
             overview?: string;
             tel?: string;
             homepage?: string;
+            subtitle?: string;
+            transportation?: string;
+            closedDays?: string;
+            feeInfo?: string;
             collected?: boolean;
             visited?: boolean;
         };
@@ -1848,6 +1929,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseTravelLogHashtagResponse"];
+                };
+            };
+        };
+    };
+    copyToItinerary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CopyLogRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseItineraryDetailResponse"];
                 };
             };
         };
@@ -2202,6 +2309,28 @@ export interface operations {
         };
     };
     run: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+    };
+    runBusanAttraction: {
         parameters: {
             query?: never;
             header?: never;
@@ -2867,6 +2996,28 @@ export interface operations {
         };
     };
     status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    busanAttractionStatus: {
         parameters: {
             query?: never;
             header?: never;
