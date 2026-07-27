@@ -12,6 +12,7 @@ type LogStop = {
   itemId: string;
   photoId: string;
   representative: boolean;
+  visited: boolean;
   time: string;
   place: string;
   imageUrl: string;
@@ -56,6 +57,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
               itemId: item.id ?? "",
               photoId: displayedPhoto?.id ?? "",
               representative: displayedPhoto?.representative ?? false,
+              visited: item.visited ?? true,
               time: item.arrivalTime ?? "",
               place: item.spotName ?? "",
               imageUrl: displayedPhoto?.photoUrl ?? "",
@@ -83,7 +85,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
   const handleAddTag = async (dayIndex: number, stopIndex: number, tag: string) => {
     const targetStop = days[dayIndex]?.stops[stopIndex];
 
-    if (!targetStop?.itemId) return;
+    if (!targetStop?.itemId || !targetStop.visited) return;
 
     const normalizedTag = tag.replace(/^#/, "");
 
@@ -116,7 +118,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
   const handleDeleteTag = async (dayIndex: number, stopIndex: number, tagIndex: number) => {
     const targetStop = days[dayIndex]?.stops[stopIndex];
 
-    if (!targetStop?.itemId) return;
+    if (!targetStop?.itemId || !targetStop.visited) return;
 
     const hashtagId = targetStop.hashtagIds[tagIndex];
 
@@ -149,7 +151,12 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
   const handleSetRepresentativePhoto = async (dayIndex: number, stopIndex: number) => {
     const targetStop = days[dayIndex]?.stops[stopIndex];
 
-    if (!targetStop?.itemId || !targetStop.photoId || targetStop.representative) {
+    if (
+      !targetStop?.itemId ||
+      !targetStop.visited ||
+      !targetStop.photoId ||
+      targetStop.representative
+    ) {
       return;
     }
 

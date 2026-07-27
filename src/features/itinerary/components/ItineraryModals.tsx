@@ -28,7 +28,6 @@ interface ItineraryModalsProps {
   modal: ModalType | null;
   activeStop: BaseStop | undefined;
   itineraryId: string;
-  logId?: string;
   timeValue: { hour: number; minute: number };
   selectedRouteOptionId: string;
   peerUpdateMessage?: string;
@@ -47,7 +46,6 @@ export function ItineraryModals({
   modal,
   activeStop,
   itineraryId,
-  logId,
   timeValue,
   selectedRouteOptionId,
   peerUpdateMessage,
@@ -174,13 +172,11 @@ export function ItineraryModals({
         );
       })()}
 
-      {activeStop?.spotId && logId && (
+      {activeStop?.spotId && (
         <ArrivalVerifyModal
           isOpen={modal === "verify"}
           spotId={activeStop.spotId}
           itineraryId={itineraryId}
-          logId={logId}
-          itemId={activeStop.id}
           placeName={activeStop.placeName}
           characterImageUrl={characterImg.src}
           onClose={onClose}

@@ -14,7 +14,6 @@ export function TransportSummaryCard({
   durationText,
   costText,
   steps,
-  isRecommended,
   className,
 }: TransportSummaryCardProps) {
   const metaText = `${durationText} · ${costText}`;

@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { travelLogApi } from "@/shared/api/domains";
+import { useQuery } from "@tanstack/react-query";
 import { Card, StatusBadge, LoadingState, EmptyState } from "@/components";
 import { useTodayItinerary } from "@/features/home/hooks/useTodayItinerary";
+import { useAuthStore } from "@/shared/stores/useAuthStore";
 import { TransportSummaryCard } from "@/features/home/components/TransportSummaryCard";
 import { TransportDetailModal } from "@/features/home/components/TransportDetailModal";
 import { ArrivalVerifyModal } from "@/features/itinerary/components/ArrivalVerifyModal";
@@ -24,19 +27,26 @@ function formatDate(date: string) {
 
 export function TodayItinerary() {
   const router = useRouter();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const hasRedirectedToReviewRef = useRef(false);
   const {
     itinerary,
-    logId,
+    completedItineraries,
     day,
     items: plans,
     hasSchedule,
     isLoading,
     isError,
   } = useTodayItinerary();
+  const completedItineraryIds = completedItineraries.map((itinerary) => itinerary.id);
+  const { data: logExists } = useQuery({
+    queryKey: [...travelLogApi.keys.all, "exists", completedItineraryIds],
+    queryFn: () => travelLogApi.checkLogExists(completedItineraryIds),
+    enabled: !!accessToken && completedItineraryIds.length > 0,
+  });
   const [selectedTransportGroup, setSelectedTransportGroup] = useState<TransportGroup | null>(null);
   const [selectedVerifySpot, setSelectedVerifySpot] = useState<{
     spotId: string;
-    itemId: string;
     placeName: string;
   } | null>(null);
   const [selectedOptionIdByRoute, setSelectedOptionIdByRoute] = useState<Record<string, string>>(
@@ -49,10 +59,9 @@ export function TodayItinerary() {
 
   const closeTransportModal = () => setSelectedTransportGroup(null);
 
-  const openVerifyModal = (spotId: string, itemId: string, placeName: string) => {
+  const openVerifyModal = (spotId: string, placeName: string) => {
     setSelectedVerifySpot({
       spotId,
-      itemId,
       placeName,
     });
   };
@@ -73,6 +82,23 @@ export function TodayItinerary() {
   const handleStartTrip = () => {
     router.push("/itinerary/trips/new");
   };
+
+  useEffect(() => {
+    if (hasRedirectedToReviewRef.current) return;
+    if (!logExists) return;
+
+    const reviewTarget = completedItineraries.find((itinerary) => {
+      const log = logExists.find((item) => item.itineraryId === itinerary.id);
+
+      return !log?.hasLog;
+    });
+
+    if (!reviewTarget) return;
+
+    hasRedirectedToReviewRef.current = true;
+
+    router.replace(`/home/review?itineraryId=${reviewTarget.id}`);
+  }, [completedItineraries, logExists, router]);
 
   if (isLoading) {
     return (
@@ -174,9 +200,9 @@ export function TodayItinerary() {
                   type="button"
                   className="mt-[7px] shrink-0"
                   onClick={() => {
-                    if (!spotId || !plan.id || !logId) return;
+                    if (!spotId || !plan.id) return;
 
-                    openVerifyModal(spotId, plan.id, placeName);
+                    openVerifyModal(spotId, placeName);
                   }}
                 >
                   <StatusBadge status="verify" className="px-2.5 py-1.5 text-sm" />
@@ -203,12 +229,10 @@ export function TodayItinerary() {
           openKakaoMapRoute(selectedTransportGroup.fromPlace, selectedTransportGroup.toPlace)
         }
       />
-      {selectedVerifySpot && logId && itinerary?.id && (
+      {selectedVerifySpot && itinerary?.id && (
         <ArrivalVerifyModal
           spotId={selectedVerifySpot.spotId}
           itineraryId={itinerary.id}
-          logId={logId}
-          itemId={selectedVerifySpot.itemId}
           isOpen
           placeName={selectedVerifySpot.placeName}
           onClose={closeVerifyModal}

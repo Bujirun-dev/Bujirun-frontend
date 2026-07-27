@@ -36,6 +36,7 @@ export function ReviewPromptModal({
 
   const handleConfirm = () => {
     if (!selectedMood || trimmedTheme.length === 0) return;
+
     onConfirm({ mood: selectedMood, theme: trimmedTheme });
   };
 

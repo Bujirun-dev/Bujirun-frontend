@@ -42,6 +42,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ logId: str
             item.photos?.[0]?.photoUrl ??
             "",
           tags: (item.hashtags ?? []).map((hashtag) => hashtag.tag ?? ""),
+          visited: item.visited ?? true,
         })),
       })),
     };
