@@ -2,8 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { travelLogApi } from "@/shared/api/domains";
+import { useQuery } from "@tanstack/react-query";
 import { Card, StatusBadge, LoadingState, EmptyState } from "@/components";
 import { useTodayItinerary } from "@/features/home/hooks/useTodayItinerary";
+import { useAuthStore } from "@/shared/stores/useAuthStore";
 import { TransportSummaryCard } from "@/features/home/components/TransportSummaryCard";
 import { TransportDetailModal } from "@/features/home/components/TransportDetailModal";
 import { ArrivalVerifyModal } from "@/features/itinerary/components/ArrivalVerifyModal";
@@ -24,8 +27,23 @@ function formatDate(date: string) {
 
 export function TodayItinerary() {
   const router = useRouter();
+  const accessToken = useAuthStore((state) => state.accessToken);
   const hasRedirectedToReviewRef = useRef(false);
-  const { itinerary, day, items: plans, hasSchedule, isLoading, isError } = useTodayItinerary();
+  const {
+    itinerary,
+    completedItineraries,
+    day,
+    items: plans,
+    hasSchedule,
+    isLoading,
+    isError,
+  } = useTodayItinerary();
+  const completedItineraryIds = completedItineraries.map((itinerary) => itinerary.id);
+  const { data: logExists } = useQuery({
+    queryKey: [...travelLogApi.keys.all, "exists", completedItineraryIds],
+    queryFn: () => travelLogApi.checkLogExists(completedItineraryIds),
+    enabled: !!accessToken && completedItineraryIds.length > 0,
+  });
   const [selectedTransportGroup, setSelectedTransportGroup] = useState<TransportGroup | null>(null);
   const [selectedVerifySpot, setSelectedVerifySpot] = useState<{
     spotId: string;
@@ -66,17 +84,21 @@ export function TodayItinerary() {
   };
 
   useEffect(() => {
-    if (
-      hasRedirectedToReviewRef.current ||
-      !itinerary?.id ||
-      itinerary.status?.toUpperCase() !== "COMPLETED"
-    ) {
-      return;
-    }
+    if (hasRedirectedToReviewRef.current) return;
+    if (!logExists) return;
+
+    const reviewTarget = completedItineraries.find((itinerary) => {
+      const log = logExists.find((item) => item.itineraryId === itinerary.id);
+
+      return !log?.hasLog;
+    });
+
+    if (!reviewTarget) return;
 
     hasRedirectedToReviewRef.current = true;
-    router.replace(`/home/review?itineraryId=${itinerary.id}`);
-  }, [itinerary?.id, itinerary?.status, router]);
+
+    router.replace(`/home/review?itineraryId=${reviewTarget.id}`);
+  }, [completedItineraries, logExists, router]);
 
   if (isLoading) {
     return (

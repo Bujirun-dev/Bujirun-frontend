@@ -784,6 +784,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/logs/exists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 일정별 여행 기록 존재 여부 확인 (담당: 윤제승)
+         * @description 주어진 itineraryId 목록에 대해 로그인한 사용자가 이미 여행 기록(영수증)을 작성했는지 배치로 확인합니다.
+         *     아직 기록이 없는 일정(예: 다음 날 일정)을 찾아 영수증 발행 화면을 노출하는 용도로 사용합니다.
+         */
+        get: operations["checkLogExists"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/itineraries/vote-sessions/{sessionId}": {
         parameters: {
             query?: never;
@@ -1672,6 +1693,18 @@ export interface components {
             travelNumber?: number;
             /** Format: date-time */
             createdAt?: string;
+        };
+        ApiResponseListLogExistenceResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["LogExistenceResponse"][];
+        };
+        LogExistenceResponse: {
+            /** Format: uuid */
+            itineraryId?: string;
+            hasLog?: boolean;
+            /** Format: uuid */
+            logId?: string;
         };
         ApiResponseListItinerarySummaryResponse: {
             success?: boolean;
@@ -2825,6 +2858,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseListTravelLogSummaryResponse"];
+                };
+            };
+        };
+    };
+    checkLogExists: {
+        parameters: {
+            query: {
+                itineraryIds: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListLogExistenceResponse"];
                 };
             };
         };
