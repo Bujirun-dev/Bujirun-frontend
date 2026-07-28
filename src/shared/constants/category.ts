@@ -18,7 +18,12 @@ export function getCategoryLabel(category: Category): string {
   return CATEGORY_LABEL[category];
 }
 
-export function getCategoryFromKo(ko?: string): Category {
+// 원본 category 문자열(예: "자연·공원")에는 "바다"가 별도 값으로 없어서, 해변/해수욕장
+// 이름부터 먼저 확인한다 — 안 그러면 바다 스팟이 전부 "자연"으로만 분류돼서 바다
+// 필터에 아무것도 안 걸린다 (home/recommend 등 다른 화면의 toCategory와 동일한 규칙).
+export function getCategoryFromKo(ko?: string, name?: string): Category {
+  if (name?.includes("해수욕장") || name?.includes("해변")) return "sea";
+
   if (!ko) return "nature";
 
   if (ko.includes("바다")) return "sea";
@@ -46,24 +51,14 @@ export function matchCategoryTag(tag: string): Category | undefined {
   return CATEGORY_LABEL_KO[tag.replace(/^#/, "")];
 }
 
-// GET /api/spots/search의 category 파라미터는 아래 6개 값과 exact match해야 한다(백엔드 확인 완료).
-// 도감(4개 카테고리) 목록 전용 API가 생기면 그때 4개 카테고리로 다시 매핑 예정 — 그 전까지는 관광지 검색 화면에서 이 6개를 그대로 쓴다.
-export const SPOT_SEARCH_CATEGORIES = [
-  "자연·공원",
-  "역사·문화",
-  "체험·놀이",
-  "쇼핑",
-  "음식",
-  "관광지",
-] as const;
+// GET /api/spots/search의 category 파라미터 — 도감(4개 카테고리)과 동일한 값(바다/자연/문화/체험)을 그대로 쓴다.
+export const SPOT_SEARCH_CATEGORIES = ["바다", "자연", "문화", "체험"] as const;
 
 export type SpotSearchCategory = (typeof SPOT_SEARCH_CATEGORIES)[number];
 
 export const SPOT_SEARCH_CATEGORY_EMOJI: Record<SpotSearchCategory, string> = {
-  "자연·공원": "🌿",
-  "역사·문화": "🏛",
-  "체험·놀이": "🎡",
-  쇼핑: "🛍",
-  음식: "🍽",
-  관광지: "📍",
+  바다: "🌊",
+  자연: "🌿",
+  문화: "🏛",
+  체험: "🎡",
 };

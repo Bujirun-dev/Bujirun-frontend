@@ -329,6 +329,7 @@ export function PhotoConfirmStage({
           src={capturedImageUrl ?? samplePlaceImage}
           alt={placeName}
           fill
+          sizes="273px"
           unoptimized={Boolean(capturedImageUrl)}
           className="object-cover"
         />
@@ -367,6 +368,7 @@ export function CompleteStage({
           src={capturedImageUrl ?? samplePlaceImage}
           alt={placeName}
           fill
+          sizes="340px"
           unoptimized={Boolean(capturedImageUrl)}
           className="object-cover"
         />

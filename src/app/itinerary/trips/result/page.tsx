@@ -5,13 +5,22 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/shared/utils";
-import { CategoryChip, Modal, SpeechBubble, Toast, LoadingState, ErrorState } from "@/components";
+import {
+  Card,
+  CategoryChip,
+  Modal,
+  SpeechBubble,
+  Toast,
+  LoadingState,
+  ErrorState,
+} from "@/components";
 import checkIcon from "@/assets/icons/itinerary/check.png";
 import infoIcon from "@/assets/icons/itinerary/info.png";
 import freepassBlueIcon from "@/assets/icons/itinerary/freepass-blue.png";
 import flagImg from "@/assets/place/flag.png";
 import houseImg from "@/assets/place/house.png";
 import busanStationImg from "@/assets/place/busan-station.png";
+import mapCharacterImg from "@/assets/character/map.png";
 import type { Category } from "@/components/ui/CategoryChip";
 import { itineraryApi } from "@/shared/api/domains";
 import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
@@ -118,9 +127,9 @@ function ResultPlaceNode({ place }: { place: Place }) {
       <p className="absolute left-1/2 -top-[27px] max-w-[78px] -translate-x-1/2 truncate whitespace-nowrap text-center font-paperlogy text-xs font-normal text-text-heading">
         {place.name}
       </p>
-      <span className="absolute left-1/2 -top-[11px] z-10 size-[11px] -translate-x-1/2 rounded-full border-[1.5px] border-main-blue bg-main-white" />
-      <div className="relative h-[35px] w-[53px] overflow-hidden rounded-[8px] border border-main-blue bg-system-navbg">
-        <Image src={place.image} alt={place.name} fill sizes="53px" className="object-cover" />
+      <span className="absolute left-1/2 -top-[13px] z-10 size-[11px] -translate-x-1/2 rounded-full border-[1.5px] border-main-blue bg-main-white" />
+      <div className="relative h-[38px] w-[57px] overflow-hidden rounded-[8px] border border-main-blue bg-system-navbg">
+        <Image src={place.image} alt={place.name} fill sizes="57px" className="object-cover" />
       </div>
     </div>
   );
@@ -296,8 +305,9 @@ function TripResultContent() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* 공통 취향 glass 카드 */}
-      <div className="shrink-0 pt-4 pb-[30px]">
+      {/* 공통 취향 glass 카드 — 레이아웃(AppShell) 상단 패딩(pt-6) 위에 또 pt-4가
+          중복으로 붙어있어서 상단 간격이 과하게 넓던 문제 수정 */}
+      <div className="shrink-0 pb-[30px]">
         <div className="w-full rounded-[20px] border border-system-navbg bg-gradient-to-b from-system-glassfrom to-system-glassto px-[24px] py-[28px] backdrop-blur-[15px] flex flex-col items-center gap-2.5">
           <p className="font-ssurround font-bold text-lg text-text-heading text-center">
             우리의 공통 취향은...
@@ -398,17 +408,27 @@ function TripResultContent() {
 
             {/* 타임라인 */}
             {activePlan === "C" ? (
-              <div className="mt-3 flex flex-col items-center justify-center gap-3 rounded-[14px] bg-system-navbg px-4 py-8 text-center">
-                <span className="text-2xl">✏️</span>
-                <p className="font-ssurround font-bold text-md text-text-heading">
+              <Card
+                variant="glass-sm"
+                className="mt-3 flex flex-col items-center gap-1.5 px-8 py-11 text-center"
+              >
+                <Image
+                  src={mapCharacterImg}
+                  alt=""
+                  width={132}
+                  height={132}
+                  className="-mt-1"
+                  aria-hidden
+                />
+                <p className="font-ssurround font-bold text-lg text-text-heading">
                   자유 편집형 일정
                 </p>
-                <p className="font-paperlogy text-xs font-medium text-sub-darkgray leading-relaxed whitespace-pre-line">
+                <p className="mt-1 font-paperlogy text-sm font-medium text-sub-darkgray leading-relaxed whitespace-pre-line">
                   {
                     "C안은 AI가 미리 짜주지 않아요.\n확정 후 팀원들과 함께 직접\n일정을 자유롭게 채워보세요!"
                   }
                 </p>
-              </div>
+              </Card>
             ) : (
               <div className="relative mt-3 ml-0">
                 {/* 세로 점선 — 출발 중심(top:22px)에서 도착 중심(bottom:24px)까지만 */}
@@ -451,7 +471,7 @@ function TripResultContent() {
                             className="absolute left-[9.5px] top-0 z-20"
                           />
                         </div>
-                        <span className="font-paperlogy text-xs font-medium text-sub-deepblue">
+                        <span className="whitespace-nowrap font-paperlogy text-[10px] font-medium text-sub-deepblue">
                           {day.label}
                         </span>
                         <div className="relative ml-[3px] h-[1.5px] w-[235px] rounded-full bg-main-blue">
