@@ -62,7 +62,11 @@ export const TimelineTimePicker = forwardRef<HTMLDivElement, TimelineTimePickerP
             <span className="relative z-10 text-md font-semibold text-text-heading leading-none">
               :
             </span>
-            <TimeWheelColumn items={MINUTES} selected={minute} onSelect={(m) => onChange(hour, m)} />
+            <TimeWheelColumn
+              items={MINUTES}
+              selected={minute}
+              onSelect={(m) => onChange(hour, m)}
+            />
           </div>
 
           <button

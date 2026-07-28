@@ -249,7 +249,13 @@ export function PlaceDetailContent({
                     <>
                       {/* 대표 사진 없으면 회색 배경 처리 */}
                       {log.imageUrl ? (
-                        <Image src={log.imageUrl} alt="" fill sizes="150px" className="object-cover" />
+                        <Image
+                          src={log.imageUrl}
+                          alt=""
+                          fill
+                          sizes="150px"
+                          className="object-cover"
+                        />
                       ) : (
                         <div className="w-full h-full bg-system-searchbg" />
                       )}
