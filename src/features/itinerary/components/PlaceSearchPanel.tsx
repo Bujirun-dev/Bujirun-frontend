@@ -85,7 +85,9 @@ export type SearchPlace = {
   id: string;
   name: string;
   category: Category;
-  status: "uncollected" | "completed";
+  // 도감(수집) 대상이 아닌 관광지는 수집 상태 자체가 의미 없어서 undefined —
+  // 이 경우 배지를 아예 안 보여준다.
+  status?: "uncollected" | "completed";
   imageUrl: string;
 };
 
@@ -146,7 +148,8 @@ export function PlaceSearchPanel({ onClose, onPlaceSelect }: PlaceSearchPanelPro
     id: spot.spotId ?? spot.name ?? "",
     name: spot.name ?? "이름 미상",
     category: getCategoryFromKo(spot.category ?? ""),
-    status: spot.collected ? "completed" : "uncollected",
+    // 도감에 없는 관광지(isCollection: false)는 수집 여부 배지를 아예 안 보여준다.
+    status: spot.isCollection ? (spot.collected ? "completed" : "uncollected") : undefined,
     imageUrl: spot.thumbnailUrl || FALLBACK_IMAGE,
   }));
 

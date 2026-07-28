@@ -19,8 +19,40 @@ import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import type { components } from "@/shared/api/schema";
 
-// TODO: 그룹 공통 취향 API 연동 전까지는 대표 카테고리 3종 고정 표기
-const COMMON_CATEGORIES: Category[] = ["sea", "culture", "nature"];
+type GroupItineraryGenerateResponse = components["schemas"]["GroupItineraryGenerateResponse"];
+
+// TODO: 백엔드 category 응답이 "바다"|"자연"|"문화"|"체험"으로 통일되면 단순화
+function toCategory(value?: string): Category {
+  if (!value) return "nature";
+  if (value.includes("바다") || value.includes("해수욕")) return "sea";
+  if (value.includes("자연")) return "nature";
+  if (value.includes("문화") || value.includes("역사")) return "culture";
+  if (value.includes("체험") || value.includes("놀이")) return "experience";
+  return "nature";
+}
+
+// 그룹 공통 취향을 직접 내려주는 API가 없어서, 생성된 A/B/C안에 실제로 포함된
+// 관광지 카테고리를 집계해 가장 많이 나온 3개를 뽑는다 (플랜끼리 겹치는 스팟은 한 번만 센다).
+function computeCommonCategories(generated?: GroupItineraryGenerateResponse): Category[] {
+  const seenSpotIds = new Set<string>();
+  const counts = new Map<Category, number>();
+  const plans = [generated?.plans?.planA, generated?.plans?.planB, generated?.plans?.planC];
+
+  plans.forEach((plan) => {
+    plan?.days?.forEach((day) => {
+      day.spots?.forEach((spot) => {
+        const key = spot.contentId ?? spot.name;
+        if (!key || seenSpotIds.has(key)) return;
+        seenSpotIds.add(key);
+        const category = toCategory(spot.category);
+        counts.set(category, (counts.get(category) ?? 0) + 1);
+      });
+    });
+  });
+
+  const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([category]) => category);
+  return ranked.length > 0 ? ranked.slice(0, 3) : ["sea", "culture", "nature"];
+}
 
 const PLAN_LABELS: Record<string, string> = {
   A: "취향 집중형",
@@ -137,6 +169,7 @@ function TripResultContent() {
   });
 
   const sessionId = generated?.voteSessionId ?? "";
+  const commonCategories = computeCommonCategories(generated);
   const forwardParams = new URLSearchParams({
     count,
     days: String(totalDays),
@@ -270,7 +303,7 @@ function TripResultContent() {
             우리의 공통 취향은...
           </p>
           <div className="flex items-center gap-2">
-            {COMMON_CATEGORIES.map((cat) => (
+            {commonCategories.map((cat) => (
               <CategoryChip key={cat} category={cat} size="lg" />
             ))}
           </div>

@@ -58,6 +58,10 @@ interface ItineraryTimelineProps {
   onAddNewPlace?: (place: SearchPlace) => void;
   // 지금 이 날에서 유저가 보고 있는 항목이 바뀔 때마다 알려준다 (실시간 공동편집 프레즌스용)
   onFocusChange?: (stopId: string | null) => void;
+  // SlidingTimeline이 모든 Day를 동시에 마운트해두고 translateX로 넘기는 구조라,
+  // 화면 밖으로 밀려난(비활성) Day의 검색/상세/시간변경 팝업이 계속 열린 채로 남아있던
+  // 문제가 있었다 — 비활성화되는 순간 팝업들을 닫아서 방지한다.
+  isActive?: boolean;
 }
 
 export function ItineraryTimeline({
@@ -65,6 +69,7 @@ export function ItineraryTimeline({
   date,
   onAddNewPlace,
   onFocusChange,
+  isActive = true,
 }: ItineraryTimelineProps) {
   const [activeSearchStopId, setActiveSearchStopId] = useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -86,6 +91,21 @@ export function ItineraryTimeline({
     return () => onFocusChange?.(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusedStopId]);
+
+  // isActive가 true->false로 바뀌는 순간(Day가 화면 밖으로 밀려남) 열려있던 팝업들을
+  // 닫는다. 렌더링 도중 상태를 조정하는 공식 패턴(prop 변화 감지)을 쓴다 — effect 안에서
+  // setState하면 렌더 한 번 더 낭비되고 케스케이드 렌더 린트 경고도 발생하기 때문.
+  const [prevIsActive, setPrevIsActive] = useState(isActive);
+  if (isActive !== prevIsActive) {
+    setPrevIsActive(isActive);
+    if (!isActive) {
+      setActiveSearchStopId(null);
+      setIsAddingNew(false);
+      setActiveDetailStopId(null);
+      setActiveTimeStopId(null);
+      setPopupScrollSpace(0);
+    }
+  }
 
   const closeSearch = () => {
     setActiveSearchStopId(null);

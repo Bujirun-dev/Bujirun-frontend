@@ -32,6 +32,8 @@ type CommonProps = {
   characterImageUrl?: string | StaticImageData;
   capturedImageUrl?: string;
   onCapture?: (file: File, previewUrl: string) => void;
+  // 도감(수집) 대상 관광지가 아니면 인증은 되지만 도감에는 추가되지 않는다 — 그 여부.
+  isInCollection?: boolean;
 };
 
 const MOCK_LOADING_DURATION_MS = 3000;
@@ -347,7 +349,8 @@ export function PhotoConfirmStage({
 export function CompleteStage({
   placeName,
   capturedImageUrl,
-}: Pick<CommonProps, "placeName" | "capturedImageUrl">) {
+  isInCollection,
+}: Pick<CommonProps, "placeName" | "capturedImageUrl" | "isInCollection">) {
   return (
     <>
       <CharacterImage
@@ -368,16 +371,27 @@ export function CompleteStage({
           className="object-cover"
         />
       </div>
-      <Card
-        variant="glass-sm"
-        className="w-full flex flex-col items-center justify-center gap-[12px] py-[12px] text-center"
-      >
-        <span className="flex items-center gap-[3px] font-paperlogy text-md font-medium text-text-heading">
-          <span>📖</span>
-          <span>도감 등록 완료!</span>
-        </span>
-        <span className="font-mona font-normal text-sm text-sub-deepblue">도감 +1</span>
-      </Card>
+      {isInCollection === false ? (
+        <Card
+          variant="glass-sm"
+          className="w-full flex flex-col items-center justify-center gap-[12px] py-[12px] text-center"
+        >
+          <span className="font-paperlogy text-md font-medium text-text-heading">
+            해당 관광지는 도감에는 포함되어있지 않아요
+          </span>
+        </Card>
+      ) : (
+        <Card
+          variant="glass-sm"
+          className="w-full flex flex-col items-center justify-center gap-[12px] py-[12px] text-center"
+        >
+          <span className="flex items-center gap-[3px] font-paperlogy text-md font-medium text-text-heading">
+            <span>📖</span>
+            <span>도감 등록 완료!</span>
+          </span>
+          <span className="font-mona font-normal text-sm text-sub-deepblue">도감 +1</span>
+        </Card>
+      )}
     </>
   );
 }
