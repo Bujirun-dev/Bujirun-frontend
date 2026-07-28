@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "picsum.photos" },
       { protocol: "http", hostname: "tong.visitkorea.or.kr" },
+      { protocol: "https", hostname: "bujirun-storage.s3.ap-northeast-2.amazonaws.com" },
     ],
   },
   turbopack: {

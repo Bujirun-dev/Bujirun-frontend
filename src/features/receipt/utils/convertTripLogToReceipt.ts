@@ -66,17 +66,19 @@ export function convertTripLogToReceipt(
         date: formatDateWithDots(day.date ?? ""),
         weekday: getWeekday(day.date ?? ""),
         places:
-          day.items?.map((item) => ({
-            id: item.id ?? "",
-            time: item.arrivalTime ?? "",
-            name: item.spotName ?? "",
-            category: item.spotCategory ?? "",
-            categoryIcon: CATEGORY_ICON[item.spotCategory ?? ""] ?? "",
-            image:
-              item.photos?.find((photo) => photo.representative)?.photoUrl ??
-              item.photos?.[0]?.photoUrl ??
-              "",
-          })) ?? [],
+          day.items
+            ?.filter((item) => item.visited)
+            .map((item) => ({
+              id: item.id ?? "",
+              time: item.arrivalTime ?? "",
+              name: item.spotName ?? "",
+              category: item.spotCategory ?? "",
+              categoryIcon: CATEGORY_ICON[item.spotCategory ?? ""] ?? "",
+              image:
+                item.photos?.find((photo) => photo.representative)?.photoUrl ??
+                item.photos?.[0]?.photoUrl ??
+                "",
+            })) ?? [],
       })) ?? [],
   };
 }

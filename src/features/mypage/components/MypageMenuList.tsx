@@ -26,8 +26,8 @@ export function MypageMenuList() {
     } catch (e) {
       console.error("로그아웃 실패:", e);
     } finally {
-      useAuthStore.getState().clear(); // accessToken 초기화
-      queryClient.clear(); // 이전 유저 캐시 전체 제거
+      useAuthStore.getState().clear();
+      queryClient.clear();
       setIsLogoutOpen(false);
       router.replace("/login");
     }

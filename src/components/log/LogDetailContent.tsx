@@ -8,6 +8,7 @@ import { BackButton } from "@/components/ui/BackButton";
 import { cn } from "@/shared/utils";
 import type { Category } from "@/components/ui/CategoryChip";
 import { matchCategoryTag } from "@/shared/constants/category";
+import type { components } from "@/shared/api/schema.d";
 
 const CATEGORY_BG: Record<Category, string> = {
   sea: "bg-category-sea",
@@ -22,6 +23,7 @@ export interface LogDetailStop {
   imageUrl?: string | StaticImageData;
   photoId?: string;
   representative?: boolean;
+  visited: boolean;
   /** 4개 카테고리(바다/자연/문화/체험)와 일치하는 태그만 해당 카테고리 색으로, 나머지는 기본색으로 표시 */
   tags: string[];
 }
@@ -115,7 +117,11 @@ export function LogDetailContent({
               {daySchedule.stops.map((stop, idx) => (
                 <div
                   key={idx}
-                  className={cn("flex items-start", idx < daySchedule.stops.length - 1 && "pb-5")}
+                  className={cn(
+                    "flex items-start",
+                    idx < daySchedule.stops.length - 1 && "pb-5",
+                    !stop.visited && "opacity-40",
+                  )}
                 >
                   {/* 시간 + 도트 */}
                   <div className="flex items-center shrink-0">
@@ -142,7 +148,7 @@ export function LogDetailContent({
                       <div className="relative w-[254px] h-[118px] rounded-lg overflow-hidden border-[0.3px] border-system-glassborder shrink-0">
                         <Image src={stop.imageUrl} alt={stop.place} fill className="object-cover" />
 
-                        {editableRepresentativePhoto && (
+                        {editableRepresentativePhoto && stop.visited && (
                           <button
                             type="button"
                             onClick={
@@ -169,6 +175,7 @@ export function LogDetailContent({
                     <StopTags
                       tags={stop.tags}
                       editable={editableTags}
+                      disabled={!stop.visited}
                       onAddTag={(tag) => onAddTag?.(dayIdx, idx, tag)}
                       onDeleteTag={(tagIdx) => onDeleteTag?.(dayIdx, idx, tagIdx)}
                     />
@@ -196,12 +203,19 @@ function DayBadge({ day }: { day: number }) {
 interface StopTagsProps {
   tags: string[];
   editable?: boolean;
+  disabled?: boolean;
   onAddTag?: (tag: string) => void;
   onDeleteTag?: (tagIndex: number) => void;
 }
 
 /** editable이 true일 때만(도감 탭) 태그 추가/삭제 UI를 노출, 그 외 페이지는 기존과 동일한 정적 표시 */
-function StopTags({ tags, editable = false, onAddTag, onDeleteTag }: StopTagsProps) {
+function StopTags({
+  tags,
+  editable = false,
+  disabled = false,
+  onAddTag,
+  onDeleteTag,
+}: StopTagsProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [newTag, setNewTag] = useState("");
 
@@ -226,7 +240,7 @@ function StopTags({ tags, editable = false, onAddTag, onDeleteTag }: StopTagsPro
     <div className="flex items-center gap-1 flex-wrap">
       {tags.map((tag, tagIdx) => {
         const matchedCategory = matchCategoryTag(tag);
-        const deletable = editable && !matchedCategory;
+        const deletable = editable && !disabled && !matchedCategory;
 
         return (
           <button
@@ -253,6 +267,7 @@ function StopTags({ tags, editable = false, onAddTag, onDeleteTag }: StopTagsPro
       })}
 
       {editable &&
+        !disabled &&
         (isAdding ? (
           <div className="inline-flex items-center justify-center rounded-md bg-main-blue px-1.5 py-1">
             <span className="text-center text-xs tracking-[0.16px] text-main-white">#</span>
@@ -288,4 +303,31 @@ function StopTags({ tags, editable = false, onAddTag, onDeleteTag }: StopTagsPro
         ))}
     </div>
   );
+}
+
+// API 응답 → LogDetailContent props 변환
+type TravelLogDetail = components["schemas"]["TravelLogDetailResponse"];
+
+export function toLogDetailData(log: TravelLogDetail): LogDetailData {
+  return {
+    title: log.title ?? "",
+    placeName: log.days?.[0]?.items?.[0]?.spotName ?? "",
+    extraCount: log.totalSpots != null && log.totalSpots > 1 ? log.totalSpots - 1 : undefined,
+    duration: "",
+    date: log.startDate?.replace(/-/g, ".") ?? "",
+    days: (log.days ?? []).map((day) => ({
+      day: day.dayNumber ?? 1,
+      date: day.date?.replace(/-/g, ".") ?? "",
+      stops: (day.items ?? []).map((item) => ({
+        time: item.arrivalTime ?? "",
+        place: item.spotName ?? "",
+        imageUrl:
+          item.photos?.find((p) => p.representative)?.photoUrl ??
+          item.photos?.[0]?.photoUrl ??
+          undefined,
+        tags: item.hashtags?.map((h) => `#${h.tag}`) ?? [],
+        visited: item.visited ?? true,
+      })),
+    })),
+  };
 }

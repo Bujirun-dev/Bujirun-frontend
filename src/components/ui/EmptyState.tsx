@@ -18,6 +18,10 @@ interface EmptyStateProps {
   // 홈 카드처럼 좁은 영역에 넣을 땐 "sm"으로 이미지/여백을 줄인다. 기본은 "lg".
   size?: EmptyStateSize;
   className?: string;
+  // size 프리셋의 이미지 px을 개별 화면에서 미세 조정하고 싶을 때만 사용.
+  imageSize?: number;
+  // 기본 버튼 스타일(sm 기준 w-auto px-6)을 개별 화면에서 덮어쓰고 싶을 때만 사용.
+  actionClassName?: string;
 }
 
 const SIZE_STYLES: Record<EmptyStateSize, { image: number; glow: string; padding: string }> = {
@@ -36,8 +40,11 @@ export function EmptyState({
   onAction,
   size = "lg",
   className,
+  imageSize,
+  actionClassName,
 }: EmptyStateProps) {
-  const { image: imageSize, glow, padding } = SIZE_STYLES[size];
+  const { image: presetImageSize, glow, padding } = SIZE_STYLES[size];
+  const resolvedImageSize = imageSize ?? presetImageSize;
 
   return (
     <motion.div
@@ -59,8 +66,8 @@ export function EmptyState({
           <Image
             src={image}
             alt={imageAlt}
-            width={imageSize}
-            height={imageSize}
+            width={resolvedImageSize}
+            height={resolvedImageSize}
             className="relative"
           />
         </motion.div>
@@ -82,7 +89,12 @@ export function EmptyState({
         <Button
           variant="primary"
           onClick={onAction}
-          className={size === "sm" ? "mt-2 w-auto px-6" : "mt-3"}
+          className={cn(
+            size === "sm" ? "mt-2" : "mt-3",
+            // actionClassName이 있으면 너비는 그쪽에 맡긴다(cn이 tailwind-merge가 아니라
+            // 단순 문자열 합치기라, 기본 w-auto와 같이 있으면 override를 보장 못 함).
+            actionClassName ?? (size === "sm" ? "w-auto px-6" : undefined),
+          )}
         >
           {actionLabel}
         </Button>

@@ -8,6 +8,23 @@ export const keys = {
   history: () => [...keys.all, "history"] as const,
 };
 
+export type AddVisitPhotoBody = {
+  photoUrl: string;
+};
+
+export type VisitPhoto = {
+  photoId: string;
+  visitId: string;
+  photoUrl: string;
+  createdAt: string;
+};
+
+type AddVisitPhotoResponse = {
+  success: boolean;
+  message: string;
+  data: VisitPhoto;
+};
+
 // post
 export function verifyVisit(body: OpBody<"verify">) {
   return apiClient.post<OpResponse<"verify">>("/api/visits", body).then((res) => unwrap(res));
@@ -16,4 +33,11 @@ export function verifyVisit(body: OpBody<"verify">) {
 //get
 export function getHistory() {
   return apiClient.get<OpResponse<"getHistory">>("/api/visits").then((res) => unwrap(res));
+}
+
+// 방문 사진 추가
+export function addVisitPhoto(visitId: string, body: AddVisitPhotoBody) {
+  return apiClient
+    .post<AddVisitPhotoResponse>(`/api/visits/${visitId}/photos`, body)
+    .then((res) => unwrap(res));
 }

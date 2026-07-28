@@ -30,6 +30,19 @@ export function getMyLogs() {
   return apiClient.get<OpResponse<"getMyLogs">>("/api/logs/me").then((res) => unwrap(res));
 }
 
+export function checkLogExists(itineraryIds: string[]) {
+  return apiClient
+    .get<OpResponse<"checkLogExists">>("/api/logs/exists", {
+      params: {
+        itineraryIds,
+      },
+      paramsSerializer: {
+        indexes: null,
+      },
+    })
+    .then((res) => unwrap(res));
+}
+
 export function getPublicLogs(query?: OpQuery<"getPublicLogs">) {
   return apiClient
     .get<OpResponse<"getPublicLogs">>("/api/logs/public", { params: query })

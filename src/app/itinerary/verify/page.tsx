@@ -11,11 +11,9 @@ export default function VerifyPage() {
 
   const spotId = searchParams.get("spotId");
   const itineraryId = searchParams.get("itineraryId");
-  const logId = searchParams.get("logId");
-  const itemId = searchParams.get("itemId");
   const placeName = searchParams.get("placeName") ?? "관광지";
 
-  if (!spotId || !itineraryId || !logId || !itemId) {
+  if (!spotId || !itineraryId) {
     return null;
   }
 
@@ -26,8 +24,6 @@ export default function VerifyPage() {
       <ArrivalVerifyModal
         spotId={spotId}
         itineraryId={itineraryId}
-        logId={logId}
-        itemId={itemId}
         isOpen
         onClose={() => router.back()}
         placeName={placeName}

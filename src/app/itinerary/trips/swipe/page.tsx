@@ -58,7 +58,7 @@ function TripSwipeContent() {
       (spotsData ?? []).map((spot) => ({
         id: spot.contentId ?? "",
         name: spot.name ?? "",
-        image: spot.thumbnailUrl || FALLBACK_IMAGE,
+        image: spot.swipeImageUrl || FALLBACK_IMAGE,
       })),
     [spotsData],
   );
@@ -176,6 +176,7 @@ function TripSwipeContent() {
             src={place.image}
             alt={place.name}
             fill
+            sizes="390px"
             className="object-cover pointer-events-none"
             draggable={false}
           />

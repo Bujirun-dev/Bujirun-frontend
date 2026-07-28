@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { keys } from "@/shared/api/domains/itinerary";
 import { useVerifyVisit } from "@/shared/hooks/useVerifyVisit";
 import { presignUpload } from "@/shared/api/domains/upload";
-import { addPhoto } from "@/shared/api/domains/travel-log";
+import { addVisitPhoto } from "@/shared/api/domains/visit";
 import type { VerifyStep } from "./arrival-verify/ArrivalVerifyStages";
 import { PermissionButton } from "./arrival-verify/ArrivalVerifyShared";
 import {
@@ -29,8 +29,6 @@ import {
 interface ArrivalVerifyModalProps {
   spotId: string;
   itineraryId: string;
-  logId: string;
-  itemId: string;
   isOpen: boolean;
   onClose: () => void;
   placeName: string;
@@ -44,8 +42,6 @@ interface ArrivalVerifyModalProps {
 export function ArrivalVerifyModal({
   spotId,
   itineraryId,
-  logId,
-  itemId,
   isOpen,
   onClose,
   placeName,
@@ -61,6 +57,7 @@ export function ArrivalVerifyModal({
   const [isVerified, setIsVerified] = useState(false);
   const [isCheckingLocation, setIsCheckingLocation] = useState(false);
   const [capturedFile, setCapturedFile] = useState<File | null>(null);
+  const [visitId, setVisitId] = useState<string | null>(null);
   const [capturedImageUrl, setCapturedImageUrl] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
@@ -88,9 +85,11 @@ export function ArrivalVerifyModal({
             gpsLng: currentLng,
           });
 
-          if (response.verified) {
+          if (response.verified && response.visitId) {
+            setVisitId(response.visitId);
             setStep("gps-success");
           } else {
+            setVisitId(null);
             setStep("gps-fail");
           }
         } catch (error) {
@@ -150,6 +149,7 @@ export function ArrivalVerifyModal({
     setStep("arrival");
     setIsVerified(false);
     setIsCheckingLocation(false);
+    setVisitId(null);
 
     if (capturedImageUrl) {
       URL.revokeObjectURL(capturedImageUrl);
@@ -161,7 +161,7 @@ export function ArrivalVerifyModal({
   };
 
   const finishVerification = async () => {
-    if (!capturedFile || isVerified || isVerifying) return;
+    if (!capturedFile || !visitId || isVerified || isVerifying) return;
 
     try {
       const { uploadUrl, publicUrl } = await presignUpload({
@@ -184,7 +184,7 @@ export function ArrivalVerifyModal({
         throw new Error("사진 업로드에 실패했습니다.");
       }
 
-      await addPhoto(logId, itemId, {
+      await addVisitPhoto(visitId, {
         photoUrl: publicUrl,
       });
 
@@ -392,7 +392,7 @@ export function ArrivalVerifyModal({
       <div className="relative flex w-full flex-col items-center">
         {userAvatarUrl && (
           <div className="absolute -top-6 left-1/2 size-[56px] -translate-x-1/2 overflow-hidden rounded-full border-4 border-main-white shadow-[0_2px_8px_0_var(--color-system-scroll)]">
-            <Image src={userAvatarUrl} alt="avatar" fill className="object-cover" />
+            <Image src={userAvatarUrl} alt="avatar" fill sizes="56px" className="object-cover" />
           </div>
         )}
 

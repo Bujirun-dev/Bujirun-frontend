@@ -4,11 +4,19 @@ import { useState, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import plusSmallIcon from "@/assets/icons/itinerary/plus-small.svg?url";
-import { PageCard } from "@/components";
+import { PageCard, Toast } from "@/components";
 import { TripCard, TripEditModal, TripDeleteModal, TripDeleteToast } from "@/features/itinerary";
 import type { Trip } from "@/features/itinerary";
 import { itineraryApi } from "@/shared/api/domains";
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (isAxiosError(error) && typeof error.response?.data?.message === "string") {
+    return error.response.data.message;
+  }
+  return fallback;
+}
 
 type ModalState = { type: "edit"; trip: Trip } | { type: "delete"; trip: Trip } | null;
 
@@ -29,6 +37,7 @@ export default function TripsPage() {
   const queryClient = useQueryClient();
   const [modal, setModal] = useState<ModalState>(null);
   const [showDeleteToast, setShowDeleteToast] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { data: summaries } = useQuery({
     queryKey: itineraryApi.keys.lists(),
@@ -90,6 +99,8 @@ export default function TripsPage() {
           startAt: toApiDate(updated.startDate),
           endAt: toApiDate(updated.endDate),
         });
+      } catch (error) {
+        setErrorMessage(getErrorMessage(error, "여행 수정에 실패했어요. 다시 시도해주세요."));
       } finally {
         invalidateTrips();
       }
@@ -104,9 +115,11 @@ export default function TripsPage() {
     setModal(null);
     try {
       await itineraryApi.deleteItinerary(tripId);
+      setShowDeleteToast(true);
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error, "여행 삭제에 실패했어요. 다시 시도해주세요."));
     } finally {
       invalidateTrips();
-      setShowDeleteToast(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modal]);
@@ -171,6 +184,12 @@ export default function TripsPage() {
 
       {/* 삭제 토스트 */}
       <TripDeleteToast isVisible={showDeleteToast} onHide={() => setShowDeleteToast(false)} />
+
+      <Toast
+        isVisible={errorMessage !== null}
+        message={errorMessage ?? ""}
+        onHide={() => setErrorMessage(null)}
+      />
     </PageCard>
   );
 }

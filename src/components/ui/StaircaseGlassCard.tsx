@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useLayoutEffect, useState } from "react";
+import { useRef, useLayoutEffect, useState, useEffect } from "react";
 
 const DEFAULT_OFFSET_X = 56;
 const OVERLAP = 8;
@@ -86,6 +86,18 @@ export function StaircaseGlassCard({
   const { text, padding } = SIZE_CLASS[size];
   const colorClassName = COLOR_CLASS[color];
 
+  // 커스텀 폰트가 font-display: swap이라 마운트 시점엔 폴백 폰트로 측정될 수 있음.
+  // 폰트 로딩이 끝나면 다시 측정해서 실제 렌더 크기와 맞춘다 (그렇지 않으면 폰트가
+  // 늦게 로드되는 실기기에서 텍스트가 말풍선 밖으로 삐져나감).
+  const [fontsReady, setFontsReady] = useState(
+    () => typeof document === "undefined" || !document.fonts,
+  );
+
+  useEffect(() => {
+    if (fontsReady) return;
+    document.fonts.ready.then(() => setFontsReady(true));
+  }, [fontsReady]);
+
   useLayoutEffect(() => {
     if (!ref1.current || !ref2.current) return;
     setDims({
@@ -94,7 +106,7 @@ export function StaircaseGlassCard({
       w2: ref2.current.offsetWidth,
       h2: ref2.current.offsetHeight,
     });
-  }, [line1, line2, fontClassName, padding, text, offsetX]);
+  }, [line1, line2, fontClassName, padding, text, offsetX, fontsReady]);
 
   const totalW = dims ? offsetX + dims.w2 : undefined;
   const totalH = dims ? dims.h1 - OVERLAP + dims.h2 : undefined;

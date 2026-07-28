@@ -175,7 +175,7 @@ export function PlaceSearchPanel({ onClose, onPlaceSelect }: PlaceSearchPanelPro
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
+    <div className="flex h-full flex-col overflow-y-auto">
       {/* 검색바 */}
       <div className="pb-3.5">
         <SearchBar
@@ -236,7 +236,7 @@ export function PlaceSearchPanel({ onClose, onPlaceSelect }: PlaceSearchPanelPro
           className="pb-[30%]"
         />
       ) : sortBy === "추천순" ? (
-        <div className="flex flex-col gap-2.5 overflow-y-auto overflow-x-hidden">
+        <div className="flex flex-col gap-2.5 overflow-x-hidden">
           {filtered.map((place) => (
             <PlaceSearchItem
               key={place.id}

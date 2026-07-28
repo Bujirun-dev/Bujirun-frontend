@@ -16,6 +16,7 @@ import type { Category } from "@/components/ui/CategoryChip";
 import { itineraryApi } from "@/shared/api/domains";
 import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
 import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
+import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import type { components } from "@/shared/api/schema";
 
 // TODO: 그룹 공통 취향 API 연동 전까지는 대표 카테고리 3종 고정 표기
@@ -77,9 +78,6 @@ function getDaySlots(dayIndex: number, totalDays: number, startTime: string, end
   return slots;
 }
 
-// TODO: API 연동 후 실제 방장 여부로 교체
-const IS_HOST = true;
-
 type FreepassModalStep = "guide" | "confirm" | null;
 
 function ResultPlaceNode({ place }: { place: Place }) {
@@ -90,7 +88,7 @@ function ResultPlaceNode({ place }: { place: Place }) {
       </p>
       <span className="absolute left-1/2 -top-[11px] z-10 size-[11px] -translate-x-1/2 rounded-full border-[1.5px] border-main-blue bg-main-white" />
       <div className="relative h-[35px] w-[53px] overflow-hidden rounded-[8px] border border-main-blue bg-system-navbg">
-        <Image src={place.image} alt={place.name} fill className="object-cover" />
+        <Image src={place.image} alt={place.name} fill sizes="53px" className="object-cover" />
       </div>
     </div>
   );
@@ -124,6 +122,7 @@ function TripResultContent() {
   const endDate = searchParams.get("endDate") ?? "";
   const startTime = searchParams.get("startTime") || "10:00";
   const endTime = searchParams.get("endTime") || "17:00";
+  const isHost = useIsGroupHost(groupId);
 
   const {
     data: generated,
@@ -132,7 +131,8 @@ function TripResultContent() {
     refetch: refetchGenerate,
   } = useQuery({
     queryKey: itineraryApi.keys.groupGenerate(groupId, startDate, endDate),
-    queryFn: () => itineraryApi.generateGroupItinerary(groupId, { startDate, endDate }),
+    queryFn: () =>
+      itineraryApi.generateGroupItinerary(groupId, { startDate, endDate, startTime, endTime }),
     enabled: !!groupId && !!startDate && !!endDate,
   });
 
@@ -462,16 +462,16 @@ function TripResultContent() {
           <button
             type="button"
             onClick={
-              IS_HOST
+              isHost
                 ? isFreepassMode
                   ? () => setFreepassModal("confirm")
                   : handleFreepass
                 : undefined
             }
-            disabled={!IS_HOST || isConfirming}
+            disabled={!isHost || isConfirming}
             className={cn(
               "flex h-[44px] w-full items-center justify-center gap-2 rounded-[10px] font-ssurround font-bold text-md text-main-white transition-opacity",
-              IS_HOST ? "bg-main-blue" : "bg-sub-gray cursor-not-allowed",
+              isHost ? "bg-main-blue" : "bg-sub-gray cursor-not-allowed",
             )}
           >
             {isConfirming ? (

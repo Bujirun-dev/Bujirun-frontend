@@ -7,9 +7,7 @@ import { Modal, Toast, LoadingState } from "@/components";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { itineraryApi } from "@/shared/api/domains";
 import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
-
-// TODO: API 연동 시 실제 방장 여부로 교체
-const IS_HOST = true;
+import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 
 function getWinnerPlan(votes: Record<string, number>): string | null {
   const sorted = Object.entries(votes).sort((a, b) => b[1] - a[1]);
@@ -48,6 +46,8 @@ function VoteWaitingContent() {
   const totalSlots = Math.min(6, Math.max(2, Number(searchParams.get("count")) || 6));
   const totalDays = Math.max(1, Number(searchParams.get("days")) || 1);
   const sessionId = searchParams.get("sessionId") ?? "";
+  const groupId = searchParams.get("groupId") ?? "";
+  const isHost = useIsGroupHost(groupId);
   const tripName = searchParams.get("name") ?? "여행";
   const startDate = searchParams.get("startDate") ?? "";
   const endDate = searchParams.get("endDate") ?? "";
@@ -74,7 +74,7 @@ function VoteWaitingContent() {
     try {
       // 확정은 리더 전용 API라 방장 클라이언트만 실제로 호출하고,
       // 참여자는 방장이 확정할 때까지 기다렸다가 같은 화면 흐름으로 넘어간다.
-      if (IS_HOST) {
+      if (isHost) {
         const newItineraryId = await itineraryApi.finalizeItinerary(sessionId, {
           freePass: false,
           selectedPlan: planType,
@@ -173,14 +173,14 @@ function VoteWaitingContent() {
         hideCloseButton
         title="투표 동률이에요!"
         description={
-          IS_HOST
+          isHost
             ? `${tiedPlans.join("안과 ")}안이 같은 표를 받았어요.\n방장이 최종 일정을 선택해주세요.`
             : `${tiedPlans.join("안과 ")}안이 같은 표를 받았어요.\n방장이 최종 일정을 선택 중이에요...`
         }
         childrenVariant="card"
         hideActions
         footer={
-          IS_HOST ? (
+          isHost ? (
             <div className="flex w-full gap-3">
               {tiedPlans.map((plan) => (
                 <button

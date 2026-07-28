@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { getItineraries, getItinerary, keys } from "@/shared/api/domains/itinerary";
-import { getLog } from "@/shared/api/domains/travel-log";
 import { getNearestItineraryDay } from "@/features/home/utils/getNearestItineraryDay";
 
 export function useTodayItinerary() {
@@ -13,6 +12,7 @@ export function useTodayItinerary() {
   });
 
   const itineraries = itinerariesQuery.data ?? [];
+  const [now] = useState(() => Date.now());
 
   const itineraryQueries = useQueries({
     queries: itineraries
@@ -49,13 +49,34 @@ export function useTodayItinerary() {
     return getNearestItineraryDay<(typeof schedules)[number]>(schedules);
   }, [itineraryQueries]);
 
-  const itineraryId = nearestSchedule?.itinerary.id;
+  const completedItineraries = useMemo(() => {
+    return itineraryQueries
+      .flatMap((query) => {
+        const itinerary = query.data;
 
-  const logQuery = useQuery({
-    queryKey: ["logs", "itinerary", itineraryId],
-    queryFn: () => getLog(itineraryId as string),
-    enabled: Boolean(itineraryId),
-  });
+        if (!itinerary?.id || !itinerary.endAt) {
+          return [];
+        }
+
+        const endAt = new Date(itinerary.endAt).getTime();
+
+        if (Number.isNaN(endAt) || endAt > now) {
+          return [];
+        }
+
+        return [
+          {
+            itinerary: {
+              ...itinerary,
+              id: itinerary.id,
+            },
+            endAt,
+          },
+        ];
+      })
+      .sort((a, b) => b.endAt - a.endAt)
+      .map(({ itinerary }) => itinerary);
+  }, [itineraryQueries, now]);
 
   const items = useMemo(
     () =>
@@ -71,12 +92,12 @@ export function useTodayItinerary() {
 
   return {
     itinerary: nearestSchedule?.itinerary,
-    logId: logQuery.data?.id,
+    completedItineraries,
     day: nearestSchedule?.day,
     items,
     hasSchedule: Boolean(nearestSchedule),
-    isLoading: itinerariesQuery.isLoading || isDetailLoading || logQuery.isLoading,
-    isError: itinerariesQuery.isError || Boolean(detailErrorQuery) || logQuery.isError,
-    error: itinerariesQuery.error ?? detailErrorQuery?.error ?? logQuery.error,
+    isLoading: itinerariesQuery.isLoading || isDetailLoading,
+    isError: itinerariesQuery.isError || Boolean(detailErrorQuery),
+    error: itinerariesQuery.error ?? detailErrorQuery?.error,
   };
 }

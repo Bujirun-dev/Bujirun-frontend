@@ -39,7 +39,7 @@ function ParticipantAvatar({ active }: { active: boolean }) {
           !active && "opacity-30 grayscale",
         )}
       >
-        <Image src={faceImg} alt="" fill className="object-cover" aria-hidden />
+        <Image src={faceImg} alt="" fill sizes="84px" className="object-cover" aria-hidden />
       </div>
     </div>
   );

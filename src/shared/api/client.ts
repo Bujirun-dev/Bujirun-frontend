@@ -31,7 +31,9 @@ const REISSUE_URL = "/api/auth/reissue";
 // 401이 동시에 여러 번 터져도 reissue는 한 번만 호출되도록 진행 중인 요청을 공유한다.
 let reissuePromise: Promise<string | null> | null = null;
 
-function reissueAccessToken(): Promise<string | null> {
+// 실시간 협업 WebSocket 훅(useItineraryYDoc)도 토큰 만료 전 선제 재발급에 이 함수를 그대로 재사용한다
+// (reissuePromise 중복 제거 로직을 401 인터셉터와 공유하기 위함).
+export function reissueAccessToken(): Promise<string | null> {
   if (!reissuePromise) {
     reissuePromise = apiClient
       .post<ApiResponse<{ accessToken: string; tokenType: string }>>(REISSUE_URL)

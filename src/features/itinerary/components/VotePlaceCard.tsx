@@ -24,7 +24,7 @@ export function VotePlaceCard({
           isSelected && "ring-2 ring-main-blue",
         )}
       >
-        <Image src={imageUrl} alt={name ?? ""} fill className="object-cover" />
+        <Image src={imageUrl} alt={name ?? ""} fill sizes="72px" className="object-cover" />
       </div>
       {name && <p className="text-xs text-text-primary text-center truncate w-[72px]">{name}</p>}
     </div>

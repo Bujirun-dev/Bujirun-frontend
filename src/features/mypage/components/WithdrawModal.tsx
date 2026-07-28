@@ -13,10 +13,10 @@ interface WithdrawModalProps {
 }
 
 const WITHDRAW_ITEMS = [
-  "회원 정보 및 기록이 모두 삭제됩니다.",
-  "삭제된 데이터는 복구할 수 없습니다.",
-  "탈퇴 후 동일 아이디로 재가입이 불가능할 수 있습니다.",
-  "위 내용들을 모두 확인하였으며, 회원탈퇴에 동의합니다.",
+  "회원 정보 및 개인식별 정보가 삭제됩니다.",
+  "여행 기록은 비공개 처리됩니다.",
+  "탈퇴 후 30일 이내 재가입 시 계정이 복구됩니다.",
+  "위 내용을 확인하였으며, 회원탈퇴에 동의합니다.",
 ];
 
 export function WithdrawModal({ isOpen, onClose, onConfirm }: WithdrawModalProps) {

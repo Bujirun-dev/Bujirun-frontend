@@ -16,3 +16,8 @@ export function updateMyProfile(body: OpBody<"updateMyProfile">) {
     .patch<OpResponse<"updateMyProfile">>("/api/users/me", body)
     .then((res) => unwrap(res));
 }
+
+//회원탈퇴
+export function deleteMyAccount() {
+  return apiClient.delete("/api/users/me");
+}
