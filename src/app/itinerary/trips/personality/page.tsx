@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import faceImg from "@/assets/character/face.png";
 import swipeRightIcon from "@/assets/icons/itinerary/swipe-right.png";
 import swipeLeftIcon from "@/assets/icons/itinerary/swipe-left.png";
-import { SpeechBubble, LoadingState } from "@/components";
+import { SpeechBubble, LoadingState, Toast } from "@/components";
 import { collectionApi, swipeApi } from "@/shared/api/domains";
 
 const TOTAL_SLOTS = 6; // mock - 실제로는 searchParams 또는 API
@@ -55,9 +55,13 @@ function TripPersonalityContent() {
   }).toString();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // "난 다 좋아"도 실제 스와이프처럼 서버에 좋아요 기록을 남겨야 그룹 일정
   // 자동생성이 취합할 스와이프 데이터가 생긴다 (안 보내면 백엔드 generate가 500).
+  // 도감을 이미 많이/다 채운 계정은 getSwipeDeck()이 빈 배열을 줄 수 있는데, 이 경우
+  // 아무것도 못 보내고 다음 화면(대기→결과)에서야 원인 모를 생성 실패로 이어지던 문제가
+  // 있었다 — 여기서 바로 구체적인 이유를 알려주고 실패 상태로는 넘어가지 않게 막는다.
   const handleLikeAll = async () => {
     setIsSubmitting(true);
     try {
@@ -66,14 +70,16 @@ function TripPersonalityContent() {
         .map((spot) => spot.contentId)
         .filter((contentId): contentId is string => !!contentId)
         .map((contentId) => ({ contentId, liked: true }));
-      if (swipes.length > 0) {
-        await swipeApi.submitSwipes({ swipes, groupId: groupId || undefined });
+      if (swipes.length === 0) {
+        setToastMessage("이미 도감을 다 채우셨네요! 그룹 일정 생성이 어려울 수 있어요.");
+        return;
       }
+      await swipeApi.submitSwipes({ swipes, groupId: groupId || undefined });
+      router.push(`/itinerary/trips/waiting?${forwardParams}`);
     } catch {
-      // 스와이프 등록에 실패해도 흐름은 진행 — 결과 화면에서 일정 생성 실패로 다시 안내됨
+      setToastMessage("좋아요 등록에 실패했어요. 다시 시도해주세요.");
     } finally {
       setIsSubmitting(false);
-      router.push(`/itinerary/trips/waiting?${forwardParams}`);
     }
   };
 
@@ -146,6 +152,13 @@ function TripPersonalityContent() {
           </button>
         </div>
       </div>
+
+      <Toast
+        isVisible={toastMessage !== null}
+        onHide={() => setToastMessage(null)}
+        message={toastMessage ?? ""}
+        variant="error"
+      />
     </div>
   );
 }
