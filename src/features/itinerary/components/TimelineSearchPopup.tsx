@@ -1,9 +1,7 @@
 "use client";
 
 import { forwardRef, useState } from "react";
-import { createPortal } from "react-dom";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?url";
 import PlusIcon from "@/assets/icons/itinerary/plus-small.svg?svgr";
 import { PlaceDetailContent, StatusBadge } from "@/components";
@@ -82,34 +80,13 @@ function SelectedPlacePreview({
   );
 }
 
-// 예전엔 타임라인 위에 top-0으로 꽉 덮는 카드였는데, 이미 추가된 일정이 전부 가려져서
-// 뭐가 있는지 안 보인 채로 검색해야 했다 — 바텀시트로 바꿔서 화면 위쪽(이미 추가된
-// 일정)이 살짝 보이게 한다. app-root에 포탈로 렌더링해야 화면 전체 높이 기준으로
-// bottom-0이 잡힌다(원래 위치에 그대로 두면 이 컴포넌트를 감싼 좁은 relative 부모
-// 기준으로 붙어서 바텀시트처럼 안 보인다) — Modal.tsx와 동일한 포탈 패턴.
 export const TimelineSearchPopup = forwardRef<HTMLDivElement, TimelineSearchPopupProps>(
   function TimelineSearchPopup({ onClose, onAddToItinerary }, ref) {
     const [selectedPlace, setSelectedPlace] = useState<SearchPlace | null>(null);
 
-    if (typeof document === "undefined") return null;
-    const appRoot = document.getElementById("app-root");
-    if (!appRoot) return null;
-
-    return createPortal(
-      <div
-        className="absolute inset-0 z-40"
-        style={{ backgroundColor: "var(--color-system-blackbg)" }}
-        onClick={onClose}
-      >
-        <motion.div
-          ref={ref}
-          initial={{ y: "100%" }}
-          animate={{ y: 0 }}
-          exit={{ y: "100%" }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
-          className="absolute inset-x-0 bottom-0 z-50 flex h-[65dvh] w-full flex-col overflow-hidden rounded-t-3xl bg-main-white px-4 py-5 shadow-[0px_-2px_10px_0px_var(--color-system-glassborder)]"
-          onClick={(e) => e.stopPropagation()}
-        >
+    return (
+      <div ref={ref} className="absolute left-[52px] right-0 top-0 z-20 pl-3">
+        <div className="flex h-[470px] w-full flex-col overflow-hidden rounded-3xl border-[0.5px] border-system-glassborder bg-main-white px-4 py-5 shadow-[2px_2px_10px_0px_var(--color-system-glassborder)]">
           {selectedPlace ? (
             <SelectedPlacePreview
               selectedPlace={selectedPlace}
@@ -120,9 +97,8 @@ export const TimelineSearchPopup = forwardRef<HTMLDivElement, TimelineSearchPopu
           ) : (
             <PlaceSearchPanel onClose={onClose} onPlaceSelect={setSelectedPlace} />
           )}
-        </motion.div>
-      </div>,
-      appRoot,
+        </div>
+      </div>
     );
   },
 );
