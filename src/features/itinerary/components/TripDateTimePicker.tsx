@@ -88,6 +88,18 @@ export function TripDateTimePicker({
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [isOpen]);
 
+  // 트리거 위치를 한 번 계산해 고정하는 방식이라, 열려있는 동안 뒤 화면이
+  // 스크롤되면 팝업이 트리거와 어긋나 보인다. 매 스크롤마다 다시 계산해 따라
+  // 움직이게 하는 대신, 그냥 닫아버린다.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleScroll = () => setIsOpen(false);
+
+    window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
+    return () => window.removeEventListener("scroll", handleScroll, { capture: true });
+  }, [isOpen]);
+
   const applyDate = (date: Date) => {
     if (minDate && isBeforeMinute(date, minDate)) {
       onChange(formatTripDateTime(minDate));

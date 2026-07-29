@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import faceImg from "@/assets/character/face.png";
 import swipeRightIcon from "@/assets/icons/itinerary/swipe-right.png";
 import swipeLeftIcon from "@/assets/icons/itinerary/swipe-left.png";
-import { SpeechBubble, LoadingState, Toast } from "@/components";
+import { SpeechBubble, LoadingState, Toast, Button } from "@/components";
 import { collectionApi, swipeApi } from "@/shared/api/domains";
 
 const TOTAL_SLOTS = 6; // mock - 실제로는 searchParams 또는 API
@@ -135,21 +135,21 @@ function TripPersonalityContent() {
 
         {/* 버튼 */}
         <div className="mt-[24px] flex w-full gap-3">
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={handleLikeAll}
             disabled={isSubmitting}
-            className="flex-1 h-[40px] rounded-[10px] border border-main-blue bg-white font-ssurround font-bold text-md text-sub-deepblue disabled:opacity-50"
+            className="flex-1 disabled:opacity-50"
           >
             난 다 좋아!
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => router.push(`/itinerary/trips/swipe?${forwardParams}`)}
-            className="flex-1 h-[40px] rounded-[10px] bg-main-blue font-ssurround font-bold text-md text-white"
+            className="flex-1"
           >
             취향분석 할래!
-          </button>
+          </Button>
         </div>
       </div>
 

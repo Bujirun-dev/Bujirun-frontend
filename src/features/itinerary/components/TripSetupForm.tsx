@@ -36,6 +36,14 @@ export function TripSetupForm() {
   const [isCreating, setIsCreating] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // 출발일이 도착일보다 뒤로 밀리면 도착일도 출발일 시각으로 함께 당겨온다.
+  const handleStartDateChange = (next: string) => {
+    setStartDate(next);
+    if (parseTripDateTime(endDate) < parseTripDateTime(next)) {
+      setEndDate(next);
+    }
+  };
+
   const handleInvalidDate = (reason: "min" | "max") => {
     setToastMessage(
       reason === "min" ? "지난 날짜/시간은 선택할 수 없어요." : "선택할 수 있는 기간을 벗어났어요.",
@@ -151,7 +159,7 @@ export function TripSetupForm() {
             </div>
             <TripDateTimePicker
               value={startDate}
-              onChange={setStartDate}
+              onChange={handleStartDateChange}
               minValue={formatTripDateTime(new Date())}
               onInvalidSelect={handleInvalidDate}
               className="flex-1"

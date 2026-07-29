@@ -98,7 +98,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
       <ImportLogModal
         isOpen={showAddModal}
         isLoading={isImporting}
-        authorNickname={log.days?.[0]?.items?.[0]?.spotName ?? ""}
+        authorNickname={log.groupMembers?.[0]?.nickname ?? ""}
         onClose={handleCloseAddModal}
         onConfirm={handleImportLog}
       />

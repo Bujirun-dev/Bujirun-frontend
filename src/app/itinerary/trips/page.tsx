@@ -130,14 +130,14 @@ export default function TripsPage() {
     <PageCard className="relative">
       {/* + 버튼 */}
       <button
-        className="absolute top-[28px] right-[32px] size-[28px] rounded-lg bg-sub-coral flex items-center justify-center active:opacity-80 z-10"
+        className="absolute top-[28px] right-[32px] size-[24px] rounded-lg bg-sub-coral flex items-center justify-center active:opacity-80 z-10"
         onClick={() => router.push("/itinerary/trips/new")}
       >
         <Image
           src={plusSmallIcon}
           alt=""
-          width={24}
-          height={24}
+          width={20}
+          height={20}
           className="brightness-0 invert"
           aria-hidden
         />
