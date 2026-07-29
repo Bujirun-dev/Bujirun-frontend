@@ -42,6 +42,10 @@ interface CurrentUser {
   profileImageUrl?: string;
 }
 
+// WS sync가 이 시간 안에 안 끝나면(연결 자체가 안 되거나, 오프라인 등) REST 값으로
+// 그냥 시딩해서 로컬 편집만이라도 항상 가능하게 한다.
+const SEED_FALLBACK_MS = 4000;
+
 // useItineraryYDoc(연결 생명주기)을 감싸 실제 화면이 쓰는 형태로 데이터를 노출한다:
 // Yjs 상태를 BaseStop[][]로 파생시키고, 초기 시딩·이탈시/합류시 DB 반영을 처리한다.
 export function useCollaborativeItinerary(
@@ -51,25 +55,22 @@ export function useCollaborativeItinerary(
   currentUser?: CurrentUser,
   onRemoteActivity?: (entry: ActivityLogEntry) => void,
 ) {
-  // 문서를 만드는 시점에 곧바로(=WS 연결 여부와 무관하게) REST 초기값으로 시딩한다.
-  // 실시간 협업 서버가 아직 연결이 안 됐거나 아예 없어도 로컬 CRUD(추가/삭제/시간변경)가
-  // 항상 동작해야 하기 때문 — Yjs는 어디까지나 "연결되면 실시간으로 더 보이는" 보너스
-  // 레이어여야지, 기본 편집 기능의 전제조건이 되면 안 된다. seedYjsDays는 이미 비어있는
-  // 문서에만 쓰므로 멱등적이다.
-  // 주의: 같은 방을 두 클라이언트가 완전히 동시에 처음 여는 극히 드문 경우, 서버 동기화를
-  // 기다리지 않고 각자 시딩하기 때문에 항목이 중복될 수 있다 — 실제 협업 서버가 붙기
-  // 전까지는 발생하지 않는 시나리오라 지금은 감수한다.
-  const [doc] = useState(() => {
-    const newDoc = new Y.Doc();
-    seedYjsDays(newDoc, dayIds, initialDays);
-    return newDoc;
-  });
+  // 문서는 빈 채로 만든다. 시딩은 아래 useEffect에서, WS 동기화가 끝나 원격(Redis)에
+  // 이미 있던 days가 doc에 먼저 반영된 뒤에 한다 — 그래야 seedYjsDays의 "로컬 문서가
+  // 비어있으면 시딩" 가드가 "진짜 처음 여는 일정인지"를 정확히 판단할 수 있다.
+  // (이전엔 useState 초기화 시점에 곧바로 시딩했는데, 매 마운트마다 새 빈 문서를 만들다
+  // 보니 이 가드가 사실상 항상 통과해버려서, 같은 일정을 재오픈할 때마다 REST에서 받은
+  // days가 서버에 이미 있던 days와 합쳐져 개수가 배로 늘어나는 버그가 있었다.)
+  const [doc] = useState(() => new Y.Doc());
   const [stopsPerDay, setStopsPerDay] = useState<BaseStop[][]>(initialDays);
 
   // effect/콜백 안에서 최신 값을 읽기 위한 ref (stale closure 방지). 렌더 중 값을 그대로
   // 대입하면 안 되므로(react-hooks/refs) effect에서 매 렌더 최신값으로 갱신한다.
   const dayIdsRef = useRef(dayIds);
   const snapshotsRef = useRef<DaySnapshot[]>(initialDays.map(snapshotFromStops));
+  // 시딩용 초기값은 마운트 시점 값 그대로 고정한다 — props가 그 사이 바뀌어도
+  // 시딩 로직이 재실행되며 엉뚱한 값을 시딩하면 안 되기 때문.
+  const initialDaysRef = useRef(initialDays);
 
   useEffect(() => {
     dayIdsRef.current = dayIds;
@@ -100,7 +101,23 @@ export function useCollaborativeItinerary(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stopsPerDay]);
 
-  const { status, getProvider } = useItineraryYDoc(itineraryId, doc, flushAll);
+  const { status, synced, getProvider } = useItineraryYDoc(itineraryId, doc, flushAll);
+
+  // WS 동기화가 끝난 뒤에만 시딩한다 — synced=true가 되는 시점엔 원격(Redis)에 이미
+  // 있던 days가 doc에 먼저 반영된 후라, seedYjsDays의 "로컬 문서 비어있으면 시딩" 가드가
+  // 방금 합쳐진 원격 상태까지 포함해서 "진짜 처음 여는 일정인지"를 정확히 판단한다.
+  // 동기화가 SEED_FALLBACK_MS 안에 안 끝나면(연결 실패, 오프라인 등) 그냥 REST 값으로
+  // 시딩해서 로컬 편집만이라도 항상 가능하게 한다.
+  useEffect(() => {
+    if (synced) {
+      seedYjsDays(doc, dayIdsRef.current, initialDaysRef.current);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      seedYjsDays(doc, dayIdsRef.current, initialDaysRef.current);
+    }, SEED_FALLBACK_MS);
+    return () => window.clearTimeout(timer);
+  }, [doc, synced]);
 
   // Yjs 상태 변화를 로컬 state로 반영한다 (렌더링은 이 state만 본다). 새로 만든 Y.Doc은
   // 항상 빈 상태로 시작해서 — 처음 마운트 시점에 즉시 읽어버리면 아직 시딩/동기화가
