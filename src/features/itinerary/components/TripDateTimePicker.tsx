@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/shared/utils";
+import { TimeWheelColumn, TIME_WHEEL_HOURS, TIME_WHEEL_MINUTES } from "./TimeWheelColumn";
+
+// TimelineTimePicker(24px)보다 더 작게 — 여행 생성/수정 팝업 전체를 컴팩트하게 유지하기 위함.
+const TRIP_WHEEL_ITEM_HEIGHT = 20;
 
 interface TripDateTimePickerProps {
   value: string;
@@ -7,9 +11,10 @@ interface TripDateTimePickerProps {
   minValue?: string;
   maxValue?: string;
   className?: string;
+  // min/max를 벗어난 값을 선택/입력하려고 했을 때 알려준다. 안쪽 값은 자동으로
+  // min/max에 맞춰 잘리므로(clamp), 이건 어디까지나 "왜 이 값으로 바뀌었는지" 안내용.
+  onInvalidSelect?: (reason: "min" | "max") => void;
 }
-
-type TimeInputType = "hour" | "minute";
 
 const pad = (value: number) => String(value).padStart(2, "0");
 
@@ -53,6 +58,7 @@ export function TripDateTimePicker({
   minValue,
   maxValue,
   className,
+  onInvalidSelect,
 }: TripDateTimePickerProps) {
   const selectedDate = parseTripDateTime(value);
   const minDate = minValue ? parseTripDateTime(minValue) : null;
@@ -62,8 +68,9 @@ export function TripDateTimePicker({
   const [isOpen, setIsOpen] = useState(false);
   const [popupPos, setPopupPos] = useState({ top: 0, left: 0 });
   const [calendarMonth, setCalendarMonth] = useState(() => parseTripDateTime(value));
-  const [hourInput, setHourInput] = useState(() => pad(selectedDate.getHours()));
-  const [minuteInput, setMinuteInput] = useState(() => pad(selectedDate.getMinutes()));
+  // 날짜부터 고르고 나서야 시간 휠이 나타나게 한다 — 열자마자 달력+시간이 한꺼번에
+  // 보이는 것보다, 한 단계씩 진행되는 편이 더 명확하다. 팝업 열 때마다 다시 접어둔다.
+  const [showTimeWheel, setShowTimeWheel] = useState(false);
   const calendarDays = getCalendarDays(calendarMonth);
 
   useEffect(() => {
@@ -81,17 +88,27 @@ export function TripDateTimePicker({
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [isOpen]);
 
+  // 트리거 위치를 한 번 계산해 고정하는 방식이라, 열려있는 동안 뒤 화면이
+  // 스크롤되면 팝업이 트리거와 어긋나 보인다. 매 스크롤마다 다시 계산해 따라
+  // 움직이게 하는 대신, 그냥 닫아버린다.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleScroll = () => setIsOpen(false);
+
+    window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
+    return () => window.removeEventListener("scroll", handleScroll, { capture: true });
+  }, [isOpen]);
+
   const applyDate = (date: Date) => {
     if (minDate && isBeforeMinute(date, minDate)) {
       onChange(formatTripDateTime(minDate));
-      setHourInput(pad(minDate.getHours()));
-      setMinuteInput(pad(minDate.getMinutes()));
+      onInvalidSelect?.("min");
       return;
     }
     if (maxDate && isAfterMinute(date, maxDate)) {
       onChange(formatTripDateTime(maxDate));
-      setHourInput(pad(maxDate.getHours()));
-      setMinuteInput(pad(maxDate.getMinutes()));
+      onInvalidSelect?.("max");
       return;
     }
 
@@ -120,29 +137,24 @@ export function TripDateTimePicker({
     if (!isOpen) return;
 
     updatePopupPosition();
-  }, [isOpen, updatePopupPosition, value]);
+  }, [isOpen, updatePopupPosition, value, showTimeWheel]);
   const openPicker = () => {
     const targetDate = parseTripDateTime(value);
 
     updatePopupPosition();
     setIsOpen(true);
+    setShowTimeWheel(false);
     setCalendarMonth(new Date(targetDate.getFullYear(), targetDate.getMonth(), 1));
-    setHourInput(pad(targetDate.getHours()));
-    setMinuteInput(pad(targetDate.getMinutes()));
   };
   const moveCalendarMonth = (amount: number) => {
     setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + amount, 1));
   };
   const handleDateSelect = (day: number) => {
-    applyDate(
-      new Date(
-        calendarMonth.getFullYear(),
-        calendarMonth.getMonth(),
-        day,
-        selectedDate.getHours(),
-        selectedDate.getMinutes(),
-      ),
-    );
+    // 날짜를 새로 고르면 이전에 골라뒀던 시간을 그대로 들고 오지 않고 00:00으로
+    // 초기화한다 — 시간은 이 아래서 다시 명시적으로 골라야 하는 별도 단계이기 때문
+    // (이전 시간이 그대로 남아있으면 사용자가 실수로 안 바꾸고 넘어가기 쉽다).
+    applyDate(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day, 0, 0));
+    setShowTimeWheel(true);
   };
   const isDisabledDate = (day: number) =>
     Boolean(
@@ -153,45 +165,15 @@ export function TripDateTimePicker({
         new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day, 0, 0).getTime() >
           maxDate.getTime()),
     );
-  const handleTimeInput = (type: TimeInputType, inputValue: string) => {
-    const numericValue = inputValue.replace(/\D/g, "").slice(0, 2);
-    const setInput = type === "hour" ? setHourInput : setMinuteInput;
-
-    setInput(numericValue);
-
-    if (!numericValue) return;
-
-    const maxValue = type === "hour" ? 23 : 50;
-    let nextValue = Math.min(maxValue, Number(numericValue));
-    if (type === "minute") {
-      nextValue = Math.min(50, Math.round(nextValue / 10) * 10);
-    }
+  const handleHourWheelChange = (nextHour: number) => {
     const nextDate = new Date(selectedDate);
-
-    if (type === "hour") {
-      nextDate.setHours(nextValue);
-    } else {
-      nextDate.setMinutes(nextValue);
-    }
-
+    nextDate.setHours(nextHour);
     applyDate(nextDate);
   };
-  const handleTimeInputBlur = (type: TimeInputType) => {
-    const inputValue = type === "hour" ? hourInput : minuteInput;
-    const selectedValue = type === "hour" ? selectedDate.getHours() : selectedDate.getMinutes();
-    const maxValue = type === "hour" ? 23 : 50;
-    let nextValue = inputValue ? Math.min(maxValue, Number(inputValue)) : selectedValue;
-    if (type === "minute") {
-      nextValue = Math.min(50, Math.round(nextValue / 10) * 10);
-    }
-    const nextInput = pad(nextValue);
-
-    if (type === "hour") {
-      setHourInput(nextInput);
-      return;
-    }
-
-    setMinuteInput(nextInput);
+  const handleMinuteWheelChange = (nextMinute: number) => {
+    const nextDate = new Date(selectedDate);
+    nextDate.setMinutes(nextMinute);
+    applyDate(nextDate);
   };
 
   return (
@@ -211,36 +193,36 @@ export function TripDateTimePicker({
       {isOpen && (
         <div
           ref={popupRef}
-          className="fixed z-50 w-[204px] rounded-2xl border-[0.5px] border-sub-lightblue bg-main-white/95 p-2 backdrop-blur-[12px]"
+          className="fixed z-50 w-[168px] rounded-xl border-[0.5px] border-sub-lightblue bg-main-white/95 p-1.5 backdrop-blur-[12px]"
           style={{ top: popupPos.top, left: popupPos.left }}
         >
-          <div className="mb-2 flex items-center justify-between">
+          <div className="mb-1 flex items-center justify-between">
             <button
               type="button"
               aria-label="이전 달"
-              className="flex size-6 items-center justify-center text-md font-bold text-text-primary active:opacity-70"
+              className="flex size-5 items-center justify-center text-sm font-bold text-text-primary active:opacity-70"
               onClick={() => moveCalendarMonth(-1)}
             >
               &lt;
             </button>
-            <span className="font-ssurround text-sm font-bold text-text-heading">
+            <span className="font-ssurround text-xs font-bold text-text-heading">
               {calendarMonth.getFullYear()}.{pad(calendarMonth.getMonth() + 1)}
             </span>
             <button
               type="button"
               aria-label="다음 달"
-              className="flex size-6 items-center justify-center text-md font-bold text-text-primary active:opacity-70"
+              className="flex size-5 items-center justify-center text-sm font-bold text-text-primary active:opacity-70"
               onClick={() => moveCalendarMonth(1)}
             >
               &gt;
             </button>
           </div>
-          <div className="grid grid-cols-7 gap-1 text-center font-paperlogy text-xs font-medium text-sub-gray">
+          <div className="grid grid-cols-7 gap-0.5 text-center font-paperlogy text-2xs font-medium text-sub-gray">
             {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
               <span key={day}>{day}</span>
             ))}
           </div>
-          <div className="mt-1.5 grid grid-cols-7 gap-0.5">
+          <div className="mt-1 grid grid-cols-7 gap-0.5">
             {calendarDays.map((day, index) => {
               if (!day) return <span key={`empty-${index}`} />;
 
@@ -255,11 +237,11 @@ export function TripDateTimePicker({
                   type="button"
                   key={day}
                   disabled={isDisabled}
-                  className={`h-5 font-paperlogy text-xs font-medium active:opacity-70 ${
+                  className={`h-4 font-paperlogy text-2xs font-medium active:opacity-70 ${
                     isDisabled
                       ? "text-sub-lightgray"
                       : isSelected
-                        ? "rounded-lg bg-main-blue text-main-white"
+                        ? "rounded-md bg-main-blue text-main-white"
                         : "text-text-primary"
                   }`}
                   onClick={() => handleDateSelect(day)}
@@ -269,42 +251,46 @@ export function TripDateTimePicker({
               );
             })}
           </div>
-          <div className="mt-3 rounded-xl border-[0.5px] border-sub-lightblue bg-main-blue/10 px-3 py-2">
-            <div className="flex items-center justify-center">
-              <input
-                type="text"
-                inputMode="numeric"
-                value={hourInput}
-                aria-label="시"
-                onChange={(event) => handleTimeInput("hour", event.target.value)}
-                onBlur={() => handleTimeInputBlur("hour")}
-                onFocus={(event) => event.currentTarget.select()}
-                className="w-8 bg-transparent text-center font-ssurround text-sm font-bold text-text-heading outline-none"
+          {showTimeWheel && (
+            <div className="relative mt-1.5 rounded-lg border-[0.5px] border-sub-lightblue bg-main-blue/10 px-2 py-1">
+              {/* 가운데(선택된) 줄 강조 바 — TimelineTimePicker와 같은 방식 */}
+              <div
+                className="pointer-events-none absolute inset-x-2 top-1/2 -translate-y-1/2 rounded-md bg-main-blue/15"
+                style={{ height: TRIP_WHEEL_ITEM_HEIGHT }}
+                aria-hidden
               />
-              <span className="px-1 font-ssurround text-sm font-bold text-sub-gray">:</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={minuteInput}
-                aria-label="분"
-                onChange={(event) => handleTimeInput("minute", event.target.value)}
-                onBlur={() => handleTimeInputBlur("minute")}
-                onFocus={(event) => event.currentTarget.select()}
-                className="w-8 bg-transparent text-center font-ssurround text-sm font-bold text-text-heading outline-none"
-              />
+              <div className="relative flex items-center justify-center">
+                <TimeWheelColumn
+                  items={TIME_WHEEL_HOURS}
+                  selected={selectedDate.getHours()}
+                  onSelect={handleHourWheelChange}
+                  itemHeight={TRIP_WHEEL_ITEM_HEIGHT}
+                  visibleCount={3}
+                  compact
+                />
+                <span className="px-0 font-ssurround text-xs font-bold text-sub-gray">:</span>
+                <TimeWheelColumn
+                  items={TIME_WHEEL_MINUTES}
+                  selected={selectedDate.getMinutes()}
+                  onSelect={handleMinuteWheelChange}
+                  itemHeight={TRIP_WHEEL_ITEM_HEIGHT}
+                  visibleCount={3}
+                  compact
+                />
+              </div>
             </div>
-          </div>
-          <div className="mt-2 grid grid-cols-2 gap-2">
+          )}
+          <div className="mt-1.5 grid grid-cols-2 gap-1.5">
             <button
               type="button"
-              className="h-8 rounded-[10px] border-[0.5px] border-main-blue font-ssurround text-xs font-bold text-main-blue active:opacity-70"
+              className="h-6 rounded-lg border-[0.5px] border-main-blue font-ssurround text-2xs font-bold text-main-blue active:opacity-70"
               onClick={() => setIsOpen(false)}
             >
               취소
             </button>
             <button
               type="button"
-              className="h-8 rounded-[10px] bg-main-blue font-ssurround text-xs font-bold text-main-white active:opacity-70"
+              className="h-6 rounded-lg bg-main-blue font-ssurround text-2xs font-bold text-main-white active:opacity-70"
               onClick={() => setIsOpen(false)}
             >
               완료

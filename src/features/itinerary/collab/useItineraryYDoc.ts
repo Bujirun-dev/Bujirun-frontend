@@ -31,6 +31,7 @@ export function useItineraryYDoc(
   const accessToken = useAuthStore((state) => state.accessToken);
   const hasToken = accessToken !== null;
   const [status, setStatus] = useState<ConnectionStatus>("connecting");
+  const [synced, setSynced] = useState(false);
   const providerRef = useRef<WebsocketProvider | null>(null);
   const onBeforeDisconnectRef = useRef(onBeforeDisconnect);
 
@@ -51,13 +52,17 @@ export function useItineraryYDoc(
     providerRef.current = provider;
 
     const handleStatus = ({ status }: { status: ConnectionStatus }) => setStatus(status);
+    const handleSync = (isSynced: boolean) => setSynced(isSynced);
     provider.on("status", handleStatus);
+    provider.on("sync", handleSync);
 
     return () => {
       onBeforeDisconnectRef.current?.();
       provider.off("status", handleStatus);
+      provider.off("sync", handleSync);
       provider.destroy();
       providerRef.current = null;
+      setSynced(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itineraryId, hasToken, doc]);
@@ -93,5 +98,5 @@ export function useItineraryYDoc(
   // useCallback으로 참조를 고정해 이 함수를 deps로 쓰는 상위 훅의 effect가 매 렌더 재실행되지 않게 한다.
   const getProvider = useCallback(() => providerRef.current, []);
 
-  return { status, getProvider };
+  return { status, synced, getProvider };
 }

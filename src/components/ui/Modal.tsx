@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/shared/utils";
+import { Button } from "./Button";
 import { Card } from "./Card";
 
 interface ModalProps {
@@ -158,27 +159,19 @@ export function Modal({
 
         {!hideActions && (
           <div className="mt-1 flex w-full gap-6">
-            <button
-              className={cn(
-                "w-full py-2.5 px-5 cursor-pointer rounded-lg border font-ssurround text-md font-bold active:opacity-70",
-                confirmVariant === "warning"
-                  ? "border-sub-coral text-sub-coral"
-                  : "border-main-blue text-sub-deepblue",
-              )}
+            <Button
+              variant="secondary"
+              className={
+                confirmVariant === "warning" ? "!border-sub-coral !text-sub-coral" : undefined
+              }
               onClick={handleCancel}
             >
               {cancelText}
-            </button>
+            </Button>
             {onConfirm && (
-              <button
-                className={cn(
-                  "w-full py-2.5 px-5 cursor-pointer rounded-lg font-ssurround text-md font-bold text-white active:opacity-70",
-                  confirmVariant === "warning" ? "bg-sub-coral" : "bg-main-blue",
-                )}
-                onClick={onConfirm}
-              >
+              <Button variant={confirmVariant} onClick={onConfirm}>
                 {confirmText}
-              </button>
+              </Button>
             )}
           </div>
         )}

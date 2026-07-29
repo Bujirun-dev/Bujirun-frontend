@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import failCharacter from "@/assets/character/fail.png";
+import failCharacter from "@/assets/character/error.png";
 import { Button } from "./Button";
 import { cn } from "@/shared/utils";
 

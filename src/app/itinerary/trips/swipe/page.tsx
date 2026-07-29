@@ -135,7 +135,7 @@ function TripSwipeContent() {
   }
 
   return (
-    <div className="flex h-full flex-col items-center px-6 pt-4 pb-[40px]">
+    <div className="flex h-full flex-col items-center px-6 pb-[40px]">
       {/* 취향 분석 중 pill */}
       <div className="w-full rounded-[10px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-6 py-2 text-center backdrop-blur-[15px]">
         <span className="font-ssurround font-bold text-lg text-text-heading">취향 분석 중...</span>

@@ -30,7 +30,7 @@ export default function ItineraryPlaceRelatedLogsPage({
   return (
     <RelatedLogsContent
       placeName={spot?.name ?? ""}
-      category={spot ? getCategoryFromKo(spot.category ?? "") : undefined}
+      category={spot ? getCategoryFromKo(spot.category ?? "", spot.name) : undefined}
       relatedLogs={relatedLogs}
       isLoading={isLoading}
       logHrefBase="/itinerary/logs"

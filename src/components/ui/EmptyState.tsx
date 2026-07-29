@@ -2,7 +2,7 @@
 
 import Image, { type StaticImageData } from "next/image";
 import { motion } from "framer-motion";
-import travelCharacter from "@/assets/character/travel.png";
+import emptyCharacter from "@/assets/character/empty.png";
 import { Button } from "./Button";
 import { cn } from "@/shared/utils";
 
@@ -25,14 +25,14 @@ interface EmptyStateProps {
 }
 
 const SIZE_STYLES: Record<EmptyStateSize, { image: number; glow: string; padding: string }> = {
-  lg: { image: 140, glow: "size-[120px]", padding: "px-5 py-10" },
-  sm: { image: 96, glow: "size-[80px]", padding: "px-4 py-6" },
+  lg: { image: 210, glow: "size-[160px]", padding: "px-5 py-10" },
+  sm: { image: 124, glow: "size-[95px]", padding: "px-4 py-6" },
 };
 
 // 목록/데이터가 하나도 없을 때 쓰는 공통 컴포넌트. 화면마다 title/description/
 // actionLabel만 바꿔서 재사용한다 (image 기본값은 여행 캐릭터).
 export function EmptyState({
-  image = travelCharacter,
+  image = emptyCharacter,
   imageAlt = "",
   title,
   description,
@@ -45,6 +45,10 @@ export function EmptyState({
 }: EmptyStateProps) {
   const { image: presetImageSize, glow, padding } = SIZE_STYLES[size];
   const resolvedImageSize = imageSize ?? presetImageSize;
+  // width만 지정하고 height는 원본 비율대로 계산한다 — 정사각형으로 강제하면
+  // (travel.png는 1800x2124라 정사각형이 아님) 이미지가 찌그러지고 Next.js
+  // Image 컴포넌트의 width/height 비율 불일치 경고도 뜬다.
+  const resolvedImageHeight = Math.round((resolvedImageSize * image.height) / image.width);
 
   return (
     <motion.div
@@ -67,18 +71,18 @@ export function EmptyState({
             src={image}
             alt={imageAlt}
             width={resolvedImageSize}
-            height={resolvedImageSize}
+            height={resolvedImageHeight}
             className="relative"
           />
         </motion.div>
       </div>
       <div
-        className={cn("flex flex-col items-center", size === "sm" ? "mt-2 gap-1.5" : "mt-4 gap-3")}
+        className={cn("flex flex-col items-center", size === "sm" ? "mt-1 gap-1.5" : "mt-1 gap-3")}
       >
         <p
           className={cn(
             "font-ssurround font-bold text-text-heading",
-            size === "sm" ? "text-lg" : "text-xl",
+            size === "sm" ? "text-md" : "text-lg",
           )}
         >
           {title}

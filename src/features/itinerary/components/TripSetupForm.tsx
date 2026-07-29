@@ -8,7 +8,7 @@ import FriendsIcon from "@/assets/icons/itinerary/friends.svg?svgr";
 import TitleIcon from "@/assets/icons/itinerary/title.svg?svgr";
 import NoIcon from "@/assets/icons/login-register/no.svg?svgr";
 import YesIcon from "@/assets/icons/login-register/yes.svg?svgr";
-import { Counter } from "@/components";
+import { Counter, Toast } from "@/components";
 import {
   TripDateTimePicker,
   formatTripDateTime,
@@ -34,6 +34,25 @@ export function TripSetupForm() {
   const [endDate, setEndDate] = useState(DEFAULTS.end);
   const [friendCount, setFriendCount] = useState(2);
   const [isCreating, setIsCreating] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // 출발일이 도착일보다 뒤로 밀리면 도착일도 함께 당겨온다 — 이때 출발일과 정확히
+  // 같은 값으로 맞추면 0박 여행이 되어버려서, 최소 1박(다음날)으로 보정한다.
+  const handleStartDateChange = (next: string) => {
+    setStartDate(next);
+    const nextStart = parseTripDateTime(next);
+    if (parseTripDateTime(endDate) <= nextStart) {
+      const minEnd = new Date(nextStart);
+      minEnd.setDate(minEnd.getDate() + 1);
+      setEndDate(formatTripDateTime(minEnd));
+    }
+  };
+
+  const handleInvalidDate = (reason: "min" | "max") => {
+    setToastMessage(
+      reason === "min" ? "지난 날짜/시간은 선택할 수 없어요." : "선택할 수 있는 기간을 벗어났어요.",
+    );
+  };
 
   const nameLength = tripName.length;
   const isNameValid = nameLength >= 2 && nameLength <= 15;
@@ -80,12 +99,12 @@ export function TripSetupForm() {
   };
 
   return (
-    <div className="-mx-6 flex flex-col gap-5 rounded-tl-[40px] rounded-tr-[40px] bg-white px-8 pt-9 pb-6">
+    <div className="-mx-6 flex shrink-0 flex-col gap-5 rounded-tl-[40px] rounded-tr-[40px] bg-white px-8 pt-10 pb-6">
       {/* 여행명 */}
       <section>
         <div className="flex items-center gap-1.5 mb-[10px]">
-          <TitleIcon width={16} height={16} className="-translate-y-[1px]" aria-hidden />
-          <span className="font-ssurround font-bold text-lg text-text-heading">여행명</span>
+          <TitleIcon width={14} height={14} className="-translate-y-[1px]" aria-hidden />
+          <span className="font-ssurround font-bold text-md text-text-heading">여행명</span>
         </div>
         <div className="relative">
           <input
@@ -131,8 +150,8 @@ export function TripSetupForm() {
       {/* 여행기간 */}
       <section className="-mt-1">
         <div className="flex items-center gap-1.5 mb-[10px]">
-          <CalendarIcon width={16} height={16} aria-hidden />
-          <span className="font-ssurround font-bold text-lg text-text-heading">여행기간</span>
+          <CalendarIcon width={14} height={14} aria-hidden />
+          <span className="font-ssurround font-bold text-md text-text-heading">여행기간</span>
         </div>
         <div className="flex flex-col gap-3 rounded-[20px] border border-main-blue/20 bg-gradient-to-b from-system-glassfrom to-system-glassto px-[28px] py-[16px]">
           <div className="flex items-center gap-[14px]">
@@ -142,7 +161,13 @@ export function TripSetupForm() {
                 시작 시간
               </span>
             </div>
-            <TripDateTimePicker value={startDate} onChange={setStartDate} className="flex-1" />
+            <TripDateTimePicker
+              value={startDate}
+              onChange={handleStartDateChange}
+              minValue={formatTripDateTime(new Date())}
+              onInvalidSelect={handleInvalidDate}
+              className="flex-1"
+            />
           </div>
           <div className="flex items-center gap-[14px]">
             <div className="flex items-center gap-[4px]">
@@ -156,6 +181,7 @@ export function TripSetupForm() {
               onChange={setEndDate}
               minValue={startDate}
               maxValue={getMaxEndDate()}
+              onInvalidSelect={handleInvalidDate}
               className="flex-1"
             />
           </div>
@@ -165,8 +191,8 @@ export function TripSetupForm() {
       {/* 친구 수 */}
       <section className="mt-1 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <FriendsIcon width={16} height={16} aria-hidden />
-          <span className="font-ssurround font-bold text-lg text-text-heading">친구 수</span>
+          <FriendsIcon width={14} height={14} aria-hidden />
+          <span className="font-ssurround font-bold text-md text-text-heading">친구 수</span>
         </div>
         <Counter value={friendCount} onChange={setFriendCount} min={2} max={6} />
       </section>
@@ -185,6 +211,13 @@ export function TripSetupForm() {
       >
         {isCreating ? "생성 중..." : "친구 초대하기"}
       </button>
+
+      <Toast
+        isVisible={toastMessage !== null}
+        onHide={() => setToastMessage(null)}
+        message={toastMessage ?? ""}
+        variant="error"
+      />
     </div>
   );
 }

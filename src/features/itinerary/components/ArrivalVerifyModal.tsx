@@ -10,6 +10,7 @@ import { keys } from "@/shared/api/domains/itinerary";
 import { useVerifyVisit } from "@/shared/hooks/useVerifyVisit";
 import { presignUpload } from "@/shared/api/domains/upload";
 import { addVisitPhoto } from "@/shared/api/domains/visit";
+import { getCollectionDetail } from "@/shared/api/domains/collection";
 import type { VerifyStep } from "./arrival-verify/ArrivalVerifyStages";
 import { PermissionButton } from "./arrival-verify/ArrivalVerifyShared";
 import {
@@ -59,6 +60,9 @@ export function ArrivalVerifyModal({
   const [capturedFile, setCapturedFile] = useState<File | null>(null);
   const [visitId, setVisitId] = useState<string | null>(null);
   const [capturedImageUrl, setCapturedImageUrl] = useState<string | null>(null);
+  // 도감(수집) 대상이 아닌 관광지의 spotId로 조회하면 404가 나는 것으로 간주한다 —
+  // 별도 "도감 포함 여부" 필드가 없어서, 조회 성공 여부로 판단.
+  const [isInCollection, setIsInCollection] = useState<boolean | undefined>(undefined);
 
   const queryClient = useQueryClient();
 
@@ -99,8 +103,7 @@ export function ArrivalVerifyModal({
           setIsCheckingLocation(false);
         }
       },
-      (error) => {
-        console.error(error);
+      () => {
         setStep("gps-fail");
         setIsCheckingLocation(false);
       },
@@ -157,6 +160,7 @@ export function ArrivalVerifyModal({
 
     setCapturedFile(null);
     setCapturedImageUrl(null);
+    setIsInCollection(undefined);
     onClose();
   };
 
@@ -191,6 +195,13 @@ export function ArrivalVerifyModal({
       await queryClient.invalidateQueries({
         queryKey: keys.detail(itineraryId),
       });
+
+      try {
+        await getCollectionDetail(spotId);
+        setIsInCollection(true);
+      } catch {
+        setIsInCollection(false);
+      }
 
       setIsVerified(true);
       onVerify();
@@ -233,7 +244,11 @@ export function ArrivalVerifyModal({
         );
       case "complete":
         return (
-          <CompleteStage placeName={placeName} capturedImageUrl={capturedImageUrl ?? undefined} />
+          <CompleteStage
+            placeName={placeName}
+            capturedImageUrl={capturedImageUrl ?? undefined}
+            isInCollection={isInCollection}
+          />
         );
       default:
         return null;

@@ -43,7 +43,7 @@ export function PlaceCard({
       onClick={onClick}
     >
       <div className="relative w-[108px] h-[80px] shrink-0 self-center ml-2 rounded-xl overflow-hidden">
-        <Image src={imageUrl} alt={name} fill className="object-cover" />
+        <Image src={imageUrl} alt={name} fill sizes="108px" className="object-cover" />
       </div>
 
       <div className="min-w-0 flex-1 flex flex-col justify-between px-2.5 py-2.5 overflow-hidden relative">

@@ -4,7 +4,7 @@ import calendarIcon from "@/assets/icons/itinerary/calendar.svg?url";
 import clockIcon from "@/assets/icons/itinerary/clock.svg?url";
 import PencilIcon from "@/assets/icons/itinerary/pencil.svg?svgr";
 import titleIcon from "@/assets/icons/itinerary/title.svg?url";
-import { Card, Modal, TextInput } from "@/components";
+import { Card, Modal, TextInput, Toast } from "@/components";
 import { formatTripDateTime, parseTripDateTime, TripDateTimePicker } from "./TripDateTimePicker";
 import type { Trip } from "./TripCard";
 
@@ -28,6 +28,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
   const endDate = formatTripDateTime(
     new Date(parseTripDateTime(startDate).getTime() + originalDurationMs),
   );
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -57,7 +58,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
           value={name}
           onChange={(event) => setName(event.target.value)}
           placeholder="여행 이름을 입력하세요"
-          className="h-[34px] w-full rounded-lg border border-main-blue px-3 text-xs font-medium text-text-primary"
+          className="!h-[34px] w-full !rounded-lg !px-2.5 !text-xs !font-medium !text-text-primary"
         />
       </div>
 
@@ -72,12 +73,14 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
             <TripDateTimePicker
               value={startDate}
               onChange={setStartDate}
+              minValue={formatTripDateTime(new Date())}
+              onInvalidSelect={() => setToastMessage("지난 날짜/시간은 선택할 수 없어요.")}
               className="flex-1 w-auto"
             />
           </div>
           <div className="flex items-center gap-2">
             <DateTimeLabel label="종료 시간" />
-            <div className="flex h-9 flex-1 items-center rounded-lg border border-main-blue/30 bg-system-navbg px-3 text-xs font-medium text-sub-darkgray">
+            <div className="flex h-[27px] flex-1 items-center rounded-lg border-[0.5px] border-sub-lightblue bg-main-blue/20 px-3 text-2xs font-light text-text-primary">
               {endDate}
             </div>
           </div>
@@ -89,6 +92,13 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
           </p>
         </Card>
       </div>
+
+      <Toast
+        isVisible={toastMessage !== null}
+        onHide={() => setToastMessage(null)}
+        message={toastMessage ?? ""}
+        variant="error"
+      />
     </Modal>
   );
 }

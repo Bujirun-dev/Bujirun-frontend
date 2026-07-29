@@ -29,7 +29,7 @@ export function TripCard({ trip, onSelect, onEdit, onDelete }: TripCardProps) {
         className="flex items-start gap-3.5 flex-1 text-left active:opacity-70"
         onClick={() => onSelect(id)}
       >
-        <Image src={bagIcon} alt="" width={18} height={18} aria-hidden />
+        <Image src={bagIcon} alt="" width={14} height={14} aria-hidden />
         <div className="flex flex-col gap-1">
           <span className="font-bold text-md text-text-heading leading-none">{name}</span>
           <span className="font-medium text-xs text-sub-gray leading-none">

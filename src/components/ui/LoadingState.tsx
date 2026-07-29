@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import sitCharacter from "@/assets/character/sit.png";
+import loadingCharacter from "@/assets/character/loading.png";
 import { cn } from "@/shared/utils";
 
 interface LoadingStateProps {
@@ -23,7 +23,7 @@ export function LoadingState({ message = "불러오는 중이에요", className 
           animate={{ y: [0, -10, 0] }}
           transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
         >
-          <Image src={sitCharacter} alt="" width={160} height={160} className="relative" />
+          <Image src={loadingCharacter} alt="" width={160} height={160} className="relative" />
         </motion.div>
       </div>
       <motion.p

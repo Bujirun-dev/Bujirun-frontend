@@ -3,7 +3,7 @@
 import { Fragment, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Modal, Toast, LoadingState } from "@/components";
+import { Modal, Toast, LoadingState, Button } from "@/components";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { itineraryApi } from "@/shared/api/domains";
 import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
@@ -183,14 +183,15 @@ function VoteWaitingContent() {
           isHost ? (
             <div className="flex w-full gap-3">
               {tiedPlans.map((plan) => (
-                <button
+                <Button
                   key={plan}
+                  variant="primary"
                   onClick={() => handleTiePick(plan)}
                   disabled={isConfirming}
-                  className="flex-1 rounded-lg bg-main-blue py-2.5 font-ssurround text-md font-bold text-white active:opacity-70 disabled:opacity-50"
+                  className="flex-1"
                 >
                   {isConfirming ? "확정 중..." : `${plan}안 선택`}
-                </button>
+                </Button>
               ))}
             </div>
           ) : undefined
