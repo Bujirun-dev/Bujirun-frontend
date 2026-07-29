@@ -36,11 +36,15 @@ export function TripSetupForm() {
   const [isCreating, setIsCreating] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // 출발일이 도착일보다 뒤로 밀리면 도착일도 출발일 시각으로 함께 당겨온다.
+  // 출발일이 도착일보다 뒤로 밀리면 도착일도 함께 당겨온다 — 이때 출발일과 정확히
+  // 같은 값으로 맞추면 0박 여행이 되어버려서, 최소 1박(다음날)으로 보정한다.
   const handleStartDateChange = (next: string) => {
     setStartDate(next);
-    if (parseTripDateTime(endDate) < parseTripDateTime(next)) {
-      setEndDate(next);
+    const nextStart = parseTripDateTime(next);
+    if (parseTripDateTime(endDate) <= nextStart) {
+      const minEnd = new Date(nextStart);
+      minEnd.setDate(minEnd.getDate() + 1);
+      setEndDate(formatTripDateTime(minEnd));
     }
   };
 

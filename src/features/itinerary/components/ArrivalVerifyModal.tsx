@@ -103,8 +103,7 @@ export function ArrivalVerifyModal({
           setIsCheckingLocation(false);
         }
       },
-      (error) => {
-        console.error(error);
+      () => {
         setStep("gps-fail");
         setIsCheckingLocation(false);
       },

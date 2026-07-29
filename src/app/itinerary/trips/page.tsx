@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import plusSmallIcon from "@/assets/icons/itinerary/plus-small.svg?url";
-import { PageCard, Toast } from "@/components";
+import { PageCard, Toast, EmptyState, LoadingState } from "@/components";
 import { TripCard, TripEditModal, TripDeleteModal, TripDeleteToast } from "@/features/itinerary";
 import type { Trip } from "@/features/itinerary";
 import { itineraryApi } from "@/shared/api/domains";
@@ -39,7 +39,7 @@ export default function TripsPage() {
   const [showDeleteToast, setShowDeleteToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const { data: summaries } = useQuery({
+  const { data: summaries, isLoading } = useQuery({
     queryKey: itineraryApi.keys.lists(),
     queryFn: itineraryApi.getItineraries,
   });
@@ -150,15 +150,26 @@ export default function TripsPage() {
 
       {/* 여행 목록 */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-3.5">
-        {trips.map((trip) => (
-          <TripCard
-            key={trip.id}
-            trip={trip}
-            onSelect={handleSelect}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
+        {isLoading ? (
+          <LoadingState message="여행 목록을 불러오는 중이에요" />
+        ) : trips.length === 0 ? (
+          <EmptyState
+            title="아직 여행이 없어요"
+            description="오른쪽 위 + 버튼으로 새 여행을 만들어보세요"
+            actionLabel="+ 여행 만들기"
+            onAction={() => router.push("/itinerary/trips/new")}
           />
-        ))}
+        ) : (
+          trips.map((trip) => (
+            <TripCard
+              key={trip.id}
+              trip={trip}
+              onSelect={handleSelect}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          ))
+        )}
       </div>
 
       {/* 수정 모달 */}
