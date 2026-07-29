@@ -161,7 +161,9 @@ export function Modal({
           <div className="mt-1 flex w-full gap-6">
             <Button
               variant="secondary"
-              className={confirmVariant === "warning" ? "!border-sub-coral !text-sub-coral" : undefined}
+              className={
+                confirmVariant === "warning" ? "!border-sub-coral !text-sub-coral" : undefined
+              }
               onClick={handleCancel}
             >
               {cancelText}

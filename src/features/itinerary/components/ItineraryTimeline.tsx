@@ -83,7 +83,7 @@ export function ItineraryTimeline({
   const timePickerRef = useRef<HTMLDivElement>(null);
   const stopRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const isAutoScrollingRef = useRef(false);
-  const activePopupStopId = activeSearchStopId ?? activeDetailStopId;
+  const activePopupStopId = activeSearchStopId ?? activeDetailStopId ?? activeTimeStopId;
   const focusedStopId = activeSearchStopId ?? activeDetailStopId ?? activeTimeStopId ?? null;
 
   useEffect(() => {
@@ -224,6 +224,7 @@ export function ItineraryTimeline({
       closeTimer = window.setTimeout(() => {
         closeSearch();
         closeDetail();
+        closeTimePicker();
       }, 250);
     };
 

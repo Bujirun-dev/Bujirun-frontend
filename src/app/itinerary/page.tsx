@@ -135,12 +135,6 @@ function ItineraryMain({
   tripTimeBounds: ReturnType<typeof getTripTimeBounds>;
 }) {
   const router = useRouter();
-  // 인증하기(ArrivalVerifyModal)용 로그 ID. 홈 탭(useTodayItinerary)과 동일하게
-  // 일정과 1:1로 연결된 로그를 itineraryId로 조회한다.
-  const { data: verifyLog } = useQuery({
-    queryKey: travelLogApi.keys.detail(itineraryId),
-    queryFn: () => travelLogApi.getLog(itineraryId),
-  });
   // 실시간 공동편집 프레즌스(누가 어떤 항목을 보고 있는지)에 내 이름/아바타를 알리는 용도.
   const { data: myProfile } = useQuery({
     queryKey: userApi.keys.me(),
