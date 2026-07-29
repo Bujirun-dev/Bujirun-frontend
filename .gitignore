@@ -43,3 +43,6 @@ next-env.d.ts
 
 # claude code (개인 로컬 권한 설정 — 팀 공유 대상 아님)
 .claude/settings.local.json
+
+# 세션 정리 문서 (레포에는 안 올리기로 함 — 개인 로컬 기록용)
+docs/sessions/
