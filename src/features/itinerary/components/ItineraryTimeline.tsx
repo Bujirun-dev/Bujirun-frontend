@@ -286,7 +286,7 @@ export function ItineraryTimeline({
             >
               <PlusIcon width={16} height={16} className="text-main-white" aria-hidden />
             </button>
-            <span className="text-xs font-semibold text-sub-gray">{date}</span>
+            {!isEmpty && <span className="text-xs font-semibold text-sub-gray">{date}</span>}
           </div>
 
           {isAddingNew && (

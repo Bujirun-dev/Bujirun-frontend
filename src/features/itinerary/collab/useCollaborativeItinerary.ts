@@ -198,17 +198,37 @@ export function useCollaborativeItinerary(
   // 다른 피어가 만든 변경(추가/삭제/시간변경/교체/최적화/로그 불러오기)만 골라서 알려준다.
   // 내가 만든 변경은 transaction.local === true라서 여기서 걸러진다(내가 한 행동에
   // 내가 알림을 받는 걸 방지).
+  //
+  // 기준점(lastSeenLen)은 WS 동기화가 끝난 뒤(원격 Redis에 있던 과거 활동 로그가 doc에
+  // 이미 반영된 시점)에 잡아야 한다 — 시딩과 똑같은 이유로, 동기화 전(빈 문서 상태)에
+  // 기준점을 0으로 잡으면 새로고침할 때마다 Redis에 쌓여있던 과거 로그 전체가 "새
+  // 이벤트"로 재생되어 예전에 지운 일정의 "삭제됐어요" 토스트 같은 게 계속 다시 뜬다.
   useEffect(() => {
-    // 마운트 이전 과거 기록까지 다시 알림으로 재생하지 않도록, 지금 길이를 기준점으로 삼는다.
-    const lastSeenLenRef = { current: readActivityLog(doc).length };
-    return observeActivityLog(doc, (transaction) => {
-      if (transaction.local) return;
+    let started = false;
+    let lastSeenLen = 0;
+
+    const establishBaseline = () => {
+      if (started) return;
+      started = true;
+      lastSeenLen = readActivityLog(doc).length;
+    };
+
+    if (synced) establishBaseline();
+    const timer = window.setTimeout(establishBaseline, SEED_FALLBACK_MS);
+
+    const unobserve = observeActivityLog(doc, (transaction) => {
+      if (!started || transaction.local) return;
       const entries = readActivityLog(doc);
-      const newEntries = entries.slice(lastSeenLenRef.current);
-      lastSeenLenRef.current = entries.length;
+      const newEntries = entries.slice(lastSeenLen);
+      lastSeenLen = entries.length;
       newEntries.forEach((entry) => onRemoteActivityRef.current?.(entry));
     });
-  }, [doc]);
+
+    return () => {
+      window.clearTimeout(timer);
+      unobserve();
+    };
+  }, [doc, synced]);
 
   const logActivity = (action: ActivityAction, placeName: string) => {
     yLogActivity(doc, currentUser?.nickname ?? "누군가", action, placeName);
