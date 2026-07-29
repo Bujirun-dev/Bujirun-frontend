@@ -24,6 +24,25 @@ import type {
   ActivityLogEntry,
 } from "@/features/itinerary/collab/itineraryYjsSchema";
 
+// 관광지를 새로 추가할 때 시간 기본값 — 매번 00:00부터 휠을 돌려 맞춰야 하는 불편을
+// 줄이기 위해, 그 날 마지막 일정 다음 시간(1시간 뒤)으로 잡아준다. 비어있는 날은 09:00부터.
+const DEFAULT_DAY_START = "09:00";
+const DEFAULT_STOP_GAP_MIN = 60;
+
+function getDefaultStopTime(dayStops: BaseStop[]): string {
+  if (dayStops.length === 0) return DEFAULT_DAY_START;
+  const latestMin = Math.max(
+    ...dayStops.map((stop) => {
+      const [h, m] = stop.time.split(":").map(Number);
+      return h * 60 + m;
+    }),
+  );
+  const nextMin = Math.min(latestMin + DEFAULT_STOP_GAP_MIN, 23 * 60 + 59);
+  const hh = String(Math.floor(nextMin / 60)).padStart(2, "0");
+  const mm = String(nextMin % 60).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
+
 // 다른 참여자가 만든 변경을 토스트/안내팝업 메시지로 바꾸는 규칙. "누가 뭘 했는지"는
 // activityLog 엔트리에서 그대로 나오고, 여기서는 문구만 고른다.
 const ACTIVITY_MESSAGES: Record<ActivityAction, (entry: ActivityLogEntry) => string> = {
@@ -424,7 +443,7 @@ function ItineraryMain({
     const newStop: BaseStop = {
       id: `temp-${crypto.randomUUID()}`,
       spotId: place.id,
-      time: "00:00",
+      time: getDefaultStopTime(stopsPerDay[dayIdx] ?? []),
       placeName: place.name,
       imageUrl: place.imageUrl,
       category: place.category,
