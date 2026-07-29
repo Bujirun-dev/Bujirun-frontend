@@ -71,6 +71,12 @@ export function useCollaborativeItinerary(
   // 시딩용 초기값은 마운트 시점 값 그대로 고정한다 — props가 그 사이 바뀌어도
   // 시딩 로직이 재실행되며 엉뚱한 값을 시딩하면 안 되기 때문.
   const initialDaysRef = useRef(initialDays);
+  // 시딩(원격 상태 병합 포함)이 실제로 끝나기 전엔 doc이 빈 상태라, 이 시점에 flushAll이
+  // 돌면 그 빈 상태를 REST에 그대로 PATCH해서 서버에 이미 있던 데이터를 지워버린다.
+  // (React StrictMode가 개발 모드에서 연결 effect를 마운트 직후 한 번 cleanup했다가
+  // 다시 마운트하는데, 그 cleanup이 onBeforeDisconnect=flushAll을 호출하는 경로가 있어서
+  // 시딩 전에 flushAll이 불릴 수 있다 — 실제로 이걸로 로컬 테스트 중 데이터가 날아갔다.)
+  const hasSeededRef = useRef(false);
 
   useEffect(() => {
     dayIdsRef.current = dayIds;
@@ -81,6 +87,7 @@ export function useCollaborativeItinerary(
   // 옛 값 그대로라서, "mutate 하자마자 바로 flush" 같은 흐름(예: 로그 불러오기 직후
   // flushNow)에서 방금 반영한 변경이 아니라 그 이전 상태를 저장해버리는 문제가 있었다.
   const flushAll = () => {
+    if (!hasSeededRef.current) return;
     const currentStops = readStopsFromYjs(doc);
     dayIdsRef.current.forEach((dayId, dayIdx) => {
       if (!dayId) return;
@@ -111,10 +118,12 @@ export function useCollaborativeItinerary(
   useEffect(() => {
     if (synced) {
       seedYjsDays(doc, dayIdsRef.current, initialDaysRef.current);
+      hasSeededRef.current = true;
       return;
     }
     const timer = window.setTimeout(() => {
       seedYjsDays(doc, dayIdsRef.current, initialDaysRef.current);
+      hasSeededRef.current = true;
     }, SEED_FALLBACK_MS);
     return () => window.clearTimeout(timer);
   }, [doc, synced]);
