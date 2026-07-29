@@ -58,7 +58,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
           value={name}
           onChange={(event) => setName(event.target.value)}
           placeholder="여행 이름을 입력하세요"
-          className="h-[34px] w-full rounded-lg border border-main-blue px-3 text-xs font-medium text-text-primary"
+          className="!h-[34px] w-full !rounded-lg !px-2.5 !text-xs !font-medium !text-text-primary"
         />
       </div>
 
@@ -80,7 +80,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
           </div>
           <div className="flex items-center gap-2">
             <DateTimeLabel label="종료 시간" />
-            <div className="flex h-9 flex-1 items-center rounded-lg border border-main-blue/30 bg-system-navbg px-3 text-xs font-medium text-sub-darkgray">
+            <div className="flex h-[27px] flex-1 items-center rounded-lg border-[0.5px] border-sub-lightblue bg-main-blue/20 px-3 text-2xs font-light text-text-primary">
               {endDate}
             </div>
           </div>
