@@ -25,7 +25,7 @@ interface EmptyStateProps {
 }
 
 const SIZE_STYLES: Record<EmptyStateSize, { image: number; glow: string; padding: string }> = {
-  lg: { image: 180, glow: "size-[140px]", padding: "px-5 py-10" },
+  lg: { image: 210, glow: "size-[160px]", padding: "px-5 py-10" },
   sm: { image: 124, glow: "size-[95px]", padding: "px-4 py-6" },
 };
 
@@ -77,12 +77,12 @@ export function EmptyState({
         </motion.div>
       </div>
       <div
-        className={cn("flex flex-col items-center", size === "sm" ? "mt-2 gap-1.5" : "mt-4 gap-3")}
+        className={cn("flex flex-col items-center", size === "sm" ? "mt-1 gap-1.5" : "mt-1 gap-3")}
       >
         <p
           className={cn(
             "font-ssurround font-bold text-text-heading",
-            size === "sm" ? "text-lg" : "text-xl",
+            size === "sm" ? "text-md" : "text-lg",
           )}
         >
           {title}

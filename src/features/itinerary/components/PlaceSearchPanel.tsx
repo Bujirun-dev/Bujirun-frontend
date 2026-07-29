@@ -234,6 +234,7 @@ export function PlaceSearchPanel({ onClose, onPlaceSelect }: PlaceSearchPanelPro
         />
       ) : filtered.length === 0 ? (
         <EmptyState
+          size="sm"
           title="검색 결과가 없어요"
           description={
             <>
