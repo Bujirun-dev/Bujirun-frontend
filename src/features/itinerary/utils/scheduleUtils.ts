@@ -76,7 +76,7 @@ export function buildDaysFromTravelLogDetail(
         time: normalizeTime(item.arrivalTime, "10:00"),
         placeName,
         imageUrl: matchedSpot?.thumbnailUrl || representativePhoto || FALLBACK_IMAGE,
-        category: getCategoryFromKo(matchedSpot?.category ?? item.spotCategory ?? ""),
+        category: getCategoryFromKo(matchedSpot?.category ?? item.spotCategory ?? "", placeName),
         status: "verify",
         // description/운영시간/문의처는 TimelinePlaceDetailPopup이 spotId로 실제 데이터를
         // 조회해서 보여준다(useSpotDetail) — 여기서 가짜 문구로 채우지 않는다.
@@ -145,7 +145,7 @@ export function buildDays(scheduleId: string): { days: BaseStop[][]; dates: stri
         time: item.arrivalTime,
         placeName: item.spotName,
         imageUrl: place?.thumbnailUrl || FALLBACK_IMAGE,
-        category: getCategoryFromKo(place?.category ?? ""),
+        category: getCategoryFromKo(place?.category ?? "", item.spotName),
         status: "verify",
         description: getPlaceDescription(item.spotName),
         address: place?.address,
@@ -271,7 +271,7 @@ export function mapItineraryDetailToDays(
           : getDefaultItemTime(dayIdx, totalDays, idx, items.length, timeBounds),
         placeName,
         imageUrl: item.spot?.thumbnailUrl || FALLBACK_IMAGE,
-        category: getCategoryFromKo(item.spot?.category ?? ""),
+        category: getCategoryFromKo(item.spot?.category ?? "", placeName),
         status: "verify",
         // 여행 메모(실데이터)만 우선 보여준다 — 없으면 TimelinePlaceDetailPopup이
         // spotId로 실제 관광지 소개글을 조회해서 보여준다(useSpotDetail).

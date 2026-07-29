@@ -88,7 +88,7 @@ export function PlaceDetailSheet({
         <div className="overflow-y-auto overflow-x-hidden flex-1 pb-6 px-5">
           {/* 이미지 */}
           <div className="relative w-full h-[152px] rounded-lg overflow-hidden">
-            <Image src={imageUrl} alt={name} fill className="object-cover" />
+            <Image src={imageUrl} alt={name} fill sizes="390px" className="object-cover" />
             {onVerify && (
               <button
                 onClick={onVerify}
@@ -187,6 +187,7 @@ export function PlaceDetailSheet({
                           src={log.imageUrl}
                           alt={log.userName}
                           fill
+                          sizes="110px"
                           className="object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />

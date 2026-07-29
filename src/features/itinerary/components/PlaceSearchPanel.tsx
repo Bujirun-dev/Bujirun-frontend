@@ -11,7 +11,7 @@ import { CategoryFilterDropdown } from "./CategoryFilterDropdown";
 import type { Category } from "@/components";
 import { cn } from "@/shared/utils";
 import { spotApi } from "@/shared/api/domains";
-import { getCategoryFromKo } from "@/shared/constants/category";
+import { getCategoryFromKo, CATEGORY_LABEL_KO } from "@/shared/constants/category";
 import type { SpotSearchCategory } from "@/shared/constants/category";
 import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
 
@@ -85,7 +85,9 @@ export type SearchPlace = {
   id: string;
   name: string;
   category: Category;
-  status: "uncollected" | "completed";
+  // 도감(수집) 대상이 아닌 관광지는 수집 상태 자체가 의미 없어서 undefined —
+  // 이 경우 배지를 아예 안 보여준다.
+  status?: "uncollected" | "completed";
   imageUrl: string;
 };
 
@@ -128,27 +130,34 @@ export function PlaceSearchPanel({ onClose, onPlaceSelect }: PlaceSearchPanelPro
 
   const debouncedSearchValue = useDebouncedValue(searchValue, 300);
 
+  // category는 서버 쿼리로 안 넘긴다 — 백엔드 필터 파라미터가 어떤 값을 받는지 보장이
+  // 안 돼서, 항목별로 이미 내려오는 category 필드를 우리 4개 카테고리로 매핑해
+  // 프론트에서 직접 필터링한다(아래 categoryFiltered).
   const { data: searchResults, isLoading } = useQuery({
     queryKey: spotApi.keys.search({
       keyword: debouncedSearchValue || undefined,
-      category: categoryFilter === "all" ? undefined : categoryFilter,
       sort: sortBy === "추천순" ? "RECOMMEND" : "NAME",
     }),
     queryFn: () =>
       spotApi.searchSpots({
         keyword: debouncedSearchValue || undefined,
-        category: categoryFilter === "all" ? undefined : categoryFilter,
         sort: sortBy === "추천순" ? "RECOMMEND" : "NAME",
       }),
   });
 
-  const filtered: SearchPlace[] = (searchResults ?? []).map((spot) => ({
+  const mapped: SearchPlace[] = (searchResults ?? []).map((spot) => ({
     id: spot.spotId ?? spot.name ?? "",
     name: spot.name ?? "이름 미상",
-    category: getCategoryFromKo(spot.category ?? ""),
-    status: spot.collected ? "completed" : "uncollected",
+    category: getCategoryFromKo(spot.category ?? "", spot.name),
+    // 도감에 없는 관광지(isCollection: false)는 수집 여부 배지를 아예 안 보여준다.
+    status: spot.isCollection ? (spot.collected ? "completed" : "uncollected") : undefined,
     imageUrl: spot.thumbnailUrl || FALLBACK_IMAGE,
   }));
+
+  const filtered: SearchPlace[] =
+    categoryFilter === "all"
+      ? mapped
+      : mapped.filter((place) => place.category === CATEGORY_LABEL_KO[categoryFilter]);
 
   const sorted = [...filtered].sort((a, b) => a.name.localeCompare(b.name, "ko"));
 

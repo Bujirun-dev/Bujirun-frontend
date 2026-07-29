@@ -43,6 +43,7 @@ export function SlidingTimeline({
                 date={tripDates[dayIdx]}
                 onAddNewPlace={(place) => onAddNewPlace(dayIdx, place)}
                 onFocusChange={(stopId) => onFocusChange?.(dayIdx, stopId)}
+                isActive={dayIdx === currentDay}
               />
             </div>
             {/* 관광지 수에 따라 타임라인 길이는 자연스럽게 유지하되,

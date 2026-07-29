@@ -146,7 +146,13 @@ export function LogDetailContent({
                     {/* 사진 */}
                     {stop.imageUrl && (
                       <div className="relative w-[254px] h-[118px] rounded-lg overflow-hidden border-[0.3px] border-system-glassborder shrink-0">
-                        <Image src={stop.imageUrl} alt={stop.place} fill className="object-cover" />
+                        <Image
+                          src={stop.imageUrl}
+                          alt={stop.place}
+                          fill
+                          sizes="254px"
+                          className="object-cover"
+                        />
 
                         {editableRepresentativePhoto && stop.visited && (
                           <button
