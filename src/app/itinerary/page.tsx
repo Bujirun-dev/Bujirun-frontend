@@ -17,7 +17,7 @@ import {
   normalizeTime,
 } from "@/features/itinerary/utils/scheduleUtils";
 import { getTripTimeBounds } from "@/shared/utils/tripTimeBounds";
-import type { SearchPlace } from "@/features/itinerary/components/PlaceSearchPanel";
+import type { SearchPlace } from "@/components/place/PlaceSearchPanel";
 import type { RouteOption } from "@/features/itinerary";
 import type {
   ActivityAction,
