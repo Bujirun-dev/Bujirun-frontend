@@ -261,7 +261,11 @@ export function mapItineraryDetailToDays(
       const nextItem = items[idx + 1];
       const placeName = item.spot?.name ?? "장소 미정";
       const nextPlaceName = nextItem?.spot?.name ?? "";
-      const transportType = API_TRAVEL_MODE_MAP[nextItem?.travelMode ?? ""] ?? "버스";
+      // travelMode는 최적화가 실행된 뒤에만 채워진다 — 값이 없으면(방금 추가한 스팟 등)
+      // "버스"로 임의 확정하지 않고 transport 자체를 비워서 아직 계산 전임을 그대로 반영한다.
+      const transportType = nextItem?.travelMode
+        ? API_TRAVEL_MODE_MAP[nextItem.travelMode]
+        : undefined;
 
       return {
         id: item.id ?? `${day.id}-${idx}`,
@@ -281,22 +285,23 @@ export function mapItineraryDetailToDays(
           ? `https://map.kakao.com/link/map/${encodeURIComponent(placeName)},${item.spot.lat},${item.spot.lng}`
           : `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,
         isBookmarked: item.spot?.collected,
-        transport: nextItem
-          ? {
-              from: placeName,
-              to: nextPlaceName,
-              durationMin: nextItem.travelTimeMin ?? 30,
-              baseDurationMin: nextItem.travelTimeMin ?? 30,
-              legs: [
-                {
-                  type: transportType,
-                  routeName: transportType,
-                  from: getTransportPointName(transportType, placeName),
-                  to: getTransportPointName(transportType, nextPlaceName),
-                },
-              ],
-            }
-          : undefined,
+        transport:
+          nextItem && transportType
+            ? {
+                from: placeName,
+                to: nextPlaceName,
+                durationMin: nextItem.travelTimeMin ?? 30,
+                baseDurationMin: nextItem.travelTimeMin ?? 30,
+                legs: [
+                  {
+                    type: transportType,
+                    routeName: transportType,
+                    from: getTransportPointName(transportType, placeName),
+                    to: getTransportPointName(transportType, nextPlaceName),
+                  },
+                ],
+              }
+            : undefined,
       };
     });
   });
@@ -318,10 +323,16 @@ export function rebuildTransport(stops: BaseStop[]): BaseStop[] {
     if (!nextStop) return { ...stop, transport: undefined };
 
     const existing = stop.transport;
-    const type = existing?.legs[0]?.type ?? "버스";
+    const type = existing?.legs[0]?.type;
+    // 기존에 계산된 이동수단이 없으면(아직 최적화 전) "버스"로 지어내지 않고 그대로 비워둔다.
+    if (!type) return { ...stop, transport: undefined };
+
     const durationMin = existing?.durationMin ?? 30;
     const baseDurationMin = existing?.baseDurationMin ?? 30;
-    const cost = existing?.cost ?? 1500;
+    // 이동수단별 실제 요금을 모르는 상태(최적화 직후)에서 무조건 1,500원(버스 요금)으로
+    // 지어내지 않는다 — 택시 등 다른 수단에도 그대로 찍혀 부정확했다. 사용자가 직접
+    // 교통수단을 선택한 적이 있으면(buildTransportOptions 경유) 그 실제 값을 그대로 쓴다.
+    const cost = existing?.cost;
 
     return {
       ...stop,
