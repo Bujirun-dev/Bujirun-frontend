@@ -91,10 +91,17 @@ export function TripDateTimePicker({
   // 트리거 위치를 한 번 계산해 고정하는 방식이라, 열려있는 동안 뒤 화면이
   // 스크롤되면 팝업이 트리거와 어긋나 보인다. 매 스크롤마다 다시 계산해 따라
   // 움직이게 하는 대신, 그냥 닫아버린다.
+  // 단, 시간 휠(TimeWheelColumn)도 내부적으로 overflow-y-scroll이라 스크롤 이벤트가
+  // 나는데, 팝업 안쪽 스크롤까지 "바깥 스크롤"로 잡아버리면 시간을 고르려고 휠을
+  // 돌리자마자 팝업이 닫혀버린다 — 팝업 내부에서 난 스크롤은 무시한다.
   useEffect(() => {
     if (!isOpen) return;
 
-    const handleScroll = () => setIsOpen(false);
+    const handleScroll = (event: Event) => {
+      const target = event.target as Node;
+      if (popupRef.current?.contains(target)) return;
+      setIsOpen(false);
+    };
 
     window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
     return () => window.removeEventListener("scroll", handleScroll, { capture: true });
