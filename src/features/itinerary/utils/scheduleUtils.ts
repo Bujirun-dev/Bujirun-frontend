@@ -1,6 +1,4 @@
 import type { ItineraryStop, RouteOption } from "../components";
-import { getScheduleById, getPlaceById } from "@/mocks";
-import type { TravelMode } from "@/shared/types";
 import { getCategoryFromKo } from "@/shared/constants/category";
 import type { components } from "@/shared/api/schema";
 
@@ -18,13 +16,6 @@ export function nextTempStopId(): string {
 
 export const FALLBACK_IMAGE = "https://picsum.photos/seed/busan/300/200";
 
-const TRAVEL_MODE_MAP: Record<TravelMode, "버스" | "지하철" | "도보" | "택시"> = {
-  transit: "버스",
-  bus: "버스",
-  walk: "도보",
-  taxi: "택시",
-};
-
 type TransportType = "버스" | "지하철" | "도보" | "택시";
 
 export type BaseStop = Omit<
@@ -36,10 +27,6 @@ export function getTransportPointName(type: TransportType, placeName: string): s
   if (type === "버스") return `${placeName} 인근 정류장`;
   if (type === "지하철") return `${placeName}역`;
   return placeName;
-}
-
-function getPlaceDescription(placeName: string): string {
-  return `${placeName}은(는) 부산 여행 일정에서 방문하기 좋은 관광지입니다. 주변 관광지와 함께 둘러보기 좋고, 일정 중 잠시 머물며 분위기를 느끼기 좋은 장소예요.`;
 }
 
 // GET /api/logs/{id}(다른 사람의 여행 로그) 응답을 타임라인 UI가 쓰는 BaseStop[][]로
@@ -58,7 +45,7 @@ export function buildDaysFromTravelLogDetail(
 } {
   const sortedDays = [...(log.days ?? [])].sort((a, b) => (a.dayNumber ?? 0) - (b.dayNumber ?? 0));
 
-  const days = sortedDays.map((day, dayIdx) => {
+  const days = sortedDays.map((day) => {
     const items = [...(day.items ?? [])].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
 
     return items.map((item, idx): BaseStop => {
@@ -69,9 +56,26 @@ export function buildDaysFromTravelLogDetail(
       const representativePhoto =
         item.photos?.find((photo) => photo.representative)?.photoUrl ?? item.photos?.[0]?.photoUrl;
       const matchedSpot = spotByName?.get(placeName);
+      const recommendedTransport = nextItem
+        ? {
+            from: placeName,
+            to: nextPlaceName,
+            durationMin: 30,
+            baseDurationMin: 30,
+            cost: 1500,
+            legs: [
+              {
+                type: transportType,
+                routeName: transportType,
+                from: getTransportPointName(transportType, placeName),
+                to: getTransportPointName(transportType, nextPlaceName),
+              },
+            ],
+          }
+        : undefined;
 
       return {
-        id: `imported-${log.id}-d${dayIdx}-${idx}`,
+        id: nextTempStopId(),
         spotId: matchedSpot?.spotId,
         time: normalizeTime(item.arrivalTime, "10:00"),
         placeName,
@@ -83,23 +87,8 @@ export function buildDaysFromTravelLogDetail(
         address: matchedSpot?.address ?? "부산광역시",
         mapUrl: `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,
         isBookmarked: matchedSpot?.collected,
-        transport: nextItem
-          ? {
-              from: placeName,
-              to: nextPlaceName,
-              durationMin: 30,
-              baseDurationMin: 30,
-              cost: 1500,
-              legs: [
-                {
-                  type: transportType,
-                  routeName: transportType,
-                  from: getTransportPointName(transportType, placeName),
-                  to: getTransportPointName(transportType, nextPlaceName),
-                },
-              ],
-            }
-          : undefined,
+        transport: recommendedTransport,
+        recommendedTransport,
       };
     });
   });
@@ -108,59 +97,6 @@ export function buildDaysFromTravelLogDetail(
     if (!day.date) return "";
     const [year, month, dayNum] = day.date.split("-");
     return `${year}.${month}.${dayNum}`;
-  });
-
-  return { days, dates };
-}
-
-export function buildDays(scheduleId: string): { days: BaseStop[][]; dates: string[] } {
-  const schedule = getScheduleById(scheduleId);
-  if (!schedule) return { days: [], dates: [] };
-
-  const days = schedule.days.map((day) =>
-    day.items.map((item, idx): BaseStop => {
-      const place = getPlaceById(item.spotId);
-      const nextItem = day.items[idx + 1];
-      const transport = (() => {
-        if (!nextItem) return undefined;
-        const transportType = TRAVEL_MODE_MAP[nextItem.travelMode] ?? "버스";
-        return {
-          from: item.spotName,
-          to: nextItem.spotName,
-          durationMin: nextItem.travelTimeMin,
-          baseDurationMin: nextItem.travelTimeMin,
-          legs: [
-            {
-              type: transportType,
-              routeName: nextItem.routeName ?? transportType,
-              from: getTransportPointName(transportType, item.spotName),
-              to: getTransportPointName(transportType, nextItem.spotName),
-            },
-          ],
-        };
-      })();
-
-      return {
-        id: item.id,
-        time: item.arrivalTime,
-        placeName: item.spotName,
-        imageUrl: place?.thumbnailUrl || FALLBACK_IMAGE,
-        category: getCategoryFromKo(place?.category ?? "", item.spotName),
-        status: "verify",
-        description: getPlaceDescription(item.spotName),
-        address: place?.address,
-        mapUrl: place
-          ? `https://map.kakao.com/link/map/${encodeURIComponent(place.name)},${place.lat},${place.lng}`
-          : `https://map.kakao.com/link/search/${encodeURIComponent(item.spotName)}`,
-        isBookmarked: place?.isCollected,
-        transport,
-      };
-    }),
-  );
-
-  const dates = schedule.days.map((d) => {
-    const [, month, day] = d.date.split("-");
-    return `2026.${month}.${day}`;
   });
 
   return { days, dates };
@@ -175,6 +111,24 @@ export function normalizeTime(raw: string | undefined, fallback = "00:00"): stri
   const m = Number(minute);
   if (!Number.isFinite(h) || !Number.isFinite(m)) return fallback;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+export function timeToMinutes(time: string): number {
+  const [hour, minute] = time.split(":");
+  return (Number(hour) || 0) * 60 + (Number(minute) || 0);
+}
+
+export function minutesToTime(totalMinutes: number): string {
+  const clamped = Math.max(0, Math.min(23 * 60 + 59, totalMinutes));
+  const h = Math.floor(clamped / 60);
+  const m = clamped % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+// 교통수단을 바꿔서 자동으로 밀리는 시간은 10분 단위로 맞춘다 — 원래 있던 시간(예:
+// 10:13)은 그대로 두고, 이번에 새로 계산되는 시간만 10분 단위로 반올림한다.
+export function roundToNearest10(totalMinutes: number): number {
+  return Math.round(totalMinutes / 10) * 10;
 }
 
 const API_TRAVEL_MODE_MAP: Record<string, TransportType> = {
@@ -266,6 +220,23 @@ export function mapItineraryDetailToDays(
       const transportType = nextItem?.travelMode
         ? API_TRAVEL_MODE_MAP[nextItem.travelMode]
         : undefined;
+      const recommendedTransport =
+        nextItem && transportType
+          ? {
+              from: placeName,
+              to: nextPlaceName,
+              durationMin: nextItem.travelTimeMin ?? 30,
+              baseDurationMin: nextItem.travelTimeMin ?? 30,
+              legs: [
+                {
+                  type: transportType,
+                  routeName: transportType,
+                  from: getTransportPointName(transportType, placeName),
+                  to: getTransportPointName(transportType, nextPlaceName),
+                },
+              ],
+            }
+          : undefined;
 
       return {
         id: item.id ?? `${day.id}-${idx}`,
@@ -285,23 +256,8 @@ export function mapItineraryDetailToDays(
           ? `https://map.kakao.com/link/map/${encodeURIComponent(placeName)},${item.spot.lat},${item.spot.lng}`
           : `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,
         isBookmarked: item.spot?.collected,
-        transport:
-          nextItem && transportType
-            ? {
-                from: placeName,
-                to: nextPlaceName,
-                durationMin: nextItem.travelTimeMin ?? 30,
-                baseDurationMin: nextItem.travelTimeMin ?? 30,
-                legs: [
-                  {
-                    type: transportType,
-                    routeName: transportType,
-                    from: getTransportPointName(transportType, placeName),
-                    to: getTransportPointName(transportType, nextPlaceName),
-                  },
-                ],
-              }
-            : undefined,
+        transport: recommendedTransport,
+        recommendedTransport,
       };
     });
   });
@@ -356,10 +312,14 @@ export function rebuildTransport(stops: BaseStop[]): BaseStop[] {
 }
 
 export function buildTransportOptions(activeStop: BaseStop | undefined): RouteOption[] {
-  const base = activeStop?.transport?.baseDurationMin ?? 30;
-  const f = activeStop?.transport?.from ?? "";
-  const t = activeStop?.transport?.to ?? "";
-  const transitLegs = (activeStop?.transport?.legs ?? []).filter(
+  // 옵션1(추천)은 사용자가 그동안 뭘 선택했는지와 무관하게 항상 최초 계산된 추천
+  // 경로(recommendedTransport)를 보여준다 — transport는 선택할 때마다 덮어써지므로
+  // 여기서 쓰면 "버스 선택 후 다시 열었더니 추천도 버스로 바뀌어 보임" 문제가 생긴다.
+  const recommended = activeStop?.recommendedTransport;
+  const base = recommended?.baseDurationMin ?? activeStop?.transport?.baseDurationMin ?? 30;
+  const f = recommended?.from ?? activeStop?.transport?.from ?? "";
+  const t = recommended?.to ?? activeStop?.transport?.to ?? "";
+  const transitLegs = (recommended?.legs ?? []).filter(
     (leg) => leg.type === "버스" || leg.type === "지하철",
   );
 
@@ -400,4 +360,22 @@ export function buildTransportOptions(activeStop: BaseStop | undefined): RouteOp
       legs: [{ type: "도보" as const, routeName: "도보", from: f, to: t }],
     },
   ];
+}
+
+// buildTransportOptions()가 만드는 4개 옵션(transit/subway/taxi/walk) 중 이 스팟이
+// 지금 실제로 어떤 걸 쓰고 있는지 id로 알려준다. 이걸 별도 state로 들고 있으면(예전 방식)
+// 스팟마다 다른 값인데 전역 state 하나를 공유하게 돼서, 다른 스팟을 지하철로 바꾼 뒤
+// 버스인 스팟을 열어도 지하철이 선택된 것처럼 보이는 문제가 있었다 — 그래서 매번
+// activeStop에서 직접 계산한다.
+export function getActiveTransportOptionId(stop: BaseStop | undefined): string {
+  switch (stop?.transport?.legs[0]?.type) {
+    case "지하철":
+      return "subway";
+    case "택시":
+      return "taxi";
+    case "도보":
+      return "walk";
+    default:
+      return "transit";
+  }
 }

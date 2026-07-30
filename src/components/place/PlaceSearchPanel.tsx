@@ -207,6 +207,7 @@ export function PlaceSearchPanel({ onClose, onPlaceSelect }: PlaceSearchPanelPro
             key={opt}
             onClick={() => {
               setSortBy(opt);
+              setCategoryFilter("all");
               if (opt === "이름순") setTimeout(() => scrollToSection("ㄱ"), 0);
             }}
             className={cn(

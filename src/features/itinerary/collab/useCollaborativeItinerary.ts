@@ -16,11 +16,13 @@ import {
   replaceStop as yReplaceStop,
   resolveTempId,
   seedYjsDays,
+  shiftFollowingStopTimes as yShiftFollowingStopTimes,
   updateStopStatus as yUpdateStopStatus,
   updateStopTime as yUpdateStopTime,
   updateStopTransport as yUpdateStopTransport,
   type ActivityAction,
   type ActivityLogEntry,
+  type ShiftTimesResult,
 } from "./itineraryYjsSchema";
 import { flushDayToRest, snapshotFromStops, type DaySnapshot } from "./flushItineraryToRest";
 import { getParticipantColorClass } from "./participantColor";
@@ -256,5 +258,12 @@ export function useCollaborativeItinerary(
       yUpdateStopStatus(doc, dayIdx, itemId, status),
     pushOptimizedOrder: (dayIdx: number, stops: BaseStop[]) =>
       yPushOptimizedOrder(doc, dayIdx, stops),
+    shiftFollowingStopTimes: (
+      dayIdx: number,
+      fromItemId: string,
+      deltaMinutes: number,
+      boundaryMinutes?: number,
+    ): ShiftTimesResult =>
+      yShiftFollowingStopTimes(doc, dayIdx, fromItemId, deltaMinutes, boundaryMinutes),
   };
 }
