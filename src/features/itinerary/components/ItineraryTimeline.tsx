@@ -11,7 +11,7 @@ import { TimelineSearchTrigger } from "./TimelineSearchTrigger";
 import { TimelineTimePicker } from "./TimelineTimePicker";
 import { cn } from "@/shared/utils";
 import type { Category } from "@/components";
-import type { SearchPlace } from "./PlaceSearchPanel";
+import type { SearchPlace } from "../../../components/place/PlaceSearchPanel";
 import { CollaboratorBadge } from "./CollaboratorBadge";
 import type { CollaboratorInfo } from "@/features/itinerary/collab/useCollaborativeItinerary";
 

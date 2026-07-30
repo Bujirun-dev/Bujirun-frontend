@@ -6,7 +6,7 @@ import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?url";
 import PlusIcon from "@/assets/icons/itinerary/plus-small.svg?svgr";
 import { PlaceDetailContent, StatusBadge } from "@/components";
 import { useSpotDetail } from "@/features/itinerary/hooks/useSpotDetail";
-import { PlaceSearchPanel, type SearchPlace } from "./PlaceSearchPanel";
+import { PlaceSearchPanel, type SearchPlace } from "../../../components/place/PlaceSearchPanel";
 
 interface TimelineSearchPopupProps {
   onClose: () => void;

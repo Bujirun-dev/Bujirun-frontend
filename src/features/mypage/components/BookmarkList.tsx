@@ -41,29 +41,23 @@ export function BookmarkList() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex h-full flex-col">
-        <LoadingState message="북마크를 불러오는 중이에요" />
-      </div>
-    );
+    return <LoadingState message="북마크를 불러오는 중이에요" />;
   }
 
   if (bookmarks.length === 0) {
     return (
-      <div className="flex h-full flex-col">
-        <EmptyState
-          title="저장된 북마크가 없어요"
-          description={
-            <>
-              마음에 드는 관광지를
-              <br />
-              북마크에 담아보세요
-            </>
-          }
-          actionLabel="관광지 둘러보러 가기"
-          onAction={() => router.push("/")}
-        />
-      </div>
+      <EmptyState
+        title="저장된 북마크가 없어요"
+        description={
+          <>
+            마음에 드는 관광지를
+            <br />
+            북마크에 담아보세요
+          </>
+        }
+        actionLabel="관광지 둘러보러 가기"
+        onAction={() => router.push("/mypage/bookmarks/search")}
+      />
     );
   }
 
