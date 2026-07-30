@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/shared/utils";
@@ -68,6 +68,28 @@ const PLAN_LABELS: Record<string, string> = {
   B: "균형 최적형",
   C: "자유 편집형",
 };
+
+// 그룹 일정 생성은 최대 60초까지 걸릴 수 있어서, 대기 시간에 따라 메시지를 바꿔
+// 멈춘 것처럼 보이지 않게 한다.
+const GENERATE_LOADING_MESSAGES = [
+  { afterMs: 0, message: "일정을 생성하고 있어요" },
+  { afterMs: 15_000, message: "AI가 열심히 동선을 짜고 있어요" },
+  { afterMs: 35_000, message: "조금만 더 기다려주세요, 최대 1분 정도 걸려요" },
+] as const;
+
+function useGeneratingMessage(isGenerating: boolean) {
+  const [message, setMessage] = useState<string>(GENERATE_LOADING_MESSAGES[0].message);
+
+  useEffect(() => {
+    if (!isGenerating) return;
+    const timers = GENERATE_LOADING_MESSAGES.map(({ afterMs, message }) =>
+      window.setTimeout(() => setMessage(message), afterMs),
+    );
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+  }, [isGenerating]);
+
+  return isGenerating ? message : GENERATE_LOADING_MESSAGES[0].message;
+}
 
 type Place = { id: string; name: string; image: string; time?: string };
 type Day = { day: number; label: string; places: Place[] };
@@ -177,7 +199,18 @@ function TripResultContent() {
     enabled: !!groupId && !!startDate && !!endDate,
   });
 
+  const generatingMessage = useGeneratingMessage(isGenerating);
   const sessionId = generated?.voteSessionId ?? "";
+
+  // 다른 참여자가 투표한 결과를 A/B/C 탭에 반영하기 위해 투표 현황을 폴링한다.
+  const { data: voteStatus } = useQuery({
+    queryKey: itineraryApi.keys.voteStatus(sessionId),
+    queryFn: () => itineraryApi.getVoteStatus(sessionId),
+    enabled: !!sessionId,
+    refetchInterval: 2000,
+  });
+  const voteCounts = voteStatus?.voteCounts ?? {};
+
   const commonCategories = computeCommonCategories(generated);
   const forwardParams = new URLSearchParams({
     count,
@@ -198,6 +231,7 @@ function TripResultContent() {
     const slicedDays = plan.days.slice(0, totalDays);
     return {
       ...plan,
+      voteCount: voteCounts[plan.id] ?? 0,
       days: slicedDays.map((day, idx) => {
         const slots = getDaySlots(idx, slicedDays.length, startTime, endTime);
         return {
@@ -285,7 +319,7 @@ function TripResultContent() {
   if (isGenerating) {
     return (
       <div className="flex h-full flex-col">
-        <LoadingState message="일정을 생성하고 있어요" />
+        <LoadingState message={generatingMessage} />
       </div>
     );
   }
