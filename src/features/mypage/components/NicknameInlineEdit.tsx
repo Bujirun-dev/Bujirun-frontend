@@ -90,7 +90,7 @@ export function NicknameInlineEdit({ nickname, onConfirm }: NicknameInlineEditPr
             placeholder="6자 이내로 입력해주세요"
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            className="w-[100px] bg-transparent text-left text-lg font-bold text-text-heading leading-none py-0.5 outline-none placeholder:text-xs placeholder:font-normal placeholder:text-sub-gray"
+            className="w-[140px] bg-transparent text-left text-lg font-bold text-text-heading leading-none py-0.5 outline-none placeholder:text-xs placeholder:font-normal placeholder:text-sub-gray"
           />
           <button
             type="button"
