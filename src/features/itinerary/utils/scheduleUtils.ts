@@ -45,7 +45,7 @@ export function buildDaysFromTravelLogDetail(
 } {
   const sortedDays = [...(log.days ?? [])].sort((a, b) => (a.dayNumber ?? 0) - (b.dayNumber ?? 0));
 
-  const days = sortedDays.map((day, dayIdx) => {
+  const days = sortedDays.map((day) => {
     const items = [...(day.items ?? [])].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
 
     return items.map((item, idx): BaseStop => {
@@ -58,7 +58,7 @@ export function buildDaysFromTravelLogDetail(
       const matchedSpot = spotByName?.get(placeName);
 
       return {
-        id: `imported-${log.id}-d${dayIdx}-${idx}`,
+        id: nextTempStopId(),
         spotId: matchedSpot?.spotId,
         time: normalizeTime(item.arrivalTime, "10:00"),
         placeName,
