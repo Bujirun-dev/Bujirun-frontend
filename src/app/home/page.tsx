@@ -1,7 +1,9 @@
 "use client";
 import Image from "next/image";
+import { useQuery } from "@tanstack/react-query";
 import { Card, PageCard, StaircaseGlassCard } from "@/components";
 import marineCharacter from "@/assets/character/marine.png";
+import { getMyProfile } from "@/shared/api/domains/user";
 import { useCollectionProgress } from "@/shared/hooks/useCollectionProgress";
 import { CollectionProgress } from "@/features/home/components/CollectionProgress";
 import { TodayItinerary } from "@/features/home/components/TodayItinerary";
@@ -21,11 +23,17 @@ function MegaphoneIcon() {
 
 export default function HomePage() {
   const { total: collectionTotal, count: collectionCount } = useCollectionProgress();
+  const { data: profile } = useQuery({
+    queryKey: ["users", "me"],
+    queryFn: getMyProfile,
+  });
+
+  const nickname = profile?.nickname ?? "유리";
   return (
     <main className="flex h-full flex-col">
       <div className="flex shrink-0 items-start justify-between gap-4 px-4">
         <div className="min-w-0 text-text-heading">
-          <p className="font-dxsubtitles text-md">안녕, 유리 👋</p>
+          <p className="font-dxsubtitles text-md">안녕, {nickname} 👋</p>
           <h1 className="mt-2 whitespace-pre-line font-proup text-2xl leading-[1.25]">
             {"오늘은 어디를\n탐험해볼까요?"}
           </h1>
