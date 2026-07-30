@@ -2,9 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { BackButton, PageCard, PlaceSearchPanel } from "@/components";
+import type { SearchPlace } from "@/components";
 
 export default function BookmarkSearchPage() {
   const router = useRouter();
+
+  const handlePlaceSelect = (place: SearchPlace) => {
+    router.push(`/mypage/bookmarks/spot/${place.id}`);
+  };
 
   return (
     <PageCard>
@@ -17,7 +22,7 @@ export default function BookmarkSearchPage() {
 
         {/* 검색 패널 */}
         <div className="flex-1 overflow-hidden">
-          <PlaceSearchPanel />
+          <PlaceSearchPanel onPlaceSelect={handlePlaceSelect} />
         </div>
       </div>
     </PageCard>
