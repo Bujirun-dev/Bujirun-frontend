@@ -144,8 +144,18 @@ export function TodayItinerary() {
           const isVisited = plan.spot?.visited ?? false;
           const nextPlan = plans[index + 1];
           const nextPlaceName = nextPlan?.spot?.name;
-          const transportGroup = nextPlaceName
+          const matchedTransportGroup = nextPlaceName
             ? findTransportGroupByPlaces(placeName, nextPlaceName)
+            : null;
+
+          // TODO: 교통수단 API 연동 전 임시 처리
+          // 샘플 데이터에 현재 장소 조합이 없어도 일정 사이에 교통수단 카드를 표시한다.
+          const transportGroup = nextPlaceName
+            ? (matchedTransportGroup ?? {
+                ...DEFAULT_TRANSPORT_GROUP,
+                fromPlace: placeName,
+                toPlace: nextPlaceName,
+              })
             : null;
           const selectedOptionId = transportGroup
             ? (selectedOptionIdByRoute[getTransportRouteKey(transportGroup)] ??

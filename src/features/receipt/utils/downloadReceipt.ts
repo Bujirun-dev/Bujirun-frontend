@@ -1,16 +1,20 @@
-import { toPng } from "html-to-image";
+import { toBlob } from "html-to-image";
 
 export const waitForImages = async (element: HTMLElement) => {
   const images = Array.from(element.querySelectorAll("img"));
 
   await Promise.all(
-    images.map((image) => {
-      if (image.complete) return Promise.resolve();
+    images.map(async (image) => {
+      if (!image.complete) {
+        await new Promise<void>((resolve) => {
+          image.addEventListener("load", () => resolve(), { once: true });
+          image.addEventListener("error", () => resolve(), { once: true });
+        });
+      }
 
-      return new Promise<void>((resolve) => {
-        image.onload = () => resolve();
-        image.onerror = () => resolve();
-      });
+      if (typeof image.decode === "function") {
+        await image.decode().catch(() => undefined);
+      }
     }),
   );
 };
@@ -27,14 +31,23 @@ export const downloadReceiptAsPng = async (element: HTMLElement, fileName: strin
   await document.fonts.ready;
   await waitForImages(element);
 
-  const dataUrl = await toPng(element, {
-    cacheBust: true,
+  const blob = await toBlob(element, {
     pixelRatio: 2,
     backgroundColor: "transparent",
   });
 
+  if (!blob) {
+    throw new Error("영수증 이미지를 생성하지 못했습니다.");
+  }
+
+  const objectUrl = URL.createObjectURL(blob);
   const link = document.createElement("a");
+
   link.download = fileName;
-  link.href = dataUrl;
+  link.href = objectUrl;
+  document.body.appendChild(link);
   link.click();
+  link.remove();
+
+  URL.revokeObjectURL(objectUrl);
 };

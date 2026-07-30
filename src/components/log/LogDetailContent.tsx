@@ -117,11 +117,7 @@ export function LogDetailContent({
               {daySchedule.stops.map((stop, idx) => (
                 <div
                   key={idx}
-                  className={cn(
-                    "flex items-start",
-                    idx < daySchedule.stops.length - 1 && "pb-5",
-                    !stop.visited && "opacity-40",
-                  )}
+                  className={cn("flex items-start", idx < daySchedule.stops.length - 1 && "pb-5")}
                 >
                   {/* 시간 + 도트 */}
                   <div className="flex items-center shrink-0">
@@ -138,7 +134,12 @@ export function LogDetailContent({
                     {/* 장소명 */}
                     <div className="flex items-center gap-1">
                       <span className="text-md shrink-0">📍</span>
-                      <span className="font-medium text-md text-text-primary tracking-[0.42px]">
+                      <span
+                        className={cn(
+                          "font-medium text-md tracking-[0.42px]",
+                          stop.visited ? "text-text-primary" : "text-sub-gray",
+                        )}
+                      >
                         {stop.place}
                       </span>
                     </div>
@@ -311,6 +312,18 @@ function StopTags({
   );
 }
 
+function formatArrivalTime(value?: string) {
+  if (!value) return "";
+
+  const timeMatch = value.match(/(?:T|^)(\d{2}):(\d{2})/);
+
+  if (timeMatch) {
+    return `${timeMatch[1]}:${timeMatch[2]}`;
+  }
+
+  return value;
+}
+
 // API 응답 → LogDetailContent props 변환
 type TravelLogDetail = components["schemas"]["TravelLogDetailResponse"];
 
@@ -325,7 +338,7 @@ export function toLogDetailData(log: TravelLogDetail): LogDetailData {
       day: day.dayNumber ?? 1,
       date: day.date?.replace(/-/g, ".") ?? "",
       stops: (day.items ?? []).map((item) => ({
-        time: item.arrivalTime ?? "",
+        time: formatArrivalTime(item.arrivalTime),
         place: item.spotName ?? "",
         imageUrl:
           item.photos?.find((p) => p.representative)?.photoUrl ??
