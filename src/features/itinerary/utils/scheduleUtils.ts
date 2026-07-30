@@ -113,6 +113,24 @@ export function normalizeTime(raw: string | undefined, fallback = "00:00"): stri
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
+export function timeToMinutes(time: string): number {
+  const [hour, minute] = time.split(":");
+  return (Number(hour) || 0) * 60 + (Number(minute) || 0);
+}
+
+export function minutesToTime(totalMinutes: number): string {
+  const clamped = Math.max(0, Math.min(23 * 60 + 59, totalMinutes));
+  const h = Math.floor(clamped / 60);
+  const m = clamped % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+// 교통수단을 바꿔서 자동으로 밀리는 시간은 10분 단위로 맞춘다 — 원래 있던 시간(예:
+// 10:13)은 그대로 두고, 이번에 새로 계산되는 시간만 10분 단위로 반올림한다.
+export function roundToNearest10(totalMinutes: number): number {
+  return Math.round(totalMinutes / 10) * 10;
+}
+
 const API_TRAVEL_MODE_MAP: Record<string, TransportType> = {
   transit: "버스",
   bus: "버스",
