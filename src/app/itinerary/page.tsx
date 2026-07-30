@@ -13,6 +13,7 @@ import {
   type BaseStop,
   type SpotSearchResponse,
   buildDaysFromTravelLogDetail,
+  getActiveTransportOptionId,
   mapItineraryDetailToDays,
   normalizeTime,
 } from "@/features/itinerary/utils/scheduleUtils";
@@ -245,7 +246,6 @@ function ItineraryMain({
   const [activeStopId, setActiveStopId] = useState<string | null>(null);
   const [activeDayIdx, setActiveDayIdx] = useState(0);
   const [timeValue, setTimeValue] = useState({ hour: 12, minute: 0 });
-  const [selectedRouteOptionId, setSelectedRouteOptionId] = useState<string>("transit");
   const [optimizeDone, setOptimizeDone] = useState<boolean | undefined>(undefined);
 
   const touchStartX = useRef(0);
@@ -305,6 +305,7 @@ function ItineraryMain({
   }, [importedLogId, importedLog]);
 
   const activeStop = stopsPerDay[activeDayIdx]?.find((s) => s.id === activeStopId);
+  const selectedRouteOptionId = getActiveTransportOptionId(activeStop);
   const closeModal = () => setModal(null);
 
   const openDelete = (dayIdx: number, id: string) => {
@@ -353,7 +354,6 @@ function ItineraryMain({
     showToast("시간이 변경되었어요.");
   };
   const confirmTransport = (option: RouteOption) => {
-    setSelectedRouteOptionId(option.id);
     if (activeStopId && activeStop?.transport) {
       updateYjsStopTransport(activeDayIdx, activeStopId, {
         ...activeStop.transport,

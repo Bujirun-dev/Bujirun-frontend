@@ -56,6 +56,23 @@ export function buildDaysFromTravelLogDetail(
       const representativePhoto =
         item.photos?.find((photo) => photo.representative)?.photoUrl ?? item.photos?.[0]?.photoUrl;
       const matchedSpot = spotByName?.get(placeName);
+      const recommendedTransport = nextItem
+        ? {
+            from: placeName,
+            to: nextPlaceName,
+            durationMin: 30,
+            baseDurationMin: 30,
+            cost: 1500,
+            legs: [
+              {
+                type: transportType,
+                routeName: transportType,
+                from: getTransportPointName(transportType, placeName),
+                to: getTransportPointName(transportType, nextPlaceName),
+              },
+            ],
+          }
+        : undefined;
 
       return {
         id: nextTempStopId(),
@@ -70,23 +87,8 @@ export function buildDaysFromTravelLogDetail(
         address: matchedSpot?.address ?? "부산광역시",
         mapUrl: `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,
         isBookmarked: matchedSpot?.collected,
-        transport: nextItem
-          ? {
-              from: placeName,
-              to: nextPlaceName,
-              durationMin: 30,
-              baseDurationMin: 30,
-              cost: 1500,
-              legs: [
-                {
-                  type: transportType,
-                  routeName: transportType,
-                  from: getTransportPointName(transportType, placeName),
-                  to: getTransportPointName(transportType, nextPlaceName),
-                },
-              ],
-            }
-          : undefined,
+        transport: recommendedTransport,
+        recommendedTransport,
       };
     });
   });
@@ -200,6 +202,23 @@ export function mapItineraryDetailToDays(
       const transportType = nextItem?.travelMode
         ? API_TRAVEL_MODE_MAP[nextItem.travelMode]
         : undefined;
+      const recommendedTransport =
+        nextItem && transportType
+          ? {
+              from: placeName,
+              to: nextPlaceName,
+              durationMin: nextItem.travelTimeMin ?? 30,
+              baseDurationMin: nextItem.travelTimeMin ?? 30,
+              legs: [
+                {
+                  type: transportType,
+                  routeName: transportType,
+                  from: getTransportPointName(transportType, placeName),
+                  to: getTransportPointName(transportType, nextPlaceName),
+                },
+              ],
+            }
+          : undefined;
 
       return {
         id: item.id ?? `${day.id}-${idx}`,
@@ -219,23 +238,8 @@ export function mapItineraryDetailToDays(
           ? `https://map.kakao.com/link/map/${encodeURIComponent(placeName)},${item.spot.lat},${item.spot.lng}`
           : `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,
         isBookmarked: item.spot?.collected,
-        transport:
-          nextItem && transportType
-            ? {
-                from: placeName,
-                to: nextPlaceName,
-                durationMin: nextItem.travelTimeMin ?? 30,
-                baseDurationMin: nextItem.travelTimeMin ?? 30,
-                legs: [
-                  {
-                    type: transportType,
-                    routeName: transportType,
-                    from: getTransportPointName(transportType, placeName),
-                    to: getTransportPointName(transportType, nextPlaceName),
-                  },
-                ],
-              }
-            : undefined,
+        transport: recommendedTransport,
+        recommendedTransport,
       };
     });
   });
@@ -290,10 +294,14 @@ export function rebuildTransport(stops: BaseStop[]): BaseStop[] {
 }
 
 export function buildTransportOptions(activeStop: BaseStop | undefined): RouteOption[] {
-  const base = activeStop?.transport?.baseDurationMin ?? 30;
-  const f = activeStop?.transport?.from ?? "";
-  const t = activeStop?.transport?.to ?? "";
-  const transitLegs = (activeStop?.transport?.legs ?? []).filter(
+  // 옵션1(추천)은 사용자가 그동안 뭘 선택했는지와 무관하게 항상 최초 계산된 추천
+  // 경로(recommendedTransport)를 보여준다 — transport는 선택할 때마다 덮어써지므로
+  // 여기서 쓰면 "버스 선택 후 다시 열었더니 추천도 버스로 바뀌어 보임" 문제가 생긴다.
+  const recommended = activeStop?.recommendedTransport;
+  const base = recommended?.baseDurationMin ?? activeStop?.transport?.baseDurationMin ?? 30;
+  const f = recommended?.from ?? activeStop?.transport?.from ?? "";
+  const t = recommended?.to ?? activeStop?.transport?.to ?? "";
+  const transitLegs = (recommended?.legs ?? []).filter(
     (leg) => leg.type === "버스" || leg.type === "지하철",
   );
 
@@ -334,4 +342,22 @@ export function buildTransportOptions(activeStop: BaseStop | undefined): RouteOp
       legs: [{ type: "도보" as const, routeName: "도보", from: f, to: t }],
     },
   ];
+}
+
+// buildTransportOptions()가 만드는 4개 옵션(transit/subway/taxi/walk) 중 이 스팟이
+// 지금 실제로 어떤 걸 쓰고 있는지 id로 알려준다. 이걸 별도 state로 들고 있으면(예전 방식)
+// 스팟마다 다른 값인데 전역 state 하나를 공유하게 돼서, 다른 스팟을 지하철로 바꾼 뒤
+// 버스인 스팟을 열어도 지하철이 선택된 것처럼 보이는 문제가 있었다 — 그래서 매번
+// activeStop에서 직접 계산한다.
+export function getActiveTransportOptionId(stop: BaseStop | undefined): string {
+  switch (stop?.transport?.legs[0]?.type) {
+    case "지하철":
+      return "subway";
+    case "택시":
+      return "taxi";
+    case "도보":
+      return "walk";
+    default:
+      return "transit";
+  }
 }

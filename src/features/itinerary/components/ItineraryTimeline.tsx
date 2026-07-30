@@ -41,6 +41,10 @@ export interface ItineraryStop {
   isBookmarked?: boolean;
   relatedLogs?: { id: string; imageUrl: string; userName: string }[];
   transport?: TransportInfo;
+  // 최초 계산된 실제 추천 경로(ODsay 등) 스냅샷 — transport는 사용자가 교통수단을 바꿀
+  // 때마다 덮어써지지만, 이 필드는 절대 바뀌지 않아서 "추천" 옵션이 항상 원래 추천을
+  // 보여줄 수 있게 한다. REST/로그에서 처음 불러올 때 한 번만 채워진다.
+  recommendedTransport?: TransportInfo;
   // 지금 이 항목을 보고 있는 다른 참여자 목록 (실시간 공동편집, WS 미연결 시 항상 빈 배열)
   activeEditors?: CollaboratorInfo[];
   onDelete?: () => void;
