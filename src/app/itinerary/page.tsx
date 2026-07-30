@@ -377,9 +377,7 @@ function ItineraryMain({
         const delta = newNextMinutes - timeToMinutes(nextStop.time);
         const isLastDay = activeDayIdx === dayIdsSliced.length - 1;
         const boundaryMinutes =
-          isLastDay && tripTimeBounds?.endTime
-            ? timeToMinutes(tripTimeBounds.endTime)
-            : undefined;
+          isLastDay && tripTimeBounds?.endTime ? timeToMinutes(tripTimeBounds.endTime) : undefined;
 
         const result = shiftYjsFollowingStopTimes(
           activeDayIdx,
