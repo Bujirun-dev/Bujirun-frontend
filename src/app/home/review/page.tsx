@@ -32,6 +32,7 @@ export default function HomeReceiptPage() {
 
   const closeReceiptModal = () => {
     setIsReceiptModalOpen(false);
+    router.push("/home");
   };
 
   const handleCreateReceipt = async ({ mood, theme }: ReviewPromptSubmitData) => {
