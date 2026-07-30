@@ -459,7 +459,7 @@ function TripResultContent() {
                 </p>
                 <p className="mt-1 font-paperlogy text-sm font-medium text-sub-darkgray leading-relaxed whitespace-pre-line">
                   {
-                    "C안은 AI가 미리 짜주지 않아요.\n확정 후 팀원들과 함께 직접\n일정을 자유롭게 채워보세요!"
+                    "C안은 AI가 미리 짜주지 않아요.\n확정 후 친구들과 함께 직접\n일정을 자유롭게 채워보세요!"
                   }
                 </p>
               </Card>
