@@ -1,6 +1,4 @@
 import type { ItineraryStop, RouteOption } from "../components";
-import { getScheduleById, getPlaceById } from "@/mocks";
-import type { TravelMode } from "@/shared/types";
 import { getCategoryFromKo } from "@/shared/constants/category";
 import type { components } from "@/shared/api/schema";
 
@@ -18,13 +16,6 @@ export function nextTempStopId(): string {
 
 export const FALLBACK_IMAGE = "https://picsum.photos/seed/busan/300/200";
 
-const TRAVEL_MODE_MAP: Record<TravelMode, "버스" | "지하철" | "도보" | "택시"> = {
-  transit: "버스",
-  bus: "버스",
-  walk: "도보",
-  taxi: "택시",
-};
-
 type TransportType = "버스" | "지하철" | "도보" | "택시";
 
 export type BaseStop = Omit<
@@ -36,10 +27,6 @@ export function getTransportPointName(type: TransportType, placeName: string): s
   if (type === "버스") return `${placeName} 인근 정류장`;
   if (type === "지하철") return `${placeName}역`;
   return placeName;
-}
-
-function getPlaceDescription(placeName: string): string {
-  return `${placeName}은(는) 부산 여행 일정에서 방문하기 좋은 관광지입니다. 주변 관광지와 함께 둘러보기 좋고, 일정 중 잠시 머물며 분위기를 느끼기 좋은 장소예요.`;
 }
 
 // GET /api/logs/{id}(다른 사람의 여행 로그) 응답을 타임라인 UI가 쓰는 BaseStop[][]로
@@ -108,59 +95,6 @@ export function buildDaysFromTravelLogDetail(
     if (!day.date) return "";
     const [year, month, dayNum] = day.date.split("-");
     return `${year}.${month}.${dayNum}`;
-  });
-
-  return { days, dates };
-}
-
-export function buildDays(scheduleId: string): { days: BaseStop[][]; dates: string[] } {
-  const schedule = getScheduleById(scheduleId);
-  if (!schedule) return { days: [], dates: [] };
-
-  const days = schedule.days.map((day) =>
-    day.items.map((item, idx): BaseStop => {
-      const place = getPlaceById(item.spotId);
-      const nextItem = day.items[idx + 1];
-      const transport = (() => {
-        if (!nextItem) return undefined;
-        const transportType = TRAVEL_MODE_MAP[nextItem.travelMode] ?? "버스";
-        return {
-          from: item.spotName,
-          to: nextItem.spotName,
-          durationMin: nextItem.travelTimeMin,
-          baseDurationMin: nextItem.travelTimeMin,
-          legs: [
-            {
-              type: transportType,
-              routeName: nextItem.routeName ?? transportType,
-              from: getTransportPointName(transportType, item.spotName),
-              to: getTransportPointName(transportType, nextItem.spotName),
-            },
-          ],
-        };
-      })();
-
-      return {
-        id: item.id,
-        time: item.arrivalTime,
-        placeName: item.spotName,
-        imageUrl: place?.thumbnailUrl || FALLBACK_IMAGE,
-        category: getCategoryFromKo(place?.category ?? "", item.spotName),
-        status: "verify",
-        description: getPlaceDescription(item.spotName),
-        address: place?.address,
-        mapUrl: place
-          ? `https://map.kakao.com/link/map/${encodeURIComponent(place.name)},${place.lat},${place.lng}`
-          : `https://map.kakao.com/link/search/${encodeURIComponent(item.spotName)}`,
-        isBookmarked: place?.isCollected,
-        transport,
-      };
-    }),
-  );
-
-  const dates = schedule.days.map((d) => {
-    const [, month, day] = d.date.split("-");
-    return `2026.${month}.${day}`;
   });
 
   return { days, dates };

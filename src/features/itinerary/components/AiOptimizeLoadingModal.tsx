@@ -12,17 +12,12 @@ interface AiOptimizeLoadingModalProps {
   isOpen: boolean;
   onClose: () => void;
   /**
-   * API 연결 후: 최적화 API 호출 완료 시 이 값을 true로 넘기면
-   * 프로그레스바가 100%로 완성되고 자동으로 onClose가 호출됩니다.
-   * 현재는 임시 타이머(MOCK_DURATION_MS)로 동작합니다.
+   * 최적화 API 호출이 완료되면 true로 넘어온다.
+   * 프로그레스바가 100%로 완성되고 자동으로 onClose가 호출된다.
    */
   isDone?: boolean;
-  // TODO: API 연결 시 최적화된 일정 데이터를 받아 stopsPerDay 업데이트
   onComplete?: () => void;
 }
-
-// TODO: API 연결 후 제거 — 실제 응답 완료 시점에 isDone=true로 제어
-const MOCK_DURATION_MS = 3000;
 
 export function AiOptimizeLoadingModal({
   isOpen,
@@ -39,20 +34,7 @@ export function AiOptimizeLoadingModal({
       return;
     }
 
-    // API 연결 전: 타이머로 시뮬레이션
-    if (isDone === undefined) {
-      const startTimer = setTimeout(() => setProgress(100), 50);
-      const doneTimer = setTimeout(() => {
-        onComplete?.();
-        onClose();
-      }, MOCK_DURATION_MS + 100);
-      return () => {
-        clearTimeout(startTimer);
-        clearTimeout(doneTimer);
-      };
-    }
-
-    // API 연결 후: isDone=true가 되면 100%로 완성 후 닫기
+    // isDone=true가 되면 100%로 완성 후 닫기
     if (isDone) {
       setProgress(100);
       const doneTimer = setTimeout(() => {
