@@ -47,9 +47,13 @@ function CallbackContent() {
 
         const pendingInvite = consumePendingInvite();
         if (!pendingInvite) {
-          router.replace("/");
+          // 로그인 전 접근하려던 경로로 복귀, 없으면 홈으로
+          const redirectTo = searchParams.get("redirect") ?? "/";
+          router.replace(redirectTo);
           return;
         }
+
+        // 초대 링크로 들어온 경우 그룹 참여 페이지로 이동
         const joinParams = new URLSearchParams();
         if (pendingInvite.count) joinParams.set("count", pendingInvite.count);
         if (pendingInvite.days) joinParams.set("days", pendingInvite.days);
