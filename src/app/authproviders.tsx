@@ -16,10 +16,11 @@ interface ReissueData {
 }
 
 // 로그인 없이 접근 가능한 경로
-const PUBLIC_PATHS = ["/login", "/auth/kakao/callback"];
+const PUBLIC_PATHS = ["/login", "/auth/kakao/callback", "/signup"];
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const setAccessToken = useAuthStore((s) => s.setAccessToken);
+  const accessToken = useAuthStore((s) => s.accessToken);
   const clear = useAuthStore((s) => s.clear);
   const [isReady, setIsReady] = useState(false);
   const router = useRouter();
@@ -34,6 +35,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return;
     }
 
+    // 이미 accessToken이 있으면 reissue 불필요 (탭 이동 시 중복 호출 방지)
+    if (accessToken) {
+      setIsReady(true);
+      return;
+    }
+
     apiClient
       .post<{ data?: ReissueData }>("/api/auth/reissue")
       .then((res) => {
@@ -43,11 +50,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
       })
       .catch(() => {
+        // reissue 실패 = refresh_token 없거나 만료 → 로그인 페이지로 이동
+        // 미들웨어가 1차로 막지만, 혹시 뚫렸을 때 2차 방어선
         clear();
         router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
       })
       .finally(() => setIsReady(true));
-  }, [setAccessToken, clear, router, pathname, isPublicPath]);
+    // accessToken, isPublicPath 변경 시에만 재실행 (pathname은 catch 내부에서만 사용)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken, isPublicPath, setAccessToken, clear, router]);
 
   if (!isReady) {
     return (
