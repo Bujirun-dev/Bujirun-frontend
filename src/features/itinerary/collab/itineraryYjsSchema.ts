@@ -1,6 +1,11 @@
 import * as Y from "yjs";
 import type { BaseStop } from "@/features/itinerary/utils/scheduleUtils";
-import { rebuildTransport } from "@/features/itinerary/utils/scheduleUtils";
+import {
+  minutesToTime,
+  rebuildTransport,
+  roundToNearest10,
+  timeToMinutes,
+} from "@/features/itinerary/utils/scheduleUtils";
 
 const DAYS_KEY = "days";
 const META_KEY = "meta";
@@ -112,9 +117,56 @@ export function deleteStop(doc: Y.Doc, dayIdx: number, itemId: string): void {
 export function updateStopTime(doc: Y.Doc, dayIdx: number, itemId: string, time: string): void {
   replaceItemsArray(doc, dayIdx, (stops) =>
     stops
-      .map((stop) => (stop.id === itemId ? { ...stop, time } : stop))
+      .map((stop) => (stop.id === itemId ? { ...stop, time, timeIsManual: true } : stop))
       .sort((a, b) => a.time.localeCompare(b.time)),
   );
+}
+
+export interface ShiftTimesResult {
+  shiftedCount: number;
+  cappedAtBoundary: boolean;
+}
+
+// 교통수단이 바뀌어서 소요시간이 달라지면, fromItemId 다음 스팟부터 그날 남은 스팟까지
+// deltaMinutes만큼 시간을 민다. 사용자가 직접 시간을 정해둔 스팟(timeIsManual)을 만나거나
+// boundaryMinutes(여행 종료 시간)를 넘기게 되면 그 지점에서 멈추고 이후는 건드리지 않는다.
+export function shiftFollowingStopTimes(
+  doc: Y.Doc,
+  dayIdx: number,
+  fromItemId: string,
+  deltaMinutes: number,
+  boundaryMinutes?: number,
+): ShiftTimesResult {
+  const result: ShiftTimesResult = { shiftedCount: 0, cappedAtBoundary: false };
+  if (deltaMinutes === 0) return result;
+
+  replaceItemsArray(doc, dayIdx, (stops) => {
+    const fromIdx = stops.findIndex((stop) => stop.id === fromItemId);
+    if (fromIdx === -1) return stops;
+
+    let stillShifting = true;
+    const next = stops.map((stop, idx) => {
+      if (idx <= fromIdx || !stillShifting) return stop;
+      if (stop.timeIsManual) {
+        stillShifting = false;
+        return stop;
+      }
+
+      const newMinutes = roundToNearest10(timeToMinutes(stop.time) + deltaMinutes);
+      if (boundaryMinutes !== undefined && newMinutes > boundaryMinutes) {
+        result.cappedAtBoundary = true;
+        stillShifting = false;
+        return stop;
+      }
+
+      result.shiftedCount += 1;
+      return { ...stop, time: minutesToTime(newMinutes) };
+    });
+
+    return next.sort((a, b) => a.time.localeCompare(b.time));
+  });
+
+  return result;
 }
 
 // UpdateItemRequest엔 spotId가 없어 PATCH로 스팟 자체를 바꿀 수 없다 — 기존 REST 흐름과

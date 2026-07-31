@@ -203,6 +203,10 @@ function VoteWaitingContent() {
               {i > 0 && <div key={`divider-${i}`} className="h-8 w-[1px] bg-main-blue/30" />}
               <div className="flex flex-1 flex-col items-center gap-1">
                 <span className="font-proup text-2xl text-main-blue">{plan}</span>
+                <div className="flex items-center gap-[2px] font-proup text-sm font-normal leading-none text-sub-pink">
+                  <span>♥</span>
+                  <span>{voteCounts[plan] ?? 0}</span>
+                </div>
               </div>
             </Fragment>
           ))}

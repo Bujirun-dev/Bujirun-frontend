@@ -79,7 +79,7 @@ export function deleteItem(itineraryId: string, dayId: string, itemId: string) {
 
 // OpenAI + ODsay + 버스도착정보를 스팟마다 순차 호출해 16~24초까지 걸리므로
 // 전역 타임아웃(10초)보다 넉넉하게 잡는다.
-const GENERATE_TIMEOUT_MS = 30_000;
+const GENERATE_TIMEOUT_MS = 60_000;
 
 // group-itinerary-controller: 그룹원들의 투표/선호를 모아 일정을 생성
 export function generateGroupItinerary(groupId: string, body: OpBody<"generate">) {

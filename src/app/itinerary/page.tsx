@@ -13,11 +13,14 @@ import {
   type BaseStop,
   type SpotSearchResponse,
   buildDaysFromTravelLogDetail,
+  getActiveTransportOptionId,
   mapItineraryDetailToDays,
   normalizeTime,
+  roundToNearest10,
+  timeToMinutes,
 } from "@/features/itinerary/utils/scheduleUtils";
 import { getTripTimeBounds } from "@/shared/utils/tripTimeBounds";
-import type { SearchPlace } from "@/features/itinerary/components/PlaceSearchPanel";
+import type { SearchPlace } from "@/components/place/PlaceSearchPanel";
 import type { RouteOption } from "@/features/itinerary";
 import type {
   ActivityAction,
@@ -228,6 +231,7 @@ function ItineraryMain({
     updateStopTransport: updateYjsStopTransport,
     updateStopStatus: updateYjsStopStatus,
     pushOptimizedOrder: pushYjsOptimizedOrder,
+    shiftFollowingStopTimes: shiftYjsFollowingStopTimes,
   } = useCollaborativeItinerary(
     itineraryId,
     dayIdsSliced,
@@ -245,7 +249,6 @@ function ItineraryMain({
   const [activeStopId, setActiveStopId] = useState<string | null>(null);
   const [activeDayIdx, setActiveDayIdx] = useState(0);
   const [timeValue, setTimeValue] = useState({ hour: 12, minute: 0 });
-  const [selectedRouteOptionId, setSelectedRouteOptionId] = useState<string>("transit");
   const [optimizeDone, setOptimizeDone] = useState<boolean | undefined>(undefined);
 
   const touchStartX = useRef(0);
@@ -305,6 +308,7 @@ function ItineraryMain({
   }, [importedLogId, importedLog]);
 
   const activeStop = stopsPerDay[activeDayIdx]?.find((s) => s.id === activeStopId);
+  const selectedRouteOptionId = getActiveTransportOptionId(activeStop);
   const closeModal = () => setModal(null);
 
   const openDelete = (dayIdx: number, id: string) => {
@@ -353,7 +357,6 @@ function ItineraryMain({
     showToast("시간이 변경되었어요.");
   };
   const confirmTransport = (option: RouteOption) => {
-    setSelectedRouteOptionId(option.id);
     if (activeStopId && activeStop?.transport) {
       updateYjsStopTransport(activeDayIdx, activeStopId, {
         ...activeStop.transport,
@@ -361,6 +364,42 @@ function ItineraryMain({
         durationMin: option.durationMin,
         cost: option.cost,
       });
+
+      // 소요시간이 바뀐 만큼 다음 스팟부터 그날 남은 일정 시간을 밀어준다 —
+      // 사용자가 직접 시간을 정해둔 스팟을 만나거나 여행 종료 시간을 넘기면 거기서 멈춘다.
+      const dayStops = stopsPerDay[activeDayIdx] ?? [];
+      const activeIdx = dayStops.findIndex((s) => s.id === activeStopId);
+      const nextStop = dayStops[activeIdx + 1];
+      if (nextStop) {
+        const newNextMinutes = roundToNearest10(
+          timeToMinutes(activeStop.time) + option.durationMin,
+        );
+        const delta = newNextMinutes - timeToMinutes(nextStop.time);
+        const isLastDay = activeDayIdx === dayIdsSliced.length - 1;
+        const boundaryMinutes =
+          isLastDay && tripTimeBounds?.endTime ? timeToMinutes(tripTimeBounds.endTime) : undefined;
+
+        const result = shiftYjsFollowingStopTimes(
+          activeDayIdx,
+          activeStopId,
+          delta,
+          boundaryMinutes,
+        );
+
+        if (result.cappedAtBoundary) {
+          showToast(
+            "교통수단은 바뀌었지만, 여행 종료 시간을 넘어서 일부 일정은 자동으로 조정하지 못했어요.",
+            "error",
+          );
+          closeModal();
+          return;
+        }
+        if (result.shiftedCount > 0) {
+          showToast("교통수단이 변경돼서 이후 일정 시간도 조정됐어요.");
+          closeModal();
+          return;
+        }
+      }
     }
     closeModal();
     showToast("교통수단이 변경되었어요.");

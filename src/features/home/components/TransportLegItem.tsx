@@ -30,6 +30,7 @@ function useLiveBusArrivalText(leg: TransportLegItemData) {
 
   if (!canPoll || isError) return { text: leg.arrivalText, refetch };
   if (data === undefined) return { text: "도착정보 조회 중...", refetch };
+  if (data === null) return { text: "도착정보 없음", refetch };
   return { text: `${data}분 후 도착`, refetch };
 }
 

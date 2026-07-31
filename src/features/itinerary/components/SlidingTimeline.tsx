@@ -1,6 +1,6 @@
 import type { ItineraryStop } from "./ItineraryTimeline";
 import { ItineraryTimeline } from "./ItineraryTimeline";
-import type { SearchPlace } from "./PlaceSearchPanel";
+import type { SearchPlace } from "../../../components/place/PlaceSearchPanel";
 import { DayNavigator } from "./DayNavigator";
 
 interface SlidingTimelineProps {

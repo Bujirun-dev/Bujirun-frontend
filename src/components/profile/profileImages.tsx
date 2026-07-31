@@ -1,15 +1,21 @@
-import profileHat from "@/assets/character/profile/profile-hat.png";
-import profileSunglass from "@/assets/character/profile/profile-sunglass.png";
+import profile01 from "@/assets/character/profile/profile_01.png";
+import profile02 from "@/assets/character/profile/profile_02.png";
+import profile03 from "@/assets/character/profile/profile_03.png";
+import profile04 from "@/assets/character/profile/profile_04.png";
+import profile05 from "@/assets/character/profile/profile_05.png";
+import profile06 from "@/assets/character/profile/profile_06.png";
+import profile07 from "@/assets/character/profile/profile_07.png";
+import profile08 from "@/assets/character/profile/profile_08.png";
+import profile09 from "@/assets/character/profile/profile_09.png";
 
-/*TODO: 프로필 이미지 추후 수정 예정 */
 export const PROFILE_IMAGES = [
-  { id: 1, src: profileHat },
-  { id: 2, src: profileHat },
-  { id: 3, src: profileHat },
-  { id: 4, src: profileHat },
-  { id: 5, src: profileSunglass },
-  { id: 6, src: profileHat },
-  { id: 7, src: profileHat },
-  { id: 8, src: profileHat },
-  { id: 9, src: profileHat },
+  { id: 1, src: profile01 },
+  { id: 2, src: profile02 },
+  { id: 3, src: profile03 },
+  { id: 4, src: profile04 },
+  { id: 5, src: profile05 },
+  { id: 6, src: profile06 },
+  { id: 7, src: profile07 },
+  { id: 8, src: profile08 },
+  { id: 9, src: profile09 },
 ];

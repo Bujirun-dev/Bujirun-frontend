@@ -11,7 +11,7 @@ import { TimelineSearchTrigger } from "./TimelineSearchTrigger";
 import { TimelineTimePicker } from "./TimelineTimePicker";
 import { cn } from "@/shared/utils";
 import type { Category } from "@/components";
-import type { SearchPlace } from "./PlaceSearchPanel";
+import type { SearchPlace } from "../../../components/place/PlaceSearchPanel";
 import { CollaboratorBadge } from "./CollaboratorBadge";
 import type { CollaboratorInfo } from "@/features/itinerary/collab/useCollaborativeItinerary";
 
@@ -41,6 +41,15 @@ export interface ItineraryStop {
   isBookmarked?: boolean;
   relatedLogs?: { id: string; imageUrl: string; userName: string }[];
   transport?: TransportInfo;
+  // 최초 계산된 실제 추천 경로(ODsay 등) 스냅샷 — transport는 사용자가 교통수단을 바꿀
+  // 때마다 덮어써지지만, 이 필드는 절대 바뀌지 않아서 "추천" 옵션이 항상 원래 추천을
+  // 보여줄 수 있게 한다. REST/로그에서 처음 불러올 때 한 번만 채워진다.
+  recommendedTransport?: TransportInfo;
+  // 사용자가 시간선택기로 이 스팟의 시간을 직접 정한 적이 있는지 — 교통수단 변경으로
+  // 이후 일정 시간을 자동으로 밀 때, 이 값이 true인 스팟을 만나면 거기서 멈춘다.
+  // TODO: 백엔드에 필드 추가되면 REST에도 반영 — 지금은 로컬(Yjs) 전용이라 새로고침하면
+  // 초기화된다(시간 값 자체는 REST에 저장되니 안 사라짐, 이 플래그만 사라짐).
+  timeIsManual?: boolean;
   // 지금 이 항목을 보고 있는 다른 참여자 목록 (실시간 공동편집, WS 미연결 시 항상 빈 배열)
   activeEditors?: CollaboratorInfo[];
   onDelete?: () => void;
