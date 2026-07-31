@@ -22,24 +22,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const setAccessToken = useAuthStore((s) => s.setAccessToken);
   const accessToken = useAuthStore((s) => s.accessToken);
   const clear = useAuthStore((s) => s.clear);
-  const [isReady, setIsReady] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   const isPublicPath = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
-  useEffect(() => {
-    // public 경로는 reissue 시도 없이 바로 렌더
-    if (isPublicPath) {
-      setIsReady(true);
-      return;
-    }
+  // public 경로거나 이미 토큰 있으면 처음부터 ready 상태로 시작
+  const [isReady, setIsReady] = useState(isPublicPath || !!accessToken);
 
-    // 이미 accessToken이 있으면 reissue 불필요 (탭 이동 시 중복 호출 방지)
-    if (accessToken) {
-      setIsReady(true);
-      return;
-    }
+  useEffect(() => {
+    // public 경로거나 이미 accessToken 있으면 reissue 불필요
+    if (isPublicPath || accessToken) return;
 
     apiClient
       .post<{ data?: ReissueData }>("/api/auth/reissue")
@@ -56,7 +49,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
       })
       .finally(() => setIsReady(true));
-    // accessToken, isPublicPath 변경 시에만 재실행 (pathname은 catch 내부에서만 사용)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken, isPublicPath, setAccessToken, clear, router]);
 
