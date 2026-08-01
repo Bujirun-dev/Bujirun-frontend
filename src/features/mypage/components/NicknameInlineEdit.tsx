@@ -8,26 +8,33 @@ import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
 
 interface NicknameInlineEditProps {
   nickname: string;
+  /** 부모(MypageProfile)에서 API 에러 응답 기반으로 중복 여부를 내려줌 */
+  isDuplicate?: boolean;
   onConfirm: (nickname: string) => void;
+  /** 입력값이 바뀌면 부모의 isDuplicate 상태를 초기화하기 위해 호출 */
+  onValueChange?: () => void;
 }
 
-const TAKEN_NICKNAMES: string[] = []; // TODO: 중복 확인 API 생기면 교체
 const MAX_NICKNAME_LENGTH = 6;
 
-export function NicknameInlineEdit({ nickname, onConfirm }: NicknameInlineEditProps) {
+export function NicknameInlineEdit({
+  nickname,
+  isDuplicate = false,
+  onConfirm,
+  onValueChange,
+}: NicknameInlineEditProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const isTaken = value.trim().length > 0 && TAKEN_NICKNAMES.includes(value.trim());
+  // isDuplicate이 true면 저장 버튼 비활성화
   const isValid =
-    value.trim().length >= 2 && value.trim().length <= MAX_NICKNAME_LENGTH && !isTaken;
+    value.trim().length >= 2 && value.trim().length <= MAX_NICKNAME_LENGTH && !isDuplicate;
 
   useEffect(() => {
     if (isEditing) inputRef.current?.focus();
   }, [isEditing]);
 
-  // 편집 시작 시 입력값을 비워 플레이스홀더가 보이도록 처리
   const openEdit = () => {
     setValue("");
     setIsEditing(true);
@@ -36,12 +43,11 @@ export function NicknameInlineEdit({ nickname, onConfirm }: NicknameInlineEditPr
   const closeEdit = () => {
     setValue("");
     setIsEditing(false);
+    onValueChange?.(); // 추가 — 편집 취소 시 중복 에러 초기화
   };
-
   const handleConfirm = () => {
     if (!isValid) return;
     onConfirm(value.trim());
-    setIsEditing(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -55,13 +61,13 @@ export function NicknameInlineEdit({ nickname, onConfirm }: NicknameInlineEditPr
     setValue(
       nextValue.length <= MAX_NICKNAME_LENGTH ? nextValue : nextValue.slice(0, MAX_NICKNAME_LENGTH),
     );
+    // 입력값이 바뀌면 이전 중복 에러 상태 초기화
+    onValueChange?.();
   };
 
   return (
-    // items-center: 뷰/편집 모드 모두 카드 중앙 기준으로 정렬
     <div className="inline-flex flex-col items-center gap-1">
       {!isEditing ? (
-        // 뷰 모드 - 닉네임+버튼 묶음이 내용물 크기만큼만 차지 → 부모 중앙 정렬이 그대로 적용됨
         <div className="flex items-center gap-1.5">
           <span className="text-lg font-bold text-text-heading leading-none py-0.5">
             {nickname}
@@ -76,11 +82,10 @@ export function NicknameInlineEdit({ nickname, onConfirm }: NicknameInlineEditPr
           </button>
         </div>
       ) : (
-        // 편집 모드 - 입력창 활성화 시에만 밑줄 표시 (중복이면 코랄색)
         <div
           className={cn(
             "flex items-center gap-1.5 border-b",
-            isTaken ? "border-sub-coral" : "border-main-blue",
+            isDuplicate ? "border-sub-coral" : "border-main-blue",
           )}
         >
           <input
@@ -116,7 +121,7 @@ export function NicknameInlineEdit({ nickname, onConfirm }: NicknameInlineEditPr
       )}
 
       {/* 중복 안내 - 표시 여부와 무관하게 자리는 항상 확보 (레이아웃 흔들림 방지) */}
-      <div className={cn("flex items-center gap-1", !isTaken && "invisible")}>
+      <div className={cn("flex items-center gap-1", !isDuplicate && "invisible")}>
         <XCircle size={12} className="text-sub-coral shrink-0" />
         <span className="text-2xs font-semibold text-sub-coral">이미 사용중인 닉네임이에요.</span>
       </div>
