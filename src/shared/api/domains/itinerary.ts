@@ -77,6 +77,20 @@ export function deleteItem(itineraryId: string, dayId: string, itemId: string) {
   return apiClient.delete(`/api/itineraries/${itineraryId}/days/${dayId}/items/${itemId}`);
 }
 
+// 사용자가 이동수단을 직접 선택했을 때 실제 경로(역명/노선번호 등)를 재계산해서 돌려받는다.
+export function updateTravelMode(
+  itineraryId: string,
+  dayId: string,
+  itemId: string,
+  body: OpBody<"updateTravelMode">,
+) {
+  return apiClient
+    .patch<
+      OpResponse<"updateTravelMode">
+    >(`/api/itineraries/${itineraryId}/days/${dayId}/items/${itemId}/travel-mode`, body)
+    .then((res) => unwrap(res));
+}
+
 // OpenAI + ODsay + 버스도착정보를 스팟마다 순차 호출해 16~24초까지 걸리므로
 // 전역 타임아웃(10초)보다 넉넉하게 잡는다.
 const GENERATE_TIMEOUT_MS = 60_000;
