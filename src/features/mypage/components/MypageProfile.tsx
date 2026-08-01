@@ -21,6 +21,7 @@ const MOCK_TAGS: Category[] = [];
 
 const AVATAR_SIZE = 100;
 
+// profileImageUrl이 숫자 문자열("1"~"9")이면 로컬 이미지로 매핑
 function resolveProfileImage(profileImageUrl?: string | null) {
   if (!profileImageUrl) return PROFILE_IMAGES[0];
   const id = Number(profileImageUrl);
@@ -47,11 +48,13 @@ export function MypageProfile() {
   // 닉네임 중복 여부 — mutation onError에서 409 감지 시 true로 설정
   const [isNicknameDuplicate, setIsNicknameDuplicate] = useState(false);
 
+  // 유저 프로필 조회
   const { data: profile, isLoading } = useQuery({
     queryKey: userApi.keys.me(),
     queryFn: userApi.getMyProfile,
   });
 
+  // 내 여행 로그 목록 조회 — 개수를 ProfileStats에 표시하기 위해 사용
   const { data: myLogs = [] } = useQuery({
     queryKey: travelLogApi.keys.mine(),
     queryFn: () => travelLogApi.getMyLogs(),
@@ -86,6 +89,7 @@ export function MypageProfile() {
     },
   });
 
+  // 프로필 이미지 수정
   const { mutate: updateProfileImage } = useMutation({
     mutationFn: (imageId: number) => userApi.updateMyProfile({ profileImageUrl: String(imageId) }),
     onSuccess: () => {
@@ -132,6 +136,7 @@ export function MypageProfile() {
     <>
       <Card variant="white" className="w-full pt-[24px] pb-[24px]">
         <div className="flex flex-col items-center gap-5">
+          {/* 프로필 사진 */}
           <div
             style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
             className="relative shrink-0 rounded-full"
