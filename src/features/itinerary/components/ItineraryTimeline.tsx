@@ -24,6 +24,9 @@ interface TransportInfo {
   baseDurationMin: number;
   cost?: number;
   legs: TransportLeg[];
+  // 이 경로가 계산된 시점의 "다음 스팟" id — 재정렬/삭제로 이웃이 바뀌면 이 값과
+  // 현재 다음 스팟 id가 달라져서, rebuildTransport()가 낡은 정보를 골라낼 수 있다.
+  toStopId?: string;
 }
 
 export interface ItineraryStop {
