@@ -576,6 +576,26 @@ export interface paths {
         patch: operations["updateItem"];
         trace?: never;
     };
+    "/api/itineraries/{itineraryId}/days/{dayId}/items/{itemId}/travel-mode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 방문 항목 이동수단 변경 (담당: 윤제승)
+         * @description 사용자가 도보/대중교통/택시 중 원하는 이동수단을 선택하면, 직전 방문 항목과의 구간을 해당 수단 기준으로 재계산해 저장합니다.
+         */
+        patch: operations["updateTravelMode"];
+        trace?: never;
+    };
     "/api/itineraries/{id}": {
         parameters: {
             query?: never;
@@ -870,8 +890,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 찜 목록 조회 (담당: 유정)
-         * @description 로그인한 사용자가 찜한 여행지 목록을 조회합니다.
+         * 도감 목록 조회 (담당: 유정)
+         * @description 로그인한 사용자가 도감에 담긴 여행지 목록을 조회합니다.
          */
         get: operations["getBoard"];
         put?: never;
@@ -890,15 +910,15 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 찜 상세 조회 (담당: 유정)
-         * @description 찜한 특정 여행지의 상세 정보를 조회합니다.
+         * 도감 상세 조회 (담당: 유정)
+         * @description 도감에 담긴 특정 여행지의 상세 정보를 조회합니다.
          */
         get: operations["getDetail_2"];
         put?: never;
         post?: never;
         /**
-         * 찜 취소 (담당: 유정)
-         * @description 여행지에 대한 찜을 취소합니다.
+         * 도감 삭제 (담당: 유정)
+         * @description 도감에 담긴 여행지를 삭제합니다.
          */
         delete: operations["cancel"];
         options?: never;
@@ -918,6 +938,26 @@ export interface paths {
          * @description 도감 카테고리(바다/자연/문화/체험)별로 랜덤 관광지 총 10곳을 반환합니다.
          */
         get: operations["getSwipeDeck"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/collections/category": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 도감 카테고리별 조회 (담당: 유정)
+         * @description 바다/자연/문화/체험 카테고리별로 그룹핑된 도감 목록을 조회합니다.
+         */
+        get: operations["getByCategory"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1103,7 +1143,7 @@ export interface components {
             liked?: boolean;
         };
         SwipeSubmitRequest: {
-            swipes: components["schemas"]["SwipeItem"][];
+            swipes?: components["schemas"]["SwipeItem"][];
             /** Format: uuid */
             groupId?: string;
         };
@@ -1274,6 +1314,11 @@ export interface components {
             travelMode?: string;
             /** Format: int32 */
             travelTimeMin?: number;
+            routeType?: string;
+            routeNo?: string;
+            startStationName?: string;
+            endStationName?: string;
+            startArsId?: string;
             memo?: string;
         };
         SpotSummary: {
@@ -1461,7 +1506,7 @@ export interface components {
             options?: components["schemas"]["TransitOption"][];
         };
         SwipeRequest: {
-            swipes: components["schemas"]["SwipeItem"][];
+            swipes?: components["schemas"]["SwipeItem"][];
             /** Format: date */
             startDate: string;
             startTime?: string;
@@ -1555,6 +1600,9 @@ export interface components {
             travelTimeMin?: number;
             memo?: string;
         };
+        UpdateTravelModeRequest: {
+            travelMode: string;
+        };
         UpdateItineraryRequest: {
             title?: string;
             /** Format: date */
@@ -1635,6 +1683,7 @@ export interface components {
             contentId?: string;
             name?: string;
             category?: string;
+            collectionCategory?: string;
             address?: string;
             lat?: number;
             lng?: number;
@@ -1647,6 +1696,7 @@ export interface components {
             transportation?: string;
             closedDays?: string;
             feeInfo?: string;
+            collection?: boolean;
             collected?: boolean;
             visited?: boolean;
         };
@@ -1656,6 +1706,7 @@ export interface components {
             contentId?: string;
             name?: string;
             category?: string;
+            collectionCategory?: string;
             /** Format: int32 */
             sigunguId?: number;
             sigunguName?: string;
@@ -1739,6 +1790,7 @@ export interface components {
             /** Format: int32 */
             sigunguId?: number;
             thumbnailUrl?: string;
+            collectionCategory?: string;
             collected?: boolean;
             /** Format: date-time */
             collectedAt?: string;
@@ -2591,6 +2643,34 @@ export interface operations {
             };
         };
     };
+    updateTravelMode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itineraryId: string;
+                dayId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTravelModeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseItineraryItemResponse"];
+                };
+            };
+        };
+    };
     getById: {
         parameters: {
             query?: never;
@@ -3026,6 +3106,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SpotSearchResponse"][];
+                };
+            };
+        };
+    };
+    getByCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: components["schemas"]["CollectionListResponse"][];
+                    };
                 };
             };
         };
