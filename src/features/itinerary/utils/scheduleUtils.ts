@@ -138,6 +138,21 @@ const API_TRAVEL_MODE_MAP: Record<string, TransportType> = {
   taxi: "택시",
 };
 
+const TRANSPORT_TYPES: readonly TransportType[] = ["버스", "지하철", "도보", "택시"];
+
+// 백엔드가 내려주는 routeType("버스"/"지하철"/"도보"/"택시")이 있으면 그대로 쓰고,
+// 없으면(예전 데이터 등) travelMode 기반 매핑으로 대체한다. routeType이 travelMode보다
+// 더 정확하다 — travelMode="transit"만으로는 버스/지하철을 구분 못 한다.
+function resolveTransportType(
+  routeType: string | undefined,
+  travelMode: string | undefined,
+): TransportType | undefined {
+  if (routeType && (TRANSPORT_TYPES as readonly string[]).includes(routeType)) {
+    return routeType as TransportType;
+  }
+  return travelMode ? API_TRAVEL_MODE_MAP[travelMode] : undefined;
+}
+
 interface TripTimeBoundsLike {
   startTime: string;
   endTime: string;
@@ -215,11 +230,10 @@ export function mapItineraryDetailToDays(
       const nextItem = items[idx + 1];
       const placeName = item.spot?.name ?? "장소 미정";
       const nextPlaceName = nextItem?.spot?.name ?? "";
-      // travelMode는 최적화가 실행된 뒤에만 채워진다 — 값이 없으면(방금 추가한 스팟 등)
-      // "버스"로 임의 확정하지 않고 transport 자체를 비워서 아직 계산 전임을 그대로 반영한다.
-      const transportType = nextItem?.travelMode
-        ? API_TRAVEL_MODE_MAP[nextItem.travelMode]
-        : undefined;
+      // travelMode/routeType은 최적화가 실행된 뒤에만 채워진다 — 값이 없으면(방금 추가한
+      // 스팟 등) "버스"로 임의 확정하지 않고 transport 자체를 비워서 아직 계산 전임을
+      // 그대로 반영한다.
+      const transportType = resolveTransportType(nextItem?.routeType, nextItem?.travelMode);
       const recommendedTransport =
         nextItem && transportType
           ? {
@@ -230,9 +244,13 @@ export function mapItineraryDetailToDays(
               legs: [
                 {
                   type: transportType,
-                  routeName: transportType,
-                  from: getTransportPointName(transportType, placeName),
-                  to: getTransportPointName(transportType, nextPlaceName),
+                  // routeNo(버스번호/지하철 노선명)가 있으면 실제 값을, 없으면(도보/택시 등)
+                  // 타입 이름 그대로 표시한다.
+                  routeName: nextItem.routeNo || transportType,
+                  from:
+                    nextItem.startStationName || getTransportPointName(transportType, placeName),
+                  to:
+                    nextItem.endStationName || getTransportPointName(transportType, nextPlaceName),
                 },
               ],
             }
