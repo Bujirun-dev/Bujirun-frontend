@@ -247,8 +247,10 @@ export function mapItineraryDetailToDays(
                   // routeNo(버스번호/지하철 노선명)가 있으면 실제 값을, 없으면(도보/택시 등)
                   // 타입 이름 그대로 표시한다.
                   routeName: nextItem.routeNo || transportType,
-                  from: nextItem.startStationName || getTransportPointName(transportType, placeName),
-                  to: nextItem.endStationName || getTransportPointName(transportType, nextPlaceName),
+                  from:
+                    nextItem.startStationName || getTransportPointName(transportType, placeName),
+                  to:
+                    nextItem.endStationName || getTransportPointName(transportType, nextPlaceName),
                 },
               ],
             }
