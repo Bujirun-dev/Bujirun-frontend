@@ -16,35 +16,45 @@ import { userApi, travelLogApi, visitApi } from "@/shared/api/domains";
 import SuccessIcon from "@/assets/icons/mypage/success.svg?svgr";
 import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
 
+// TODO: 백엔드에서 태그 데이터 내려오면 API로 교체
 const MOCK_TAGS: Category[] = [];
+
 const AVATAR_SIZE = 100;
 
+// profileImageUrl이 숫자 문자열("1"~"9")이면 로컬 이미지로 매핑
 function resolveProfileImage(profileImageUrl?: string | null) {
   if (!profileImageUrl) return PROFILE_IMAGES[0];
   const id = Number(profileImageUrl);
   if (!isNaN(id)) {
     return PROFILE_IMAGES.find((img) => img.id === id) ?? PROFILE_IMAGES[0];
   }
+  // http/https로 시작하는 유효한 URL만 외부 이미지로 허용
   if (profileImageUrl.startsWith("http://") || profileImageUrl.startsWith("https://")) {
     return { id: -1, src: profileImageUrl };
   }
+  // 그 외 잘못된 값은 기본 이미지로 fallback
   return PROFILE_IMAGES[0];
 }
 
 export function MypageProfile() {
   const queryClient = useQueryClient();
+
+  // NicknameInlineEdit의 closeEdit을 외부에서 호출하기 위한 ref
   const nicknameEditRef = useRef<NicknameInlineEditRef>(null);
 
   const [isProfileImageModalOpen, setIsProfileImageModalOpen] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  // 닉네임 중복 여부 — mutation onError에서 409 감지 시 true로 설정
   const [isNicknameDuplicate, setIsNicknameDuplicate] = useState(false);
 
+  // 유저 프로필 조회
   const { data: profile, isLoading } = useQuery({
     queryKey: userApi.keys.me(),
     queryFn: userApi.getMyProfile,
   });
 
+  // 내 여행 로그 목록 조회 — 개수를 ProfileStats에 표시하기 위해 사용
   const { data: myLogs = [] } = useQuery({
     queryKey: travelLogApi.keys.mine(),
     queryFn: () => travelLogApi.getMyLogs(),
@@ -59,15 +69,18 @@ export function MypageProfile() {
   const visitedCount = [...new Set(visitHistory.filter((v) => v.verified).map((v) => v.spotId))]
     .length;
 
+  // 닉네임 수정
   const { mutate: updateNickname } = useMutation({
     mutationFn: (nickname: string) => userApi.updateMyProfile({ nickname }),
     onSuccess: () => {
       setIsNicknameDuplicate(false);
       queryClient.invalidateQueries({ queryKey: userApi.keys.me() });
       showToast("닉네임이 변경되었어요");
+      // 저장 성공 시 편집 모드 종료
       nicknameEditRef.current?.closeEdit();
     },
     onError: (error) => {
+      // 409: 중복 닉네임 — 인라인 에러 표시 (토스트 없음, 편집 모드 유지)
       if (axios.isAxiosError(error) && error.response?.status === 409) {
         setIsNicknameDuplicate(true);
         return;
@@ -76,6 +89,7 @@ export function MypageProfile() {
     },
   });
 
+  // 프로필 이미지 수정
   const { mutate: updateProfileImage } = useMutation({
     mutationFn: (imageId: number) => userApi.updateMyProfile({ profileImageUrl: String(imageId) }),
     onSuccess: () => {
@@ -94,6 +108,7 @@ export function MypageProfile() {
 
   const hideToast = useCallback(() => setToastVisible(false), []);
 
+  // 입력값이 바뀌면 이전 중복 에러 초기화
   const handleNicknameValueChange = useCallback(() => {
     setIsNicknameDuplicate(false);
   }, []);
@@ -121,6 +136,7 @@ export function MypageProfile() {
     <>
       <Card variant="white" className="w-full pt-[24px] pb-[24px]">
         <div className="flex flex-col items-center gap-5">
+          {/* 프로필 사진 */}
           <div
             style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
             className="relative shrink-0 rounded-full"
@@ -147,6 +163,7 @@ export function MypageProfile() {
             </button>
           </div>
 
+          {/* 닉네임 인라인 편집 — 성공 시 ref로 편집 모드 종료, 중복 에러는 isDuplicate prop으로 전달 */}
           <NicknameInlineEdit
             ref={nicknameEditRef}
             nickname={nickname}
@@ -155,6 +172,7 @@ export function MypageProfile() {
             onValueChange={handleNicknameValueChange}
           />
 
+          {/* TODO: 백엔드에서 태그 데이터 내려오면 profile에서 읽도록 교체 */}
           {MOCK_TAGS.length > 0 && (
             <div className="flex flex-wrap justify-center gap-1.5">
               {MOCK_TAGS.map((tag) => (
