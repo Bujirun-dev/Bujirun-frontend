@@ -31,9 +31,13 @@ export function NicknameInlineEdit({
   const isValid =
     value.trim().length >= 2 && value.trim().length <= MAX_NICKNAME_LENGTH && !isDuplicate;
 
+  // nickname prop이 바뀌면(= 저장 성공 후 query 갱신) 편집 모드 닫기
   useEffect(() => {
-    if (isEditing) inputRef.current?.focus();
-  }, [isEditing]);
+    if (isEditing) {
+      setIsEditing(false);
+      setValue("");
+    }
+  }, [nickname]);
 
   const openEdit = () => {
     setValue("");
