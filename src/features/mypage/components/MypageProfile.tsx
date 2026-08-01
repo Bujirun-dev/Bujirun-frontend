@@ -60,14 +60,11 @@ export function MypageProfile() {
     queryFn: () => travelLogApi.getMyLogs(),
   });
 
-  // 방문 인증 이력 — verified=true인 항목만 spotId 기준 중복 제거하여 실제 방문 관광지 수 산출
+  // 방문 관광지 개수
   const { data: visitHistory = [] } = useQuery({
     queryKey: visitApi.keys.history(),
     queryFn: visitApi.getHistory,
   });
-
-  const visitedCount = [...new Set(visitHistory.filter((v) => v.verified).map((v) => v.spotId))]
-    .length;
 
   // 닉네임 수정
   const { mutate: updateNickname } = useMutation({
@@ -182,11 +179,10 @@ export function MypageProfile() {
           )}
 
           {/* 활동 지표
-              - visitedCount: GPS 인증 성공한 관광지 수 (verified=true, spotId 중복 제거)
-              - completedItineraryCount: 백엔드 통계 API 추가되면 교체
-              - travelLogCount: 내 여행 로그 목록 길이 */}
+              - visitedCount, completedItineraryCount: 백엔드 통계 API 추가되면 교체
+              - travelLogCount: 내 로그 목록 길이로 실제 값 표시 */}
           <ProfileStats
-            visitedCount={visitedCount}
+            visitedCount={visitHistory.length}
             completedItineraryCount={0}
             travelLogCount={myLogs.length}
           />
