@@ -37,6 +37,7 @@ function CallbackContent() {
         }
 
         setAccessToken(data.accessToken);
+        router.refresh();
 
         // 신규 유저는 회원가입(추가정보) 화면으로 분기
         // (초대 링크를 통해 들어온 경우 pendingInvite는 회원가입 완료 시점에 소비됨)
