@@ -47,6 +47,9 @@ export function buildDaysFromTravelLogDetail(
 
   const days = sortedDays.map((day) => {
     const items = [...(day.items ?? [])].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+    // toStopId(다음 스팟 id)를 rebuildTransport()가 참조하려면 순서대로 미리 확정돼있어야
+    // 해서, map 안에서 그때그때 nextTempStopId()를 부르는 대신 배열로 먼저 뽑아둔다.
+    const ids = items.map(() => nextTempStopId());
 
     return items.map((item, idx): BaseStop => {
       const nextItem = items[idx + 1];
@@ -71,11 +74,12 @@ export function buildDaysFromTravelLogDetail(
                 to: getTransportPointName(transportType, nextPlaceName),
               },
             ],
+            toStopId: ids[idx + 1],
           }
         : undefined;
 
       return {
-        id: nextTempStopId(),
+        id: ids[idx],
         spotId: matchedSpot?.spotId,
         time: normalizeTime(item.arrivalTime, "10:00"),
         placeName,
@@ -151,6 +155,51 @@ function resolveTransportType(
     return routeType as TransportType;
   }
   return travelMode ? API_TRAVEL_MODE_MAP[travelMode] : undefined;
+}
+
+interface TravelModeItemLike {
+  travelMode?: string;
+  travelTimeMin?: number;
+  routeType?: string;
+  routeNo?: string;
+  startStationName?: string;
+  endStationName?: string;
+}
+
+// PATCH .../travel-mode 응답(ItineraryItemResponse)을 화면이 쓰는 TransportInfo로 변환한다.
+// buildTransportOptions()가 만드는 카드 미리보기와 달리 이건 백엔드가 ODsay로 실제
+// 재계산한 값이라 역명/노선번호가 진짜다 — 사용자가 이동수단을 확정한 뒤에만 쓴다.
+export function buildTransportFromItem(
+  item: TravelModeItemLike,
+  fromPlaceName: string,
+  toPlaceName: string,
+  toStopId: string,
+  fallbackDurationMin: number,
+  cost?: number,
+): BaseStop["transport"] {
+  const transportType = resolveTransportType(item.routeType, item.travelMode);
+  if (!transportType) return undefined;
+
+  const from = item.startStationName || getTransportPointName(transportType, fromPlaceName);
+  const to = item.endStationName || getTransportPointName(transportType, toPlaceName);
+  const durationMin = item.travelTimeMin ?? fallbackDurationMin;
+
+  return {
+    from,
+    to,
+    durationMin,
+    baseDurationMin: durationMin,
+    cost,
+    legs: [
+      {
+        type: transportType,
+        routeName: item.routeNo || transportType,
+        from,
+        to,
+      },
+    ],
+    toStopId,
+  };
 }
 
 interface TripTimeBoundsLike {
@@ -230,6 +279,7 @@ export function mapItineraryDetailToDays(
       const nextItem = items[idx + 1];
       const placeName = item.spot?.name ?? "장소 미정";
       const nextPlaceName = nextItem?.spot?.name ?? "";
+      const nextStopId = nextItem?.id ?? `${day.id}-${idx + 1}`;
       // travelMode/routeType은 최적화가 실행된 뒤에만 채워진다 — 값이 없으면(방금 추가한
       // 스팟 등) "버스"로 임의 확정하지 않고 transport 자체를 비워서 아직 계산 전임을
       // 그대로 반영한다.
@@ -253,6 +303,7 @@ export function mapItineraryDetailToDays(
                     nextItem.endStationName || getTransportPointName(transportType, nextPlaceName),
                 },
               ],
+              toStopId: nextStopId,
             }
           : undefined;
 
@@ -301,31 +352,18 @@ export function rebuildTransport(stops: BaseStop[]): BaseStop[] {
     // 기존에 계산된 이동수단이 없으면(아직 최적화 전) "버스"로 지어내지 않고 그대로 비워둔다.
     if (!type) return { ...stop, transport: undefined };
 
-    const durationMin = existing?.durationMin ?? 30;
-    const baseDurationMin = existing?.baseDurationMin ?? 30;
-    // 이동수단별 실제 요금을 모르는 상태(최적화 직후)에서 무조건 1,500원(버스 요금)으로
-    // 지어내지 않는다 — 택시 등 다른 수단에도 그대로 찍혀 부정확했다. 사용자가 직접
-    // 교통수단을 선택한 적이 있으면(buildTransportOptions 경유) 그 실제 값을 그대로 쓴다.
-    const cost = existing?.cost;
+    // 이웃(다음 스팟)이 바뀌지 않았으면 백엔드/추천 경로가 이미 준 실제 값(정류장명·역명
+    // 등)이 여전히 유효하므로 그대로 둔다. placeName 기준으로 다시 만들면 실제 역명이
+    // "OO역"처럼 지어낸 이름으로 덮어써진다(예: UN조각공원 → 실제로는 대연역인데
+    // "UN조각공원역"이라는 존재하지 않는 역이 표시되던 버그).
+    if (existing.toStopId && existing.toStopId === nextStop.id) {
+      return stop;
+    }
 
-    return {
-      ...stop,
-      transport: {
-        from: stop.placeName,
-        to: nextStop.placeName,
-        durationMin,
-        baseDurationMin,
-        cost,
-        legs: [
-          {
-            type,
-            routeName: existing?.legs[0]?.routeName ?? type,
-            from: getTransportPointName(type, stop.placeName),
-            to: getTransportPointName(type, nextStop.placeName),
-          },
-        ],
-      },
-    };
+    // 이웃이 바뀐 경우엔 이 정보가 더 이상 이 구간의 것이 아니므로, 가짜 이름으로
+    // 다시 만들어내지 않고 비워서 재계산 전임을 그대로 반영한다(다음 최적화/이동수단
+    // 변경 시 실제 값으로 채워짐).
+    return { ...stop, transport: undefined };
   });
 }
 
