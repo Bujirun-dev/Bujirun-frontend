@@ -7,7 +7,10 @@ interface RetriableRequestConfig extends InternalAxiosRequestConfig {
 }
 
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  // next.config.ts의 rewrites가 /api/*를 백엔드로 프록시하므로 same-origin 상대경로를 사용한다.
+  // (절대 URL로 백엔드에 직접 요청하면 refresh_token 쿠키가 백엔드 도메인에만 저장돼
+  //  프론트 자신에 대한 요청에서는 쿠키를 확인할 수 없다 — middleware.ts 참고)
+  baseURL: "",
   timeout: 10_000,
   // refresh token은 서버가 httpOnly 쿠키로 관리하므로 요청에 쿠키를 포함시킨다.
   withCredentials: true,

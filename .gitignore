@@ -46,3 +46,4 @@ next-env.d.ts
 
 # 세션 정리 문서 (레포에는 안 올리기로 함 — 개인 로컬 기록용)
 docs/sessions/
+.idea/
