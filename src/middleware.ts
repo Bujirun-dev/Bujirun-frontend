@@ -7,6 +7,13 @@ const PUBLIC_PATHS = ["/login", "/auth/kakao/callback", "/signup"];
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Next.js RSC prefetch 요청은 미들웨어 리다이렉트 대상에서 제외
+  // (prefetch 시점엔 쿠키 컨텍스트가 다를 수 있어 오탐 발생)
+  const isPrefetch = request.headers.get("next-router-prefetch") === "1";
+  if (isPrefetch) {
+    return NextResponse.next();
+  }
+
   // public 경로는 인증 없이 통과
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
