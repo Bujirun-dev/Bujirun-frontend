@@ -62,7 +62,7 @@ export function convertTripLogToReceipt(
     archiveNumber: createArchiveNumber(startDate, tripLog.travelNumber ?? 0),
     days:
       tripLog.days?.map((day) => ({
-        day: (day.dayNumber ?? 0) + 1,
+        day: day.dayNumber ?? 1,
         date: formatDateWithDots(day.date ?? ""),
         weekday: getWeekday(day.date ?? ""),
         places:
