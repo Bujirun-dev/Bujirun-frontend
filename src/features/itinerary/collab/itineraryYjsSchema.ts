@@ -90,6 +90,37 @@ export function seedYjsDays(doc: Y.Doc, dayIds: string[], days: BaseStop[][]): v
   });
 }
 
+// 이미 시딩된 방(재오픈)은 그 이후 백엔드에서 새로 계산된 이동수단(재정렬로 routeType이
+// 채워지는 등)을 다시 받아오지 않는다 — REST로 새로 받아온 값 중 transport가 있는데
+// Yjs 쪽 같은 id 항목엔 아직 비어있는 경우에 한해 채워 넣는다. 사용자가 직접 고른
+// transport(updateStopTransport)는 이미 값이 있으므로 덮어쓰지 않는다. toStopId가 현재
+// 순서와 안 맞으면 어차피 readStopsFromYjs가 매번 rebuildTransport()로 다시 비우므로
+// 여기서 순서 검증까진 하지 않아도 안전하다.
+export function reconcileTransportFromRest(
+  doc: Y.Doc,
+  dayIds: string[],
+  restDays: BaseStop[][],
+): void {
+  doc.transact(() => {
+    dayIds.forEach((_, dayIdx) => {
+      const restStopsById = new Map((restDays[dayIdx] ?? []).map((stop) => [stop.id, stop]));
+      if (restStopsById.size === 0) return;
+      replaceItemsArray(doc, dayIdx, (stops) =>
+        stops.map((stop) => {
+          if (stop.transport !== undefined) return stop;
+          const restStop = restStopsById.get(stop.id);
+          if (!restStop?.transport) return stop;
+          return {
+            ...stop,
+            transport: restStop.transport,
+            recommendedTransport: restStop.recommendedTransport ?? stop.recommendedTransport,
+          };
+        }),
+      );
+    });
+  });
+}
+
 // "days" 키를 이 모듈 밖으로 새어나가지 않게 감싼 observe 헬퍼.
 export function observeYjsDays(doc: Y.Doc, callback: () => void): () => void {
   const daysArray = getDaysArray(doc);

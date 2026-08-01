@@ -13,6 +13,7 @@ import {
   pushOptimizedOrder as yPushOptimizedOrder,
   readActivityLog,
   readStopsFromYjs,
+  reconcileTransportFromRest,
   replaceStop as yReplaceStop,
   resolveTempId,
   seedYjsDays,
@@ -120,11 +121,16 @@ export function useCollaborativeItinerary(
   useEffect(() => {
     if (synced) {
       seedYjsDays(doc, dayIdsRef.current, initialDaysRef.current);
+      // 이미 시딩된 방을 재오픈한 경우, 그 사이 백엔드에서 새로 계산된 이동수단 정보를
+      // 이번 REST 응답 기준으로 채워 넣는다 (없으면 새로고침할 때마다 잠깐 떴다가
+      // 사라지는 버그가 있었음 — Yjs 쪽 항목엔 이동수단이 비어있는 채로 굳어있어서).
+      reconcileTransportFromRest(doc, dayIdsRef.current, initialDaysRef.current);
       hasSeededRef.current = true;
       return;
     }
     const timer = window.setTimeout(() => {
       seedYjsDays(doc, dayIdsRef.current, initialDaysRef.current);
+      reconcileTransportFromRest(doc, dayIdsRef.current, initialDaysRef.current);
       hasSeededRef.current = true;
     }, SEED_FALLBACK_MS);
     return () => window.clearTimeout(timer);
