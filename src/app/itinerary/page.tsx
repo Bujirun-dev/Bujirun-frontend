@@ -13,6 +13,7 @@ import {
   type BaseStop,
   type SpotSearchResponse,
   buildDaysFromTravelLogDetail,
+  buildTransportFromItem,
   getActiveTransportOptionId,
   mapItineraryDetailToDays,
   normalizeTime,
@@ -31,6 +32,17 @@ import type {
 // 줄이기 위해, 그 날 마지막 일정 다음 시간(1시간 뒤)으로 잡아준다. 비어있는 날은 09:00부터.
 const DEFAULT_DAY_START = "09:00";
 const DEFAULT_STOP_GAP_MIN = 60;
+
+// TransportSelectSheet 카드 id → 백엔드 travelMode(walk/transit/taxi). 백엔드는 버스/지하철을
+// 하나의 "transit" 옵션으로만 계산해서 돌려주므로(둘 중 하나를 강제로 고를 순 없음),
+// "subway" 카드도 동일하게 transit으로 요청하고 실제 결과(버스/지하철)는 응답의
+// routeType을 그대로 따른다.
+const ROUTE_OPTION_TRAVEL_MODE: Record<string, string> = {
+  transit: "transit",
+  subway: "transit",
+  taxi: "taxi",
+  walk: "walk",
+};
 
 function getDefaultStopTime(dayStops: BaseStop[]): string {
   if (dayStops.length === 0) return DEFAULT_DAY_START;
@@ -356,51 +368,72 @@ function ItineraryMain({
     closeModal();
     showToast("시간이 변경되었어요.");
   };
-  const confirmTransport = (option: RouteOption) => {
-    if (activeStopId && activeStop?.transport) {
-      updateYjsStopTransport(activeDayIdx, activeStopId, {
-        ...activeStop.transport,
-        legs: option.legs,
-        durationMin: option.durationMin,
-        cost: option.cost,
-      });
+  // 이동수단 변경은 프론트에서 소요시간/역명을 추정하지 않고, 백엔드가 ODsay로 실제
+  // 재계산한 경로(진짜 역명·노선번호)를 받아와 반영한다 — 예전엔 로컬에서 "장소명역" 같은
+  // 이름을 지어내서 실제로 존재하지 않는 역이 표시되는 문제가 있었다.
+  const confirmTransport = async (option: RouteOption) => {
+    const dayId = dayIdsSliced[activeDayIdx];
+    const dayStops = stopsPerDay[activeDayIdx] ?? [];
+    const activeIdx = dayStops.findIndex((s) => s.id === activeStopId);
+    const nextStop = dayStops[activeIdx + 1];
 
-      // 소요시간이 바뀐 만큼 다음 스팟부터 그날 남은 일정 시간을 밀어준다 —
-      // 사용자가 직접 시간을 정해둔 스팟을 만나거나 여행 종료 시간을 넘기면 거기서 멈춘다.
-      const dayStops = stopsPerDay[activeDayIdx] ?? [];
-      const activeIdx = dayStops.findIndex((s) => s.id === activeStopId);
-      const nextStop = dayStops[activeIdx + 1];
-      if (nextStop) {
-        const newNextMinutes = roundToNearest10(
-          timeToMinutes(activeStop.time) + option.durationMin,
-        );
-        const delta = newNextMinutes - timeToMinutes(nextStop.time);
-        const isLastDay = activeDayIdx === dayIdsSliced.length - 1;
-        const boundaryMinutes =
-          isLastDay && tripTimeBounds?.endTime ? timeToMinutes(tripTimeBounds.endTime) : undefined;
-
-        const result = shiftYjsFollowingStopTimes(
-          activeDayIdx,
-          activeStopId,
-          delta,
-          boundaryMinutes,
-        );
-
-        if (result.cappedAtBoundary) {
-          showToast(
-            "교통수단은 바뀌었지만, 여행 종료 시간을 넘어서 일부 일정은 자동으로 조정하지 못했어요.",
-            "error",
-          );
-          closeModal();
-          return;
-        }
-        if (result.shiftedCount > 0) {
-          showToast("교통수단이 변경돼서 이후 일정 시간도 조정됐어요.");
-          closeModal();
-          return;
-        }
-      }
+    // transport는 항상 "다음 스팟까지의 구간" 정보라 nextStop 없이 존재할 수 없다 —
+    // 여기 안 걸리면 그냥 아무 것도 안 하고 닫는다.
+    if (!activeStopId || !activeStop?.transport || !dayId || !nextStop) {
+      closeModal();
+      return;
     }
+
+    let updatedItem;
+    try {
+      updatedItem = await itineraryApi.updateTravelMode(itineraryId, dayId, activeStopId, {
+        travelMode: ROUTE_OPTION_TRAVEL_MODE[option.id] ?? "transit",
+      });
+    } catch {
+      closeModal();
+      showToast("교통수단 변경에 실패했어요.", "error");
+      return;
+    }
+
+    const transport = buildTransportFromItem(
+      updatedItem,
+      activeStop.placeName,
+      nextStop.placeName,
+      nextStop.id,
+      option.durationMin,
+      option.cost,
+    );
+    if (!transport) {
+      closeModal();
+      showToast("교통수단 변경에 실패했어요.", "error");
+      return;
+    }
+    updateYjsStopTransport(activeDayIdx, activeStopId, transport);
+
+    // 소요시간이 바뀐 만큼 다음 스팟부터 그날 남은 일정 시간을 밀어준다 —
+    // 사용자가 직접 시간을 정해둔 스팟을 만나거나 여행 종료 시간을 넘기면 거기서 멈춘다.
+    const newNextMinutes = roundToNearest10(timeToMinutes(activeStop.time) + transport.durationMin);
+    const delta = newNextMinutes - timeToMinutes(nextStop.time);
+    const isLastDay = activeDayIdx === dayIdsSliced.length - 1;
+    const boundaryMinutes =
+      isLastDay && tripTimeBounds?.endTime ? timeToMinutes(tripTimeBounds.endTime) : undefined;
+
+    const result = shiftYjsFollowingStopTimes(activeDayIdx, activeStopId, delta, boundaryMinutes);
+
+    if (result.cappedAtBoundary) {
+      showToast(
+        "교통수단은 바뀌었지만, 여행 종료 시간을 넘어서 일부 일정은 자동으로 조정하지 못했어요.",
+        "error",
+      );
+      closeModal();
+      return;
+    }
+    if (result.shiftedCount > 0) {
+      showToast("교통수단이 변경돼서 이후 일정 시간도 조정됐어요.");
+      closeModal();
+      return;
+    }
+
     closeModal();
     showToast("교통수단이 변경되었어요.");
   };
