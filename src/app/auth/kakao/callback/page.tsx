@@ -37,12 +37,17 @@ function CallbackContent() {
         }
 
         setAccessToken(data.accessToken);
-        router.refresh();
+
+        // 로그인 성공 직후의 이동은 router.replace(소프트 네비게이션) 대신
+        // 하드 네비게이션을 쓴다. 로그인 전에 목적지 페이지가 이미 prefetch돼서
+        // 클라이언트 라우터 캐시에 "비로그인" 상태로 박제돼 있으면, 소프트 네비게이션은
+        // 그 캐시를 재사용해 로그인 후에도 예전 화면(리다이렉트 등)을 보여줄 수 있다.
+        // 하드 네비게이션은 캐시를 거치지 않고 서버에 새로 요청하므로 이 문제가 없다.
 
         // 신규 유저는 회원가입(추가정보) 화면으로 분기
         // (초대 링크를 통해 들어온 경우 pendingInvite는 회원가입 완료 시점에 소비됨)
         if (data.isNewUser) {
-          router.replace("/signup");
+          window.location.href = "/signup";
           return;
         }
 
@@ -50,7 +55,7 @@ function CallbackContent() {
         if (!pendingInvite) {
           // 로그인 전 접근하려던 경로로 복귀, 없으면 홈으로
           const redirectTo = searchParams.get("redirect") ?? "/";
-          router.replace(redirectTo);
+          window.location.href = redirectTo;
           return;
         }
 
@@ -61,7 +66,7 @@ function CallbackContent() {
         if (pendingInvite.startDate) joinParams.set("startDate", pendingInvite.startDate);
         if (pendingInvite.endDate) joinParams.set("endDate", pendingInvite.endDate);
         const query = joinParams.toString();
-        router.replace(`/join/${pendingInvite.code}${query ? `?${query}` : ""}`);
+        window.location.href = `/join/${pendingInvite.code}${query ? `?${query}` : ""}`;
       })
       .catch(() => {
         router.replace("/login");
