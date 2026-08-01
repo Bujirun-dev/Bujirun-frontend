@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import { ProfileImageSelectModal } from "./ProfileImageSelectModal";
 import { NicknameInlineEdit } from "./NicknameInlineEdit";
 import { ProfileStats } from "./ProfileStats";
@@ -20,7 +21,6 @@ const MOCK_TAGS: Category[] = [];
 
 const AVATAR_SIZE = 100;
 
-// profileImageUrl이 숫자 문자열("1"~"9")이면 로컬 이미지로 매핑
 function resolveProfileImage(profileImageUrl?: string | null) {
   if (!profileImageUrl) return PROFILE_IMAGES[0];
   const id = Number(profileImageUrl);
@@ -36,38 +36,41 @@ export function MypageProfile() {
   const [isProfileImageModalOpen, setIsProfileImageModalOpen] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  // 닉네임 중복 여부 — mutation onError에서 409 감지 시 true로 설정
+  const [isNicknameDuplicate, setIsNicknameDuplicate] = useState(false);
 
-  // 유저 프로필 조회
   const { data: profile, isLoading } = useQuery({
     queryKey: userApi.keys.me(),
     queryFn: userApi.getMyProfile,
   });
 
-  // 내 여행 로그 목록 조회 — 개수를 ProfileStats에 표시하기 위해 사용
   const { data: myLogs = [] } = useQuery({
     queryKey: travelLogApi.keys.mine(),
     queryFn: () => travelLogApi.getMyLogs(),
   });
 
-  // 방문 관광지 개수
   const { data: visitHistory = [] } = useQuery({
-    queryKey: visitApi.keys.history(), // ← keys 활용
+    queryKey: visitApi.keys.history(),
     queryFn: visitApi.getHistory,
   });
 
-  // 닉네임 수정
   const { mutate: updateNickname } = useMutation({
     mutationFn: (nickname: string) => userApi.updateMyProfile({ nickname }),
     onSuccess: () => {
+      setIsNicknameDuplicate(false);
       queryClient.invalidateQueries({ queryKey: userApi.keys.me() });
       showToast("닉네임이 변경되었어요");
     },
-    onError: () => {
+    onError: (error) => {
+      // 409: 중복 닉네임 — 인라인 에러 표시 (토스트 없음)
+      if (axios.isAxiosError(error) && error.response?.status === 409) {
+        setIsNicknameDuplicate(true);
+        return;
+      }
       showToast("닉네임 변경에 실패했어요");
     },
   });
 
-  // 프로필 이미지 수정
   const { mutate: updateProfileImage } = useMutation({
     mutationFn: (imageId: number) => userApi.updateMyProfile({ profileImageUrl: String(imageId) }),
     onSuccess: () => {
@@ -86,10 +89,13 @@ export function MypageProfile() {
 
   const hideToast = useCallback(() => setToastVisible(false), []);
 
+  // 입력값이 바뀌면 이전 중복 에러 초기화
+  const handleNicknameValueChange = useCallback(() => {
+    setIsNicknameDuplicate(false);
+  }, []);
+
   const currentImage = resolveProfileImage(profile?.profileImageUrl);
   const nickname = profile?.nickname ?? "";
-
-  // 현재 이미지 ID (로컬 이미지인 경우에만 유효)
   const currentImageId = currentImage.id !== -1 ? currentImage.id : null;
 
   if (isLoading) {
@@ -111,7 +117,6 @@ export function MypageProfile() {
     <>
       <Card variant="white" className="w-full pt-[24px] pb-[24px]">
         <div className="flex flex-col items-center gap-5">
-          {/* 프로필 사진 */}
           <div
             style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
             className="relative shrink-0 rounded-full"
@@ -138,10 +143,12 @@ export function MypageProfile() {
             </button>
           </div>
 
-          {/* 닉네임 인라인 편집 — 확인 시 API 호출 */}
+          {/* 닉네임 인라인 편집 — 중복 에러는 isDuplicate prop으로 전달 */}
           <NicknameInlineEdit
             nickname={nickname}
+            isDuplicate={isNicknameDuplicate}
             onConfirm={(newNickname) => updateNickname(newNickname)}
+            onValueChange={handleNicknameValueChange}
           />
 
           {/* TODO: 백엔드에서 태그 데이터 내려오면 profile에서 읽도록 교체 */}
@@ -153,9 +160,6 @@ export function MypageProfile() {
             </div>
           )}
 
-          {/* 활동 지표
-              - visitedCount, completedItineraryCount: 백엔드 통계 API 추가되면 교체
-              - travelLogCount: 내 로그 목록 길이로 실제 값 표시 */}
           <ProfileStats
             visitedCount={visitHistory.length}
             completedItineraryCount={0}
