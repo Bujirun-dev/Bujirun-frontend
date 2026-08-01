@@ -2,12 +2,12 @@
 
 import { Fragment, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import { Modal, Toast, LoadingState, Button } from "@/components";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { itineraryApi } from "@/shared/api/domains";
 import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
+import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
 
 function getWinnerPlan(votes: Record<string, number>): string | null {
   const sorted = Object.entries(votes).sort((a, b) => b[1] - a[1]);
@@ -57,11 +57,13 @@ function VoteWaitingContent() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
 
-  const { data: voteStatus } = useQuery({
-    queryKey: itineraryApi.keys.voteStatus(sessionId),
-    queryFn: () => itineraryApi.getVoteStatus(sessionId),
-    enabled: !!sessionId,
-    refetchInterval: 2000,
+  // 방장이 finalize를 호출하면 status가 "confirmed"로 바뀐다. 이는 클라이언트가
+  // voteCounts로 계산한 winnerPlan/동률 로직과 별개로 백엔드가 실제로 확정했음을
+  // 보장하는 신호라서, 동률이라 방장 선택을 기다리던 참여자를 포함해 전원을
+  // 확실하게 일정 화면으로 보낸다.
+  const { voteStatus } = useVoteSessionPolling(sessionId, {
+    onConfirmed: () => router.push("/itinerary"),
+    onError: () => setToastMessage("투표 현황을 불러오지 못했어요."),
   });
   const voteCounts = voteStatus?.voteCounts ?? {};
   const doneCount = Math.min(totalSlots, voteStatus?.totalVotes ?? 0);
