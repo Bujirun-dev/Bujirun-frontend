@@ -26,6 +26,7 @@ import { itineraryApi } from "@/shared/api/domains";
 import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
 import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
+import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
 import type { components } from "@/shared/api/schema";
 
 type GroupItineraryGenerateResponse = components["schemas"]["GroupItineraryGenerateResponse"];
@@ -201,13 +202,17 @@ function TripResultContent() {
 
   const generatingMessage = useGeneratingMessage(isGenerating);
   const sessionId = generated?.voteSessionId ?? "";
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // 다른 참여자가 투표한 결과를 A/B/C 탭에 반영하기 위해 투표 현황을 폴링한다.
-  const { data: voteStatus } = useQuery({
-    queryKey: itineraryApi.keys.voteStatus(sessionId),
-    queryFn: () => itineraryApi.getVoteStatus(sessionId),
-    enabled: !!sessionId,
-    refetchInterval: 2000,
+  // 다른 클라이언트가 먼저 프리패스 등으로 이미 확정해버린 경우, 더 투표할 필요가
+  // 없으므로 일정 화면으로 보낸다.
+  const { voteStatus } = useVoteSessionPolling(sessionId, {
+    onConfirmed: () => {
+      setToastMessage("이미 일정이 확정됐어요. 일정 화면으로 이동할게요.");
+      window.setTimeout(() => router.push("/itinerary"), 1500);
+    },
+    onError: () => setToastMessage("투표 현황을 불러오지 못했어요."),
   });
   const voteCounts = voteStatus?.voteCounts ?? {};
 
@@ -251,7 +256,6 @@ function TripResultContent() {
   const [voteConfirmPlan, setVoteConfirmPlan] = useState<string | null>(null);
   const [freepassModal, setFreepassModal] = useState<FreepassModalStep>(null);
   const [isFreepassMode, setIsFreepassMode] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
   const currentPlan = plans.find((p) => p.id === activePlan) ?? plans[0];
 
