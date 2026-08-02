@@ -9,6 +9,8 @@ export interface Trip {
   name: string;
   startDate: string;
   endDate: string;
+  // 그룹 일정일 때만 존재. 있으면 삭제 대신 나가기(leave)로 동작해야 한다.
+  groupId?: string;
 }
 
 interface TripCardProps {
