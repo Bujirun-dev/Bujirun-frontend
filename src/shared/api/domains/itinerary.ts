@@ -31,8 +31,15 @@ export function updateItinerary(id: string, body: OpBody<"update_1">) {
     .then((res) => unwrap(res));
 }
 
+// 개인 일정 전용. 그룹 일정에 호출하면 400("그룹 일정은 삭제 대신 나가기를 사용해주세요.")이 온다.
 export function deleteItinerary(id: string) {
   return apiClient.delete(`/api/itineraries/${id}`);
+}
+
+// 그룹 일정 나가기. 나가도 다른 그룹원에게는 일정이 그대로 남고, 혼자 남은 상태에서
+// 나가면 그룹과 일정이 함께 삭제된다. 개인 일정에 호출하면 400.
+export function leaveItinerary(id: string) {
+  return apiClient.post(`/api/itineraries/${id}/leave`);
 }
 
 export function addDay(itineraryId: string, body: OpBody<"addDay">) {
