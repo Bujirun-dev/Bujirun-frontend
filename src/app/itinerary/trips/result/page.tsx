@@ -27,6 +27,7 @@ import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
 import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
+import { useConfirmedItineraryWatcher } from "@/features/itinerary/hooks/useConfirmedItineraryWatcher";
 import type { components } from "@/shared/api/schema";
 
 type GroupItineraryGenerateResponse = components["schemas"]["GroupItineraryGenerateResponse"];
@@ -216,6 +217,11 @@ function TripResultContent() {
   });
   const voteCounts = voteStatus?.voteCounts ?? {};
 
+  // 확정 이후엔 vote-status 조회가 백엔드에서 계속 실패해서(위 onError로 새는 중)
+  // useVoteSessionPolling의 onConfirmed가 실제로는 못 불린다 — 그룹 멤버라면 볼 수
+  // 있는 내 일정 목록을 우회 폴링해서 참여자가 확실히 넘어가도록 안전망을 둔다.
+  const confirmedItinerary = useConfirmedItineraryWatcher(tripName, !!sessionId && !isHost);
+
   const commonCategories = computeCommonCategories(generated);
   const forwardParams = new URLSearchParams({
     count,
@@ -319,6 +325,21 @@ function TripResultContent() {
       setIsConfirming(false);
     }
   };
+
+  useEffect(() => {
+    if (!confirmedItinerary) return;
+    const toastTimer = window.setTimeout(() => {
+      setToastMessage(`방장이 ${confirmedItinerary.planType ?? activePlan}안을 선택했어요! 🎉`);
+    }, 0);
+    const timer = window.setTimeout(() => {
+      router.push("/itinerary");
+    }, 1800);
+    return () => {
+      window.clearTimeout(toastTimer);
+      window.clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmedItinerary?.id]);
 
   if (isGenerating) {
     return (
