@@ -143,14 +143,15 @@ export function MypageProfile() {
           >
             <div
               style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
-              className="overflow-hidden rounded-full bg-system-navbg"
+              className="relative overflow-hidden rounded-full bg-system-navbg"
             >
               <Image
                 src={currentImage.src}
                 alt={`${nickname} 프로필 이미지`}
-                width={AVATAR_SIZE}
-                height={AVATAR_SIZE}
-                className="h-full w-full object-cover"
+                fill
+                sizes="100px"
+                // 셀렉터와 동일한 크롭 기준
+                className="object-cover scale-125 origin-[center_25%]"
               />
             </div>
             <button

@@ -61,7 +61,15 @@ export function ProfileImageSelector({
                 : "bg-system-navbg outline outline-[2.5px] outline-transparent",
             )}
           >
-            <Image src={src} alt={`프로필 ${id}`} fill className="object-cover scale-120" />
+            <Image
+              src={src}
+              alt=""
+              aria-hidden
+              fill
+              sizes="74px"
+              // 원본 세로 8~72% 구간(모자~스카프)만 노출
+              className="object-cover scale-125 origin-[center_25%]"
+            />
           </button>
         ))}
       </div>
