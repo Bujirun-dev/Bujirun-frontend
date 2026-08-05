@@ -67,7 +67,7 @@ export function ProfileImageSelector({
               fill
               sizes={isSignup ? "80px" : "74px"}
               // 원본 세로 상단 기준으로 크롭해 상반신만 노출
-              className="object-cover scale-125 origin-[center_18%]"
+              className="object-cover scale-128 origin-[center_17%]"
             />
           </button>
         ))}
