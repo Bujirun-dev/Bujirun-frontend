@@ -56,9 +56,8 @@ export function ProfileImageSelector({
             className={cn(
               "relative rounded-full overflow-hidden transition-all active:scale-97",
               isSignup ? "w-[80px] h-[80px]" : "w-[74px] h-[74px]",
-              selectedId === id
-                ? "bg-main-blue outline outline-[2.5px] outline-main-blue"
-                : "bg-system-navbg outline outline-[2.5px] outline-transparent",
+              // 선택 시 배경색으로만 구분 (테두리 없음)
+              selectedId === id ? "bg-main-blue" : "bg-system-navbg",
             )}
           >
             <Image
@@ -66,9 +65,9 @@ export function ProfileImageSelector({
               alt=""
               aria-hidden
               fill
-              sizes="74px"
-              // 원본 세로 8~72% 구간(모자~스카프)만 노출
-              className="object-cover scale-125 origin-[center_25%]"
+              sizes={isSignup ? "80px" : "74px"}
+              // 원본 세로 상단 기준으로 크롭해 상반신만 노출
+              className="object-cover scale-125 origin-[center_18%]"
             />
           </button>
         ))}
