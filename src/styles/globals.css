@@ -178,6 +178,16 @@
   --color-category-culture: rgba(255, 179, 199, 0.5);
   --color-category-experience: rgba(202, 182, 255, 0.5);
 
+  /* Toast */
+  --color-toast-success: #0F9D58;
+  --color-toastbg-success: #E7F5EE;
+  --color-toast-error: #DB4437;
+  --color-toastbg-error: #FBECEB;
+  --color-toast-warning: #F4B400;
+  --color-toastbg-warning: #FEF7E5;
+  --color-toast-default: #999999;
+  --color-toastbg-default: #F5F5F5;
+
   /* Font Size */
   --text-3xs: 9px;
   --text-2xs: 10px;

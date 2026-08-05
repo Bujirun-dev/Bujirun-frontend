@@ -238,6 +238,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/itineraries/{id}/leave": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 일정 나가기 (담당: 윤제승)
+         * @description 그룹 일정에서 나갑니다. 마지막 멤버가 나가면 그룹과 일정이 함께 삭제됩니다.
+         */
+        post: operations["leave"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/itineraries/vote-sessions/{sessionId}/votes": {
         parameters: {
             query?: never;
@@ -459,6 +479,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/migration/busan-attraction/summarize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** (담당: 유정) */
+        post: operations["summarizeBusanDescriptions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/migration/busan-attraction/run": {
         parameters: {
             query?: never;
@@ -612,7 +649,7 @@ export interface paths {
         post?: never;
         /**
          * 일정 삭제 (담당: 윤제승)
-         * @description 일정을 삭제합니다.
+         * @description 개인 일정을 삭제합니다. 그룹 일정은 대신 나가기(leave)를 사용해야 합니다.
          */
         delete: operations["delete_1"];
         options?: never;
@@ -995,6 +1032,23 @@ export interface paths {
         };
         /** (담당: 유정) */
         get: operations["status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/migration/busan-attraction/summarize/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** (담당: 유정) */
+        get: operations["summarizeStatus"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2141,6 +2195,26 @@ export interface operations {
             };
         };
     };
+    leave: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     castVote: {
         parameters: {
             query?: never;
@@ -2394,6 +2468,28 @@ export interface operations {
         };
     };
     run: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+    };
+    summarizeBusanDescriptions: {
         parameters: {
             query?: never;
             header?: never;
@@ -3153,6 +3249,28 @@ export interface operations {
         };
     };
     status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    summarizeStatus: {
         parameters: {
             query?: never;
             header?: never;
