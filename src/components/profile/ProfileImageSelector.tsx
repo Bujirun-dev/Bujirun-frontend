@@ -65,8 +65,7 @@ export function ProfileImageSelector({
               alt=""
               aria-hidden
               fill
-              sizes={isSignup ? "80px" : "74px"}
-              // 원본 세로 상단 기준으로 크롭해 상반신만 노출
+              sizes={isSignup ? "110px" : "100px"}
               className="object-cover scale-128 origin-[center_17%]"
             />
           </button>
