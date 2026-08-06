@@ -4,19 +4,12 @@ import { useState, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
 import plusSmallIcon from "@/assets/icons/itinerary/plus-small.svg?url";
 import { PageCard, Toast, EmptyState, LoadingState } from "@/components";
 import { TripCard, TripEditModal, TripDeleteModal, TripDeleteToast } from "@/features/itinerary";
 import type { Trip } from "@/features/itinerary";
 import { itineraryApi } from "@/shared/api/domains";
-
-function getErrorMessage(error: unknown, fallback: string): string {
-  if (isAxiosError(error) && typeof error.response?.data?.message === "string") {
-    return error.response.data.message;
-  }
-  return fallback;
-}
+import { getErrorMessage } from "@/shared/utils";
 
 type ModalState = { type: "edit"; trip: Trip } | { type: "delete"; trip: Trip } | null;
 
@@ -60,6 +53,7 @@ export default function TripsPage() {
       name: s.title ?? "제목 없음",
       startDate: toTripDate(detail?.startAt),
       endDate: toTripDate(detail?.endAt),
+      groupId: detail?.groupId,
     };
   });
 
@@ -111,10 +105,17 @@ export default function TripsPage() {
 
   const handleDeleteConfirm = useCallback(async () => {
     if (modal?.type !== "delete") return;
-    const tripId = modal.trip.id;
+    const { id: tripId, groupId } = modal.trip;
     setModal(null);
     try {
-      await itineraryApi.deleteItinerary(tripId);
+      // 그룹 일정은 삭제 대신 나가기로 처리해야 하지만(그룹 일정을 실제로
+      // 삭제하면 다른 참여자의 일정까지 사라짐), 사용자에게는 두 경우 모두
+      // 동일하게 "여행 삭제"로 보여준다.
+      if (groupId) {
+        await itineraryApi.leaveItinerary(tripId);
+      } else {
+        await itineraryApi.deleteItinerary(tripId);
+      }
       setShowDeleteToast(true);
     } catch (error) {
       setErrorMessage(getErrorMessage(error, "여행 삭제에 실패했어요. 다시 시도해주세요."));
