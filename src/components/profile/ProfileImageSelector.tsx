@@ -66,7 +66,7 @@ export function ProfileImageSelector({
               aria-hidden
               fill
               sizes={isSignup ? "110px" : "100px"}
-              className="object-cover scale-128 origin-[center_17%]"
+              className="object-cover scale-[1.27] origin-[center_10%]"
             />
           </button>
         ))}
