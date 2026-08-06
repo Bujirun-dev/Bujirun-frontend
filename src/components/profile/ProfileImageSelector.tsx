@@ -56,12 +56,18 @@ export function ProfileImageSelector({
             className={cn(
               "relative rounded-full overflow-hidden transition-all active:scale-97",
               isSignup ? "w-[80px] h-[80px]" : "w-[74px] h-[74px]",
-              selectedId === id
-                ? "bg-main-blue outline outline-[2.5px] outline-main-blue"
-                : "bg-system-navbg outline outline-[2.5px] outline-transparent",
+              // 선택 시 배경색으로만 구분 (테두리 없음)
+              selectedId === id ? "bg-main-blue" : "bg-system-navbg",
             )}
           >
-            <Image src={src} alt={`프로필 ${id}`} fill className="object-cover scale-120" />
+            <Image
+              src={src}
+              alt=""
+              aria-hidden
+              fill
+              sizes={isSignup ? "110px" : "100px"}
+              className="object-cover scale-128 origin-[center_17%]"
+            />
           </button>
         ))}
       </div>
