@@ -91,16 +91,33 @@ export type SearchPlace = {
   imageUrl: string;
 };
 
+export interface PlaceSearchState {
+  searchValue: string;
+  sortBy: SortOption;
+  categoryFilter: CategoryFilter;
+}
+
 interface PlaceSearchPanelProps {
   onClose?: () => void;
   onPlaceSelect?: (place: SearchPlace) => void;
+  // 상세보기 갔다가 뒤로 왔을 때 검색 상태를 복원하고 싶은 화면(예: URL 쿼리로 저장)을 위한 훅.
+  // 안 넘기면 기존처럼 컴포넌트가 자체 state로만 관리한다.
+  initialSearchState?: Partial<PlaceSearchState>;
+  onSearchStateChange?: (state: PlaceSearchState) => void;
 }
 
-export function PlaceSearchPanel({ onClose, onPlaceSelect }: PlaceSearchPanelProps) {
+export function PlaceSearchPanel({
+  onClose,
+  onPlaceSelect,
+  initialSearchState,
+  onSearchStateChange,
+}: PlaceSearchPanelProps) {
   const router = useRouter();
-  const [searchValue, setSearchValue] = useState("");
-  const [sortBy, setSortBy] = useState<SortOption>("추천순");
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
+  const [searchValue, setSearchValue] = useState(initialSearchState?.searchValue ?? "");
+  const [sortBy, setSortBy] = useState<SortOption>(initialSearchState?.sortBy ?? "추천순");
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>(
+    initialSearchState?.categoryFilter ?? "all",
+  );
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const listRef = useRef<HTMLDivElement>(null);
@@ -129,6 +146,11 @@ export function PlaceSearchPanel({ onClose, onPlaceSelect }: PlaceSearchPanelPro
   }, [sortBy]);
 
   const debouncedSearchValue = useDebouncedValue(searchValue, 300);
+
+  useEffect(() => {
+    onSearchStateChange?.({ searchValue: debouncedSearchValue, sortBy, categoryFilter });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchValue, sortBy, categoryFilter]);
 
   // category는 서버 쿼리로 안 넘긴다 — 백엔드 필터 파라미터가 어떤 값을 받는지 보장이
   // 안 돼서, 항목별로 이미 내려오는 category 필드를 우리 4개 카테고리로 매핑해
