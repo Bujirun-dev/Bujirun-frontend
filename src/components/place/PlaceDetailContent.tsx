@@ -38,6 +38,15 @@ export interface PlaceDetailRelatedLog {
   author: string;
 }
 
+// 소개글을 문장 단위(마침표/느낌표/물음표 뒤)로 줄바꿈해서 읽기 편하게 보여준다.
+function formatDescription(text: string): string {
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean)
+    .join("\n");
+}
+
 export interface PlaceDetailData {
   imageUrl: string | StaticImageData;
   name: string;
@@ -153,14 +162,14 @@ export function PlaceDetailContent({
     <div className={cn("flex flex-col", compact ? "gap-3 py-3" : "gap-5 py-5")}>
       {/* 소개 */}
       <section className="flex flex-col gap-2">
-        <h2 className={cn("font-bold text-text-heading", compact ? "text-xs" : "text-lg")}>소개</h2>
+        <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-xl")}>소개</h2>
         <p
           className={cn(
-            "leading-relaxed text-text-primary",
+            "whitespace-pre-line leading-loose tracking-wide text-text-primary",
             compact ? "text-xs font-normal" : "text-md",
           )}
         >
-          {description?.trim() || "등록된 내용이 없습니다."}
+          {formatDescription(description?.trim() || "등록된 내용이 없습니다.")}
         </p>
       </section>
 
@@ -169,7 +178,7 @@ export function PlaceDetailContent({
       {/* 위치 */}
       <section className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h2 className={cn("font-bold text-text-heading", compact ? "text-xs" : "text-lg")}>
+          <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-xl")}>
             위치
           </h2>
           {mapUrl && (
@@ -193,7 +202,7 @@ export function PlaceDetailContent({
         <>
           <hr className="border-[0.3px] border-sub-lightgray" />
           <section className="flex flex-col gap-2">
-            <h2 className={cn("font-bold text-text-heading", compact ? "text-xs" : "text-lg")}>
+            <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-xl")}>
               정보
             </h2>
             <Card
@@ -219,7 +228,7 @@ export function PlaceDetailContent({
           <hr className="border-[0.3px] border-sub-lightgray" />
           <section className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <h2 className={cn("font-bold text-text-heading", compact ? "text-xs" : "text-lg")}>
+              <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-xl")}>
                 관련 로그
               </h2>
               {relatedLogsHref ? (

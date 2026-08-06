@@ -38,5 +38,5 @@ export { ErrorState } from "./ui/ErrorState";
 export type { ErrorStateCode } from "./ui/ErrorState";
 //관광지 검색:공통컴포넌트화
 export { PlaceSearchPanel } from "./place/PlaceSearchPanel";
-export type { SearchPlace } from "./place/PlaceSearchPanel";
+export type { SearchPlace, PlaceSearchState } from "./place/PlaceSearchPanel";
 export { PlaceSearchItem } from "./place/PlaceSearchItem";

@@ -26,7 +26,7 @@ import {
   type ShiftTimesResult,
 } from "./itineraryYjsSchema";
 import { flushDayToRest, snapshotFromStops, type DaySnapshot } from "./flushItineraryToRest";
-import { getParticipantColorClass } from "./participantColor";
+import { pickAvailableParticipantColorClass } from "./participantColor";
 
 export interface CollaboratorInfo {
   name: string;
@@ -147,14 +147,47 @@ export function useCollaborativeItinerary(
 
   // 내 프레즌스(이름/색/아바타)를 알린다. currentUser가 나중에 로드되거나 provider가
   // status 변화(connecting→connected)로 뒤늦게 생겨도 다시 타도록 status를 deps에 둔다.
+  // 그룹 최대 인원(6명)이 색상 팔레트 수와 같아서, 접속 중인 다른 사람들의 색을 피해
+  // 배정하면 동시 접속자끼리는 겹치지 않는다 — 누가 새로 들어오거나 나갈 때마다
+  // awareness "change"로 다시 확인해서 겹치면 그때만 재배정한다.
   useEffect(() => {
     const provider = getProvider();
     if (!provider || !currentUser) return;
-    provider.awareness.setLocalStateField("user", {
-      name: currentUser.nickname,
-      colorClass: getParticipantColorClass(currentUser.id),
-      avatarUrl: currentUser.profileImageUrl,
-    });
+
+    const broadcastPresence = () => {
+      const peerColorClasses = new Set<string>();
+      provider.awareness.getStates().forEach((state, clientId) => {
+        if (clientId === provider.awareness.clientID) return;
+        const peerUser = state.user as CollaboratorInfo | undefined;
+        if (peerUser?.colorClass) peerColorClasses.add(peerUser.colorClass);
+      });
+
+      const localUser = provider.awareness.getLocalState()?.user as CollaboratorInfo | undefined;
+      const colorClass =
+        localUser?.colorClass && !peerColorClasses.has(localUser.colorClass)
+          ? localUser.colorClass
+          : pickAvailableParticipantColorClass(peerColorClasses);
+
+      // 실제로 바뀐 게 없으면 재브로드캐스트하지 않는다 — setLocalStateField는 내용이
+      // 같아도 awareness "change"를 다시 쏴서, 그대로 두면 무한 루프에 빠진다.
+      if (
+        localUser?.name === currentUser.nickname &&
+        localUser?.colorClass === colorClass &&
+        localUser?.avatarUrl === currentUser.profileImageUrl
+      ) {
+        return;
+      }
+
+      provider.awareness.setLocalStateField("user", {
+        name: currentUser.nickname,
+        colorClass,
+        avatarUrl: currentUser.profileImageUrl,
+      });
+    };
+
+    broadcastPresence();
+    provider.awareness.on("change", broadcastPresence);
+    return () => provider.awareness.off("change", broadcastPresence);
   }, [doc, getProvider, status, currentUser]);
 
   const [collaboratorsByStop, setCollaboratorsByStop] = useState<Map<string, CollaboratorInfo[]>>(
