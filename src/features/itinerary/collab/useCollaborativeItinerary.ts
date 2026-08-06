@@ -166,7 +166,7 @@ export function useCollaborativeItinerary(
       const colorClass =
         localUser?.colorClass && !peerColorClasses.has(localUser.colorClass)
           ? localUser.colorClass
-          : pickAvailableParticipantColorClass(currentUser.id, peerColorClasses);
+          : pickAvailableParticipantColorClass(peerColorClasses);
 
       // 실제로 바뀐 게 없으면 재브로드캐스트하지 않는다 — setLocalStateField는 내용이
       // 같아도 awareness "change"를 다시 쏴서, 그대로 두면 무한 루프에 빠진다.
