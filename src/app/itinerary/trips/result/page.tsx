@@ -189,6 +189,18 @@ function TripResultContent() {
   const endTime = searchParams.get("endTime") || "17:00";
   const isHost = useIsGroupHost(groupId);
 
+  // 스와이프 완료 직후 방장/참여자가 거의 동시에 이 페이지에 진입하면 각자의
+  // generateGroupItinerary 요청이 경합해서 방장과 다른 결과가 나오는 경우가 있다.
+  // 새로고침 한 번이면 백엔드에 이미 저장된 결과를 그대로 받아와 방장과 동일해지므로,
+  // 진입 시 자동으로 한 번 새로고침해서 이 경합을 피한다.
+  const hasReloaded = searchParams.get("reloaded") === "1";
+  useEffect(() => {
+    if (hasReloaded) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("reloaded", "1");
+    window.location.replace(url.toString());
+  }, [hasReloaded]);
+
   const {
     data: generated,
     isLoading: isGenerating,
@@ -198,7 +210,7 @@ function TripResultContent() {
     queryKey: itineraryApi.keys.groupGenerate(groupId, startDate, endDate),
     queryFn: () =>
       itineraryApi.generateGroupItinerary(groupId, { startDate, endDate, startTime, endTime }),
-    enabled: !!groupId && !!startDate && !!endDate,
+    enabled: hasReloaded && !!groupId && !!startDate && !!endDate,
   });
 
   const generatingMessage = useGeneratingMessage(isGenerating);
@@ -341,7 +353,7 @@ function TripResultContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [confirmedItinerary?.id]);
 
-  if (isGenerating) {
+  if (!hasReloaded || isGenerating) {
     return (
       <div className="flex h-full flex-col">
         <LoadingState message={generatingMessage} />

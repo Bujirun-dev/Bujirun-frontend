@@ -28,21 +28,15 @@ export function CollaboratorBadge({ editors }: { editors: CollaboratorInfo[] }) 
           <div
             key={`${editor.name}-${idx}`}
             className={cn(
-              "flex size-5 items-center justify-center overflow-hidden rounded-full border border-main-white",
+              "relative flex size-[26px] items-center justify-center overflow-hidden rounded-full border border-main-white",
               editor.colorClass,
             )}
             title={editor.name}
           >
             {avatarSrc ? (
-              <Image
-                src={avatarSrc}
-                alt={editor.name}
-                width={20}
-                height={20}
-                className="object-cover"
-              />
+              <Image src={avatarSrc} alt={editor.name} fill sizes="26px" className="object-cover" />
             ) : (
-              <span className="text-[9px] font-semibold text-main-white">
+              <span className="text-[10px] font-semibold text-main-white">
                 {editor.name.slice(0, 1)}
               </span>
             )}
@@ -50,8 +44,8 @@ export function CollaboratorBadge({ editors }: { editors: CollaboratorInfo[] }) 
         );
       })}
       {overflow > 0 && (
-        <div className="flex size-5 items-center justify-center rounded-full border border-main-white bg-sub-gray">
-          <span className="text-[9px] font-semibold text-main-white">+{overflow}</span>
+        <div className="flex size-[26px] items-center justify-center rounded-full border border-main-white bg-sub-gray">
+          <span className="text-[10px] font-semibold text-main-white">+{overflow}</span>
         </div>
       )}
     </div>
