@@ -264,9 +264,7 @@ export function TodayItinerary() {
                       <TransportSummaryCard {...selectedOption} />
                     </button>
                   ) : (
-                    nextPlaceName && (
-                      <p className="my-3 text-sm text-sub-darkgray">교통정보 없음</p>
-                    )
+                    nextPlaceName && <p className="my-3 text-sm text-sub-darkgray">교통정보 없음</p>
                   )}
                 </div>
               </div>
