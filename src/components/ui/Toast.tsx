@@ -11,9 +11,39 @@ interface ToastProps {
   icon?: React.ReactNode;
   duration?: number;
   className?: string;
-  // "error"면 실패/유효성 검사 실패 등을 나타내는 색으로 바뀐다. 기본은 기존과 동일.
-  variant?: "default" | "error";
+  variant?: "success" | "error" | "warning" | "default";
 }
+
+const TOAST_ICONS = {
+  success: (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-3.5 shrink-0 fill-current">
+      <path d="m18.214,9.098c.387.394.381,1.027-.014,1.414l-4.426,4.345c-.783.768-1.791,1.151-2.8,1.151-.998,0-1.996-.376-2.776-1.129l-1.899-1.867c-.394-.387-.399-1.02-.012-1.414.386-.395,1.021-.4,1.414-.012l1.893,1.861c.776.75,2.001.746,2.781-.018l4.425-4.344c.393-.388,1.024-.381,1.414.013Zm5.786,2.902c0,6.617-5.383,12-12,12S0,18.617,0,12,5.383,0,12,0s12,5.383,12,12Zm-2,0c0-5.514-4.486-10-10-10S2,6.486,2,12s4.486,10,10,10,10-4.486,10-10Z" />
+    </svg>
+  ),
+
+  error: (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-3.5 shrink-0 fill-current">
+      <path d="M16,8a1,1,0,0,0-1.414,0L12,10.586,9.414,8A1,1,0,0,0,8,9.414L10.586,12,8,14.586A1,1,0,0,0,9.414,16L12,13.414,14.586,16A1,1,0,0,0,16,14.586L13.414,12,16,9.414A1,1,0,0,0,16,8Z" />
+      <path d="M12,0A12,12,0,1,0,24,12,12.013,12.013,0,0,0,12,0Zm0,22A10,10,0,1,1,22,12,10.011,10.011,0,0,1,12,22Z" />
+    </svg>
+  ),
+
+  warning: (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-3.5 shrink-0 fill-current">
+      <path d="M12,0A12,12,0,1,0,24,12,12.013,12.013,0,0,0,12,0Zm0,22A10,10,0,1,1,22,12,10.011,10.011,0,0,1,12,22Z" />
+      <path d="M12,5a1,1,0,0,0-1,1v8a1,1,0,0,0,2,0V6A1,1,0,0,0,12,5Z" />
+      <rect x="11" y="17" width="2" height="2" rx="1" />
+    </svg>
+  ),
+
+  default: (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-3.5 shrink-0 fill-current">
+      <path d="M12,0A12,12,0,1,0,24,12,12.013,12.013,0,0,0,12,0Zm0,22A10,10,0,1,1,22,12,10.011,10.011,0,0,1,12,22Z" />
+      <path d="M12,10H11a1,1,0,0,0,0,2h1v6a1,1,0,0,0,2,0V12A2,2,0,0,0,12,10Z" />
+      <circle cx="12" cy="6.5" r="1.5" />
+    </svg>
+  ),
+} satisfies Record<NonNullable<ToastProps["variant"]>, React.ReactNode>;
 
 export function Toast({
   isVisible,
@@ -40,12 +70,17 @@ export function Toast({
       <div
         className={cn(
           "flex h-[28px] items-center justify-center gap-1.5 rounded-lg px-3",
-          variant === "error" ? "bg-sub-coral" : "bg-sub-darkgray",
+          {
+            success: "bg-toastbg-success border border-toast-success text-toast-success",
+            error: "bg-toastbg-error border border-toast-error text-toast-error",
+            warning: "bg-toastbg-warning border border-toast-warning text-toast-warning",
+            default: "bg-toastbg-default border border-toast-default text-toast-default",
+          }[variant],
           className,
         )}
       >
-        {icon}
-        <span className="whitespace-nowrap text-sm font-medium text-white">{message}</span>
+        {icon ?? TOAST_ICONS[variant]}
+        <span className="whitespace-nowrap text-sm font-medium">{message}</span>
       </div>
     </div>
   );
@@ -53,4 +88,35 @@ export function Toast({
   if (!appRoot) return toast;
 
   return createPortal(toast, appRoot);
+}
+
+export function ToastPreview() {
+  const previews = [
+    { variant: "success", message: "삭제되었습니다." },
+    { variant: "error", message: "삭제에 실패했습니다." },
+    { variant: "warning", message: "위치 권한을 허용해주세요." },
+    { variant: "default", message: "안내 메시지입니다." },
+  ] as const;
+
+  return (
+    <div className="flex flex-col items-center gap-3 py-6">
+      {previews.map(({ variant, message }) => (
+        <div
+          key={variant}
+          className={cn(
+            "flex h-[28px] items-center justify-center gap-1.5 rounded-lg border px-3",
+            {
+              success: "bg-toastbg-success border-toast-success text-toast-success",
+              error: "bg-toastbg-error border-toast-error text-toast-error",
+              warning: "bg-toastbg-warning border-toast-warning text-toast-warning",
+              default: "bg-toastbg-default border-toast-default text-toast-default",
+            }[variant],
+          )}
+        >
+          {TOAST_ICONS[variant]}
+          <span className="whitespace-nowrap text-sm font-medium">{message}</span>
+        </div>
+      ))}
+    </div>
+  );
 }
