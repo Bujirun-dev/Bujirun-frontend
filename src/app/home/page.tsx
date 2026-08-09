@@ -8,7 +8,6 @@ import { useCollectionProgress } from "@/shared/hooks/useCollectionProgress";
 import { CollectionProgress } from "@/features/home/components/CollectionProgress";
 import { TodayItinerary } from "@/features/home/components/TodayItinerary";
 import { PlaceSection } from "@/features/home/components/PlaceSection";
-import { ToastPreview } from "@/components/ui/Toast";
 
 function MegaphoneIcon() {
   return (
@@ -80,8 +79,6 @@ export default function HomePage() {
       </Card>
 
       <PageCard className="relative z-20 mt-3 flex-1 overflow-y-auto py-8">
-        {/* 임시 */}
-        <ToastPreview />
         <TodayItinerary />
         <div className="mt-8">
           <PlaceSection />

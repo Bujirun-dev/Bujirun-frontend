@@ -69,7 +69,7 @@ export function Toast({
     <div className="absolute bottom-[94px] left-1/2 z-50 -translate-x-1/2">
       <div
         className={cn(
-          "flex h-[28px] items-center justify-center gap-1.5 rounded-lg px-3",
+          "flex h-[28px] w-[260px] items-center justify-center gap-1.5 rounded-lg px-3",
           {
             success: "bg-toastbg-success border border-toast-success text-toast-success",
             error: "bg-toastbg-error border border-toast-error text-toast-error",
@@ -88,35 +88,4 @@ export function Toast({
   if (!appRoot) return toast;
 
   return createPortal(toast, appRoot);
-}
-
-export function ToastPreview() {
-  const previews = [
-    { variant: "success", message: "삭제되었습니다." },
-    { variant: "error", message: "삭제에 실패했습니다." },
-    { variant: "warning", message: "위치 권한을 허용해주세요." },
-    { variant: "default", message: "안내 메시지입니다." },
-  ] as const;
-
-  return (
-    <div className="flex flex-col items-center gap-3 py-6">
-      {previews.map(({ variant, message }) => (
-        <div
-          key={variant}
-          className={cn(
-            "flex h-[28px] items-center justify-center gap-1.5 rounded-lg border px-3",
-            {
-              success: "bg-toastbg-success border-toast-success text-toast-success",
-              error: "bg-toastbg-error border-toast-error text-toast-error",
-              warning: "bg-toastbg-warning border-toast-warning text-toast-warning",
-              default: "bg-toastbg-default border-toast-default text-toast-default",
-            }[variant],
-          )}
-        >
-          {TOAST_ICONS[variant]}
-          <span className="whitespace-nowrap text-sm font-medium">{message}</span>
-        </div>
-      ))}
-    </div>
-  );
 }
