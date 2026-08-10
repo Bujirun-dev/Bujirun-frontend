@@ -9,6 +9,7 @@ import { ReviewPromptModal } from "@/features/home/components/ReviewPromptModal"
 import { TripReceiptModal } from "@/features/receipt/components/TripReceiptModal";
 import type { ReceiptData, ReviewPromptSubmitData } from "@/features/receipt/types/receipt";
 import { convertTripLogToReceipt } from "@/features/receipt/utils/convertTripLogToReceipt";
+import { PROFILE_IMAGES } from "@/components/profile/profileImages";
 
 export default function HomeReceiptPage() {
   const router = useRouter();
@@ -25,6 +26,22 @@ export default function HomeReceiptPage() {
     queryKey: userApi.keys.me(),
     queryFn: userApi.getMyProfile,
   });
+
+  const profileImage = (() => {
+    const profileImageUrl = myProfile?.profileImageUrl;
+
+    if (!profileImageUrl) return PROFILE_IMAGES[0].src;
+
+    const profileImageId = Number(profileImageUrl);
+
+    if (!Number.isNaN(profileImageId)) {
+      return (
+        PROFILE_IMAGES.find((image) => image.id === profileImageId)?.src ?? PROFILE_IMAGES[0].src
+      );
+    }
+
+    return profileImageUrl;
+  })();
 
   const closeReviewModal = () => {
     setIsReviewModalOpen(false);
@@ -68,13 +85,14 @@ export default function HomeReceiptPage() {
         latestTravelLog,
         myProfile?.id ?? "",
         myProfile?.nickname ?? "",
+        profileImage,
       );
 
       setGeneratedReceipt(receipt);
       setIsReviewModalOpen(false);
       setIsReceiptModalOpen(true);
     } catch (error) {
-      console.error("영수증 발행 실패:", error);
+      console.error("영수증 발행 실패: ", error);
     }
   };
 

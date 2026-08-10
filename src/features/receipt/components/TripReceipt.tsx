@@ -59,15 +59,17 @@ export function TripReceipt({ receipt }: TripReceiptProps) {
         </h3>
 
         <div className="grid items-center gap-3">
-          <div className="relative size-[80px] justify-self-center">
-            <Image
-              src={receipt.profileImage}
-              alt="여행 영수증 프로필 사진"
-              fill
-              sizes="80px"
-              loading="eager"
-              className="object-contain"
-            />
+          <div className="relative size-[80px] justify-self-center overflow-hidden rounded-full border-2 border-sub-gray">
+            {receipt.profileImage ? (
+              <Image
+                src={receipt.profileImage}
+                alt="여행 영수증 프로필 사진"
+                fill
+                className="object-cover grayscale scale-[1.27] origin-[center_10%]"
+              />
+            ) : (
+              <div className="size-full rounded-full bg-sub-lightgray" />
+            )}
           </div>
 
           <dl className="space-y-0.5 leading-none">

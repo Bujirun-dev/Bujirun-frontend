@@ -3,7 +3,6 @@
 import { Suspense, useRef, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import SuccessIcon from "@/assets/icons/mypage/success.svg";
 import { PageCard, Toast, EmptyState, LoadingState } from "@/components";
 import { ItineraryHeader, SlidingTimeline, ItineraryModals } from "@/features/itinerary";
 import type { ItineraryStop, ModalType } from "@/features/itinerary";
@@ -352,7 +351,7 @@ function ItineraryMain({
       deleteYjsStop(activeDayIdx, activeStopId);
     }
     closeModal();
-    showToast("장소가 삭제되었어요.");
+    showToast("장소가 삭제되었어요.", "error");
   };
   const confirmTime = () => {
     const timeStr = `${String(timeValue.hour).padStart(2, "0")}:${String(timeValue.minute).padStart(2, "0")}`;
@@ -584,7 +583,6 @@ function ItineraryMain({
         onHide={() => setToastMessage(null)}
         message={toastMessage ?? ""}
         variant={toastVariant}
-        icon={<SuccessIcon width={12} height={12} className="brightness-0 invert" aria-hidden />}
       />
     </div>
   );
