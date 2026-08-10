@@ -179,14 +179,14 @@
   --color-category-experience: rgba(202, 182, 255, 0.5);
 
   /* Toast */
-  --color-toast-success: #0F9D58;
-  --color-toastbg-success: #E7F5EE;
-  --color-toast-error: #DB4437;
-  --color-toastbg-error: #FBECEB;
-  --color-toast-warning: #F4B400;
-  --color-toastbg-warning: #FEF7E5;
+  --color-toast-success: #0f9d58;
+  --color-toastbg-success: #e7f5ee;
+  --color-toast-error: #db4437;
+  --color-toastbg-error: #fbeceb;
+  --color-toast-warning: #f4b400;
+  --color-toastbg-warning: #fef7e5;
   --color-toast-default: #999999;
-  --color-toastbg-default: #F5F5F5;
+  --color-toastbg-default: #f5f5f5;
 
   /* Font Size */
   --text-3xs: 9px;
