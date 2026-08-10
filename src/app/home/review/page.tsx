@@ -74,7 +74,7 @@ export default function HomeReceiptPage() {
       setIsReviewModalOpen(false);
       setIsReceiptModalOpen(true);
     } catch (error) {
-      console.error("영수증 발행 실패:", error);
+      console.error("영수증 발행 실패: ", error);
     }
   };
 

@@ -66,10 +66,10 @@ export function Toast({
   const appRoot = typeof document === "undefined" ? null : document.getElementById("app-root");
 
   const toast = (
-    <div className="absolute bottom-[94px] left-1/2 z-50 -translate-x-1/2">
+    <div className="absolute bottom-[80px] left-1/2 z-50 -translate-x-1/2">
       <div
         className={cn(
-          "flex h-[28px] w-[260px] items-center justify-center gap-1.5 rounded-lg px-3",
+          "flex h-[30px] w-[260px] items-center justify-center gap-1.5 rounded-lg px-3",
           {
             success: "bg-toastbg-success border border-toast-success text-toast-success",
             error: "bg-toastbg-error border border-toast-error text-toast-error",

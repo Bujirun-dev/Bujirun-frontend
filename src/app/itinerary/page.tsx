@@ -352,7 +352,7 @@ function ItineraryMain({
       deleteYjsStop(activeDayIdx, activeStopId);
     }
     closeModal();
-    showToast("장소가 삭제되었어요.");
+    showToast("장소가 삭제되었어요.", "error");
   };
   const confirmTime = () => {
     const timeStr = `${String(timeValue.hour).padStart(2, "0")}:${String(timeValue.minute).padStart(2, "0")}`;
@@ -584,7 +584,6 @@ function ItineraryMain({
         onHide={() => setToastMessage(null)}
         message={toastMessage ?? ""}
         variant={toastVariant}
-        icon={<SuccessIcon width={12} height={12} className="brightness-0 invert" aria-hidden />}
       />
     </div>
   );

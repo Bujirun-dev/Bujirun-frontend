@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ReceiptButtons } from "@/features/receipt/components/ReceiptButtons";
 import { TripReceipt } from "@/features/receipt/components/TripReceipt";
 import { toPng } from "html-to-image";
 import type { ReceiptData } from "@/features/receipt/types/receipt";
+import { Toast } from "@/components";
 
 type TripReceiptModalProps = {
   isOpen: boolean;
@@ -47,6 +48,13 @@ export function TripReceiptModal({
   onDownloadError,
 }: TripReceiptModalProps) {
   const receiptRef = useRef<HTMLDivElement>(null);
+
+  const [toast, setToast] = useState<{
+    isVisible: boolean;
+    message: string;
+    variant: "success" | "error";
+  } | null>(null);
+
   const receiptFileName = receipt
     ? createReceiptFileName(receipt.title, receipt.tripId)
     : "[bujirun]receipt-unknown.png";
@@ -70,9 +78,22 @@ export function TripReceiptModal({
       link.href = dataUrl;
       link.click();
 
+      setToast({
+        isVisible: true,
+        message: "영수증을 저장했어요.",
+        variant: "success",
+      });
+
       onDownloadComplete?.();
     } catch (error) {
-      console.error("영수증 다운로드에 실패했어요.", error);
+      console.error("영수증 저장 실패:", error);
+
+      setToast({
+        isVisible: true,
+        message: "영수증 저장에 실패했어요.",
+        variant: "error",
+      });
+
       onDownloadError?.();
     }
   }, [receipt, receiptFileName, onDownloadComplete, onDownloadError]);
@@ -85,22 +106,33 @@ export function TripReceiptModal({
   if (!appRoot) return null;
 
   return createPortal(
-    <div className="absolute inset-0 z-50 overflow-hidden bg-system-blackbg" onClick={onClose}>
-      <div className="h-full overflow-y-auto">
-        <div className="mx-auto flex min-h-full w-full justify-center px-5 py-13">
-          <div className="relative w-full max-w-[320px]" onClick={(e) => e.stopPropagation()}>
-            {/* 다운로드되는 영수증 */}
-            <div ref={receiptRef}>
-              <TripReceipt receipt={receipt} />
-            </div>
+    <>
+      <div className="absolute inset-0 z-50 overflow-hidden bg-system-blackbg" onClick={onClose}>
+        <div className="h-full overflow-y-auto">
+          <div className="mx-auto flex min-h-full w-full justify-center px-5 py-13">
+            <div className="relative w-full max-w-[320px]" onClick={(e) => e.stopPropagation()}>
+              {/* 다운로드되는 영수증 */}
+              <div ref={receiptRef}>
+                <TripReceipt receipt={receipt} />
+              </div>
 
-            <div className="absolute right-3 top-5 z-20">
-              <ReceiptButtons onDetail={onDetail} onDownload={handleDownload} onClose={onClose} />
+              <div className="absolute right-3 top-5 z-20">
+                <ReceiptButtons onDetail={onDetail} onDownload={handleDownload} onClose={onClose} />
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>,
+
+      {toast && (
+        <Toast
+          isVisible={toast.isVisible}
+          message={toast.message}
+          variant={toast.variant}
+          onHide={() => setToast((prev) => (prev ? { ...prev, isVisible: false } : null))}
+        />
+      )}
+    </>,
     appRoot,
   );
 }
