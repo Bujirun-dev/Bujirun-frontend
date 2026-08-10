@@ -113,7 +113,7 @@ export function LogDetailContent({
 
             {/* 타임라인 */}
             <div className="relative flex flex-col pb-1.5">
-              <div className="absolute top-[6px] bottom-[6px] left-[45px] w-[2px] bg-sub-lightgray rounded-full" />
+              <div className="absolute top-[6px] bottom-[6px] left-[53px] w-[2px] bg-sub-lightgray rounded-full" />
               {daySchedule.stops.map((stop, idx) => (
                 <div
                   key={idx}
@@ -121,9 +121,9 @@ export function LogDetailContent({
                 >
                   {/* 시간 + 도트 */}
                   <div className="flex items-center shrink-0">
-                    <div className="w-10 text-right pr-2.5">
+                    <div className="w-12 text-right pr-2.5">
                       <span className="font-medium text-sm text-sub-deepblue tracking-[0.6px]">
-                        {stop.time}
+                        {formatArrivalTime(stop.time)}
                       </span>
                     </div>
                     <div className="w-3 h-3 rounded-full bg-main-blue shrink-0 relative z-10" />
@@ -315,13 +315,9 @@ function StopTags({
 function formatArrivalTime(value?: string) {
   if (!value) return "";
 
-  const timeMatch = value.match(/(?:T|^)(\d{2}):(\d{2})/);
+  const timeMatch = value.match(/(\d{2}):(\d{2})(?::\d{2})?/);
 
-  if (timeMatch) {
-    return `${timeMatch[1]}:${timeMatch[2]}`;
-  }
-
-  return value;
+  return timeMatch ? `${timeMatch[1]}:${timeMatch[2]}` : value;
 }
 
 // API 응답 → LogDetailContent props 변환
