@@ -6,6 +6,7 @@ import { useMemo, useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { travelLogApi, userApi, spotApi } from "@/shared/api/domains";
 import { convertTripLogToReceipt } from "@/features/receipt/utils/convertTripLogToReceipt";
+import { PROFILE_IMAGES } from "@/components/profile/profileImages";
 import { RecordDeleteModal } from "@/features/collection/components/RecordDeleteModal";
 import { TripReceiptModal } from "@/features/receipt/components/TripReceiptModal";
 import type { ReceiptData } from "@/features/receipt/types/receipt";
@@ -108,9 +109,25 @@ export default function CollectionRecordsPage() {
     queryFn: userApi.getMyProfile,
   });
 
+  const profileImage = (() => {
+    const profileImageUrl = me?.profileImageUrl;
+
+    if (!profileImageUrl) return PROFILE_IMAGES[0].src;
+
+    const profileImageId = Number(profileImageUrl);
+
+    if (!Number.isNaN(profileImageId)) {
+      return (
+        PROFILE_IMAGES.find((image) => image.id === profileImageId)?.src ?? PROFILE_IMAGES[0].src
+      );
+    }
+
+    return profileImageUrl;
+  })();
+
   const selectedReceipt: ReceiptData | undefined =
     selectedTravelLog && me?.id && me?.nickname
-      ? convertTripLogToReceipt(selectedTravelLog, me.id, me.nickname)
+      ? convertTripLogToReceipt(selectedTravelLog, me.id, me.nickname, profileImage)
       : undefined;
 
   // 여행 기록 삭제
