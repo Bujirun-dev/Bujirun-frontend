@@ -24,16 +24,13 @@ export type BaseStop = Omit<
 >;
 
 // GET /api/logs/{id}(다른 사람의 여행 로그) 응답을 타임라인 UI가 쓰는 BaseStop[][]로
-// 변환한다. 실제 로그엔 spotId/주소/영업시간 같은 상세 정보가 없어서(스팟 이름만 내려옴)
-// mapItineraryDetailToDays와 동일하게 부족한 필드는 기본값으로 채운다.
-// spotByName: item.spotName → 실제 관광지 검색 결과. 로그 응답 자체엔 spotId가 없어서
-// (스팟 이름만 내려옴) 넘어오면 실제 스팟 정보(주소/썸네일/카테고리/북마크 여부)로 채우고,
-// 없으면(검색에서 못 찾은 극히 일부 경우만) 플레이스홀더로 대체한다. spotId가 있어야
-// REST addItem으로 DB에 실제 저장도 되므로, 매칭 자체가 지속성에도 필요하다.
-export function buildDaysFromTravelLogDetail(
-  log: TravelLogDetailResponse,
-  spotByName?: Map<string, SpotSearchResponse>,
-): {
+// 변환한다. 로그 응답의 각 항목엔 spotId/주소/카테고리/썸네일이 이미 내려오므로
+// (2026-07-23 백엔드에 추가됨) 그대로 사용한다 — 예전엔 spotId가 없어서 장소 이름으로
+// 관광지를 다시 검색해 매칭했었는데, 이름이 안 맞으면 엉뚱한 스팟에 매칭되거나 spotId가
+// 비어 REST addItem(=DB 저장) 자체가 안 되는 문제가 있어 제거함.
+// isBookmarked(북마크 여부)만 로그 응답에 없는 정보라 여기선 알 수 없음 — 일정에 저장된
+// 뒤 실제 일정 상세를 다시 불러오면(mapItineraryDetailToDays) 정확한 값으로 채워진다.
+export function buildDaysFromTravelLogDetail(log: TravelLogDetailResponse): {
   days: BaseStop[][];
   dates: string[];
 } {
@@ -49,21 +46,20 @@ export function buildDaysFromTravelLogDetail(
       const placeName = item.spotName ?? "장소 미정";
       const representativePhoto =
         item.photos?.find((photo) => photo.representative)?.photoUrl ?? item.photos?.[0]?.photoUrl;
-      const matchedSpot = spotByName?.get(placeName);
 
       return {
         id: ids[idx],
-        spotId: matchedSpot?.spotId,
+        spotId: item.spotId,
         time: normalizeTime(item.arrivalTime, "10:00"),
         placeName,
-        imageUrl: matchedSpot?.thumbnailUrl || representativePhoto || FALLBACK_IMAGE,
-        category: getCategoryFromKo(matchedSpot?.category ?? item.spotCategory ?? "", placeName),
+        imageUrl: item.spotThumbnailUrl || representativePhoto || FALLBACK_IMAGE,
+        category: getCategoryFromKo(item.spotCategory ?? "", placeName),
         status: "verify",
         // description/운영시간/문의처는 TimelinePlaceDetailPopup이 spotId로 실제 데이터를
         // 조회해서 보여준다(useSpotDetail) — 여기서 가짜 문구로 채우지 않는다.
-        address: matchedSpot?.address ?? "부산광역시",
+        address: item.spotAddress ?? "부산광역시",
         mapUrl: `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,
-        isBookmarked: matchedSpot?.collected,
+        isBookmarked: undefined,
         // 여행 로그엔 실제 이동수단/경로 데이터가 없어서(스팟 이름·시간만 내려옴) "버스"로
         // 지어내지 않는다. 일정에 반영된 뒤 최적화/이동수단 변경을 거치면 실제 값으로 채워진다.
         transport: undefined,

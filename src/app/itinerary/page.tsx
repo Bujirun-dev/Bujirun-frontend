@@ -6,11 +6,10 @@ import { useQuery } from "@tanstack/react-query";
 import { PageCard, Toast, EmptyState, LoadingState } from "@/components";
 import { ItineraryHeader, SlidingTimeline, ItineraryModals } from "@/features/itinerary";
 import type { ItineraryStop, ModalType } from "@/features/itinerary";
-import { itineraryApi, spotApi, travelLogApi, userApi } from "@/shared/api/domains";
+import { itineraryApi, travelLogApi, userApi } from "@/shared/api/domains";
 import { useCollaborativeItinerary } from "@/features/itinerary/collab/useCollaborativeItinerary";
 import {
   type BaseStop,
-  type SpotSearchResponse,
   buildDaysFromTravelLogDetail,
   buildTransportFromItem,
   getActiveTransportOptionId,
@@ -266,53 +265,27 @@ function ItineraryMain({
 
   useEffect(() => {
     if (!importedLogId || !importedLog) return;
-    let cancelled = false;
-    let toastTimer: number | undefined;
 
-    // 로그 응답엔 spotId가 없어서(장소 이름만 내려옴) 실제 관광지 검색으로 하나씩 매칭한다.
-    // spotId가 있어야 우리 상세보기와 같은 실제 정보(주소/썸네일/카테고리)가 나오고,
-    // REST addItem(=DB 저장)도 spotId가 필수라 이 매칭이 지속성에도 필요하다.
-    const importWithRealSpots = async () => {
-      const names = [
-        ...new Set(
-          (importedLog.days ?? [])
-            .flatMap((day) => day.items ?? [])
-            .map((item) => item.spotName)
-            .filter((name): name is string => !!name),
-        ),
-      ];
-      const spotByName = new Map<string, SpotSearchResponse>();
-      await Promise.all(
-        names.map(async (name) => {
-          try {
-            const results = await spotApi.searchSpots({ keyword: name });
-            const matched = results.find((r) => r.name === name) ?? results[0];
-            if (matched) spotByName.set(name, matched);
-          } catch {
-            // 검색 실패한 장소는 플레이스홀더로 남는다(buildDaysFromTravelLogDetail의 기본값)
-          }
-        }),
-      );
-      if (cancelled) return;
+    // 로그 응답의 각 항목에 spotId/주소/썸네일/카테고리가 이미 내려오므로 그대로 쓴다
+    // (예전엔 이름으로 관광지를 다시 검색해 매칭했었는데, 백엔드가 spotId를 내려주기
+    // 시작한 뒤에도 안 지워져 있던 워크어라운드였음 — 이름이 안 맞으면 엉뚱한 스팟에
+    // 매칭되거나 spotId가 비어 REST addItem 저장 자체가 안 되는 문제가 있었음).
+    const { days, dates } = buildDaysFromTravelLogDetail(importedLog);
+    // 실제 itinerary의 day 수와 다를 수 있어(로그 쪽 day 수 기준), 존재하는 day에만 반영한다.
+    days.forEach((dayStops, idx) => {
+      if (idx < dayIdsSliced.length) pushYjsOptimizedOrder(idx, dayStops);
+    });
+    logActivity("import", "");
+    flushNow();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTripDates(dates);
+    setCurrentDay(0);
+    const toastTimer = window.setTimeout(() => {
+      showToast("일정이 추가되었어요.");
+      window.history.replaceState(null, "", "/itinerary");
+    }, 300);
 
-      const { days, dates } = buildDaysFromTravelLogDetail(importedLog, spotByName);
-      // 실제 itinerary의 day 수와 다를 수 있어(로그 쪽 day 수 기준), 존재하는 day에만 반영한다.
-      days.forEach((dayStops, idx) => {
-        if (idx < dayIdsSliced.length) pushYjsOptimizedOrder(idx, dayStops);
-      });
-      logActivity("import", "");
-      flushNow();
-      setTripDates(dates);
-      setCurrentDay(0);
-      toastTimer = window.setTimeout(() => {
-        showToast("일정이 추가되었어요.");
-        window.history.replaceState(null, "", "/itinerary");
-      }, 300);
-    };
-
-    importWithRealSpots();
     return () => {
-      cancelled = true;
       window.clearTimeout(toastTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
