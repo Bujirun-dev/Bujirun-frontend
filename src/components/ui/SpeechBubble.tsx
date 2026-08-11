@@ -81,14 +81,14 @@ export function SpeechBubble({
       : { left: clampedTailPosition }),
     ...(isBottom
       ? {
-          borderLeft: "7px solid transparent",
-          borderRight: "7px solid transparent",
-          borderTop: `7px solid ${BORDER_COLOR}`,
+          borderLeft: "11px solid transparent",
+          borderRight: "11px solid transparent",
+          borderTop: `11px solid ${BORDER_COLOR}`,
         }
       : {
-          borderLeft: "7px solid transparent",
-          borderRight: "7px solid transparent",
-          borderBottom: `7px solid ${BORDER_COLOR}`,
+          borderLeft: "11px solid transparent",
+          borderRight: "11px solid transparent",
+          borderBottom: `11px solid ${BORDER_COLOR}`,
         }),
   };
 
@@ -98,14 +98,14 @@ export function SpeechBubble({
       : { left: `calc(${clampedTailPosition} + 1px)` }),
     ...(isBottom
       ? {
-          borderLeft: "6px solid transparent",
-          borderRight: "6px solid transparent",
-          borderTop: `6px solid ${tailFill}`,
+          borderLeft: "10px solid transparent",
+          borderRight: "10px solid transparent",
+          borderTop: `10px solid ${tailFill}`,
         }
       : {
-          borderLeft: "6px solid transparent",
-          borderRight: "6px solid transparent",
-          borderBottom: `6px solid ${tailFill}`,
+          borderLeft: "10px solid transparent",
+          borderRight: "10px solid transparent",
+          borderBottom: `10px solid ${tailFill}`,
         }),
   };
 
@@ -115,20 +115,21 @@ export function SpeechBubble({
         {children}
       </div>
       <div
-        className={cn("absolute h-[2px] w-[16px]", isBottom ? "bottom-[7px]" : "top-[7px]")}
+        className={cn("absolute h-px w-[20px]", isBottom ? "bottom-[8px]" : "top-[8px]")}
         style={{
           backgroundColor: tailFill,
           ...(tailCenter
             ? { left: "50%", transform: "translateX(-50%)" }
-            : { left: `calc(${clampedTailPosition} - 1px)` }),
+            : { left: clampedTailPosition }),
         }}
       />
       <div
-        className={cn("absolute w-0 h-0", isBottom ? "bottom-[0px]" : "top-[2px]")}
+        className={cn("absolute w-0 h-0", isBottom ? "bottom-[-2px]" : "top-[-2px]")}
         style={outerTailStyle}
       />
+
       <div
-        className={cn("absolute w-0 h-0", isBottom ? "bottom-[1px]" : "top-[3px]")}
+        className={cn("absolute w-0 h-0", isBottom ? "bottom-[-1px]" : "top-[-1px]")}
         style={innerTailStyle}
       />
     </div>
