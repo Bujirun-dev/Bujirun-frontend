@@ -5,6 +5,7 @@ import "@/styles/globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://bujirun.store"),
   title: "Bujirun",
   description: "Bujirun frontend application",
   appleWebApp: {

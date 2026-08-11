@@ -6,7 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import { ParticipantAvatarGrid, ShareInviteModal } from "@/features/itinerary/components";
 import { groupApi, userApi } from "@/shared/api/domains";
 import { initKakaoShare } from "@/shared/utils/kakaoShare";
-import seaCharacterImg from "@/assets/character/sea.png";
 import { LoadingState, Toast } from "@/components";
 
 function PageLoadingFallback() {
@@ -102,7 +101,9 @@ function TripInviteContent() {
           endDate,
         }).toString()}`;
   const shareImageUrl =
-    typeof window === "undefined" ? "" : `${window.location.origin}${seaCharacterImg.src}`;
+    typeof window === "undefined"
+      ? ""
+      : `${window.location.origin}/join/${encodeURIComponent(inviteCode)}/opengraph-image`;
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pb-16">
@@ -147,8 +148,8 @@ function TripInviteContent() {
       <ShareInviteModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
-        title={`${nickname}님이 '${tripName}'에 초대했어요 🌊`}
-        description="지금 참여하고 같이 일정을 짜러 가볼까요? ✈️"
+        title={`${nickname}님이 ‘${tripName}’에 초대했어요 🌊`}
+        description={`${joinedCount}명의 친구가 함께 부산 여행을 준비하고 있어요. 지금 참여해보세요!`}
         imageUrl={shareImageUrl}
         inviteUrl={inviteUrl}
       />
