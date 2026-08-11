@@ -6,7 +6,11 @@ import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?url";
 import PlusIcon from "@/assets/icons/itinerary/plus-small.svg?svgr";
 import { PlaceDetailContent, StatusBadge } from "@/components";
 import { useSpotDetail } from "@/features/itinerary/hooks/useSpotDetail";
-import { PlaceSearchPanel, type SearchPlace } from "../../../components/place/PlaceSearchPanel";
+import {
+  PlaceSearchPanel,
+  type PlaceSearchState,
+  type SearchPlace,
+} from "../../../components/place/PlaceSearchPanel";
 
 interface TimelineSearchPopupProps {
   onClose: () => void;
@@ -83,6 +87,11 @@ function SelectedPlacePreview({
 export const TimelineSearchPopup = forwardRef<HTMLDivElement, TimelineSearchPopupProps>(
   function TimelineSearchPopup({ onClose, onAddToItinerary }, ref) {
     const [selectedPlace, setSelectedPlace] = useState<SearchPlace | null>(null);
+    const [searchState, setSearchState] = useState<PlaceSearchState>({
+      searchValue: "",
+      sortBy: "추천순",
+      categoryFilter: "all",
+    });
 
     return (
       <div ref={ref} className="absolute left-[52px] right-0 top-0 z-20 pl-3">
@@ -95,7 +104,12 @@ export const TimelineSearchPopup = forwardRef<HTMLDivElement, TimelineSearchPopu
               onClose={onClose}
             />
           ) : (
-            <PlaceSearchPanel onClose={onClose} onPlaceSelect={setSelectedPlace} />
+            <PlaceSearchPanel
+              onClose={onClose}
+              onPlaceSelect={setSelectedPlace}
+              initialSearchState={searchState}
+              onSearchStateChange={setSearchState}
+            />
           )}
         </div>
       </div>
