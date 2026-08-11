@@ -67,9 +67,9 @@ export function deletePhoto(logId: string, itemId: string, photoId: string) {
 
 export function setRepresentativePhoto(logId: string, itemId: string, photoId: string) {
   return apiClient
-    .patch<OpResponse<"setRepresentative">>(
-      `/api/logs/${logId}/items/${itemId}/photos/${photoId}/representative`,
-    )
+    .patch<
+      OpResponse<"setRepresentative">
+    >(`/api/logs/${logId}/items/${itemId}/photos/${photoId}/representative`)
     .then((res) => unwrap(res));
 }
 

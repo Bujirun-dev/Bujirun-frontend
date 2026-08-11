@@ -55,7 +55,8 @@ export default function CollectionRecordsPage() {
     }, {});
 
     return Object.entries(count).sort(([, a], [, b]) => (b ?? 0) - (a ?? 0))[0]?.[0] as
-      Category | undefined;
+      | Category
+      | undefined;
   }, [collectedPlaces]);
 
   // 여행 기록 관련 상태

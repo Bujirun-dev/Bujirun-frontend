@@ -74,10 +74,9 @@ export function updateItem(
   body: OpBody<"updateItem">,
 ) {
   return apiClient
-    .patch<OpResponse<"updateItem">>(
-      `/api/itineraries/${itineraryId}/days/${dayId}/items/${itemId}`,
-      body,
-    )
+    .patch<
+      OpResponse<"updateItem">
+    >(`/api/itineraries/${itineraryId}/days/${dayId}/items/${itemId}`, body)
     .then((res) => unwrap(res));
 }
 
@@ -93,10 +92,9 @@ export function updateTravelMode(
   body: OpBody<"updateTravelMode">,
 ) {
   return apiClient
-    .patch<OpResponse<"updateTravelMode">>(
-      `/api/itineraries/${itineraryId}/days/${dayId}/items/${itemId}/travel-mode`,
-      body,
-    )
+    .patch<
+      OpResponse<"updateTravelMode">
+    >(`/api/itineraries/${itineraryId}/days/${dayId}/items/${itemId}/travel-mode`, body)
     .then((res) => unwrap(res));
 }
 
