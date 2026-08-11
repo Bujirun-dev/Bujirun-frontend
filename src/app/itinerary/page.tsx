@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useRef, useState, useEffect } from "react";
+import { Suspense, useRef, useState, useEffect, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { PageCard, Toast, EmptyState, LoadingState } from "@/components";
@@ -30,6 +30,82 @@ import type {
 // 줄이기 위해, 그 날 마지막 일정 다음 시간(1시간 뒤)으로 잡아준다. 비어있는 날은 09:00부터.
 const DEFAULT_DAY_START = "09:00";
 const DEFAULT_STOP_GAP_MIN = 60;
+const LAST_VIEWED_ITINERARY_KEY = "bujirun:last-viewed-itinerary-id";
+const LAST_VIEWED_ITINERARY_EVENT = "bujirun:last-viewed-itinerary-change";
+
+interface ItinerarySummaryForSelection {
+  id?: string;
+  startAt?: string;
+  endAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+function getLocalDateString(date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getTimestamp(value?: string): number {
+  if (!value) return 0;
+  const timestamp = new Date(value).getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+function subscribeToLastViewedItinerary(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(LAST_VIEWED_ITINERARY_EVENT, onStoreChange);
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener(LAST_VIEWED_ITINERARY_EVENT, onStoreChange);
+  };
+}
+
+function getLastViewedItinerarySnapshot(): string | null {
+  try {
+    return window.localStorage.getItem(LAST_VIEWED_ITINERARY_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function getLastViewedItineraryServerSnapshot(): null {
+  return null;
+}
+
+function selectItinerary<T extends ItinerarySummaryForSelection>(
+  itineraries: T[],
+  requestedTripId: string | null,
+  lastViewedItineraryId: string | null,
+): T | undefined {
+  const requested = itineraries.find((itinerary) => itinerary.id === requestedTripId);
+  if (requested) return requested;
+
+  const today = getLocalDateString();
+  const ongoingToday = itineraries.filter(
+    (itinerary) =>
+      !!itinerary.startAt &&
+      !!itinerary.endAt &&
+      itinerary.startAt <= today &&
+      today <= itinerary.endAt,
+  );
+
+  if (ongoingToday.length > 0) {
+    const lastViewed = ongoingToday.find(
+      (itinerary) => itinerary.id === lastViewedItineraryId,
+    );
+    if (lastViewed) return lastViewed;
+  }
+
+  const candidates = ongoingToday.length > 0 ? ongoingToday : itineraries;
+  return [...candidates].sort((a, b) => {
+    const updatedDiff = getTimestamp(b.updatedAt) - getTimestamp(a.updatedAt);
+    if (updatedDiff !== 0) return updatedDiff;
+    return getTimestamp(b.createdAt) - getTimestamp(a.createdAt);
+  })[0];
+}
 
 // TransportSelectSheet 카드 id → 백엔드 travelMode(walk/transit/taxi). 백엔드는 버스/지하철을
 // 하나의 "transit" 옵션으로만 계산해서 돌려주므로(둘 중 하나를 강제로 고를 순 없음),
@@ -106,17 +182,34 @@ export default function ItineraryPage() {
 function ItineraryPageContent() {
   const searchParams = useSearchParams();
   const requestedTripId = searchParams.get("tripId");
+  const lastViewedItineraryId = useSyncExternalStore(
+    subscribeToLastViewedItinerary,
+    getLastViewedItinerarySnapshot,
+    getLastViewedItineraryServerSnapshot,
+  );
 
   const { data: itineraries, isLoading: isListLoading } = useQuery({
     queryKey: itineraryApi.keys.lists(),
     queryFn: itineraryApi.getItineraries,
   });
 
-  // 목록에서 특정 여행을 골라 들어온 경우 그 tripId를 우선하고,
-  // 하단 네비게이션처럼 지정 없이 들어온 경우에만 첫 번째 여행으로 대체한다.
-  const selectedItinerary =
-    itineraries?.find((itinerary) => itinerary.id === requestedTripId) ?? itineraries?.[0];
+  // 목록에서 직접 선택한 일정이 최우선. 하단 탭처럼 지정 없이 들어오면 오늘 진행 중인
+  // 일정 → 최근 수정 → 최근 생성 순으로 고르고, 오늘 일정이 여러 개면 마지막 조회 일정을
+  // 먼저 보여준다.
+  const selectedItinerary = itineraries
+    ? selectItinerary(itineraries, requestedTripId, lastViewedItineraryId)
+    : undefined;
   const itineraryId = selectedItinerary?.id;
+
+  useEffect(() => {
+    if (!itineraryId) return;
+    try {
+      window.localStorage.setItem(LAST_VIEWED_ITINERARY_KEY, itineraryId);
+      window.dispatchEvent(new Event(LAST_VIEWED_ITINERARY_EVENT));
+    } catch {
+      // 저장소 사용이 제한된 환경에서도 일정 자체는 정상 노출한다.
+    }
+  }, [itineraryId]);
 
   const { data: detail, isLoading: isDetailLoading } = useQuery({
     queryKey: itineraryApi.keys.detail(itineraryId ?? ""),

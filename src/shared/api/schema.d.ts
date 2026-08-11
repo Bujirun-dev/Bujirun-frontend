@@ -462,6 +462,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/migration/tourapi-overview/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** (담당: 유정) */
+        post: operations["runTourApiOverview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/migration/run": {
         parameters: {
             query?: never;
@@ -693,6 +710,26 @@ export interface paths {
          * @description 서버가 정상적으로 동작 중인지 확인합니다.
          */
         get: operations["health"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/me/nickname/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 닉네임 중복 확인 (담당: 윤제승)
+         * @description 닉네임을 실제로 변경하기 전에 사용 가능한 닉네임인지 미리 확인합니다.
+         */
+        get: operations["checkNicknameAvailability"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1023,6 +1060,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/migration/tourapi-overview/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** (담당: 유정) */
+        get: operations["tourApiOverviewStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/migration/status": {
         parameters: {
             query?: never;
@@ -1191,6 +1245,8 @@ export interface components {
         PresignUploadResponse: {
             uploadUrl?: string;
             publicUrl?: string;
+            /** Format: date-time */
+            expiresAt?: string;
         };
         SwipeItem: {
             contentId?: string;
@@ -1236,6 +1292,7 @@ export interface components {
             nickname?: string;
             /** Format: date-time */
             joinedAt?: string;
+            isLeader?: boolean;
         };
         TravelLogDayResponse: {
             /** Format: int32 */
@@ -1257,6 +1314,8 @@ export interface components {
             duration?: string;
             /** Format: date */
             startDate?: string;
+            /** Format: date */
+            endDate?: string;
             isPublic?: boolean;
             thumbnailPhotoUrl?: string;
             /** Format: int32 */
@@ -1348,8 +1407,10 @@ export interface components {
             status?: string;
             /** Format: date */
             startAt?: string;
+            startTime?: string;
             /** Format: date */
             endAt?: string;
+            endTime?: string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -1447,6 +1508,9 @@ export interface components {
             };
             /** Format: int32 */
             totalVotes?: number;
+            confirmedPlan?: string;
+            /** Format: uuid */
+            itineraryId?: string;
         };
         DayInput: {
             /** Format: int32 */
@@ -1495,6 +1559,14 @@ export interface components {
             /** Format: uuid */
             voteSessionId?: string;
             plans?: components["schemas"]["ItineraryGenerateResponse"];
+            groupSummary?: components["schemas"]["GroupPreferenceSummary"];
+        };
+        GroupPreferenceSummary: {
+            /** Format: int32 */
+            participantCount?: number;
+            categoryCounts?: {
+                [key: string]: number;
+            };
         };
         ItineraryGenerateResponse: {
             planA?: components["schemas"]["PlanOption"];
@@ -1505,6 +1577,7 @@ export interface components {
             type?: string;
             label?: string;
             description?: string;
+            summaryReason?: string;
             days?: components["schemas"]["DayPlan"][];
         };
         SpotInfo: {
@@ -1519,6 +1592,7 @@ export interface components {
             address?: string;
             thumbnailUrl?: string;
             operatingHours?: string;
+            reasons?: string[];
         };
         SubPath: {
             type?: string;
@@ -1605,6 +1679,8 @@ export interface components {
         TokenResponse: {
             accessToken?: string;
             tokenType?: string;
+            /** Format: int64 */
+            expiresIn?: number;
         };
         ApiResponseVoid: {
             success?: boolean;
@@ -1619,7 +1695,13 @@ export interface components {
         KakaoLoginResponse: {
             accessToken?: string;
             tokenType?: string;
+            /** Format: int64 */
+            expiresIn?: number;
             isNewUser?: boolean;
+            /** Format: uuid */
+            userId?: string;
+            nickname?: string;
+            profileImageUrl?: string;
         };
         UpdateProfileRequest: {
             nickname?: string;
@@ -1714,6 +1796,14 @@ export interface components {
             /** Format: uuid */
             itineraryItemId?: string;
         };
+        ApiResponseNicknameAvailabilityResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["NicknameAvailabilityResponse"];
+        };
+        NicknameAvailabilityResponse: {
+            available?: boolean;
+        };
         ApiResponseInteger: {
             success?: boolean;
             message?: string;
@@ -1784,6 +1874,8 @@ export interface components {
             isPublic?: boolean;
             /** Format: date */
             startDate?: string;
+            /** Format: date */
+            endDate?: string;
             /** Format: int32 */
             totalSpots?: number;
             /** Format: int32 */
@@ -1819,9 +1911,17 @@ export interface components {
         ItinerarySummaryResponse: {
             /** Format: uuid */
             id?: string;
+            /** Format: uuid */
+            groupId?: string;
             title?: string;
             planType?: string;
             status?: string;
+            /** Format: date */
+            startAt?: string;
+            startTime?: string;
+            /** Format: date */
+            endAt?: string;
+            endTime?: string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -2467,6 +2567,28 @@ export interface operations {
             };
         };
     };
+    runTourApiOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+    };
     run: {
         parameters: {
             query?: never;
@@ -2881,6 +3003,28 @@ export interface operations {
             };
         };
     };
+    checkNicknameAvailability: {
+        parameters: {
+            query: {
+                nickname: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseNicknameAvailabilityResponse"];
+                };
+            };
+        };
+    };
     getBusArrival: {
         parameters: {
             query: {
@@ -3244,6 +3388,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["BookmarkListResponse"][];
+                };
+            };
+        };
+    };
+    tourApiOverviewStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: unknown;
+                    };
                 };
             };
         };
