@@ -100,7 +100,7 @@ export function TripSetupForm() {
   };
 
   return (
-    <div className="-mx-6 flex flex-col gap-7 rounded-tl-[40px] rounded-tr-[40px] bg-white px-8 pt-10 pb-6">
+    <div className="-mx-6 flex flex-col gap-6 rounded-tl-[40px] rounded-tr-[40px] bg-white px-8 pt-10 pb-6">
       {/* 여행명 */}
       <section>
         <div className="flex items-center gap-1.5 mb-[10px]">
