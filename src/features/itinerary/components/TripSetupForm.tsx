@@ -82,6 +82,7 @@ export function TripSetupForm() {
       const endDT = parseTripDateTime(endDate);
       const pad2 = (n: number) => String(n).padStart(2, "0");
       const params = new URLSearchParams({
+        role: "host",
         count: String(friendCount),
         days: String(getTotalDays()),
         groupId: group.id ?? "",
