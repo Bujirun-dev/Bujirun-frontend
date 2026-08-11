@@ -42,7 +42,7 @@ export function useSpotDetail(spotId: string | undefined, fallback: UseSpotDetai
   // collected가 아니라 북마크 목록에 현재 spotId가 있는지로 판단
   const isBookmarked = Boolean(spotId) && bookmarks.some((bookmark) => bookmark.spotId === spotId);
 
-  const { mutate: toggleBookmarkMutate, isPending: isBookmarkPending } = useMutation({
+  const { mutateAsync: toggleBookmarkMutateAsync, isPending: isBookmarkPending } = useMutation({
     mutationFn: () =>
       spotId
         ? isBookmarked
@@ -94,8 +94,8 @@ export function useSpotDetail(spotId: string | undefined, fallback: UseSpotDetai
     isLoading,
     isError,
     isBookmarked,
-    toggleBookmark: () => {
-      if (spotId && !isBookmarkPending) toggleBookmarkMutate();
+    toggleBookmark: async () => {
+      if (spotId && !isBookmarkPending) await toggleBookmarkMutateAsync();
     },
     relatedLogs,
   };

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { StaticImageData } from "next/image";
 import bookmarkOffIcon from "@/assets/icons/itinerary/bookmark-off.png";
 import bookmarkOnIcon from "@/assets/icons/itinerary/bookmark-on.png";
@@ -12,7 +12,7 @@ import feeIcon from "@/assets/icons/itinerary/fee.png";
 import kakaoMapIcon from "@/assets/icons/itinerary/kakaomap_horizontal_ko.png";
 import markerPinkIcon from "@/assets/icons/itinerary/marker-pink.png";
 import parkingIcon from "@/assets/icons/itinerary/parking.png";
-import { BackButton, Card, CategoryChip } from "@/components";
+import { BackButton, Card, CategoryChip, Toast } from "@/components";
 import type { Category } from "@/components";
 import { cn } from "@/shared/utils";
 
@@ -60,7 +60,7 @@ export interface PlaceDetailData {
 
 interface PlaceDetailContentProps {
   place: PlaceDetailData;
-  onBookmark?: () => void;
+  onBookmark?: () => void | Promise<void>;
   relatedLogs?: PlaceDetailRelatedLog[];
   onViewMoreLogs?: () => void;
   relatedLogsHref?: string;
@@ -94,7 +94,29 @@ export function PlaceDetailContent({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const nameRowRef = useRef<HTMLDivElement>(null);
   const [showStickyName, setShowStickyName] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [bookmarkToast, setBookmarkToast] = useState<{
+    message: string;
+    variant: "success" | "error";
+  } | null>(null);
   const headerHeight = compact ? 36 : 44;
+  const formattedDescription = formatDescription(description?.trim() || "등록된 내용이 없습니다.");
+  const canExpandDescription = formattedDescription.length > 80;
+  const hideBookmarkToast = useCallback(() => setBookmarkToast(null), []);
+
+  const handleBookmark = async () => {
+    const willAddBookmark = !isBookmarked;
+
+    try {
+      await onBookmark?.();
+      setBookmarkToast({
+        message: willAddBookmark ? "북마크에 추가했어요" : "북마크에서 삭제했어요",
+        variant: "success",
+      });
+    } catch {
+      setBookmarkToast({ message: "북마크 변경에 실패했어요", variant: "error" });
+    }
+  };
 
   // scrollTop/offsetTop 계산은 padding·offsetParent에 따라 어긋나기 쉬워서,
   // sticky 헤더 높이만큼 root를 줄인 IntersectionObserver로 "이름 줄이 헤더 밑으로
@@ -143,7 +165,7 @@ export function PlaceDetailContent({
         <button
           type="button"
           aria-label={isBookmarked ? "북마크 해제" : "북마크 추가"}
-          onClick={onBookmark}
+          onClick={handleBookmark}
           className="ml-2 shrink-0 active:opacity-70"
         >
           <Image
@@ -165,12 +187,22 @@ export function PlaceDetailContent({
         <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-xl")}>소개</h2>
         <p
           className={cn(
-            "whitespace-pre-line leading-loose tracking-wide text-text-primary",
-            compact ? "text-xs font-normal" : "text-md",
+            "whitespace-pre-line tracking-[0.015em] text-text-primary",
+            compact ? "text-xs font-normal leading-loose" : "text-md leading-[1.75]",
+            canExpandDescription && !isDescriptionExpanded && "line-clamp-3",
           )}
         >
-          {formatDescription(description?.trim() || "등록된 내용이 없습니다.")}
+          {formattedDescription}
         </p>
+        {canExpandDescription && (
+          <button
+            type="button"
+            onClick={() => setIsDescriptionExpanded((expanded) => !expanded)}
+            className="self-end text-xs font-semibold text-main-blue active:opacity-70"
+          >
+            {isDescriptionExpanded ? "접기" : "더보기"}
+          </button>
+        )}
       </section>
 
       <hr className="border-[0.3px] border-sub-lightgray" />
@@ -305,6 +337,15 @@ export function PlaceDetailContent({
     </div>
   );
 
+  const toast = bookmarkToast && (
+    <Toast
+      isVisible
+      message={bookmarkToast.message}
+      variant={bookmarkToast.variant}
+      onHide={hideBookmarkToast}
+    />
+  );
+
   const image = (
     <div
       className={cn(
@@ -320,6 +361,7 @@ export function PlaceDetailContent({
   if (onBack) {
     return (
       <div className="relative flex h-full flex-col">
+        {toast}
         <div
           className={cn(
             "absolute inset-x-0 top-0 z-20 flex shrink-0 items-center gap-3 bg-main-white",
@@ -356,6 +398,7 @@ export function PlaceDetailContent({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
+      {toast}
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
         {image}
         {nameRow}
