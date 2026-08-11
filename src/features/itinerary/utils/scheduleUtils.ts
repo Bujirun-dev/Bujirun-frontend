@@ -23,23 +23,14 @@ export type BaseStop = Omit<
   "onDelete" | "onClick" | "onTimeClick" | "onTimeConfirm" | "onTransportClick" | "onVerify"
 >;
 
-export function getTransportPointName(type: TransportType, placeName: string): string {
-  if (type === "버스") return `${placeName} 인근 정류장`;
-  if (type === "지하철") return `${placeName}역`;
-  return placeName;
-}
-
 // GET /api/logs/{id}(다른 사람의 여행 로그) 응답을 타임라인 UI가 쓰는 BaseStop[][]로
-// 변환한다. 실제 로그엔 spotId/주소/영업시간 같은 상세 정보가 없어서(스팟 이름만 내려옴)
-// mapItineraryDetailToDays와 동일하게 부족한 필드는 기본값으로 채운다.
-// spotByName: item.spotName → 실제 관광지 검색 결과. 로그 응답 자체엔 spotId가 없어서
-// (스팟 이름만 내려옴) 넘어오면 실제 스팟 정보(주소/썸네일/카테고리/북마크 여부)로 채우고,
-// 없으면(검색에서 못 찾은 극히 일부 경우만) 플레이스홀더로 대체한다. spotId가 있어야
-// REST addItem으로 DB에 실제 저장도 되므로, 매칭 자체가 지속성에도 필요하다.
-export function buildDaysFromTravelLogDetail(
-  log: TravelLogDetailResponse,
-  spotByName?: Map<string, SpotSearchResponse>,
-): {
+// 변환한다. 로그 응답의 각 항목엔 spotId/주소/카테고리/썸네일이 이미 내려오므로
+// (2026-07-23 백엔드에 추가됨) 그대로 사용한다 — 예전엔 spotId가 없어서 장소 이름으로
+// 관광지를 다시 검색해 매칭했었는데, 이름이 안 맞으면 엉뚱한 스팟에 매칭되거나 spotId가
+// 비어 REST addItem(=DB 저장) 자체가 안 되는 문제가 있어 제거함.
+// isBookmarked(북마크 여부)만 로그 응답에 없는 정보라 여기선 알 수 없음 — 일정에 저장된
+// 뒤 실제 일정 상세를 다시 불러오면(mapItineraryDetailToDays) 정확한 값으로 채워진다.
+export function buildDaysFromTravelLogDetail(log: TravelLogDetailResponse): {
   days: BaseStop[][];
   dates: string[];
 } {
@@ -52,47 +43,27 @@ export function buildDaysFromTravelLogDetail(
     const ids = items.map(() => nextTempStopId());
 
     return items.map((item, idx): BaseStop => {
-      const nextItem = items[idx + 1];
       const placeName = item.spotName ?? "장소 미정";
-      const nextPlaceName = nextItem?.spotName ?? "";
-      const transportType: TransportType = "버스";
       const representativePhoto =
         item.photos?.find((photo) => photo.representative)?.photoUrl ?? item.photos?.[0]?.photoUrl;
-      const matchedSpot = spotByName?.get(placeName);
-      const recommendedTransport = nextItem
-        ? {
-            from: placeName,
-            to: nextPlaceName,
-            durationMin: 30,
-            baseDurationMin: 30,
-            cost: 1500,
-            legs: [
-              {
-                type: transportType,
-                routeName: transportType,
-                from: getTransportPointName(transportType, placeName),
-                to: getTransportPointName(transportType, nextPlaceName),
-              },
-            ],
-            toStopId: ids[idx + 1],
-          }
-        : undefined;
 
       return {
         id: ids[idx],
-        spotId: matchedSpot?.spotId,
+        spotId: item.spotId,
         time: normalizeTime(item.arrivalTime, "10:00"),
         placeName,
-        imageUrl: matchedSpot?.thumbnailUrl || representativePhoto || FALLBACK_IMAGE,
-        category: getCategoryFromKo(matchedSpot?.category ?? item.spotCategory ?? "", placeName),
+        imageUrl: item.spotThumbnailUrl || representativePhoto || FALLBACK_IMAGE,
+        category: getCategoryFromKo(item.spotCategory ?? "", placeName),
         status: "verify",
         // description/운영시간/문의처는 TimelinePlaceDetailPopup이 spotId로 실제 데이터를
         // 조회해서 보여준다(useSpotDetail) — 여기서 가짜 문구로 채우지 않는다.
-        address: matchedSpot?.address ?? "부산광역시",
+        address: item.spotAddress ?? "부산광역시",
         mapUrl: `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,
-        isBookmarked: matchedSpot?.collected,
-        transport: recommendedTransport,
-        recommendedTransport,
+        isBookmarked: undefined,
+        // 여행 로그엔 실제 이동수단/경로 데이터가 없어서(스팟 이름·시간만 내려옴) "버스"로
+        // 지어내지 않는다. 일정에 반영된 뒤 최적화/이동수단 변경을 거치면 실제 값으로 채워진다.
+        transport: undefined,
+        recommendedTransport: undefined,
       };
     });
   });
@@ -157,6 +128,19 @@ function resolveTransportType(
   return travelMode ? API_TRAVEL_MODE_MAP[travelMode] : undefined;
 }
 
+// 버스/지하철은 실제 역명이 없으면 표시하지 않는다 — placeName으로 "OO역" 같은 이름을
+// 지어내면 실제로 존재하지 않는 역이 나올 수 있다(예: UN조각공원 → 실제로는 대연역인데
+// "UN조각공원역"이 표시되던 사건). 도보/택시는 애초에 역 개념이 없어 장소명을 그대로
+// 써도 지어낸 게 아니다.
+function hasDisplayableTransport(
+  type: TransportType,
+  startStationName?: string,
+  endStationName?: string,
+): boolean {
+  if (type !== "버스" && type !== "지하철") return true;
+  return Boolean(startStationName) && Boolean(endStationName);
+}
+
 interface TravelModeItemLike {
   travelMode?: string;
   travelTimeMin?: number;
@@ -179,9 +163,12 @@ export function buildTransportFromItem(
 ): BaseStop["transport"] {
   const transportType = resolveTransportType(item.routeType, item.travelMode);
   if (!transportType) return undefined;
+  if (!hasDisplayableTransport(transportType, item.startStationName, item.endStationName)) {
+    return undefined;
+  }
 
-  const from = item.startStationName || getTransportPointName(transportType, fromPlaceName);
-  const to = item.endStationName || getTransportPointName(transportType, toPlaceName);
+  const from = item.startStationName ?? fromPlaceName;
+  const to = item.endStationName ?? toPlaceName;
   const durationMin = item.travelTimeMin ?? fallbackDurationMin;
 
   return {
@@ -285,7 +272,9 @@ export function mapItineraryDetailToDays(
       // 그대로 반영한다.
       const transportType = resolveTransportType(nextItem?.routeType, nextItem?.travelMode);
       const recommendedTransport =
-        nextItem && transportType
+        nextItem &&
+        transportType &&
+        hasDisplayableTransport(transportType, nextItem.startStationName, nextItem.endStationName)
           ? {
               from: placeName,
               to: nextPlaceName,
@@ -297,10 +286,8 @@ export function mapItineraryDetailToDays(
                   // routeNo(버스번호/지하철 노선명)가 있으면 실제 값을, 없으면(도보/택시 등)
                   // 타입 이름 그대로 표시한다.
                   routeName: nextItem.routeNo || transportType,
-                  from:
-                    nextItem.startStationName || getTransportPointName(transportType, placeName),
-                  to:
-                    nextItem.endStationName || getTransportPointName(transportType, nextPlaceName),
+                  from: nextItem.startStationName ?? placeName,
+                  to: nextItem.endStationName ?? nextPlaceName,
                 },
               ],
               toStopId: nextStopId,
@@ -375,11 +362,13 @@ export function buildTransportOptions(activeStop: BaseStop | undefined): RouteOp
   const base = recommended?.baseDurationMin ?? activeStop?.transport?.baseDurationMin ?? 30;
   const f = recommended?.from ?? activeStop?.transport?.from ?? "";
   const t = recommended?.to ?? activeStop?.transport?.to ?? "";
-  const transitLegs = (recommended?.legs ?? []).filter(
-    (leg) => leg.type === "버스" || leg.type === "지하철",
-  );
+  // recommendedTransport(최초 추천)에 없으면 activeStop.transport(현재 확정값)에서도
+  // 찾는다 — 이미 지하철로 확정된 스팟을 다시 열었을 때도 실제 역명을 보여주기 위해.
+  const legsSource = recommended?.legs ?? activeStop?.transport?.legs ?? [];
+  const transitLegs = legsSource.filter((leg) => leg.type === "버스" || leg.type === "지하철");
+  const subwayLeg = transitLegs.find((leg) => leg.type === "지하철");
 
-  return [
+  const options: RouteOption[] = [
     {
       id: "transit",
       isRecommended: true,
@@ -390,19 +379,20 @@ export function buildTransportOptions(activeStop: BaseStop | undefined): RouteOp
           ? transitLegs
           : [{ type: "버스" as const, routeName: "버스", from: f, to: t }],
     },
-    {
+  ];
+
+  // 실제 지하철 구간 데이터가 있을 때만 카드로 보여준다 — 없으면 "OO역"처럼 역명을
+  // 지어내게 되므로 아예 옵션에서 뺀다.
+  if (subwayLeg) {
+    options.push({
       id: "subway",
       durationMin: Math.round(base * 0.85),
       cost: 1600,
-      legs: [
-        {
-          type: "지하철" as const,
-          routeName: "지하철",
-          from: getTransportPointName("지하철", f),
-          to: getTransportPointName("지하철", t),
-        },
-      ],
-    },
+      legs: [subwayLeg],
+    });
+  }
+
+  options.push(
     {
       id: "taxi",
       durationMin: Math.round(base * 0.6),
@@ -415,7 +405,9 @@ export function buildTransportOptions(activeStop: BaseStop | undefined): RouteOp
       cost: 0,
       legs: [{ type: "도보" as const, routeName: "도보", from: f, to: t }],
     },
-  ];
+  );
+
+  return options;
 }
 
 // buildTransportOptions()가 만드는 4개 옵션(transit/subway/taxi/walk) 중 이 스팟이

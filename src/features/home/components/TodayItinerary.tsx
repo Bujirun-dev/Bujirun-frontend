@@ -11,18 +11,93 @@ import { TransportSummaryCard } from "@/features/home/components/TransportSummar
 import { TransportDetailModal } from "@/features/home/components/TransportDetailModal";
 import { ArrivalVerifyModal } from "@/features/itinerary/components/ArrivalVerifyModal";
 import { openKakaoMapRoute } from "@/features/itinerary/components/TransportSelectSheet";
-import {
-  DEFAULT_TRANSPORT_GROUP,
-  findTransportGroupByPlaces,
-  getSelectedTransportOption,
-} from "@/features/home/data/sampleTransport";
-import type { TransportGroup, TransportOption } from "@/features/home/types/transport";
+import { getSelectedTransportOption } from "@/features/home/data/sampleTransport";
+import type {
+  TransportGroup,
+  TransportOption,
+  TransportStep,
+} from "@/features/home/types/transport";
+import type { TransportType } from "@/features/home/components/TransportIcons";
 
 const getTransportRouteKey = (transportGroup: TransportGroup) =>
   `${transportGroup.fromPlace}-${transportGroup.toPlace}`;
 
 function formatDate(date: string) {
   return date.replaceAll("-", ".");
+}
+
+// 모달이 닫혀있을 때 TransportDetailModal의 non-null prop을 채우기 위한 빈 값.
+// 실제로 화면에 보이지 않으므로 내용은 의미 없다.
+const EMPTY_TRANSPORT_GROUP: TransportGroup = {
+  fromPlace: "",
+  toPlace: "",
+  selectedOptionId: "actual",
+  options: [],
+};
+
+interface TransitLegSource {
+  travelMode?: string;
+  travelTimeMin?: number;
+  routeType?: string;
+  routeNo?: string;
+  startStationName?: string;
+  endStationName?: string;
+  startArsId?: string;
+}
+
+// routeType(ODsay 원본 한글값)을 우선 쓰고, 없으면 travelMode(walk/transit/taxi)로부터 추정한다.
+// 어느 쪽도 없으면(도보/택시 여부조차 알 수 없음) null — 이 경우 화면엔 "교통정보 없음"으로 표시한다.
+function resolveTransportType(leg?: TransitLegSource): TransportType | null {
+  if (
+    leg?.routeType === "버스" ||
+    leg?.routeType === "지하철" ||
+    leg?.routeType === "도보" ||
+    leg?.routeType === "택시"
+  ) {
+    return leg.routeType;
+  }
+  if (leg?.travelMode === "walk") return "도보";
+  if (leg?.travelMode === "taxi") return "택시";
+  if (leg?.travelMode === "transit") return "버스";
+  return null;
+}
+
+// 두 스팟 사이의 실제 이동 정보(백엔드가 ODsay로 계산해 저장한 값)로 TransportGroup을 만든다.
+// 도착 스팟(nextPlan) 쪽에 이전 스팟까지의 구간 정보가 저장되어 있다.
+// 저장된 값이 없으면 null을 반환해 "교통정보 없음"으로 표시하고, 가짜 역명을 보여주지 않는다.
+function buildTransportGroup(
+  fromPlace: string,
+  toPlace: string,
+  leg?: TransitLegSource,
+): TransportGroup | null {
+  const type = resolveTransportType(leg);
+  if (!type) return null;
+
+  const routeName = type === "도보" || type === "택시" ? type : (leg?.routeNo ?? type);
+
+  const step: TransportStep = {
+    type,
+    routeName,
+    from: leg?.startStationName ?? fromPlace,
+    to: leg?.endStationName ?? toPlace,
+    arsId: leg?.startArsId,
+    routeNo: leg?.routeNo,
+  };
+
+  const option: TransportOption = {
+    id: "actual",
+    durationText: leg?.travelTimeMin != null ? `${leg.travelTimeMin}분` : "-",
+    costText: "-",
+    isRecommended: true,
+    steps: [step],
+  };
+
+  return {
+    fromPlace,
+    toPlace,
+    selectedOptionId: "actual",
+    options: [option],
+  };
 }
 
 export function TodayItinerary() {
@@ -144,18 +219,10 @@ export function TodayItinerary() {
           const isVisited = plan.spot?.visited ?? false;
           const nextPlan = plans[index + 1];
           const nextPlaceName = nextPlan?.spot?.name;
-          const matchedTransportGroup = nextPlaceName
-            ? findTransportGroupByPlaces(placeName, nextPlaceName)
-            : null;
 
-          // TODO: 교통수단 API 연동 전 임시 처리
-          // 샘플 데이터에 현재 장소 조합이 없어도 일정 사이에 교통수단 카드를 표시한다.
+          // 이동 정보는 도착 스팟(nextPlan)에 저장된 실제 값을 그대로 쓴다.
           const transportGroup = nextPlaceName
-            ? (matchedTransportGroup ?? {
-                ...DEFAULT_TRANSPORT_GROUP,
-                fromPlace: placeName,
-                toPlace: nextPlaceName,
-              })
+            ? buildTransportGroup(placeName, nextPlaceName, nextPlan)
             : null;
           const selectedOptionId = transportGroup
             ? (selectedOptionIdByRoute[getTransportRouteKey(transportGroup)] ??
@@ -188,7 +255,7 @@ export function TodayItinerary() {
 
                 <div className="min-w-0 flex-1">
                   <p className="leading-4 text-md font-medium text-text-primary">{placeName}</p>
-                  {transportGroup && selectedOption && (
+                  {transportGroup && selectedOption ? (
                     <button
                       type="button"
                       className="my-3 w-full text-left"
@@ -196,6 +263,8 @@ export function TodayItinerary() {
                     >
                       <TransportSummaryCard {...selectedOption} />
                     </button>
+                  ) : (
+                    nextPlaceName && <p className="my-3 text-sm text-sub-darkgray">교통정보 없음</p>
                   )}
                 </div>
               </div>
@@ -225,12 +294,12 @@ export function TodayItinerary() {
 
       <TransportDetailModal
         isOpen={selectedTransportGroup !== null}
-        transportGroup={selectedTransportGroup ?? DEFAULT_TRANSPORT_GROUP}
+        transportGroup={selectedTransportGroup ?? EMPTY_TRANSPORT_GROUP}
         selectedOptionId={
           selectedTransportGroup
             ? (selectedOptionIdByRoute[getTransportRouteKey(selectedTransportGroup)] ??
               selectedTransportGroup.selectedOptionId)
-            : DEFAULT_TRANSPORT_GROUP.selectedOptionId
+            : EMPTY_TRANSPORT_GROUP.selectedOptionId
         }
         onClose={closeTransportModal}
         onChange={handleChangeTransportOption}

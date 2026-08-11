@@ -32,6 +32,7 @@ export function convertTripLogToReceipt(
   tripLog: TravelLogDetail,
   currentUserId: string,
   traveler: string,
+  profileImage: ReceiptData["profileImage"],
 ): ReceiptData {
   const startDate = tripLog.startDate ?? "";
   const lastDay = tripLog.days?.at(-1);
@@ -47,7 +48,7 @@ export function convertTripLogToReceipt(
     tripId: tripLog.id ?? "",
     traveler,
     title: tripLog.title ?? "여행 기록",
-    profileImage: tripLog.thumbnailPhotoUrl ?? "",
+    profileImage,
     period: {
       startDate: formatDateWithDots(startDate),
       endDate: formatDateWithDots(endDate),

@@ -150,8 +150,7 @@ export function MypageProfile() {
                 alt={`${nickname} 프로필 이미지`}
                 fill
                 sizes="100px"
-                // 셀렉터와 동일한 크롭 기준
-                className="object-cover scale-125 origin-[center_25%]"
+                className="object-cover scale-[1.27] origin-[center_10%]"
               />
             </div>
             <button
