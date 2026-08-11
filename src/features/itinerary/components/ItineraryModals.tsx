@@ -16,13 +16,7 @@ import type { BaseStop } from "../utils/scheduleUtils";
 import { buildTransportOptions } from "../utils/scheduleUtils";
 
 export type ModalType =
-  | "optimize"
-  | "optimizing"
-  | "delete"
-  | "time"
-  | "transport"
-  | "verify"
-  | "peerUpdate";
+  "optimize" | "optimizing" | "delete" | "time" | "transport" | "verify" | "peerUpdate";
 
 interface ItineraryModalsProps {
   modal: ModalType | null;

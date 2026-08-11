@@ -93,9 +93,7 @@ function selectItinerary<T extends ItinerarySummaryForSelection>(
   );
 
   if (ongoingToday.length > 0) {
-    const lastViewed = ongoingToday.find(
-      (itinerary) => itinerary.id === lastViewedItineraryId,
-    );
+    const lastViewed = ongoingToday.find((itinerary) => itinerary.id === lastViewedItineraryId);
     if (lastViewed) return lastViewed;
   }
 
