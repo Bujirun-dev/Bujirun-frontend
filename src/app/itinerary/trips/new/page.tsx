@@ -7,11 +7,10 @@ import { StaircaseGlassCard } from "@/components";
 
 export default function TripNewPage() {
   return (
-    <div className="flex h-full flex-col">
-      {/* min-h-[170px](말풍선+문구가 겹치지 않을 최소 높이)+flex-1로 카드 바로 위까지
-          늘어나서, 캐릭터가 항상 카드 상단에 붙어있게 한다. 폼 카드(TripSetupForm)는
-          내용 높이 그대로고, 남는 공간은 전부 이 캐릭터 영역이 흡수한다. */}
-      <div className="relative min-h-[170px] flex-1">
+    <div className="min-h-full">
+      {/* 한 화면 안에 폼까지 억지로 맞추지 않고 상단 비주얼 높이를 유지한다.
+          전체 콘텐츠가 뷰포트보다 길어지면 AppShell의 메인 영역이 자연스럽게 스크롤된다. */}
+      <div className="relative h-[300px]">
         <div className="absolute left-1/2 top-0 -translate-x-1/2">
           <StaircaseGlassCard line1="친구와 함께" line2="부산으로 떠나볼까요?" />
         </div>
