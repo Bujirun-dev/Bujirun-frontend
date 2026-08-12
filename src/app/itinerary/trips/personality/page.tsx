@@ -43,6 +43,7 @@ function TripPersonalityContent() {
   const totalSlots = Math.min(6, Math.max(2, Number(searchParams.get("count")) || TOTAL_SLOTS));
   const days = searchParams.get("days") ?? "1";
   const groupId = searchParams.get("groupId") ?? "";
+  const isGuest = searchParams.get("role") === "guest";
   const forwardParams = new URLSearchParams({
     count: String(totalSlots),
     days,
@@ -56,6 +57,7 @@ function TripPersonalityContent() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showExitWarning, setShowExitWarning] = useState(isGuest);
 
   // "난 다 좋아"도 실제 스와이프처럼 서버에 좋아요 기록을 남겨야 그룹 일정
   // 자동생성이 취합할 스와이프 데이터가 생긴다 (안 보내면 백엔드 generate가 500).
@@ -158,6 +160,14 @@ function TripPersonalityContent() {
         onHide={() => setToastMessage(null)}
         message={toastMessage ?? ""}
         variant="error"
+      />
+      <Toast
+        isVisible={showExitWarning}
+        onHide={() => setShowExitWarning(false)}
+        message="중간에 나가면 참여 정보가 초기화될 수 있어요"
+        variant="warning"
+        duration={4000}
+        className="!w-[330px]"
       />
     </div>
   );

@@ -29,13 +29,33 @@ export function ShareInviteModal({
   imageUrl,
   inviteUrl,
 }: ShareInviteModalProps) {
-  const [copied, setCopied] = useState(false);
+  const [toast, setToast] = useState<{ message: string; variant: "success" | "error" } | null>(
+    null,
+  );
 
-  const handleCopyLink = async () => {
-    await navigator.clipboard.writeText(inviteUrl);
-    setCopied(true);
-    onClose();
+  const copyInviteUrl = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(inviteUrl);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = inviteUrl;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        const copied = document.execCommand("copy");
+        textarea.remove();
+        if (!copied) throw new Error("copy failed");
+      }
+      setToast({ message: "링크가 복사되었어요!", variant: "success" });
+      onClose();
+    } catch {
+      setToast({ message: "링크를 복사하지 못했어요.", variant: "error" });
+    }
   };
+
+  const handleCopyLink = () => void copyInviteUrl();
 
   const handleKakaoShare = () => {
     const shared = shareInviteLink({ title, description, imageUrl, inviteUrl });
@@ -44,7 +64,7 @@ export function ShareInviteModal({
       return;
     }
     // 카카오톡 공유 설정 전이면 링크 복사로 대체
-    handleCopyLink();
+    void copyInviteUrl();
   };
 
   return (
@@ -90,7 +110,12 @@ export function ShareInviteModal({
         </div>
       </Modal>
 
-      <Toast isVisible={copied} message="링크가 복사되었어요 !" onHide={() => setCopied(false)} />
+      <Toast
+        isVisible={toast !== null}
+        message={toast?.message ?? ""}
+        variant={toast?.variant}
+        onHide={() => setToast(null)}
+      />
     </>
   );
 }

@@ -5,15 +5,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/shared/utils";
-import {
-  Card,
-  CategoryChip,
-  Modal,
-  SpeechBubble,
-  Toast,
-  LoadingState,
-  ErrorState,
-} from "@/components";
+import { Card, Modal, SpeechBubble, Toast, LoadingState, ErrorState } from "@/components";
 import checkIcon from "@/assets/icons/itinerary/check.png";
 import infoIcon from "@/assets/icons/itinerary/info.png";
 import freepassBlueIcon from "@/assets/icons/itinerary/freepass-blue.png";
@@ -21,7 +13,6 @@ import flagImg from "@/assets/place/flag.png";
 import houseImg from "@/assets/place/house.png";
 import busanStationImg from "@/assets/place/busan-station.png";
 import mapCharacterImg from "@/assets/character/map.png";
-import type { Category } from "@/components/ui/CategoryChip";
 import { itineraryApi } from "@/shared/api/domains";
 import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
 import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
@@ -29,41 +20,6 @@ import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
 import { useConfirmedItineraryWatcher } from "@/features/itinerary/hooks/useConfirmedItineraryWatcher";
 import type { components } from "@/shared/api/schema";
-
-type GroupItineraryGenerateResponse = components["schemas"]["GroupItineraryGenerateResponse"];
-
-// TODO: 백엔드 category 응답이 "바다"|"자연"|"문화"|"체험"으로 통일되면 단순화
-function toCategory(value?: string): Category {
-  if (!value) return "nature";
-  if (value.includes("바다") || value.includes("해수욕")) return "sea";
-  if (value.includes("자연")) return "nature";
-  if (value.includes("문화") || value.includes("역사")) return "culture";
-  if (value.includes("체험") || value.includes("놀이")) return "experience";
-  return "nature";
-}
-
-// 그룹 공통 취향을 직접 내려주는 API가 없어서, 생성된 A/B/C안에 실제로 포함된
-// 관광지 카테고리를 집계해 가장 많이 나온 3개를 뽑는다 (플랜끼리 겹치는 스팟은 한 번만 센다).
-function computeCommonCategories(generated?: GroupItineraryGenerateResponse): Category[] {
-  const seenSpotIds = new Set<string>();
-  const counts = new Map<Category, number>();
-  const plans = [generated?.plans?.planA, generated?.plans?.planB, generated?.plans?.planC];
-
-  plans.forEach((plan) => {
-    plan?.days?.forEach((day) => {
-      day.spots?.forEach((spot) => {
-        const key = spot.contentId ?? spot.name;
-        if (!key || seenSpotIds.has(key)) return;
-        seenSpotIds.add(key);
-        const category = toCategory(spot.category);
-        counts.set(category, (counts.get(category) ?? 0) + 1);
-      });
-    });
-  });
-
-  const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([category]) => category);
-  return ranked.length > 0 ? ranked.slice(0, 3) : ["sea", "culture", "nature"];
-}
 
 const PLAN_LABELS: Record<string, string> = {
   A: "취향 집중형",
@@ -234,7 +190,6 @@ function TripResultContent() {
   // 있는 내 일정 목록을 우회 폴링해서 참여자가 확실히 넘어가도록 안전망을 둔다.
   const confirmedItinerary = useConfirmedItineraryWatcher(tripName, !!sessionId && !isHost);
 
-  const commonCategories = computeCommonCategories(generated);
   const forwardParams = new URLSearchParams({
     count,
     days: String(totalDays),
@@ -376,19 +331,12 @@ function TripResultContent() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* 공통 취향 glass 카드 — 레이아웃(AppShell) 상단 패딩(pt-6) 위에 또 pt-4가
-          중복으로 붙어있어서 상단 간격이 과하게 넓던 문제 수정 */}
+      {/* 추천 이유 glass 카드 */}
       <div className="shrink-0 pb-[30px]">
-        <div className="w-full rounded-[20px] border border-system-navbg bg-gradient-to-b from-system-glassfrom to-system-glassto px-[24px] py-[28px] backdrop-blur-[15px] flex flex-col items-center gap-2.5">
-          <p className="font-ssurround font-bold text-lg text-text-heading text-center">
-            우리의 공통 취향은...
-          </p>
-          <div className="flex items-center gap-2">
-            {commonCategories.map((cat) => (
-              <CategoryChip key={cat} category={cat} size="lg" />
-            ))}
-          </div>
-        </div>
+        <div
+          aria-hidden="true"
+          className="h-[100px] w-full rounded-[20px] border border-system-navbg bg-gradient-to-b from-system-glassfrom to-system-glassto backdrop-blur-[15px]"
+        />
       </div>
 
       {/* 투표 섹션 - PageCard 스타일 */}

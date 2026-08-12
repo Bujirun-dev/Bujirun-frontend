@@ -82,6 +82,7 @@ export function TripSetupForm() {
       const endDT = parseTripDateTime(endDate);
       const pad2 = (n: number) => String(n).padStart(2, "0");
       const params = new URLSearchParams({
+        role: "host",
         count: String(friendCount),
         days: String(getTotalDays()),
         groupId: group.id ?? "",
@@ -99,7 +100,7 @@ export function TripSetupForm() {
   };
 
   return (
-    <div className="-mx-6 flex shrink-0 flex-col gap-5 rounded-tl-[40px] rounded-tr-[40px] bg-white px-8 pt-10 pb-6">
+    <div className="-mx-6 flex flex-col gap-6 rounded-tl-[40px] rounded-tr-[40px] bg-white px-8 pt-10 pb-6">
       {/* 여행명 */}
       <section>
         <div className="flex items-center gap-1.5 mb-[10px]">
@@ -148,7 +149,7 @@ export function TripSetupForm() {
       </section>
 
       {/* 여행기간 */}
-      <section className="-mt-1">
+      <section>
         <div className="flex items-center gap-1.5 mb-[10px]">
           <CalendarIcon width={14} height={14} aria-hidden />
           <span className="font-ssurround font-bold text-md text-text-heading">여행기간</span>
@@ -189,7 +190,7 @@ export function TripSetupForm() {
       </section>
 
       {/* 친구 수 */}
-      <section className="mt-1 flex items-center justify-between">
+      <section className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <FriendsIcon width={14} height={14} aria-hidden />
           <span className="font-ssurround font-bold text-md text-text-heading">친구 수</span>
@@ -203,7 +204,7 @@ export function TripSetupForm() {
         onClick={handleInvite}
         disabled={!isNameValid || isCreating}
         className={cn(
-          "mt-1 h-[40px] w-full rounded-[10px] font-ssurround font-bold text-sm transition-colors",
+          "h-[40px] w-full rounded-[10px] font-ssurround font-bold text-sm transition-colors",
           isNameValid
             ? "bg-main-blue text-white active:opacity-80"
             : "border-2 border-main-blue text-main-blue bg-transparent",

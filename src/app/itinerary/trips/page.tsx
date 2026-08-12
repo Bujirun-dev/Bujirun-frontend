@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import plusSmallIcon from "@/assets/icons/itinerary/plus-small.svg?url";
 import { PageCard, Toast, EmptyState, LoadingState } from "@/components";
 import { TripCard, TripEditModal, TripDeleteModal, TripDeleteToast } from "@/features/itinerary";
@@ -29,7 +29,7 @@ export default function TripsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [modal, setModal] = useState<ModalState>(null);
-  const [showDeleteToast, setShowDeleteToast] = useState(false);
+  const [completedAction, setCompletedAction] = useState<"delete" | "leave" | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { data: summaries, isLoading } = useQuery({
@@ -37,25 +37,13 @@ export default function TripsPage() {
     queryFn: itineraryApi.getItineraries,
   });
 
-  // 목록 API엔 여행 기간이 없어서, 카드에 표시할 기간은 상세 조회로 보충한다.
-  const detailQueries = useQueries({
-    queries: (summaries ?? []).map((s) => ({
-      queryKey: itineraryApi.keys.detail(s.id ?? ""),
-      queryFn: () => itineraryApi.getItinerary(s.id as string),
-      enabled: !!s.id,
-    })),
-  });
-
-  const trips: Trip[] = (summaries ?? []).map((s, idx) => {
-    const detail = detailQueries[idx]?.data;
-    return {
-      id: s.id ?? "",
-      name: s.title ?? "제목 없음",
-      startDate: toTripDate(detail?.startAt),
-      endDate: toTripDate(detail?.endAt),
-      groupId: detail?.groupId,
-    };
-  });
+  const trips: Trip[] = (summaries ?? []).map((summary) => ({
+    id: summary.id ?? "",
+    name: summary.title ?? "제목 없음",
+    startDate: toTripDate(summary.startAt),
+    endDate: toTripDate(summary.endAt),
+    groupId: summary.groupId,
+  }));
 
   const invalidateTrips = () => {
     queryClient.invalidateQueries({ queryKey: itineraryApi.keys.all });
@@ -108,17 +96,23 @@ export default function TripsPage() {
     const { id: tripId, groupId } = modal.trip;
     setModal(null);
     try {
-      // 그룹 일정은 삭제 대신 나가기로 처리해야 하지만(그룹 일정을 실제로
-      // 삭제하면 다른 참여자의 일정까지 사라짐), 사용자에게는 두 경우 모두
-      // 동일하게 "여행 삭제"로 보여준다.
+      // 그룹 일정은 다른 참여자의 일정에 영향을 주지 않도록 삭제가 아닌 나가기로 처리한다.
       if (groupId) {
         await itineraryApi.leaveItinerary(tripId);
+        setCompletedAction("leave");
       } else {
         await itineraryApi.deleteItinerary(tripId);
+        setCompletedAction("delete");
       }
-      setShowDeleteToast(true);
     } catch (error) {
-      setErrorMessage(getErrorMessage(error, "여행 삭제에 실패했어요. 다시 시도해주세요."));
+      setErrorMessage(
+        getErrorMessage(
+          error,
+          groupId
+            ? "여행 일정에서 나가지 못했어요. 다시 시도해주세요."
+            : "여행 삭제에 실패했어요. 다시 시도해주세요.",
+        ),
+      );
     } finally {
       invalidateTrips();
     }
@@ -189,13 +183,14 @@ export default function TripsPage() {
         <TripDeleteModal
           isOpen
           tripName={modal.trip.name}
+          isGroupTrip={Boolean(modal.trip.groupId)}
           onClose={closeModal}
           onConfirm={handleDeleteConfirm}
         />
       )}
 
       {/* 삭제 토스트 */}
-      <TripDeleteToast isVisible={showDeleteToast} onHide={() => setShowDeleteToast(false)} />
+      <TripDeleteToast action={completedAction} onHide={() => setCompletedAction(null)} />
 
       <Toast
         isVisible={errorMessage !== null}
