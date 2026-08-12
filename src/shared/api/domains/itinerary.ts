@@ -84,6 +84,16 @@ export function deleteItem(itineraryId: string, dayId: string, itemId: string) {
   return apiClient.delete(`/api/itineraries/${itineraryId}/days/${dayId}/items/${itemId}`);
 }
 
+// 일차(day)에 속한 방문 항목 전체의 순서를 한 번에 원자적으로 반영한다. itemIds는 그 일차에
+// 존재하는 항목 id 전체를 원하는 순서대로 담아야 한다(부분 목록 불가) — 항목별 updateItem
+// PATCH로 순서를 나눠 반영하면 동시편집 중 서로 다른 클라이언트의 갱신이 뒤섞여 order_index가
+// 충돌할 수 있어서(2026-08-12 프로덕션에서 실제 발견) 도입됨. 백엔드 배포 직후라 아직
+// `npm run api:types`로 스키마가 재생성되지 않아 body 타입은 수동으로 선언(추후 codegen 후
+// OpBody<"reorderItems">로 교체 가능).
+export function reorderItems(itineraryId: string, dayId: string, itemIds: string[]) {
+  return apiClient.patch(`/api/itineraries/${itineraryId}/days/${dayId}/items/order`, { itemIds });
+}
+
 // 사용자가 이동수단을 직접 선택했을 때 실제 경로(역명/노선번호 등)를 재계산해서 돌려받는다.
 export function updateTravelMode(
   itineraryId: string,
