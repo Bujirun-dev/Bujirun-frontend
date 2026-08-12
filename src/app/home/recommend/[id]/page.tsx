@@ -127,7 +127,7 @@ export default function RecommendedPlaceDetailPage({
         place={{
           imageUrl: spot.thumbnailUrl ?? `https://picsum.photos/seed/${id}/400/300`,
           name: spot.name,
-          category: toCategory(spot.category, spot.name),
+          category: toCategory(spot.collectionCategory, spot.name),
           description: spot.overview ?? "",
           address: spot.address ?? "",
           isBookmarked,

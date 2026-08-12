@@ -29,7 +29,7 @@ export default function CollectionPage() {
       return true;
     }
 
-    return spot.category === selectedCategory;
+    return spot.collectionCategory === selectedCategory;
   });
 
   const handleRecordClick = () => {
@@ -152,7 +152,7 @@ export default function CollectionPage() {
           <div key={spot.spotId} className="flex items-center justify-between px-5 py-4">
             <div>
               <p className="font-medium text-text-heading">{spot.name}</p>
-              <p className="mt-1 text-sm text-sub-gray">{spot.category}</p>
+              <p className="mt-1 text-sm text-sub-gray">{spot.collectionCategory}</p>
             </div>
 
             <span className={spot.collected ? "font-semibold text-main-blue" : "text-sub-gray"}>
