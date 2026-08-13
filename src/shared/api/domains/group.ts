@@ -37,8 +37,8 @@ export function getGroupMembers(groupId: string) {
 
 export function previewInvite(inviteCode: string) {
   return apiClient
-    .get<{ data?: GroupInvitePreview }>(
-      `/api/groups/invites/${encodeURIComponent(inviteCode)}/preview`,
-    )
+    .get<{
+      data?: GroupInvitePreview;
+    }>(`/api/groups/invites/${encodeURIComponent(inviteCode)}/preview`)
     .then((res) => unwrap(res));
 }
