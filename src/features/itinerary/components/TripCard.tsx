@@ -34,7 +34,10 @@ export function TripCard({ trip, onSelect, onEdit, onDelete }: TripCardProps) {
         <Image src={bagIcon} alt="" width={14} height={14} aria-hidden />
         <div className="flex flex-col gap-1">
           <span className="font-bold text-md text-text-heading leading-none">{name}</span>
-          <span className="font-medium text-xs text-sub-gray leading-none">
+          <span
+            key={`${startDate}-${endDate}`}
+            className="font-medium text-xs text-sub-gray leading-none animate-fade-in"
+          >
             {getDateOnly(startDate)} - {getDateOnly(endDate)}
           </span>
         </div>

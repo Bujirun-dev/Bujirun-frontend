@@ -75,11 +75,22 @@ export default function TripsPage() {
   const handleEditConfirm = useCallback(
     async (updated: Trip) => {
       setModal(null);
+      const startAt = toApiDate(updated.startDate);
+      const endAt = toApiDate(updated.endDate);
+
+      // 네트워크 응답을 기다리지 않고 목록에 바로 반영 — 실패하면 finally의 invalidate가
+      // 서버 값으로 다시 맞춰준다.
+      queryClient.setQueryData<typeof summaries>(itineraryApi.keys.lists(), (prev) =>
+        prev?.map((summary) =>
+          summary.id === updated.id ? { ...summary, title: updated.name, startAt, endAt } : summary,
+        ),
+      );
+
       try {
         await itineraryApi.updateItinerary(updated.id, {
           title: updated.name,
-          startAt: toApiDate(updated.startDate),
-          endAt: toApiDate(updated.endDate),
+          startAt,
+          endAt,
         });
       } catch (error) {
         setErrorMessage(getErrorMessage(error, "여행 수정에 실패했어요. 다시 시도해주세요."));
