@@ -3,8 +3,6 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { spotApi } from "@/shared/api/domains";
 import turtleIcon from "@/assets/icons/collection/turtle.png";
 import { Card, SpeechBubble } from "@/components";
 import { FilterChips } from "@/components/ui/FilterChips";
@@ -12,13 +10,16 @@ import { VendingMachine } from "@/features/collection/components/VendingMachine"
 import { useCollectionProgress } from "@/shared/hooks/useCollectionProgress";
 export default function CollectionPage() {
   const router = useRouter();
-  const { data: spots = [] } = useQuery({
-    queryKey: ["spots", "search"],
-    queryFn: () => spotApi.searchSpots(),
-  });
+
   const CATEGORY_OPTIONS = ["전체", "바다", "자연", "문화", "체험"] as const;
   const [selectedCategory, setSelectedCategory] =
     useState<(typeof CATEGORY_OPTIONS)[number]>("전체");
+
+  const handleRecordClick = () => {
+    router.push("/collection/records");
+  };
+
+  const { spots, total, count, categoryProgress } = useCollectionProgress();
 
   const collectionSpots = spots.filter((spot) => {
     if (!spot.isCollection) return false;
@@ -26,12 +27,6 @@ export default function CollectionPage() {
 
     return spot.collectionCategory === selectedCategory;
   });
-
-  const handleRecordClick = () => {
-    router.push("/collection/records");
-  };
-
-  const { total, count, categoryProgress } = useCollectionProgress();
 
   const totalCollectionCount =
     selectedCategory === "전체" ? total : (categoryProgress[selectedCategory]?.total ?? 0);
