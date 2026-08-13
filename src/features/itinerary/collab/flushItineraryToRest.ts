@@ -77,7 +77,11 @@ export async function flushDayToRest(
 
     try {
       await itineraryApi.updateItem(itineraryId, dayId, stop.id, { arrivalTime: stop.time });
-      snapshot.set(stop.id, { spotId: stop.spotId, time: stop.time, orderIndex: prev?.orderIndex ?? index });
+      snapshot.set(stop.id, {
+        spotId: stop.spotId,
+        time: stop.time,
+        orderIndex: prev?.orderIndex ?? index,
+      });
     } catch {
       // 다음 flush 시점에 재시도됨
     }
