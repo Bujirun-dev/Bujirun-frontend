@@ -318,9 +318,21 @@ export function mapItineraryDetailToDays(
     });
   });
 
-  const dates = sortedDays.map((day) => {
-    if (!day.date) return "";
-    const [year, month, dayNum] = day.date.split("-");
+  const dates = sortedDays.map((day, dayIdx) => {
+    let date = day.date;
+    if (!date && detail.startAt) {
+      const [year, month, dayNum] = detail.startAt.split("-").map(Number);
+      if (year && month && dayNum) {
+        const fallbackDate = new Date(year, month - 1, dayNum + dayIdx);
+        date = [
+          fallbackDate.getFullYear(),
+          String(fallbackDate.getMonth() + 1).padStart(2, "0"),
+          String(fallbackDate.getDate()).padStart(2, "0"),
+        ].join("-");
+      }
+    }
+    if (!date) return "";
+    const [year, month, dayNum] = date.split("-");
     return `${year}.${month}.${dayNum}`;
   });
 

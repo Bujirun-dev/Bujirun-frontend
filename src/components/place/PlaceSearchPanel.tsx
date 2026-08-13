@@ -228,7 +228,9 @@ export function PlaceSearchPanel({
           <button
             key={opt}
             onClick={() => {
+              if (opt === sortBy) return;
               setSortBy(opt);
+              setSearchValue("");
               setCategoryFilter("all");
               if (opt === "이름순") setTimeout(() => scrollToSection("ㄱ"), 0);
             }}

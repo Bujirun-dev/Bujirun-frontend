@@ -40,3 +40,4 @@ export type { ErrorStateCode } from "./ui/ErrorState";
 export { PlaceSearchPanel } from "./place/PlaceSearchPanel";
 export type { SearchPlace, PlaceSearchState } from "./place/PlaceSearchPanel";
 export { PlaceSearchItem } from "./place/PlaceSearchItem";
+export { LoadingModal } from "./ui/LoadingModal";
