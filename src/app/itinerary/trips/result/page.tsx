@@ -14,7 +14,7 @@ import houseImg from "@/assets/place/house.png";
 import busanStationImg from "@/assets/place/busan-station.png";
 import mapCharacterImg from "@/assets/character/map.png";
 import { itineraryApi } from "@/shared/api/domains";
-import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
+import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
@@ -65,7 +65,7 @@ function mapPlanOption(planId: string, plan?: PlanOption): Plan {
       places: (d.spots ?? []).map((s, j) => ({
         id: s.contentId ?? `${planId}-${i}-${j}`,
         name: s.name ?? "",
-        image: s.thumbnailUrl || FALLBACK_IMAGE,
+        image: s.thumbnailUrl || getFallbackImage(s.contentId),
       })),
     })),
   };

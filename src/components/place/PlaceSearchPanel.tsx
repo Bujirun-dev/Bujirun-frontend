@@ -13,7 +13,7 @@ import { cn } from "@/shared/utils";
 import { spotApi } from "@/shared/api/domains";
 import { getCategoryFromKo, CATEGORY_LABEL_KO } from "@/shared/constants/category";
 import type { SpotSearchCategory } from "@/shared/constants/category";
-import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
+import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 
 type SortOption = "추천순" | "이름순";
 type CategoryFilter = SpotSearchCategory | "all";
@@ -173,7 +173,7 @@ export function PlaceSearchPanel({
     category: getCategoryFromKo(spot.category ?? "", spot.name),
     // 도감에 없는 관광지(isCollection: false)는 수집 여부 배지를 아예 안 보여준다.
     status: spot.isCollection ? (spot.collected ? "completed" : "uncollected") : undefined,
-    imageUrl: spot.thumbnailUrl || FALLBACK_IMAGE,
+    imageUrl: spot.thumbnailUrl || getFallbackImage(spot.spotId ?? spot.name),
   }));
 
   const filtered: SearchPlace[] =
