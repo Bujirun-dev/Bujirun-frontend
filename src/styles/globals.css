@@ -188,6 +188,17 @@
   --color-toast-default: #999999;
   --color-toastbg-default: #f5f5f5;
 
+  /* Collection */
+  --color-collection-bg: #fffcf3;
+  --color-collection-border: #000000;
+  --color-collection-shelf: #fede7e;
+  --color-collection-indicator: #ff9300;
+
+  --color-collection-sea: #97c1ff;
+  --color-collection-nature: #cde9b1;
+  --color-collection-culture: #ffb3c7;
+  --color-collection-experience: #cab6ff;
+
   /* Font Size */
   --text-3xs: 9px;
   --text-2xs: 10px;

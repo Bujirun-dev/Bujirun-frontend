@@ -4,30 +4,25 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { spotApi } from "@/shared/api/domains";
 import turtleIcon from "@/assets/icons/collection/turtle.png";
 import { Card, SpeechBubble } from "@/components";
 import { FilterChips } from "@/components/ui/FilterChips";
-import { spotApi } from "@/shared/api/domains";
+import { VendingMachine } from "@/features/collection/components/VendingMachine";
 import { useCollectionProgress } from "@/shared/hooks/useCollectionProgress";
-
 export default function CollectionPage() {
   const router = useRouter();
-
-  const CATEGORY_OPTIONS = ["전체", "바다", "자연", "문화", "체험"] as const;
-  const [selectedCategory, setSelectedCategory] =
-    useState<(typeof CATEGORY_OPTIONS)[number]>("전체");
-
   const { data: spots = [] } = useQuery({
     queryKey: ["spots", "search"],
     queryFn: () => spotApi.searchSpots(),
   });
+  const CATEGORY_OPTIONS = ["전체", "바다", "자연", "문화", "체험"] as const;
+  const [selectedCategory, setSelectedCategory] =
+    useState<(typeof CATEGORY_OPTIONS)[number]>("전체");
 
   const collectionSpots = spots.filter((spot) => {
     if (!spot.isCollection) return false;
-
-    if (selectedCategory === "전체") {
-      return true;
-    }
+    if (selectedCategory === "전체") return true;
 
     return spot.collectionCategory === selectedCategory;
   });
@@ -146,20 +141,8 @@ export default function CollectionPage() {
         </Card>
       </button>
 
-      {/* 임시 도감 목록 */}
-      <div className="mt-5 divide-y divide-sub-lightgray rounded-[20px] bg-main-white">
-        {collectionSpots.map((spot) => (
-          <div key={spot.spotId} className="flex items-center justify-between px-5 py-4">
-            <div>
-              <p className="font-medium text-text-heading">{spot.name}</p>
-              <p className="mt-1 text-sm text-sub-gray">{spot.collectionCategory}</p>
-            </div>
-
-            <span className={spot.collected ? "font-semibold text-main-blue" : "text-sub-gray"}>
-              {spot.collected ? "수집 완료" : "미수집"}
-            </span>
-          </div>
-        ))}
+      <div className="mt-5">
+        <VendingMachine spots={collectionSpots} onCategorySelect={setSelectedCategory} />
       </div>
     </section>
   );
