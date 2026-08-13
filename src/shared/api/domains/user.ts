@@ -1,10 +1,12 @@
 import { apiClient } from "@/shared/api/client";
 import { unwrap } from "@/shared/api/response";
-import type { OpBody, OpResponse } from "@/shared/api/types";
+import type { OpBody, OpQuery, OpResponse } from "@/shared/api/types";
 
 export const keys = {
   all: ["user"] as const,
   me: () => [...keys.all, "me"] as const,
+  nicknameAvailability: (nickname: string) =>
+    [...keys.all, "nickname-availability", nickname] as const,
 };
 
 export function getMyProfile() {
@@ -14,6 +16,14 @@ export function getMyProfile() {
 export function updateMyProfile(body: OpBody<"updateMyProfile">) {
   return apiClient
     .patch<OpResponse<"updateMyProfile">>("/api/users/me", body)
+    .then((res) => unwrap(res));
+}
+
+export function checkNicknameAvailability(query: OpQuery<"checkNicknameAvailability">) {
+  return apiClient
+    .get<OpResponse<"checkNicknameAvailability">>("/api/users/me/nickname/availability", {
+      params: query,
+    })
     .then((res) => unwrap(res));
 }
 

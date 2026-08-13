@@ -650,6 +650,26 @@ export interface paths {
         patch: operations["updateTravelMode"];
         trace?: never;
     };
+    "/api/itineraries/{itineraryId}/days/{dayId}/items/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 방문 항목 순서 일괄 변경 (담당: 윤제승)
+         * @description 일차에 속한 방문 항목 전체의 순서를 한 번에 원자적으로 반영합니다. 항목별 개별 PATCH로 순서를 나눠 반영하면 동시편집 시 order_index가 충돌할 수 있어 도입됨. itemIds는 그 일차에 존재하는 항목 id 전체를 원하는 순서대로 담아야 합니다.
+         */
+        patch: operations["reorderItems"];
+        trace?: never;
+    };
     "/api/itineraries/{id}": {
         parameters: {
             query?: never;
@@ -1567,6 +1587,10 @@ export interface components {
             categoryCounts?: {
                 [key: string]: number;
             };
+            categoryScore?: {
+                [key: string]: number;
+            };
+            uniformPreference?: boolean;
         };
         ItineraryGenerateResponse: {
             planA?: components["schemas"]["PlanOption"];
@@ -1738,6 +1762,9 @@ export interface components {
         };
         UpdateTravelModeRequest: {
             travelMode: string;
+        };
+        ReorderItemsRequest: {
+            itemIds: string[];
         };
         UpdateItineraryRequest: {
             title?: string;
@@ -2886,6 +2913,31 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["ApiResponseItineraryItemResponse"];
                 };
+            };
+        };
+    };
+    reorderItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itineraryId: string;
+                dayId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReorderItemsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
