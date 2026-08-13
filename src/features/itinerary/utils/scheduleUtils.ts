@@ -1,5 +1,6 @@
 import type { ItineraryStop, RouteOption } from "../components";
 import { getCategoryFromKo } from "@/shared/constants/category";
+import { resolveDayDate } from "@/shared/utils/resolveDayDate";
 import type { components } from "@/shared/api/schema";
 
 type ItineraryDetailResponse = components["schemas"]["ItineraryDetailResponse"];
@@ -319,18 +320,7 @@ export function mapItineraryDetailToDays(
   });
 
   const dates = sortedDays.map((day, dayIdx) => {
-    let date = day.date;
-    if (!date && detail.startAt) {
-      const [year, month, dayNum] = detail.startAt.split("-").map(Number);
-      if (year && month && dayNum) {
-        const fallbackDate = new Date(year, month - 1, dayNum + dayIdx);
-        date = [
-          fallbackDate.getFullYear(),
-          String(fallbackDate.getMonth() + 1).padStart(2, "0"),
-          String(fallbackDate.getDate()).padStart(2, "0"),
-        ].join("-");
-      }
-    }
+    const date = resolveDayDate(day.date, dayIdx, detail.startAt);
     if (!date) return "";
     const [year, month, dayNum] = date.split("-");
     return `${year}.${month}.${dayNum}`;

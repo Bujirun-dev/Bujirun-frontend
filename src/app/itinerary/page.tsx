@@ -347,6 +347,15 @@ function ItineraryMain({
     handleRemoteActivity,
   );
   const [tripDates, setTripDates] = useState<string[]>(initialDates);
+  // initialDates는 마운트 시점 값을 useState 시드로만 쓰기 때문에, 트립 목록 화면에서
+  // 여행 날짜를 수정해 detail이 리페치돼도 그 자체로는 반영되지 않는다(같은 itineraryId면
+  // 리마운트도 안 됨). 값이 실제로 바뀔 때만 다시 동기화한다.
+  const initialDatesKey = initialDates.join(",");
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTripDates(initialDates);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialDatesKey]);
   const [activeStopId, setActiveStopId] = useState<string | null>(null);
   const [activeDayIdx, setActiveDayIdx] = useState(0);
   const [timeValue, setTimeValue] = useState({ hour: 12, minute: 0 });

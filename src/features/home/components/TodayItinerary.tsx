@@ -108,6 +108,7 @@ export function TodayItinerary() {
     itinerary,
     completedItineraries,
     day,
+    date,
     items: plans,
     hasSchedule,
     isLoading,
@@ -208,7 +209,7 @@ export function TodayItinerary() {
       <div className="flex items-end gap-3">
         <h2 className="font-ssurround text-lg text-text-heading">오늘의 일정</h2>
         <p className="font-paperlogy text-sm font-semibold text-sub-darkgray">
-          {formatDate(day.date ?? "")}
+          {formatDate(date ?? "")}
         </p>
       </div>
 
