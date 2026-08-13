@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, use, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { groupApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
@@ -38,6 +39,16 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
     useAuthStore.getState().accessToken ? "joining" : "unauthenticated",
   );
   const [groupName, setGroupName] = useState("");
+
+  // 로그인 전 초대 미리보기(그룹명/초대자/멤버수) — 백엔드 미배포 시 조용히 실패해도 무방하므로
+  // 에러는 무시하고 없으면 기본 문구로 폴백한다.
+  const { data: invitePreview } = useQuery({
+    queryKey: groupApi.keys.invitePreview(code),
+    queryFn: () => groupApi.previewInvite(code),
+    enabled: status === "unauthenticated",
+    retry: false,
+    staleTime: 60_000,
+  });
 
   useEffect(() => {
     if (!useAuthStore.getState().accessToken) {
@@ -83,9 +94,21 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
               className="font-paperlogy font-medium text-xl text-text-heading text-center"
               style={{ lineHeight: "23px" }}
             >
-              여행 초대를 받았어요! ✈️
-              <br />
-              로그인하고 참여해보세요
+              {invitePreview?.groupName && invitePreview?.inviterNickname ? (
+                <>
+                  {invitePreview.inviterNickname}님이 ‘{invitePreview.groupName}’에 초대했어요 ✈️
+                  <br />
+                  {typeof invitePreview.memberCount === "number" &&
+                    `${invitePreview.memberCount}명이 함께하고 있어요 · `}
+                  로그인하고 참여해보세요
+                </>
+              ) : (
+                <>
+                  여행 초대를 받았어요! ✈️
+                  <br />
+                  로그인하고 참여해보세요
+                </>
+              )}
             </p>
             <div className="mt-[27px] w-full">
               <KakaoLoginButton />

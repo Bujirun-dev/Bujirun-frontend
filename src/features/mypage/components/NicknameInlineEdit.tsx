@@ -1,10 +1,21 @@
 "use client";
 
 import { useState, useRef, useEffect, useImperativeHandle, forwardRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Check, X, XCircle } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/shared/utils";
+import { userApi } from "@/shared/api/domains";
 import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
+
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebounced(value), delayMs);
+    return () => window.clearTimeout(timer);
+  }, [value, delayMs]);
+  return debounced;
+}
 
 export interface NicknameInlineEditRef {
   closeEdit: () => void;
@@ -25,8 +36,24 @@ export const NicknameInlineEdit = forwardRef<NicknameInlineEditRef, NicknameInli
     const [value, setValue] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const isValid =
-      value.trim().length >= 2 && value.trim().length <= MAX_NICKNAME_LENGTH && !isDuplicate;
+    const trimmed = value.trim();
+    const debouncedNickname = useDebouncedValue(isEditing ? trimmed : "", 400);
+    const canCheck =
+      isEditing && debouncedNickname.length >= 2 && debouncedNickname.length <= MAX_NICKNAME_LENGTH;
+
+    // 저장 전 실시간 중복 확인. 제출 시 409로 잡히는 isDuplicate와 별개로,
+    // 타이핑 중에도 바로 알려주기 위한 조회 전용 체크.
+    const { data: availability } = useQuery({
+      queryKey: userApi.keys.nicknameAvailability(debouncedNickname),
+      queryFn: () => userApi.checkNicknameAvailability({ nickname: debouncedNickname }),
+      enabled: canCheck,
+      staleTime: 10_000,
+    });
+
+    const isLiveDuplicate = canCheck && availability?.available === false;
+    const showDuplicate = isDuplicate || isLiveDuplicate;
+
+    const isValid = trimmed.length >= 2 && trimmed.length <= MAX_NICKNAME_LENGTH && !showDuplicate;
 
     useEffect(() => {
       if (isEditing) inputRef.current?.focus();
@@ -86,7 +113,7 @@ export const NicknameInlineEdit = forwardRef<NicknameInlineEditRef, NicknameInli
           <div
             className={cn(
               "flex items-center gap-1.5 border-b",
-              isDuplicate ? "border-sub-coral" : "border-main-blue",
+              showDuplicate ? "border-sub-coral" : "border-main-blue",
             )}
           >
             <input
@@ -121,7 +148,7 @@ export const NicknameInlineEdit = forwardRef<NicknameInlineEditRef, NicknameInli
           </div>
         )}
 
-        <div className={cn("flex items-center gap-1", !isDuplicate && "invisible")}>
+        <div className={cn("flex items-center gap-1", !showDuplicate && "invisible")}>
           <XCircle size={12} className="text-sub-coral shrink-0" />
           <span className="text-2xs font-semibold text-sub-coral">이미 사용중인 닉네임이에요.</span>
         </div>
