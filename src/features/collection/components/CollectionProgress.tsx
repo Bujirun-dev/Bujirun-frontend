@@ -60,4 +60,32 @@ export function CollectionProgress({ collectedCount, totalCount, icon }: Collect
     />
   }
 />
+
+  const { spots, total, count, categoryProgress } = useCollectionProgress();
+
+  const collectionSpots = spots.filter((spot) => {
+    if (!spot.isCollection) return false;
+    if (selectedCategory === "전체") return true;
+
+    return spot.collectionCategory === selectedCategory;
+  });
+
+  const totalCollectionCount =
+    selectedCategory === "전체" ? total : (categoryProgress[selectedCategory]?.total ?? 0);
+
+  const collectedCollectionCount =
+    selectedCategory === "전체" ? count : (categoryProgress[selectedCategory]?.count ?? 0);
+
+  // 수집률
+  const collectionProgress =
+    totalCollectionCount === 0
+      ? 0
+      : Math.round((collectedCollectionCount / totalCollectionCount) * 100);
+
+  const TAIL_MIN = 16;
+  const TAIL_MAX = 200;
+  const speechBubbleTailPosition = Math.min(
+    Math.max(Math.round((collectionProgress / 100) * 200), TAIL_MIN),
+    TAIL_MAX,
+  );
 */

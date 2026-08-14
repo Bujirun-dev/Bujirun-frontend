@@ -30,10 +30,18 @@ type CollectionSpot = {
 type VendingMachineProps = {
   spots: CollectionSpot[];
   onCategorySelect: (category: CollectionCategory) => void;
+  onSpotClick?: (spotId: string) => void;
+  onRecordClick?: () => void;
 };
 
-export function VendingMachine({ spots, onCategorySelect }: VendingMachineProps) {
+export function VendingMachine({
+  spots,
+  onCategorySelect,
+  onSpotClick,
+  onRecordClick,
+}: VendingMachineProps) {
   const [currentPage, setCurrentPage] = useState(0);
+  const [isLeverPulled, setIsLeverPulled] = useState(false);
   const touchStartXRef = useRef<number | null>(null);
   const pointerStartXRef = useRef<number | null>(null);
 
@@ -98,6 +106,17 @@ export function VendingMachine({ spots, onCategorySelect }: VendingMachineProps)
     setCurrentPage(pageIndex);
   };
 
+  const handleRecordLeverClick = () => {
+    if (isLeverPulled) return;
+
+    setIsLeverPulled(true);
+
+    window.setTimeout(() => {
+      onRecordClick?.();
+      setIsLeverPulled(false);
+    }, 280);
+  };
+
   return (
     <div className="relative w-full">
       <Image src={vendingMachineImage} alt="부산 도감 자판기" className="h-auto w-full" priority />
@@ -115,7 +134,7 @@ export function VendingMachine({ spots, onCategorySelect }: VendingMachineProps)
       >
         <div className="grid h-full grid-rows-5">
           {Array.from({ length: 5 }).map((_, rowIndex) => (
-            <div key={rowIndex} className="grid min-h-0 grid-rows-[1fr_20px]">
+            <div key={rowIndex} className="grid min-h-0 grid-rows-[1fr_22px]">
               {/* 스티커만 슬라이드 */}
               <div className="overflow-hidden">
                 <div
@@ -128,7 +147,7 @@ export function VendingMachine({ spots, onCategorySelect }: VendingMachineProps)
                     return (
                       <div
                         key={pageIndex}
-                        className="grid h-full w-full shrink-0 grid-cols-4 items-end gap-4 px-4 pt-4"
+                        className="grid h-full w-full shrink-0 grid-cols-4 items-end gap-4 px-3 pt-3"
                       >
                         {Array.from({ length: 4 }).map((_, itemIndex) => {
                           const spot = pageSpots[rowIndex * 4 + itemIndex];
@@ -143,17 +162,23 @@ export function VendingMachine({ spots, onCategorySelect }: VendingMachineProps)
                           }
 
                           return (
-                            <Image
+                            <button
                               key={spot.spotId ?? spot.name}
-                              src={`/collection/${spot.name}.png`}
-                              alt={spot.name}
-                              width={56}
-                              height={56}
-                              unoptimized
-                              className={`mx-auto aspect-square w-full max-w-[56px] rounded-[6px] border-[1px] border-collection-border object-contain ${
-                                spot.collected ? "" : "grayscale"
-                              }`}
-                            />
+                              type="button"
+                              className="cursor-pointer transition active:scale-[0.97]"
+                              onClick={() => spot.spotId && onSpotClick?.(spot.spotId)}
+                            >
+                              <Image
+                                src={`/collection/${spot.name}.png`}
+                                alt={spot.name}
+                                width={56}
+                                height={56}
+                                unoptimized
+                                className={`mx-auto aspect-square w-full max-w-[56px] rounded-[6px] border-[1px] border-collection-border object-contain ${
+                                  spot.collected ? "" : "grayscale opacity-80"
+                                }`}
+                              />
+                            </button>
                           );
                         })}
                       </div>
@@ -189,7 +214,8 @@ export function VendingMachine({ spots, onCategorySelect }: VendingMachineProps)
                       type="button"
                       aria-label={`${spot.collectionCategory} 카테고리 보기`}
                       onClick={() => onCategorySelect(category)}
-                      className={`mx-auto h-3 w-6 cursor-pointer rounded-[50%] border border-collection-border ${buttonClass}`}
+                      className={`mx-auto h-3 w-6 cursor-pointer -translate-y-[1px] rounded-[45%] border border-collection-border shadow-collection-button
+active:shadow-collection-button-active transition-transform active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_var(--color-collection-border)] ${buttonClass}`}
                     />
                   );
                 })}
@@ -201,6 +227,26 @@ export function VendingMachine({ spots, onCategorySelect }: VendingMachineProps)
       <div className="absolute left-1/2 top-[81.5%] -translate-x-1/2">
         <Pagination currentPage={safePage} pageCount={pageCount} onPageChange={handlePageChange} />
       </div>
+
+      <div className="absolute left-1/2 top-[81.5%] -translate-x-1/2">
+        <Pagination currentPage={safePage} pageCount={pageCount} onPageChange={handlePageChange} />
+      </div>
+
+      {/* 여행 기록 레버 */}
+      <button
+        type="button"
+        aria-label="여행 기록 보기"
+        onClick={handleRecordLeverClick}
+        className="absolute left-[76%] top-[87%] z-10 h-[9%] w-[10%]"
+      >
+        <span className="absolute bottom-[53%] left-[22%] aspect-square w-[60%] -translate-x-1/2 rounded-full border border-collection-border bg-collection-lever" />
+
+        <span
+          className={`absolute bottom-[68%] left-[22%] h-[50%] w-[12%] origin-bottom -translate-x-1/2 rounded-full border border-collection-border bg-collection-lever transition-transform duration-900 ease-out ${
+            isLeverPulled ? "rotate-[35deg]" : "rotate-0"
+          }`}
+        />
+      </button>
     </div>
   );
 }
