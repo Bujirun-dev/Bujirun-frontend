@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import CalendarIcon from "@/assets/icons/itinerary/calendar.svg?svgr";
 import ClockIcon from "@/assets/icons/itinerary/clock.svg?svgr";
 import FriendsIcon from "@/assets/icons/itinerary/friends.svg?svgr";
+import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
 import TitleIcon from "@/assets/icons/itinerary/title.svg?svgr";
 import NoIcon from "@/assets/icons/login-register/no.svg?svgr";
 import YesIcon from "@/assets/icons/login-register/yes.svg?svgr";
@@ -15,6 +16,8 @@ import {
   parseTripDateTime,
   toApiDate,
 } from "./TripDateTimePicker";
+import { AccommodationSearchField } from "./AccommodationSearchField";
+import type { AccommodationPlace } from "./AccommodationSearchField";
 import { cn } from "@/shared/utils";
 import { groupApi } from "@/shared/api/domains";
 
@@ -33,6 +36,7 @@ export function TripSetupForm() {
   const [startDate, setStartDate] = useState(DEFAULTS.start);
   const [endDate, setEndDate] = useState(DEFAULTS.end);
   const [friendCount, setFriendCount] = useState(2);
+  const [accommodation, setAccommodation] = useState<AccommodationPlace | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -92,6 +96,9 @@ export function TripSetupForm() {
         endDate: toApiDate(endDate),
         startTime: `${pad2(startDT.getHours())}:${pad2(startDT.getMinutes())}`,
         endTime: `${pad2(endDT.getHours())}:${pad2(endDT.getMinutes())}`,
+        ...(accommodation
+          ? { accommodation: accommodation.name, accommodationAddress: accommodation.address }
+          : {}),
       });
       router.push(`/itinerary/trips/invite?${params.toString()}`);
     } finally {
@@ -100,7 +107,7 @@ export function TripSetupForm() {
   };
 
   return (
-    <div className="-mx-6 flex flex-col gap-6 rounded-tl-[40px] rounded-tr-[40px] bg-white px-8 pt-10 pb-6">
+    <div className="-mx-6 flex flex-col gap-5 rounded-tl-[40px] rounded-tr-[40px] bg-white px-8 pt-10 pb-6">
       {/* 여행명 */}
       <section>
         <div className="flex items-center gap-1.5 mb-[10px]">
@@ -140,7 +147,7 @@ export function TripSetupForm() {
         </div>
         <p
           className={cn(
-            "mt-[6px] h-[17px] pr-[8px] text-right font-paperlogy text-sm font-semibold text-sub-gray",
+            "mt-[6px] h-[17px] pr-[8px] text-right font-paperlogy text-xs font-semibold text-sub-gray",
             !hasName && "opacity-0",
           )}
         >
@@ -196,6 +203,16 @@ export function TripSetupForm() {
           <span className="font-ssurround font-bold text-md text-text-heading">친구 수</span>
         </div>
         <Counter value={friendCount} onChange={setFriendCount} min={2} max={6} />
+      </section>
+
+      {/* 숙소명 */}
+      <section>
+        <div className="flex items-center gap-1.5 mb-[10px]">
+          <MarkerIcon width={14} height={14} aria-hidden />
+          <span className="font-ssurround font-bold text-md text-text-heading">숙소명</span>
+          <span className="font-paperlogy font-medium text-xs text-sub-gray">(선택)</span>
+        </div>
+        <AccommodationSearchField value={accommodation} onChange={setAccommodation} />
       </section>
 
       {/* 친구 초대하기 버튼 */}

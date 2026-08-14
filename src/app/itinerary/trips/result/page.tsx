@@ -143,6 +143,8 @@ function TripResultContent() {
   const endDate = searchParams.get("endDate") ?? "";
   const startTime = searchParams.get("startTime") || "10:00";
   const endTime = searchParams.get("endTime") || "17:00";
+  const accommodation = searchParams.get("accommodation") ?? "";
+  const accommodationAddress = searchParams.get("accommodationAddress") ?? "";
   const isHost = useIsGroupHost(groupId);
 
   // 스와이프 완료 직후 방장/참여자가 거의 동시에 이 페이지에 진입하면 각자의
@@ -197,7 +199,11 @@ function TripResultContent() {
     name: tripName,
     startDate,
     endDate,
+    startTime,
+    endTime,
     ...(sessionId ? { sessionId } : {}),
+    ...(accommodation ? { accommodation } : {}),
+    ...(accommodationAddress ? { accommodationAddress } : {}),
   }).toString();
 
   // days 수에 맞게 각 플랜 day 슬라이스 + 하루 최대 3곳(아침/오후/저녁) 슬롯에 맞춰 시간 배정
@@ -281,7 +287,12 @@ function TripResultContent() {
             }
           : {}),
       });
-      if (newItineraryId) saveTripTimeBounds(newItineraryId, startTime, endTime);
+      if (newItineraryId) {
+        saveTripTimeBounds(newItineraryId, startTime, endTime, {
+          name: accommodation,
+          address: accommodationAddress,
+        });
+      }
       setToastMessage(`방장이 ${activePlan}안을 선택했어요! 🎉`);
       window.setTimeout(() => {
         router.push("/itinerary");

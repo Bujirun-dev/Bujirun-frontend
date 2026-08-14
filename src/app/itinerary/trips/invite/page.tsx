@@ -36,6 +36,8 @@ function TripInviteContent() {
   const endDate = searchParams.get("endDate") ?? "";
   const startTime = searchParams.get("startTime") ?? "";
   const endTime = searchParams.get("endTime") ?? "";
+  const accommodation = searchParams.get("accommodation") ?? "";
+  const accommodationAddress = searchParams.get("accommodationAddress") ?? "";
   const role = searchParams.get("role") === "guest" ? "guest" : "host";
   const [showShareModal, setShowShareModal] = useState(false);
   const [showExitWarning, setShowExitWarning] = useState(role === "host");
@@ -68,6 +70,8 @@ function TripInviteContent() {
       endDate,
       startTime,
       endTime,
+      ...(accommodation ? { accommodation } : {}),
+      ...(accommodationAddress ? { accommodationAddress } : {}),
     });
     router.push(`/itinerary/trips/personality?${nextParams.toString()}`);
   };

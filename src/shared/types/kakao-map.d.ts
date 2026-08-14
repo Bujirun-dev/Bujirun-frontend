@@ -64,12 +64,13 @@ interface KakaoInfoWindow {
   open: (map: KakaoMap, marker: KakaoMarker) => void;
 }
 
-interface KakaoPlaceResult {
+export interface KakaoPlaceResult {
   id: string;
   place_name: string;
   x: string;
   y: string;
   address_name: string;
+  road_address_name?: string;
 }
 
 interface KakaoPlaces {

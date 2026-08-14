@@ -9,6 +9,7 @@ import { openKakaoMapRoute } from "./TransportSelectSheet";
 import { ArrivalVerifyModal } from "./ArrivalVerifyModal";
 import { AiOptimizeModal } from "./AiOptimizeModal";
 import { AiOptimizeLoadingModal } from "./AiOptimizeLoadingModal";
+import { TripMembersModal } from "./TripMembersModal";
 import { TransportDetailModal } from "@/features/home/components/TransportDetailModal";
 import type { TransportGroup, TransportOption } from "@/features/home/types/transport";
 import type { RouteOption } from "./TransportSelectSheet";
@@ -22,12 +23,14 @@ export type ModalType =
   | "time"
   | "transport"
   | "verify"
-  | "peerUpdate";
+  | "peerUpdate"
+  | "members";
 
 interface ItineraryModalsProps {
   modal: ModalType | null;
   activeStop: BaseStop | undefined;
   itineraryId: string;
+  groupId?: string;
   timeValue: { hour: number; minute: number };
   selectedRouteOptionId: string;
   peerUpdateMessage?: string;
@@ -46,6 +49,7 @@ export function ItineraryModals({
   modal,
   activeStop,
   itineraryId,
+  groupId,
   timeValue,
   selectedRouteOptionId,
   peerUpdateMessage,
@@ -73,6 +77,8 @@ export function ItineraryModals({
         onComplete={onClose}
         isDone={isOptimizeDone}
       />
+
+      <TripMembersModal isOpen={modal === "members"} groupId={groupId ?? ""} onClose={onClose} />
 
       {/* 다른 참여자가 여행 로그를 불러와 일정이 통째로 바뀌었을 때 알려주는 안내 팝업 —
           짧게 보여주고 자동으로 닫힌다(호출부의 타이머가 onClose를 부름). */}

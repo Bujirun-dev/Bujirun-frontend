@@ -54,6 +54,8 @@ function VoteWaitingContent() {
   const endDate = searchParams.get("endDate") ?? "";
   const startTime = searchParams.get("startTime") ?? "";
   const endTime = searchParams.get("endTime") ?? "";
+  const accommodation = searchParams.get("accommodation") ?? "";
+  const accommodationAddress = searchParams.get("accommodationAddress") ?? "";
   const [selectedTiePlan, setSelectedTiePlan] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -99,7 +101,12 @@ function VoteWaitingContent() {
               }
             : {}),
         });
-        if (newItineraryId) saveTripTimeBounds(newItineraryId, startTime, endTime);
+        if (newItineraryId) {
+          saveTripTimeBounds(newItineraryId, startTime, endTime, {
+            name: accommodation,
+            address: accommodationAddress,
+          });
+        }
       }
       router.push("/itinerary");
     } catch {
