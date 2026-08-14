@@ -1,5 +1,6 @@
 import type { ItineraryStop, RouteOption } from "../components";
 import { getCategoryFromKo } from "@/shared/constants/category";
+import { resolveDayDate } from "@/shared/utils/resolveDayDate";
 import type { components } from "@/shared/api/schema";
 
 type ItineraryDetailResponse = components["schemas"]["ItineraryDetailResponse"];
@@ -14,7 +15,17 @@ export function nextTempStopId(): string {
   return `temp-${tempStopIdCounter}`;
 }
 
+// 관광지 썸네일이 없을 때 쓰는 대체 이미지. seed를 안 주면(레거시 호출부 호환용) 항상 같은
+// 사진이 나가던 게 문제였음 — thumbnailUrl이 비어있는 관광지 26곳(2026-08-13 확인)이 전부
+// 똑같은 사진으로 보였음. spotId처럼 항목마다 달라지는 값을 seed로 넘기면 최소한 관광지별로
+// 서로 다른(그리고 매번 같은, 깜빡이지 않는) 대체 사진이 나간다. 실제 사진이 아니므로 근본
+// 해결은 아니고, 나중에 이 관광지들 사진을 실제로 확보하면(TourAPI엔 없음, 수동 큐레이션
+// 필요 — swipe_image_url 업로드했던 방식 참고) thumbnailUrl을 채워서 이 폴백 자체를 안 타게
+// 하는 게 맞다.
 export const FALLBACK_IMAGE = "https://picsum.photos/seed/busan/300/200";
+export function getFallbackImage(seed?: string): string {
+  return `https://picsum.photos/seed/${encodeURIComponent(seed || "busan")}/300/200`;
+}
 
 type TransportType = "버스" | "지하철" | "도보" | "택시";
 
@@ -52,7 +63,7 @@ export function buildDaysFromTravelLogDetail(log: TravelLogDetailResponse): {
         spotId: item.spotId,
         time: normalizeTime(item.arrivalTime, "10:00"),
         placeName,
-        imageUrl: item.spotThumbnailUrl || representativePhoto || FALLBACK_IMAGE,
+        imageUrl: item.spotThumbnailUrl || representativePhoto || getFallbackImage(item.spotId),
         category: getCategoryFromKo(item.spotCategory ?? "", placeName),
         status: "verify",
         // description/운영시간/문의처는 TimelinePlaceDetailPopup이 spotId로 실제 데이터를
@@ -301,7 +312,7 @@ export function mapItineraryDetailToDays(
           ? normalizeTime(item.arrivalTime)
           : getDefaultItemTime(dayIdx, totalDays, idx, items.length, timeBounds),
         placeName,
-        imageUrl: item.spot?.thumbnailUrl || FALLBACK_IMAGE,
+        imageUrl: item.spot?.thumbnailUrl || getFallbackImage(item.spot?.id),
         category: getCategoryFromKo(item.spot?.category ?? "", placeName),
         status: "verify",
         // 여행 메모(실데이터)만 우선 보여준다 — 없으면 TimelinePlaceDetailPopup이
@@ -319,18 +330,7 @@ export function mapItineraryDetailToDays(
   });
 
   const dates = sortedDays.map((day, dayIdx) => {
-    let date = day.date;
-    if (!date && detail.startAt) {
-      const [year, month, dayNum] = detail.startAt.split("-").map(Number);
-      if (year && month && dayNum) {
-        const fallbackDate = new Date(year, month - 1, dayNum + dayIdx);
-        date = [
-          fallbackDate.getFullYear(),
-          String(fallbackDate.getMonth() + 1).padStart(2, "0"),
-          String(fallbackDate.getDate()).padStart(2, "0"),
-        ].join("-");
-      }
-    }
+    const date = resolveDayDate(day.date, dayIdx, detail.startAt);
     if (!date) return "";
     const [year, month, dayNum] = date.split("-");
     return `${year}.${month}.${dayNum}`;

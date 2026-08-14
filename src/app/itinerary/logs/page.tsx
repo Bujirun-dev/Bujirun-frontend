@@ -7,7 +7,7 @@ import AngleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?svgr";
 import { PageCard, FilterChips, LoadingState, EmptyState } from "@/components";
 import { LogCard } from "@/features/itinerary";
 import { travelLogApi } from "@/shared/api/domains";
-import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
+import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 
 // 서버가 한 번에 전체 목록을 내려주므로(페이지네이션 파라미터 없음), 화면 노출 개수만 클라이언트에서 조절
 const PAGE_SIZE = 5;
@@ -36,7 +36,7 @@ export default function LogsPage() {
 
   const allFiltered = (publicLogs ?? []).map((log) => ({
     id: log.id ?? "",
-    imageUrl: log.thumbnailPhotoUrl || FALLBACK_IMAGE,
+    imageUrl: log.thumbnailPhotoUrl || getFallbackImage(log.id),
     placeName: log.title ?? "제목 없음",
     extraCount: Math.max(0, (log.totalSpots ?? 1) - 1),
     author: log.authorNickname ?? "익명",

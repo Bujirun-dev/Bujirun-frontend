@@ -5,7 +5,7 @@ import type { Category, PlaceDetailData } from "@/components";
 import { bookmarkApi, spotApi, travelLogApi } from "@/shared/api/domains";
 import { getCategoryFromKo } from "@/shared/constants/category";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
-import { FALLBACK_IMAGE } from "@/features/itinerary/utils/scheduleUtils";
+import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 
 interface UseSpotDetailFallback {
   name?: string;
@@ -72,7 +72,7 @@ export function useSpotDetail(spotId: string | undefined, fallback: UseSpotDetai
 
   const name = spot?.name || fallback.name || "";
   const place: PlaceDetailData = {
-    imageUrl: spot?.thumbnailUrl || fallback.imageUrl || FALLBACK_IMAGE,
+    imageUrl: spot?.thumbnailUrl || fallback.imageUrl || getFallbackImage(spot?.spotId ?? spotId),
     name,
     category: fallback.category ?? getCategoryFromKo(spot?.category ?? ""),
     description: spot?.overview || fallback.description || "",

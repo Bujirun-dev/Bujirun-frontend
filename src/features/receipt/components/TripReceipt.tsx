@@ -72,7 +72,7 @@ export function TripReceipt({ receipt }: TripReceiptProps) {
             )}
           </div>
 
-          <dl className="space-y-0.5 leading-none">
+          <dl className="space-y-1.5 leading-none">
             {receiptInfo.map(([label, value]) => (
               <div key={label} className="grid grid-cols-[110px_minmax(0,1fr)] gap-1">
                 <dt className="font-bold tracking-[0.04em]">{label}</dt>
