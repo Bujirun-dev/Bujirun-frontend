@@ -7,6 +7,7 @@ import turtleIcon from "@/assets/icons/collection/turtle.png";
 import { Card, SpeechBubble } from "@/components";
 import { FilterChips } from "@/components/ui/FilterChips";
 import { VendingMachine } from "@/features/collection/components/VendingMachine";
+import { Shelf } from "@/features/collection/components/Shelf";
 import { useCollectionProgress } from "@/shared/hooks/useCollectionProgress";
 export default function CollectionPage() {
   const router = useRouter();
@@ -137,7 +138,11 @@ export default function CollectionPage() {
       </button>
 
       <div className="mt-5">
-        <VendingMachine spots={collectionSpots} onCategorySelect={setSelectedCategory} />
+        {selectedCategory === "전체" ? (
+          <VendingMachine spots={collectionSpots} onCategorySelect={setSelectedCategory} />
+        ) : (
+          <Shelf spots={collectionSpots} category={selectedCategory} />
+        )}
       </div>
     </section>
   );
