@@ -235,10 +235,10 @@ active:shadow-collection-button-active transition-transform active:translate-x-[
         onClick={handleRecordLeverClick}
         className="absolute left-[76%] top-[87%] z-10 h-[9%] w-[10%]"
       >
-        <span className="absolute bottom-[53%] left-[22%] aspect-square w-[60%] -translate-x-1/2 rounded-full border border-collection-border bg-collection-lever" />
+        <span className="absolute bottom-[53%] left-[21%] aspect-square w-[60%] -translate-x-1/2 rounded-full border border-collection-border bg-collection-lever" />
 
         <span
-          className={`absolute bottom-[68%] left-[22%] h-[50%] w-[12%] origin-bottom -translate-x-1/2 rounded-full border border-collection-border bg-collection-lever transition-transform duration-900 ease-out ${
+          className={`absolute bottom-[68%] left-[21%] h-[50%] w-[12%] origin-bottom -translate-x-1/2 rounded-full border border-collection-border bg-collection-lever transition-transform duration-900 ease-out ${
             isLeverPulled ? "rotate-[35deg]" : "rotate-0"
           }`}
         />

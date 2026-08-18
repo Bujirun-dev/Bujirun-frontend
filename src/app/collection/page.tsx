@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { VendingMachine } from "@/features/collection/components/VendingMachine";
 import { Shelf } from "@/features/collection/components/Shelf";
-import { useCollectionProgress } from "@/shared/hooks/useCollectionProgress";
 import { useQuery } from "@tanstack/react-query";
 import { getMyCollection, keys as collectionKeys } from "@/shared/api/domains/collection";
 import {
@@ -35,14 +34,17 @@ export default function CollectionPage() {
     queryFn: getMyCollection,
   });
 
-  const spots = collection?.entries ?? [];
+  const spots = useMemo(
+    () => [...(collection?.entries ?? []), ...(collection?.uncollectedEntries ?? [])],
+    [collection],
+  );
 
   useEffect(() => {
     spots.forEach((spot) => {
       if (!spot.name) return;
 
       const image = new window.Image();
-      image.src = `/collection/${spot.name}.png`;
+      image.src = `/collxection/${spot.name}.png`;
     });
   }, [spots]);
 

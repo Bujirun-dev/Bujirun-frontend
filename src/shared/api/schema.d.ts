@@ -919,6 +919,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/itineraries/{itineraryId}/days/{dayId}/items/{itemId}/travel-mode/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 이동수단 변경 후보 옵션 조회 (담당: 윤제승)
+         * @description 직전 방문 항목과의 구간에 대해 선택 가능한 이동수단 후보(버스/지하철/택시/도보)와 각각의 실제 소요시간·요금을 조회합니다. DB에 저장된 값이 아니라 매번 새로 계산한 값이며, 확정하려면 이동수단 변경(travel-mode) API를 별도로 호출해야 합니다.
+         */
+        get: operations["getTravelModeOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/itineraries/vote-sessions/{sessionId}": {
         parameters: {
             query?: never;
@@ -1494,6 +1514,7 @@ export interface components {
             startStationName?: string;
             endStationName?: string;
             startArsId?: string;
+            transitDetail?: components["schemas"]["TransitDetail"];
             memo?: string;
         };
         SpotSummary: {
@@ -1507,6 +1528,57 @@ export interface components {
             thumbnailUrl?: string;
             collected?: boolean;
             visited?: boolean;
+        };
+        SubwayDeparture: {
+            departureTime?: string;
+            /** Format: int32 */
+            subwayClass?: number;
+            /** Format: int32 */
+            firstLastFlag?: number;
+        };
+        SubwaySegmentTimetable: {
+            /** Format: int32 */
+            subPathIndex?: number;
+            startStationName?: string;
+            endStationName?: string;
+            lineName?: string;
+            /** Format: int32 */
+            wayCode?: number;
+            upcomingDepartures?: components["schemas"]["SubwayDeparture"][];
+            /** Format: int32 */
+            nextDepartureMinutes?: number;
+            transferInfo?: components["schemas"]["SubwayTransitInfo"];
+        };
+        SubwayTransferDetail: {
+            /** Format: int32 */
+            takeStationId?: number;
+            takeLaneName?: string;
+            /** Format: int32 */
+            exStationId?: number;
+            exLaneName?: string;
+            /** Format: int32 */
+            fastTrainNo?: number;
+            /** Format: int32 */
+            fastTrainDoor?: number;
+        };
+        SubwayTransitInfo: {
+            /** Format: int32 */
+            count?: number;
+            transitTotalInfo?: components["schemas"]["SubwayTransferDetail"][];
+        };
+        TransitDetail: {
+            segments?: components["schemas"]["TransitDetailSegment"][];
+        };
+        TransitDetailSegment: {
+            /** Format: int32 */
+            index?: number;
+            trafficType?: string;
+            startName?: string;
+            endName?: string;
+            routeNo?: string;
+            /** Format: int32 */
+            sectionTime?: number;
+            subwaySchedule?: components["schemas"]["SubwaySegmentTimetable"];
         };
         CreateItineraryRequest: {
             planType?: string;
@@ -1844,6 +1916,7 @@ export interface components {
             startStationName?: string;
             endStationName?: string;
             startArsId?: string;
+            transitDetail?: components["schemas"]["TransitDetail"];
         };
         ApiResponseString: {
             success?: boolean;
@@ -2002,6 +2075,11 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
         };
+        ApiResponseListTransitOption: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["TransitOption"][];
+        };
         ApiResponseListGroupMemberResponse: {
             success?: boolean;
             message?: string;
@@ -2042,23 +2120,13 @@ export interface components {
             /** Format: date-time */
             collectedAt?: string;
         };
-        CollectionResponse: {
-            /** Format: uuid */
-            spotId?: string;
-            contentId?: string;
-            name?: string;
-            category?: string;
-            collectionCategory?: string;
-            thumbnailUrl?: string;
-            /** Format: date-time */
-            collectedAt?: string;
-        };
         MyCollectionResponse: {
             /** Format: int64 */
             totalCount?: number;
             /** Format: int64 */
             collectedCount?: number;
-            entries?: components["schemas"]["CollectionResponse"][];
+            entries?: components["schemas"]["CollectionListResponse"][];
+            uncollectedEntries?: components["schemas"]["CollectionListResponse"][];
         };
         BookmarkListResponse: {
             /** Format: uuid */
@@ -3329,6 +3397,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseListLogExistenceResponse"];
+                };
+            };
+        };
+    };
+    getTravelModeOptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itineraryId: string;
+                dayId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListTransitOption"];
                 };
             };
         };
