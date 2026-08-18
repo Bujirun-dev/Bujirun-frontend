@@ -34,6 +34,7 @@ export default function BookmarkDetailPage({
   const queryClient = useQueryClient();
 
   // 토스트 상태
+  const [toastVariant, setToastVariant] = useState<"success" | "error">("success");
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
@@ -56,10 +57,16 @@ export default function BookmarkDetailPage({
     mutationFn: () => (isBookmarked ? bookmarkApi.removeBookmark(id) : bookmarkApi.addBookmark(id)),
     onSuccess: () => {
       // 토스트 메시지 표시
+      setToastVariant("success");
       setToastMessage(isBookmarked ? "북마크가 해제되었어요" : "북마크에 추가되었어요");
       setToastVisible(true);
       setIsBookmarked((prev) => !prev);
       queryClient.invalidateQueries({ queryKey: bookmarkApi.keys.list() });
+    },
+    onError: () => {
+      setToastVariant("error");
+      setToastMessage("북마크 변경에 실패했어요. 다시 시도해주세요.");
+      setToastVisible(true);
     },
   });
 
@@ -112,6 +119,7 @@ export default function BookmarkDetailPage({
         isVisible={toastVisible}
         message={toastMessage}
         onHide={() => setToastVisible(false)}
+        variant={toastVariant}
       />
     </PageCard>
   );

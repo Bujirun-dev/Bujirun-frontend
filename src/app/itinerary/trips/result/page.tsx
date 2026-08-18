@@ -171,6 +171,9 @@ function TripResultContent() {
 
   const generatingMessage = useGeneratingMessage(isGenerating);
   const sessionId = generated?.voteSessionId ?? "";
+  const [toastVariant, setToastVariant] = useState<
+    "success" | "error" | "warning" | "itinerary" | "default"
+  >("default");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // 다른 참여자가 투표한 결과를 A/B/C 탭에 반영하기 위해 투표 현황을 폴링한다.
@@ -178,10 +181,14 @@ function TripResultContent() {
   // 없으므로 일정 화면으로 보낸다.
   const { voteStatus } = useVoteSessionPolling(sessionId, {
     onConfirmed: () => {
+      setToastVariant("success");
       setToastMessage("이미 일정이 확정됐어요. 일정 화면으로 이동할게요.");
       window.setTimeout(() => router.push("/itinerary"), 1500);
     },
-    onError: () => setToastMessage("투표 현황을 불러오지 못했어요."),
+    onError: () => {
+      setToastVariant("error");
+      setToastMessage("투표 현황을 불러오지 못했어요.");
+    },
   });
   const voteCounts = voteStatus?.voteCounts ?? {};
 
@@ -248,6 +255,7 @@ function TripResultContent() {
       setVotedPlan(planToVote);
       router.push(`/itinerary/trips/vote-waiting?${forwardParams}`);
     } catch {
+      setToastVariant("error");
       setToastMessage("투표에 실패했어요. 다시 시도해주세요.");
     }
   };
@@ -282,11 +290,13 @@ function TripResultContent() {
           : {}),
       });
       if (newItineraryId) saveTripTimeBounds(newItineraryId, startTime, endTime);
+      setToastVariant("success");
       setToastMessage(`방장이 ${activePlan}안을 선택했어요! 🎉`);
       window.setTimeout(() => {
         router.push("/itinerary");
       }, 1800);
     } catch {
+      setToastVariant("error");
       setToastMessage("일정을 확정하지 못했어요. 다시 시도해주세요.");
     } finally {
       setIsConfirming(false);
@@ -296,6 +306,7 @@ function TripResultContent() {
   useEffect(() => {
     if (!confirmedItinerary) return;
     const toastTimer = window.setTimeout(() => {
+      setToastVariant("success");
       setToastMessage(`방장이 ${confirmedItinerary.planType ?? activePlan}안을 선택했어요! 🎉`);
     }, 0);
     const timer = window.setTimeout(() => {
@@ -625,6 +636,7 @@ function TripResultContent() {
         isVisible={toastMessage !== null}
         onHide={() => setToastMessage(null)}
         message={toastMessage ?? ""}
+        variant={toastVariant}
       />
     </div>
   );

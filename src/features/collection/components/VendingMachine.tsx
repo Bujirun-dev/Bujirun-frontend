@@ -23,7 +23,7 @@ const isCollectionCategory = (category?: string): category is CollectionCategory
 type CollectionSpot = {
   spotId?: string;
   name?: string;
-  collected?: boolean;
+  collectedAt?: string;
   collectionCategory?: string;
 };
 
@@ -175,7 +175,7 @@ export function VendingMachine({
                                 height={56}
                                 unoptimized
                                 className={`mx-auto aspect-square w-full max-w-[56px] rounded-[6px] border-[1px] border-collection-border object-contain ${
-                                  spot.collected ? "" : "grayscale opacity-80"
+                                  spot.collectedAt ? "" : "grayscale opacity-80"
                                 }`}
                               />
                             </button>
@@ -224,10 +224,6 @@ active:shadow-collection-button-active transition-transform active:translate-x-[
           ))}
         </div>
       </div>
-      <div className="absolute left-1/2 top-[81.5%] -translate-x-1/2">
-        <Pagination currentPage={safePage} pageCount={pageCount} onPageChange={handlePageChange} />
-      </div>
-
       <div className="absolute left-1/2 top-[81.5%] -translate-x-1/2">
         <Pagination currentPage={safePage} pageCount={pageCount} onPageChange={handlePageChange} />
       </div>

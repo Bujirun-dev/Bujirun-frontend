@@ -340,9 +340,9 @@ export function PlaceDetailContent({
   const toast = bookmarkToast && (
     <Toast
       isVisible
+      onHide={hideBookmarkToast}
       message={bookmarkToast.message}
       variant={bookmarkToast.variant}
-      onHide={hideBookmarkToast}
     />
   );
 

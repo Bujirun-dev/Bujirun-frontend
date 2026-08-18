@@ -26,7 +26,7 @@ type CollectionCategory = keyof typeof CATEGORY_TITLE;
 type CollectionSpot = {
   spotId?: string;
   name?: string;
-  collected?: boolean;
+  collectedAt?: string;
   collectionCategory?: string;
 };
 
@@ -49,13 +49,13 @@ export function Shelf({ spots, category, onSpotClick }: ShelfProps) {
 
   return (
     <div className="relative w-full">
-      <div className="-mt-3 mb-4 flex flex-col items-center">
+      <div className="-mt-1 mb-4 flex flex-col items-center">
         <div className="flex w-[61%] justify-between px-8">
-          <div className="h-5 w-[1px] bg-collection-border" />
-          <div className="h-5 w-[1px] bg-collection-border" />
+          <div className="h-3 w-[1px] bg-collection-border" />
+          <div className="h-3 w-[1px] bg-collection-border" />
         </div>
 
-        <div className="flex h-12 w-[72%] items-center justify-center rounded-[4px] border-[1.5px] border-collection-border bg-collection-bg px-3">
+        <div className="flex h-11 w-[72%] items-center justify-center rounded-[4px] border-[1.5px] border-collection-border bg-collection-bg px-3">
           <p className="whitespace-nowrap font-giants text-lg text-text-heading">
             {CATEGORY_TITLE[category]}
           </p>
@@ -93,7 +93,7 @@ export function Shelf({ spots, category, onSpotClick }: ShelfProps) {
                           height={70}
                           unoptimized
                           className={`aspect-square max-w-[70px] w-full border border-collection-border object-contain ${
-                            spot.collected ? "" : "grayscale opacity-80"
+                            spot.collectedAt ? "" : "grayscale opacity-80"
                           }`}
                         />
                       </button>
@@ -119,15 +119,15 @@ export function Shelf({ spots, category, onSpotClick }: ShelfProps) {
                         "relative mt-3.5 flex h-8 w-20 items-center justify-center border border-collection-border bg-main-white px-1 text-center text-xs leading-tight text-text-heading",
                       )}
                     >
-                      {spot.collected && (
+                      {spot.collectedAt && (
                         <span
-                          className="absolute -right-4 -top-2 flex h-3.5 w-11.5 rotate-[18deg] items-center justify-center bg-sub-coral font-courierprime font-bold text-[8px] leading-none text-collection-shelf"
+                          className="absolute -right-4 -top-2 flex h-3.5 w-11.5 rotate-[18deg] items-center justify-center bg-collection-shelf font-courierprime font-bold text-[8px] leading-none text-text-heading"
                           style={{
                             clipPath:
                               "polygon(0 15%, 6% 25%, 2% 40%, 7% 52%, 1% 68%, 6% 82%, 0 100%, 100% 100%, 94% 82%, 99% 68%, 93% 52%, 98% 40%, 94% 25%, 100% 15%, 100% 0, 0 0)",
                           }}
                         >
-                          GOT-IT
+                          VISITED
                         </span>
                       )}
 

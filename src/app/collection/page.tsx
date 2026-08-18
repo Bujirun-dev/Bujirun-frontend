@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { VendingMachine } from "@/features/collection/components/VendingMachine";
 import { Shelf } from "@/features/collection/components/Shelf";
 import { useCollectionProgress } from "@/shared/hooks/useCollectionProgress";
+import { useQuery } from "@tanstack/react-query";
+import { getMyCollection, keys as collectionKeys } from "@/shared/api/domains/collection";
 import {
   CategoryTabs,
   type CollectionCategory,
@@ -28,11 +30,16 @@ export default function CollectionPage() {
     router.push(`/collection/place/${spotId}?category=${encodeURIComponent(selectedCategory)}`);
   };
 
-  const { spots } = useCollectionProgress();
+  const { data: collection } = useQuery({
+    queryKey: collectionKeys.my(),
+    queryFn: getMyCollection,
+  });
+
+  const spots = collection?.entries ?? [];
 
   useEffect(() => {
     spots.forEach((spot) => {
-      if (!spot.isCollection || !spot.name) return;
+      if (!spot.name) return;
 
       const image = new window.Image();
       image.src = `/collection/${spot.name}.png`;
@@ -40,7 +47,6 @@ export default function CollectionPage() {
   }, [spots]);
 
   const collectionSpots = spots.filter((spot) => {
-    if (!spot.isCollection) return false;
     if (selectedCategory === "전체") return true;
 
     return spot.collectionCategory === selectedCategory;

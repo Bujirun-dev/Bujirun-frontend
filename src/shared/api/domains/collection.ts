@@ -6,6 +6,7 @@ export const keys = {
   board: () => [...keys.all, "board"] as const,
   detail: (spotId: string) => [...keys.all, "detail", spotId] as const,
   swipeDeck: () => [...keys.all, "swipe-deck"] as const,
+  my: () => [...keys.all, "my"] as const,
 };
 
 // 주의: 이 두 엔드포인트는 다른 API와 달리 공통 { success, message, data } envelope 없이
@@ -30,5 +31,11 @@ export function cancelCollection(spotId: string) {
 export function getSwipeDeck() {
   return apiClient
     .get<OpResponse<"getSwipeDeck">>("/api/collections/swipe-deck")
+    .then((res) => res.data);
+}
+
+export function getMyCollection() {
+  return apiClient
+    .get<OpResponse<"getMyCollections">>("/api/collections/my")
     .then((res) => res.data);
 }

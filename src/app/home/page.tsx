@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
-import { Card, PageCard, StaircaseGlassCard } from "@/components";
+import { Card, PageCard, StaircaseGlassCard, Toast } from "@/components";
 import marineCharacter from "@/assets/character/marine.png";
 import { getMyProfile } from "@/shared/api/domains/user";
 import { useCollectionProgress } from "@/shared/hooks/useCollectionProgress";

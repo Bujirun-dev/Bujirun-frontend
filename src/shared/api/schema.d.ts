@@ -976,6 +976,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/groups/invites/{inviteCode}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 초대 정보 미리보기 (담당: 윤제승)
+         * @description 초대 코드로 그룹명, 초대자 닉네임, 멤버 수를 조회합니다.
+         */
+        get: operations["previewInvite"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/collections": {
         parameters: {
             query?: never;
@@ -1032,6 +1052,26 @@ export interface paths {
          * @description 도감 카테고리(바다/자연/문화/체험)별로 랜덤 관광지 총 10곳을 반환합니다.
          */
         get: operations["getSwipeDeck"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/collections/my": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 내 도감 수집 현황 조회 (담당: 유정)
+         * @description 로그인한 사용자의 도감 수집 현황(전체 대상 수, 수집 수, 수집 목록)을 조회합니다.
+         */
+        get: operations["getMyCollections"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1796,6 +1836,14 @@ export interface components {
             /** Format: int32 */
             order?: number;
             arrivalTime?: string;
+            travelMode?: string;
+            /** Format: int32 */
+            travelTimeMin?: number;
+            routeType?: string;
+            routeNo?: string;
+            startStationName?: string;
+            endStationName?: string;
+            startArsId?: string;
         };
         ApiResponseString: {
             success?: boolean;
@@ -1964,6 +2012,17 @@ export interface components {
             message?: string;
             data?: components["schemas"]["GroupResponse"][];
         };
+        ApiResponseGroupInvitePreviewResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["GroupInvitePreviewResponse"];
+        };
+        GroupInvitePreviewResponse: {
+            groupName?: string;
+            inviterNickname?: string;
+            /** Format: int64 */
+            memberCount?: number;
+        };
         CollectionListResponse: {
             /** Format: uuid */
             spotId?: string;
@@ -1982,6 +2041,24 @@ export interface components {
             collected?: boolean;
             /** Format: date-time */
             collectedAt?: string;
+        };
+        CollectionResponse: {
+            /** Format: uuid */
+            spotId?: string;
+            contentId?: string;
+            name?: string;
+            category?: string;
+            collectionCategory?: string;
+            thumbnailUrl?: string;
+            /** Format: date-time */
+            collectedAt?: string;
+        };
+        MyCollectionResponse: {
+            /** Format: int64 */
+            totalCount?: number;
+            /** Format: int64 */
+            collectedCount?: number;
+            entries?: components["schemas"]["CollectionResponse"][];
         };
         BookmarkListResponse: {
             /** Format: uuid */
@@ -3320,6 +3397,28 @@ export interface operations {
             };
         };
     };
+    previewInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inviteCode: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseGroupInvitePreviewResponse"];
+                };
+            };
+        };
+    };
     getBoard: {
         parameters: {
             query?: never;
@@ -3398,6 +3497,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SpotSearchResponse"][];
+                };
+            };
+        };
+    };
+    getMyCollections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MyCollectionResponse"];
                 };
             };
         };
