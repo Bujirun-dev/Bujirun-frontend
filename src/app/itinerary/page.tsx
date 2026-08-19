@@ -359,15 +359,19 @@ function ItineraryMain({
     // (예전엔 이름으로 관광지를 다시 검색해 매칭했었는데, 백엔드가 spotId를 내려주기
     // 시작한 뒤에도 안 지워져 있던 워크어라운드였음 — 이름이 안 맞으면 엉뚱한 스팟에
     // 매칭되거나 spotId가 비어 REST addItem 저장 자체가 안 되는 문제가 있었음).
-    const { days, dates } = buildDaysFromTravelLogDetail(importedLog);
-    // 실제 itinerary의 day 수와 다를 수 있어(로그 쪽 day 수 기준), 존재하는 day에만 반영한다.
+    const { days } = buildDaysFromTravelLogDetail(importedLog);
+    // 로그 쪽 day 수가 현재 일정보다 적을 수 있다(예: 2박3일 일정에 1박2일 로그를 불러오는
+    // 경우) — 그럴 땐 로그가 채워주는 날짜까지만 덮어쓰고, 남는 뒷날은 원래 상태(대개 빈
+    // 상태) 그대로 둔다. 로그 쪽 day 수가 더 많으면 초과분은 그냥 버린다(현재 일정 기준).
+    // 여행 날짜(tripDates)는 로그가 아니라 지금 이 일정 고유의 값이라 손대지 않는다 —
+    // 예전엔 로그의 dates로 덮어써서, 일정보다 짧은 로그를 불러오면 뒷날짜 자체가
+    // 화면에서 통째로 사라지는(사실상 일정이 로그 길이로 줄어드는) 버그가 있었다.
     days.forEach((dayStops, idx) => {
       if (idx < dayIdsSliced.length) pushYjsOptimizedOrder(idx, dayStops);
     });
     logActivity("import", "");
     flushNow();
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTripDates(dates);
     setCurrentDay(0);
     const toastTimer = window.setTimeout(() => {
       showToast("일정이 추가되었어요.");
