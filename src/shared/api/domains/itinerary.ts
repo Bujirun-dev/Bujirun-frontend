@@ -9,6 +9,8 @@ export const keys = {
   groupGenerate: (groupId: string, startDate: string, endDate: string) =>
     [...keys.all, "group-generate", groupId, startDate, endDate] as const,
   voteStatus: (sessionId: string) => [...keys.all, "vote-status", sessionId] as const,
+  travelModeOptions: (itineraryId: string, dayId: string, itemId: string) =>
+    [...keys.all, "travel-mode-options", itineraryId, dayId, itemId] as const,
 };
 
 export function getItineraries() {
@@ -105,6 +107,16 @@ export function updateTravelMode(
     .patch<
       OpResponse<"updateTravelMode">
     >(`/api/itineraries/${itineraryId}/days/${dayId}/items/${itemId}/travel-mode`, body)
+    .then((res) => unwrap(res));
+}
+
+// 이동수단 변경 모달을 열 때, 확정 전 후보(지하철 전용/버스 전용/버스+지하철 조합/도보/택시)와
+// 각각의 실제 요금·소요시간을 조회한다. DB에 저장된 값이 아니라 매번 새로 계산된 값.
+export function getTravelModeOptions(itineraryId: string, dayId: string, itemId: string) {
+  return apiClient
+    .get<
+      OpResponse<"getTravelModeOptions">
+    >(`/api/itineraries/${itineraryId}/days/${dayId}/items/${itemId}/travel-mode/options`)
     .then((res) => unwrap(res));
 }
 
