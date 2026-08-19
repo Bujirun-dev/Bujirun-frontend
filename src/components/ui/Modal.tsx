@@ -146,8 +146,8 @@ export function Modal({
               className={cn(
                 "w-full rounded-lg border px-3 py-2 flex flex-col gap-2 justify-center text-sm",
                 confirmVariant === "warning"
-                  ? "!border-sub-coral/20 !bg-[linear-gradient(180deg,var(--color-main-white)_65%,var(--color-sub-coralbg)_60%)]"
-                  : "!border-main-blue/20 !bg-[linear-gradient(180deg,var(--color-main-white)_65%,var(--color-system-navbg)_60%)]",
+                  ? "!border-sub-coral/20 !bg-[linear-gradient(to_bottom,color-mix(in_srgb,var(--color-main-white)_65%,transparent),color-mix(in_srgb,var(--color-system-coralbg)_60%,transparent))]"
+                  : "!border-main-blue/20 !bg-[linear-gradient(to_bottom,color-mix(in_srgb,var(--color-main-white)_65%,transparent),color-mix(in_srgb,var(--color-system-navbg)_60%,transparent))]",
                 childrenClassName,
               )}
             >
