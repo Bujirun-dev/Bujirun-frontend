@@ -105,17 +105,6 @@ function selectItinerary<T extends ItinerarySummaryForSelection>(
   })[0];
 }
 
-// TransportSelectSheet 카드 id → 백엔드 travelMode(walk/transit/taxi). 백엔드는 버스/지하철을
-// 하나의 "transit" 옵션으로만 계산해서 돌려주므로(둘 중 하나를 강제로 고를 순 없음),
-// "subway" 카드도 동일하게 transit으로 요청하고 실제 결과(버스/지하철)는 응답의
-// routeType을 그대로 따른다.
-const ROUTE_OPTION_TRAVEL_MODE: Record<string, string> = {
-  transit: "transit",
-  subway: "transit",
-  taxi: "taxi",
-  walk: "walk",
-};
-
 function getDefaultStopTime(dayStops: BaseStop[]): string {
   if (dayStops.length === 0) return DEFAULT_DAY_START;
   const latestMin = Math.max(
@@ -393,6 +382,24 @@ function ItineraryMain({
 
   const activeStop = stopsPerDay[activeDayIdx]?.find((s) => s.id === activeStopId);
   const selectedRouteOptionId = getActiveTransportOptionId(activeStop);
+
+  // 이동수단 변경 모달을 열 때만 후보(지하철 전용/버스 전용/버스+지하철 조합/도보/택시)와
+  // 각각의 실제 요금·소요시간을 조회한다 — 확정 전 미리보기라 매번 새로 계산된 값이 필요하다.
+  const travelModeOptionsDayId = dayIdsSliced[activeDayIdx];
+  const { data: travelModeOptions } = useQuery({
+    queryKey: itineraryApi.keys.travelModeOptions(
+      itineraryId ?? "",
+      travelModeOptionsDayId ?? "",
+      activeStopId ?? "",
+    ),
+    queryFn: () =>
+      itineraryApi.getTravelModeOptions(
+        itineraryId as string,
+        travelModeOptionsDayId as string,
+        activeStopId as string,
+      ),
+    enabled: modal === "transport" && !!itineraryId && !!travelModeOptionsDayId && !!activeStopId,
+  });
   const closeModal = () => setModal(null);
 
   const openDelete = (dayIdx: number, id: string) => {
@@ -458,8 +465,10 @@ function ItineraryMain({
 
     let updatedItem;
     try {
+      // option.id는 buildTransportOptionsFromApi()가 만든 값이라 백엔드 travelMode
+      // (walk/taxi/bus/subway/combo)와 이미 동일하다 — 별도 매핑 불필요.
       updatedItem = await itineraryApi.updateTravelMode(itineraryId, dayId, activeStopId, {
-        travelMode: ROUTE_OPTION_TRAVEL_MODE[option.id] ?? "transit",
+        travelMode: option.id,
       });
     } catch {
       closeModal();
@@ -637,6 +646,7 @@ function ItineraryMain({
         modal={modal}
         activeStop={activeStop}
         itineraryId={itineraryId}
+        travelModeOptions={travelModeOptions}
         timeValue={timeValue}
         selectedRouteOptionId={selectedRouteOptionId}
         peerUpdateMessage={peerUpdateMessage}

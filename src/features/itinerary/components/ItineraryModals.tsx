@@ -13,7 +13,8 @@ import { TransportDetailModal } from "@/features/home/components/TransportDetail
 import type { TransportGroup, TransportOption } from "@/features/home/types/transport";
 import type { RouteOption } from "./TransportSelectSheet";
 import type { BaseStop } from "../utils/scheduleUtils";
-import { buildTransportOptions } from "../utils/scheduleUtils";
+import { buildTransportOptionsFromApi } from "../utils/scheduleUtils";
+import type { components } from "@/shared/api/schema";
 
 export type ModalType =
   | "optimize"
@@ -28,6 +29,9 @@ interface ItineraryModalsProps {
   modal: ModalType | null;
   activeStop: BaseStop | undefined;
   itineraryId: string;
+  // GET .../travel-mode/options 조회 결과 — 지하철 전용/버스 전용/버스+지하철 조합/도보/택시
+  // 후보와 각각의 실제 요금·소요시간. transport 모달이 열려있을 때만 채워진다.
+  travelModeOptions?: components["schemas"]["TransitOption"][];
   timeValue: { hour: number; minute: number };
   selectedRouteOptionId: string;
   peerUpdateMessage?: string;
@@ -46,6 +50,7 @@ export function ItineraryModals({
   modal,
   activeStop,
   itineraryId,
+  travelModeOptions,
   timeValue,
   selectedRouteOptionId,
   peerUpdateMessage,
@@ -133,10 +138,12 @@ export function ItineraryModals({
       />
 
       {(() => {
-        const routeOptions = buildTransportOptions(activeStop);
+        const fromPlace = activeStop?.transport?.from ?? "출발 장소";
+        const toPlace = activeStop?.transport?.to ?? "도착 장소";
+        const routeOptions = buildTransportOptionsFromApi(travelModeOptions, fromPlace, toPlace);
         const transportGroup: TransportGroup = {
-          fromPlace: activeStop?.transport?.from ?? "출발 장소",
-          toPlace: activeStop?.transport?.to ?? "도착 장소",
+          fromPlace,
+          toPlace,
           selectedOptionId: selectedRouteOptionId,
           options: routeOptions.map((option) => ({
             id: option.id,

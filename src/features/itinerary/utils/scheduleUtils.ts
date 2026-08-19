@@ -159,10 +159,53 @@ interface TravelModeItemLike {
   routeNo?: string;
   startStationName?: string;
   endStationName?: string;
+  transitDetail?: components["schemas"]["TransitDetail"];
+}
+
+// transitDetail(subPath 배열 전체)이 있으면 실제 다구간(버스+지하철 조합 등 환승 포함)으로,
+// 없으면(레거시 데이터·계산 실패 등) undefined를 돌려줘서 호출부가 대표값 1구간으로 폴백하게 한다.
+function legsFromTransitDetail(
+  transitDetail: components["schemas"]["TransitDetail"] | undefined,
+  fallbackFrom: string,
+  fallbackTo: string,
+): { type: TransportType; routeName: string; from: string; to: string }[] | undefined {
+  const segments = (transitDetail?.segments ?? []).filter(
+    (s): s is typeof s & { trafficType: TransportType } =>
+      !!s.trafficType && s.trafficType !== "도보" && TRANSPORT_TYPES.includes(s.trafficType as TransportType),
+  );
+  if (segments.length === 0) return undefined;
+
+  return segments.map((s) => ({
+    type: s.trafficType,
+    routeName: s.routeNo || s.trafficType,
+    from: s.startName || fallbackFrom,
+    to: s.endName || fallbackTo,
+  }));
+}
+
+// GET .../travel-mode/options 응답의 TransitOption.subPaths(필드명이 trafficType이 아니라 type)를
+// 다구간으로 변환한다 — legsFromTransitDetail과 로직은 같지만 필드명이 달라 별도로 둔다.
+function legsFromSubPaths(
+  subPaths: components["schemas"]["SubPath"][] | undefined,
+  fallbackFrom: string,
+  fallbackTo: string,
+): { type: TransportType; routeName: string; from: string; to: string }[] | undefined {
+  const nonWalk = (subPaths ?? []).filter(
+    (sp): sp is typeof sp & { type: TransportType } =>
+      !!sp.type && sp.type !== "도보" && TRANSPORT_TYPES.includes(sp.type as TransportType),
+  );
+  if (nonWalk.length === 0) return undefined;
+
+  return nonWalk.map((sp) => ({
+    type: sp.type,
+    routeName: sp.routeNo || sp.type,
+    from: sp.startName || fallbackFrom,
+    to: sp.endName || fallbackTo,
+  }));
 }
 
 // PATCH .../travel-mode 응답(ItineraryItemResponse)을 화면이 쓰는 TransportInfo로 변환한다.
-// buildTransportOptions()가 만드는 카드 미리보기와 달리 이건 백엔드가 ODsay로 실제
+// buildTransportOptionsFromApi()가 만드는 카드 미리보기와 달리 이건 백엔드가 ODsay로 실제
 // 재계산한 값이라 역명/노선번호가 진짜다 — 사용자가 이동수단을 확정한 뒤에만 쓴다.
 export function buildTransportFromItem(
   item: TravelModeItemLike,
@@ -182,20 +225,17 @@ export function buildTransportFromItem(
   const to = item.endStationName ?? toPlaceName;
   const durationMin = item.travelTimeMin ?? fallbackDurationMin;
 
+  const legs = legsFromTransitDetail(item.transitDetail, from, to) ?? [
+    { type: transportType, routeName: item.routeNo || transportType, from, to },
+  ];
+
   return {
     from,
     to,
     durationMin,
     baseDurationMin: durationMin,
     cost,
-    legs: [
-      {
-        type: transportType,
-        routeName: item.routeNo || transportType,
-        from,
-        to,
-      },
-    ],
+    legs,
     toStopId,
   };
 }
@@ -282,6 +322,8 @@ export function mapItineraryDetailToDays(
       // 스팟 등) "버스"로 임의 확정하지 않고 transport 자체를 비워서 아직 계산 전임을
       // 그대로 반영한다.
       const transportType = resolveTransportType(nextItem?.routeType, nextItem?.travelMode);
+      const legFrom = nextItem?.startStationName ?? placeName;
+      const legTo = nextItem?.endStationName ?? nextPlaceName;
       const recommendedTransport =
         nextItem &&
         transportType &&
@@ -291,14 +333,14 @@ export function mapItineraryDetailToDays(
               to: nextPlaceName,
               durationMin: nextItem.travelTimeMin ?? 30,
               baseDurationMin: nextItem.travelTimeMin ?? 30,
-              legs: [
+              // transitDetail이 있으면(버스+지하철 조합 등 환승 포함) 실제 다구간으로,
+              // 없으면 대표값 1구간(routeNo가 있으면 실제 값, 없으면(도보/택시 등) 타입 이름)으로 표시한다.
+              legs: legsFromTransitDetail(nextItem.transitDetail, legFrom, legTo) ?? [
                 {
                   type: transportType,
-                  // routeNo(버스번호/지하철 노선명)가 있으면 실제 값을, 없으면(도보/택시 등)
-                  // 타입 이름 그대로 표시한다.
                   routeName: nextItem.routeNo || transportType,
-                  from: nextItem.startStationName ?? placeName,
-                  to: nextItem.endStationName ?? nextPlaceName,
+                  from: legFrom,
+                  to: legTo,
                 },
               ],
               toStopId: nextStopId,
@@ -366,76 +408,77 @@ export function rebuildTransport(stops: BaseStop[]): BaseStop[] {
   });
 }
 
-export function buildTransportOptions(activeStop: BaseStop | undefined): RouteOption[] {
-  // 옵션1(추천)은 사용자가 그동안 뭘 선택했는지와 무관하게 항상 최초 계산된 추천
-  // 경로(recommendedTransport)를 보여준다 — transport는 선택할 때마다 덮어써지므로
-  // 여기서 쓰면 "버스 선택 후 다시 열었더니 추천도 버스로 바뀌어 보임" 문제가 생긴다.
-  const recommended = activeStop?.recommendedTransport;
-  const base = recommended?.baseDurationMin ?? activeStop?.transport?.baseDurationMin ?? 30;
-  const f = recommended?.from ?? activeStop?.transport?.from ?? "";
-  const t = recommended?.to ?? activeStop?.transport?.to ?? "";
-  // recommendedTransport(최초 추천)에 없으면 activeStop.transport(현재 확정값)에서도
-  // 찾는다 — 이미 지하철로 확정된 스팟을 다시 열었을 때도 실제 역명을 보여주기 위해.
-  const legsSource = recommended?.legs ?? activeStop?.transport?.legs ?? [];
-  const transitLegs = legsSource.filter((leg) => leg.type === "버스" || leg.type === "지하철");
-  const subwayLeg = transitLegs.find((leg) => leg.type === "지하철");
+// ODsay가 pathType별로 계산해준 옵션 타입("지하철"/"버스"/"버스+지하철"/"도보"/"택시")을
+// PATCH .../travel-mode 요청의 travelMode 값으로 매핑한다.
+const OPTION_TYPE_TO_TRAVEL_MODE: Record<string, string> = {
+  지하철: "subway",
+  버스: "bus",
+  "버스+지하철": "combo",
+  도보: "walk",
+  택시: "taxi",
+};
 
-  const options: RouteOption[] = [
-    {
-      id: "transit",
-      isRecommended: true,
-      durationMin: base,
-      cost: 1500,
-      legs:
-        transitLegs.length > 0
-          ? transitLegs
-          : [{ type: "버스" as const, routeName: "버스", from: f, to: t }],
-    },
-  ];
+type ApiTransitOption = components["schemas"]["TransitOption"];
 
-  // 실제 지하철 구간 데이터가 있을 때만 카드로 보여준다 — 없으면 "OO역"처럼 역명을
-  // 지어내게 되므로 아예 옵션에서 뺀다.
-  if (subwayLeg) {
-    options.push({
-      id: "subway",
-      durationMin: Math.round(base * 0.85),
-      cost: 1600,
-      legs: [subwayLeg],
-    });
-  }
+// GET .../travel-mode/options 응답(TransitOption[])을 화면 카드(RouteOption[])로 변환한다.
+// 예전엔 이미 확정된 경로 하나로 4개 카드(버스/지하철/택시/도보)를 추정해서 만들고 요금도
+// 하드코딩(1500/1600/14500원)했는데, 이젠 ODsay가 지하철 전용/버스 전용/버스+지하철 조합을
+// 각각 실제로 계산해서 주기 때문에 그 값을 그대로 쓴다. 추정/하드코딩 없음.
+export function buildTransportOptionsFromApi(
+  options: ApiTransitOption[] | undefined,
+  fallbackFrom: string,
+  fallbackTo: string,
+): RouteOption[] {
+  if (!options || options.length === 0) return [];
 
-  options.push(
-    {
-      id: "taxi",
-      durationMin: Math.round(base * 0.6),
-      cost: 14500,
-      legs: [{ type: "택시" as const, routeName: "택시", from: f, to: t }],
-    },
-    {
-      id: "walk",
-      durationMin: base * 3,
-      cost: 0,
-      legs: [{ type: "도보" as const, routeName: "도보", from: f, to: t }],
-    },
-  );
+  // 대중교통(도보/택시 제외) 중 가장 빠른 옵션에 추천 표시를 붙인다.
+  const transitTimes = options
+    .filter((option) => option.type !== "도보" && option.type !== "택시")
+    .map((option) => option.totalTime ?? Infinity);
+  const fastestTransitTime = transitTimes.length > 0 ? Math.min(...transitTimes) : undefined;
 
-  return options;
+  return options.map((option): RouteOption => {
+    const type = option.type ?? "";
+    const id = OPTION_TYPE_TO_TRAVEL_MODE[type] ?? type;
+
+    // 버스+지하철 조합처럼 실제 환승 구간이 있으면 subPath 전체로 다구간 표시,
+    // 없으면(도보/택시처럼 subPath가 비어있는 경우) 옵션 타입 자체를 1구간으로 표시.
+    const legs =
+      legsFromSubPaths(option.subPaths, fallbackFrom, fallbackTo) ??
+      (TRANSPORT_TYPES.includes(type as TransportType)
+        ? [{ type: type as TransportType, routeName: type, from: fallbackFrom, to: fallbackTo }]
+        : []);
+
+    return {
+      id,
+      legs,
+      durationMin: option.totalTime ?? 0,
+      cost: option.totalFare ?? 0,
+      isRecommended: fastestTransitTime !== undefined && option.totalTime === fastestTransitTime,
+    };
+  });
 }
 
-// buildTransportOptions()가 만드는 4개 옵션(transit/subway/taxi/walk) 중 이 스팟이
+// buildTransportOptionsFromApi()가 만드는 옵션(subway/bus/combo/taxi/walk) 중 이 스팟이
 // 지금 실제로 어떤 걸 쓰고 있는지 id로 알려준다. 이걸 별도 state로 들고 있으면(예전 방식)
 // 스팟마다 다른 값인데 전역 state 하나를 공유하게 돼서, 다른 스팟을 지하철로 바꾼 뒤
 // 버스인 스팟을 열어도 지하철이 선택된 것처럼 보이는 문제가 있었다 — 그래서 매번
 // activeStop에서 직접 계산한다.
 export function getActiveTransportOptionId(stop: BaseStop | undefined): string {
-  switch (stop?.transport?.legs[0]?.type) {
+  const legs = stop?.transport?.legs ?? [];
+  // 서로 다른 대중교통으로 환승한 구간(버스+지하철 조합)은 legs가 2개 이상이다.
+  if (legs.length > 1) return "combo";
+
+  switch (legs[0]?.type) {
     case "지하철":
       return "subway";
+    case "버스":
+      return "bus";
     case "택시":
       return "taxi";
     case "도보":
       return "walk";
     default:
-      return "transit";
+      return "none"; // 아직 이동수단이 계산되지 않음 — 어떤 카드도 선택 표시하지 않는다
   }
 }
