@@ -310,6 +310,7 @@ function ItineraryMain({
 
   const {
     stopsPerDay,
+    seeded: yjsSeeded,
     collaboratorsByStop,
     setFocusedStop,
     logActivity,
@@ -354,6 +355,11 @@ function ItineraryMain({
 
   useEffect(() => {
     if (!importedLogId || !importedLog) return;
+    // Yjs 문서가 아직 시딩 전이면 day별 items 배열 자체가 doc 안에 없어서, 이 시점에
+    // pushYjsOptimizedOrder를 호출해도 조용히 아무 일도 안 일어난다(day map을 못 찾아
+    // no-op) — "로그 불러오기 버튼을 눌러도 일정이 그대로"인 버그의 원인이었다. seeded가
+    // true가 될 때(=day 구조가 doc에 만들어진 뒤)까지 기다렸다가 반영한다.
+    if (!yjsSeeded) return;
 
     // 로그 응답의 각 항목에 spotId/주소/썸네일/카테고리가 이미 내려오므로 그대로 쓴다
     // (예전엔 이름으로 관광지를 다시 검색해 매칭했었는데, 백엔드가 spotId를 내려주기
@@ -382,7 +388,7 @@ function ItineraryMain({
       window.clearTimeout(toastTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [importedLogId, importedLog]);
+  }, [importedLogId, importedLog, yjsSeeded]);
 
   const activeStop = stopsPerDay[activeDayIdx]?.find((s) => s.id === activeStopId);
   const selectedRouteOptionId = getActiveTransportOptionId(activeStop);
