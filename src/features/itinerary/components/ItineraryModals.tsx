@@ -89,7 +89,6 @@ export function ItineraryModals({
             aria-hidden
           />
         }
-        iconClassName="bg-sub-coral/10"
         title="일정이 업데이트됐어요"
         description={peerUpdateMessage}
         hideActions

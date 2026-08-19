@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/shared/utils";
 import { Card, Modal, SpeechBubble, Toast, LoadingState, ErrorState } from "@/components";
-import checkIcon from "@/assets/icons/itinerary/check.png";
+import checkIconWhite from "@/assets/icons/itinerary/check_white.png";
+import checkIconBlue from "@/assets/icons/itinerary/check_blue.png";
 import infoIcon from "@/assets/icons/itinerary/info.png";
 import freepassBlueIcon from "@/assets/icons/itinerary/freepass-blue.png";
 import flagImg from "@/assets/place/flag.png";
@@ -428,7 +429,7 @@ function TripResultContent() {
                   votedPlan === activePlan ? "bg-sub-pink" : "bg-sub-pink/50",
                 )}
               >
-                <Image src={checkIcon} alt="투표" width={14} height={14} aria-hidden />
+                <Image src={checkIconWhite} alt="투표" width={14} height={14} aria-hidden />
               </button>
               <div className="flex items-center gap-[2px] font-proup text-sm font-normal leading-none text-sub-pink">
                 <span>♥</span>
@@ -581,8 +582,7 @@ function TripResultContent() {
       <Modal
         isOpen={voteConfirmPlan !== null}
         onClose={() => setVoteConfirmPlan(null)}
-        icon={<Image src={checkIcon} alt="" width={20} height={20} aria-hidden />}
-        iconClassName="bg-sub-pink/30"
+        icon={<Image src={checkIconBlue} alt="" width={20} height={20} aria-hidden />}
         title="이 일정으로 투표할까요?"
         description={`${voteConfirmPlan}안에 투표하시겠어요?`}
         cancelText="취소"
@@ -596,7 +596,6 @@ function TripResultContent() {
         isOpen={freepassModal === "guide"}
         onClose={() => setFreepassModal(null)}
         icon={<Image src={freepassBlueIcon} alt="" width={25} height={25} aria-hidden />}
-        iconClassName="bg-system-navbg"
         title="방장 마음대로 프리패스!"
         description={"투표 결과와 상관없이\n방장이 원하는 추천 일정을 선택할 수 있어요."}
         childrenVariant="card"
@@ -616,7 +615,6 @@ function TripResultContent() {
         isOpen={freepassModal === "confirm"}
         onClose={() => setFreepassModal(null)}
         icon={<Image src={freepassBlueIcon} alt="" width={25} height={25} aria-hidden />}
-        iconClassName="bg-system-navbg"
         title="방장 마음대로 프리패스!"
         description={`${activePlan} 일정으로 선택하시겠어요?\n선택한 일정이 최종 일정으로 확정돼요.`}
         childrenVariant="card"
