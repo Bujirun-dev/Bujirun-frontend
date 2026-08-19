@@ -171,7 +171,9 @@ function legsFromTransitDetail(
 ): { type: TransportType; routeName: string; from: string; to: string }[] | undefined {
   const segments = (transitDetail?.segments ?? []).filter(
     (s): s is typeof s & { trafficType: TransportType } =>
-      !!s.trafficType && s.trafficType !== "도보" && TRANSPORT_TYPES.includes(s.trafficType as TransportType),
+      !!s.trafficType &&
+      s.trafficType !== "도보" &&
+      TRANSPORT_TYPES.includes(s.trafficType as TransportType),
   );
   if (segments.length === 0) return undefined;
 

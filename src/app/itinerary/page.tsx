@@ -385,20 +385,31 @@ function ItineraryMain({
 
   // 이동수단 변경 모달을 열 때만 후보(지하철 전용/버스 전용/버스+지하철 조합/도보/택시)와
   // 각각의 실제 요금·소요시간을 조회한다 — 확정 전 미리보기라 매번 새로 계산된 값이 필요하다.
+  //
+  // ItineraryItem은 "직전 항목 → 이 항목" 도착 구간 정보를 자기 자신에 저장하는 컨벤션이라
+  // (addItem/optimize/saveConfirmedItinerary 전부 동일), travel-mode 조회/변경 API는 activeStop
+  // 자신의 id가 아니라 "다음 항목"의 id를 받아야 한다. activeStopId를 그대로 넘기면 백엔드가
+  // "이 항목의 이전 항목"을 찾아 엉뚱한 구간을 계산하고, activeStop이 그 day의 첫 항목이면
+  // "첫 번째 방문 항목은 이동수단 옵션이 없습니다"를 잘못 던진다(2026-08-19 버그 리포트).
   const travelModeOptionsDayId = dayIdsSliced[activeDayIdx];
+  const travelModeTargetItemId = activeStop?.transport?.toStopId;
   const { data: travelModeOptions } = useQuery({
     queryKey: itineraryApi.keys.travelModeOptions(
       itineraryId ?? "",
       travelModeOptionsDayId ?? "",
-      activeStopId ?? "",
+      travelModeTargetItemId ?? "",
     ),
     queryFn: () =>
       itineraryApi.getTravelModeOptions(
         itineraryId as string,
         travelModeOptionsDayId as string,
-        activeStopId as string,
+        travelModeTargetItemId as string,
       ),
-    enabled: modal === "transport" && !!itineraryId && !!travelModeOptionsDayId && !!activeStopId,
+    enabled:
+      modal === "transport" &&
+      !!itineraryId &&
+      !!travelModeOptionsDayId &&
+      !!travelModeTargetItemId,
   });
   const closeModal = () => setModal(null);
 
@@ -467,7 +478,10 @@ function ItineraryMain({
     try {
       // option.id는 buildTransportOptionsFromApi()가 만든 값이라 백엔드 travelMode
       // (walk/taxi/bus/subway/combo)와 이미 동일하다 — 별도 매핑 불필요.
-      updatedItem = await itineraryApi.updateTravelMode(itineraryId, dayId, activeStopId, {
+      // itemId는 activeStopId(출발 항목)가 아니라 nextStop.id(도착 항목) — ItineraryItem은
+      // "직전 항목 → 이 항목" 구간 정보를 도착 항목 자신에 저장하는 컨벤션이라, 백엔드가
+      // 재계산할 대상은 항상 도착 항목이다.
+      updatedItem = await itineraryApi.updateTravelMode(itineraryId, dayId, nextStop.id, {
         travelMode: option.id,
       });
     } catch {
