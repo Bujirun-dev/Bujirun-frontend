@@ -166,7 +166,10 @@ export function ItineraryModals({
 
         return (
           <TransportDetailModal
-            isOpen={modal === "transport"}
+            // travelModeOptions는 모달이 열린 뒤 비동기로 조회되므로, 응답이 오기 전(첫 렌더에서
+            // routeOptions가 빈 배열)에는 아직 열지 않는다 — 빈 옵션으로 열면 TransportDetail이
+            // selectedOption을 못 찾아 undefined를 구조분해하다 터진다.
+            isOpen={modal === "transport" && routeOptions.length > 0}
             transportGroup={transportGroup}
             selectedOptionId={selectedRouteOptionId}
             onClose={onClose}
