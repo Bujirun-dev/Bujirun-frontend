@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { isAxiosError } from "axios";
-import Image from "next/image";
-import removeWhiteIcon from "@/assets/icons/itinerary/remove-white.png";
 import {
   Button,
   Card,

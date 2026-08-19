@@ -17,14 +17,6 @@ const CATEGORY_BUTTON_CLASS: Record<CollectionCategory, string> = {
   체험: "bg-collection-experience",
 };
 
-const CATEGORY_BUTTON_LIGHT_CLASS: Record<CollectionCategory, string> = {
-  전체: "bg-collection-all-light",
-  바다: "bg-collection-sea-light",
-  자연: "bg-collection-nature-light",
-  문화: "bg-collection-culture-light",
-  체험: "bg-collection-experience-light",
-};
-
 export function CategoryTabs({ selected, onChange }: CategoryTabsProps) {
   return (
     <div className="flex w-full gap-3">
