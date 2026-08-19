@@ -79,7 +79,12 @@ export function useCollaborativeItinerary(
   // (React StrictMode가 개발 모드에서 연결 effect를 마운트 직후 한 번 cleanup했다가
   // 다시 마운트하는데, 그 cleanup이 onBeforeDisconnect=flushAll을 호출하는 경로가 있어서
   // 시딩 전에 flushAll이 불릴 수 있다 — 실제로 이걸로 로컬 테스트 중 데이터가 날아갔다.)
+  //
+  // ref와 별개로 state(seeded)로도 노출한다 — 로그 불러오기처럼 마운트 직후 곧바로
+  // doc에 쓰기(day 배열이 아직 없으면 조용히 무시됨)를 시도하는 호출부가 "지금 써도
+  // 안전한지"를 알 수 있어야 한다(ref는 effect 밖 렌더에서 못 읽어서 이 용도로는 못 씀).
   const hasSeededRef = useRef(false);
+  const [seeded, setSeeded] = useState(false);
 
   useEffect(() => {
     dayIdsRef.current = dayIds;
@@ -126,12 +131,15 @@ export function useCollaborativeItinerary(
       // 사라지는 버그가 있었음 — Yjs 쪽 항목엔 이동수단이 비어있는 채로 굳어있어서).
       reconcileTransportFromRest(doc, dayIdsRef.current, initialDaysRef.current);
       hasSeededRef.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSeeded(true);
       return;
     }
     const timer = window.setTimeout(() => {
       seedYjsDays(doc, dayIdsRef.current, initialDaysRef.current);
       reconcileTransportFromRest(doc, dayIdsRef.current, initialDaysRef.current);
       hasSeededRef.current = true;
+      setSeeded(true);
     }, SEED_FALLBACK_MS);
     return () => window.clearTimeout(timer);
   }, [doc, synced]);
@@ -278,6 +286,7 @@ export function useCollaborativeItinerary(
   return {
     stopsPerDay,
     status,
+    seeded,
     collaboratorsByStop,
     setFocusedStop,
     logActivity,
