@@ -23,7 +23,6 @@ export function AiOptimizeModal({ isOpen, onClose, onConfirm }: AiOptimizeModalP
           aria-hidden
         />
       }
-      iconClassName="bg-sub-coral/10"
       title="AI 일정 최적화"
       description={"관광지의 위치와 이동 경로를 분석해\n더 효율적인 여행 코스를 추천해드릴게요."}
       confirmText="최적화 시작"
