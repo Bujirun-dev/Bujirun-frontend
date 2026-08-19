@@ -205,8 +205,9 @@ export default function TripsPage() {
 
       <Toast
         isVisible={errorMessage !== null}
-        message={errorMessage ?? ""}
         onHide={() => setErrorMessage(null)}
+        message={errorMessage ?? ""}
+        variant="error"
       />
     </PageCard>
   );

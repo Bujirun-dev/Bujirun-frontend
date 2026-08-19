@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { isAxiosError } from "axios";
-import Image from "next/image";
-import removeWhiteIcon from "@/assets/icons/itinerary/remove-white.png";
 import {
   Button,
   Card,
@@ -1612,7 +1610,7 @@ export default function TestPage() {
         isVisible={showDeleteToast}
         onHide={() => setShowDeleteToast(false)}
         message="여행이 삭제되었어요."
-        icon={<Image src={removeWhiteIcon} alt="삭제" width={12} height={12} />}
+        variant="default"
       />
       <ArrivalVerifyModal
         spotId="3fa85f64-5717-4562-b3fc-2c963f66afa6"

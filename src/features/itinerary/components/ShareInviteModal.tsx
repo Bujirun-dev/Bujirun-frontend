@@ -112,9 +112,9 @@ export function ShareInviteModal({
 
       <Toast
         isVisible={toast !== null}
+        onHide={() => setToast(null)}
         message={toast?.message ?? ""}
         variant={toast?.variant}
-        onHide={() => setToast(null)}
       />
     </>
   );

@@ -59,7 +59,7 @@ export function TripReceipt({ receipt }: TripReceiptProps) {
         </h3>
 
         <div className="grid items-center gap-3">
-          <div className="relative size-[80px] justify-self-center overflow-hidden rounded-full border-2 border-sub-gray">
+          <div className="relative size-20 justify-self-center overflow-hidden rounded-full border-2 border-sub-gray">
             {receipt.profileImage ? (
               <Image
                 src={receipt.profileImage}
@@ -72,7 +72,7 @@ export function TripReceipt({ receipt }: TripReceiptProps) {
             )}
           </div>
 
-          <dl className="space-y-1.5 leading-none">
+          <dl className="space-y-1.5 leading-none text-text-receipt-main">
             {receiptInfo.map(([label, value]) => (
               <div key={label} className="grid grid-cols-[110px_minmax(0,1fr)] gap-1">
                 <dt className="font-bold tracking-[0.04em]">{label}</dt>

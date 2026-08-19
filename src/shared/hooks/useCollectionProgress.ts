@@ -28,7 +28,7 @@ export function useCollectionProgress() {
           acc.count += 1;
         }
 
-        const category = spot.category ?? "UNKNOWN";
+        const category = spot.collectionCategory ?? "UNKNOWN";
 
         if (!acc.categoryProgress[category]) {
           acc.categoryProgress[category] = {

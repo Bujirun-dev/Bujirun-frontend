@@ -12,13 +12,22 @@ export default function BookmarkSpotDetailPage({ params }: { params: Promise<{ i
   const { spot, place, isLoading, isError, isBookmarked, toggleBookmark, relatedLogs } =
     useSpotDetail(id);
 
+  const [toastVariant, setToastVariant] = useState<"success" | "error">("success");
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  const handleBookmark = () => {
-    toggleBookmark();
-    setToastMessage(isBookmarked ? "북마크가 해제되었어요" : "북마크에 추가되었어요");
-    setToastVisible(true);
+  const handleBookmark = async () => {
+    try {
+      await toggleBookmark();
+
+      setToastVariant("success");
+      setToastMessage(isBookmarked ? "북마크가 해제되었어요" : "북마크에 추가되었어요");
+      setToastVisible(true);
+    } catch {
+      setToastVariant("error");
+      setToastMessage("북마크 변경에 실패했어요. 다시 시도해주세요.");
+      setToastVisible(true);
+    }
   };
 
   if (isLoading) {
@@ -61,6 +70,7 @@ export default function BookmarkSpotDetailPage({ params }: { params: Promise<{ i
         isVisible={toastVisible}
         message={toastMessage}
         onHide={() => setToastVisible(false)}
+        variant={toastVariant}
       />
     </PageCard>
   );
