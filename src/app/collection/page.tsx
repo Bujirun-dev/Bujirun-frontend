@@ -35,7 +35,10 @@ export default function CollectionPage() {
   });
 
   const spots = useMemo(
-    () => [...(collection?.entries ?? []), ...(collection?.uncollectedEntries ?? [])],
+    () =>
+      [...(collection?.entries ?? []), ...(collection?.uncollectedEntries ?? [])].sort((a, b) =>
+        (a.name ?? "").localeCompare(b.name ?? "", "ko"),
+      ),
     [collection],
   );
 
@@ -44,7 +47,7 @@ export default function CollectionPage() {
       if (!spot.name) return;
 
       const image = new window.Image();
-      image.src = `/collxection/${spot.name}.png`;
+      image.src = `/collection/${spot.name}.png`;
     });
   }, [spots]);
 

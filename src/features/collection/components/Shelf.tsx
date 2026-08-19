@@ -51,8 +51,8 @@ export function Shelf({ spots, category, onSpotClick }: ShelfProps) {
     <div className="relative w-full">
       <div className="-mt-1 mb-4 flex flex-col items-center">
         <div className="flex w-[61%] justify-between px-8">
-          <div className="h-3 w-[1px] bg-collection-border" />
-          <div className="h-3 w-[1px] bg-collection-border" />
+          <div className="h-3 w-[1.5px] bg-collection-border" />
+          <div className="h-3 w-[1.5px] bg-collection-border" />
         </div>
 
         <div className="flex h-11 w-[72%] items-center justify-center rounded-[4px] border-[1.5px] border-collection-border bg-collection-bg px-3">
