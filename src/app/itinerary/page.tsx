@@ -18,6 +18,7 @@ import {
   normalizeTime,
   roundToNearest10,
   timeToMinutes,
+  toBackendTravelMode,
 } from "@/features/itinerary/utils/scheduleUtils";
 import { getTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import type { SearchPlace } from "@/components/place/PlaceSearchPanel";
@@ -487,13 +488,13 @@ function ItineraryMain({
 
     let updatedItem;
     try {
-      // option.id는 buildTransportOptionsFromApi()가 만든 값이라 백엔드 travelMode
-      // (walk/taxi/bus/subway/combo)와 이미 동일하다 — 별도 매핑 불필요.
+      // option.id는 화면 구분용 값(walk/taxi/bus/subway/combo)이라 백엔드 travelMode
+      // (walk/transit/taxi)와 다르다 — toBackendTravelMode()로 변환 후 전송한다.
       // itemId는 activeStopId(출발 항목)가 아니라 nextStop.id(도착 항목) — ItineraryItem은
       // "직전 항목 → 이 항목" 구간 정보를 도착 항목 자신에 저장하는 컨벤션이라, 백엔드가
       // 재계산할 대상은 항상 도착 항목이다.
       updatedItem = await itineraryApi.updateTravelMode(itineraryId, dayId, nextStop.id, {
-        travelMode: option.id,
+        travelMode: toBackendTravelMode(option.id),
       });
     } catch {
       closeModal();

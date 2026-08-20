@@ -426,6 +426,14 @@ const OPTION_TYPE_TO_TRAVEL_MODE: Record<string, string> = {
   택시: "taxi",
 };
 
+// RouteOption.id(화면용: walk/taxi/bus/subway/combo)를 백엔드
+// travelMode(walk/transit/taxi)로 변환한다.
+export function toBackendTravelMode(id: string): "walk" | "transit" | "taxi" {
+  if (id === "walk") return "walk";
+  if (id === "taxi") return "taxi";
+  return "transit";
+}
+
 type ApiTransitOption = components["schemas"]["TransitOption"];
 
 // GET .../travel-mode/options 응답(TransitOption[])을 화면 카드(RouteOption[])로 변환한다.
