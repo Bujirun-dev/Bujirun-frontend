@@ -482,8 +482,12 @@ export function buildTransportOptionsFromApi(
 // activeStop에서 직접 계산한다.
 export function getActiveTransportOptionId(stop: BaseStop | undefined): string {
   const legs = stop?.transport?.legs ?? [];
-  // 서로 다른 대중교통으로 환승한 구간(버스+지하철 조합)은 legs가 2개 이상이다.
-  if (legs.length > 1) return "combo";
+  if (legs.length === 0) return "none"; // 아직 이동수단이 계산되지 않음 — 어떤 카드도 선택 표시하지 않는다
+
+  // 같은 타입으로만 환승(버스→버스 등)한 경우는 legs가 여러 개여도 combo가 아니라
+  // 해당 타입 하나로 본다 — 서로 다른 교통수단이 섞였을 때만 combo(2026-08-21 버그 리포트).
+  const types = new Set(legs.map((leg) => leg.type));
+  if (types.size > 1) return "combo";
 
   switch (legs[0]?.type) {
     case "지하철":
@@ -495,6 +499,6 @@ export function getActiveTransportOptionId(stop: BaseStop | undefined): string {
     case "도보":
       return "walk";
     default:
-      return "none"; // 아직 이동수단이 계산되지 않음 — 어떤 카드도 선택 표시하지 않는다
+      return "none";
   }
 }
