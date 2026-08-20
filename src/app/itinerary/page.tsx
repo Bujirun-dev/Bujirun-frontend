@@ -14,6 +14,7 @@ import {
   buildTransportFromItem,
   getActiveTransportOptionId,
   mapItineraryDetailToDays,
+  MAX_STOPS_PER_DAY,
   normalizeTime,
   roundToNearest10,
   timeToMinutes,
@@ -617,6 +618,13 @@ function ItineraryMain({
   };
 
   const addNewStop = (dayIdx: number, place: SearchPlace) => {
+    // "+" 버튼은 10개가 차면 미리 숨기지만(ItineraryTimeline), 다른 참여자가 실시간으로
+    // 거의 동시에 채워 넣는 경우처럼 그 사이 정원이 찼을 수 있어 여기서도 한 번 더 막는다.
+    // 여길 통과해도 최종 판단은 항상 백엔드(addItem)가 한다.
+    if ((stopsPerDay[dayIdx]?.length ?? 0) >= MAX_STOPS_PER_DAY) {
+      showToast(`하루 일정에는 관광지를 최대 ${MAX_STOPS_PER_DAY}개까지만 추가할 수 있어요.`, "error");
+      return;
+    }
     const newStop: BaseStop = {
       id: `temp-${crypto.randomUUID()}`,
       spotId: place.id,

@@ -7,6 +7,12 @@ type ItineraryDetailResponse = components["schemas"]["ItineraryDetailResponse"];
 type TravelLogDetailResponse = components["schemas"]["TravelLogDetailResponse"];
 export type SpotSearchResponse = components["schemas"]["SpotSearchResponse"];
 
+// 하루 일정에 추가할 수 있는 관광지 최대 개수. 백엔드 ItineraryService.MAX_ITEMS_PER_DAY와
+// 동일한 값으로 맞춰둬야 한다 — 여기선 실시간 편집 중 굳이 "추가" 버튼을 보여줬다가 flush
+// 시점에 조용히 저장 실패하는 걸 막기 위한 프론트 쪽 방어선일 뿐, 실제 정원 판단의 기준(source
+// of truth)은 항상 백엔드다.
+export const MAX_STOPS_PER_DAY = 10;
+
 // 서버 응답을 받기 전까지 로컬 state에서 새 항목을 식별하기 위한 임시 id (Date.now/crypto 같은
 // impure 호출을 렌더 함수 안에서 쓰지 않도록 모듈 스코프 카운터로 대체).
 let tempStopIdCounter = 0;
