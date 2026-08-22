@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import CalendarIcon from "@/assets/icons/itinerary/calendar.svg?svgr";
 import ClockIcon from "@/assets/icons/itinerary/clock.svg?svgr";
 import FriendsIcon from "@/assets/icons/itinerary/friends.svg?svgr";
-import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
+import HotelIcon from "@/assets/icons/itinerary/hotel.svg?svgr";
 import TitleIcon from "@/assets/icons/itinerary/title.svg?svgr";
 import NoIcon from "@/assets/icons/login-register/no.svg?svgr";
 import YesIcon from "@/assets/icons/login-register/yes.svg?svgr";
@@ -119,7 +119,7 @@ export function TripSetupForm() {
             type="text"
             value={tripName}
             onChange={(e) => setTripName(e.target.value.slice(0, 15))}
-            placeholder="2-15글자 입력 가능"
+            placeholder="여행 이름을 입력해주세요"
             className={cn(
               "w-full rounded-[10px] border py-[10px] pl-[15px] pr-10",
               "font-paperlogy font-medium text-xs text-sub-gray",
@@ -145,14 +145,11 @@ export function TripSetupForm() {
             </div>
           )}
         </div>
-        <p
-          className={cn(
-            "mt-[6px] h-[17px] pr-[8px] text-right font-paperlogy text-xs font-semibold text-sub-gray",
-            !hasName && "opacity-0",
-          )}
-        >
-          {nameLength}/15
-        </p>
+        {hasName && (
+          <p className="mt-[6px] h-[17px] pr-[8px] text-right font-paperlogy text-xs font-semibold text-sub-gray">
+            {nameLength}/15
+          </p>
+        )}
       </section>
 
       {/* 여행기간 */}
@@ -196,6 +193,16 @@ export function TripSetupForm() {
         </div>
       </section>
 
+      {/* 숙소 */}
+      <section>
+        <div className="flex items-center gap-1.5 mb-[10px]">
+          <HotelIcon width={14} height={14} aria-hidden />
+          <span className="font-ssurround font-bold text-md text-text-heading">숙소</span>
+          <span className="font-paperlogy font-medium text-xs text-sub-gray">(선택)</span>
+        </div>
+        <AccommodationSearchField value={accommodation} onChange={setAccommodation} />
+      </section>
+
       {/* 친구 수 */}
       <section className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
@@ -203,16 +210,6 @@ export function TripSetupForm() {
           <span className="font-ssurround font-bold text-md text-text-heading">친구 수</span>
         </div>
         <Counter value={friendCount} onChange={setFriendCount} min={2} max={6} />
-      </section>
-
-      {/* 숙소명 */}
-      <section>
-        <div className="flex items-center gap-1.5 mb-[10px]">
-          <MarkerIcon width={14} height={14} aria-hidden />
-          <span className="font-ssurround font-bold text-md text-text-heading">숙소명</span>
-          <span className="font-paperlogy font-medium text-xs text-sub-gray">(선택)</span>
-        </div>
-        <AccommodationSearchField value={accommodation} onChange={setAccommodation} />
       </section>
 
       {/* 친구 초대하기 버튼 */}
