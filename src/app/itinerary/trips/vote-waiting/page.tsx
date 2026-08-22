@@ -2,7 +2,7 @@
 
 import { Fragment, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Modal, Toast, LoadingState, Button } from "@/components";
+import { Modal, Toast, Button, LoadingModal } from "@/components";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { itineraryApi } from "@/shared/api/domains";
 import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
@@ -27,7 +27,7 @@ function getTiedPlans(votes: Record<string, number>): string[] {
 function PageLoadingFallback() {
   return (
     <div className="flex h-full flex-col">
-      <LoadingState />
+      <LoadingModal />
     </div>
   );
 }

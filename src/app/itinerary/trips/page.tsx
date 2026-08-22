@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import plusSmallIcon from "@/assets/icons/itinerary/plus-small.svg?url";
-import { PageCard, Toast, EmptyState, LoadingState } from "@/components";
+import { PageCard, Toast, EmptyState, LoadingBoundary } from "@/components";
 import { TripCard, TripEditModal, TripDeleteModal, TripDeleteToast } from "@/features/itinerary";
 import type { Trip } from "@/features/itinerary";
 import { itineraryApi } from "@/shared/api/domains";
@@ -155,28 +155,28 @@ export default function TripsPage() {
       </div>
 
       {/* 여행 목록 */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-3.5">
-        {isLoading ? (
-          <LoadingState message="여행 목록을 불러오는 중이에요" />
-        ) : trips.length === 0 ? (
-          <EmptyState
-            title="아직 여행이 없어요"
-            description="오른쪽 위 + 버튼으로 새 여행을 만들어보세요"
-            actionLabel="+ 여행 만들기"
-            onAction={() => router.push("/itinerary/trips/new")}
-          />
-        ) : (
-          trips.map((trip) => (
-            <TripCard
-              key={trip.id}
-              trip={trip}
-              onSelect={handleSelect}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
+      <LoadingBoundary isLoading={isLoading} message="여행 목록을 불러오는 중이에요">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-3.5">
+          {trips.length === 0 ? (
+            <EmptyState
+              title="아직 여행이 없어요"
+              description="오른쪽 위 + 버튼으로 새 여행을 만들어보세요"
+              actionLabel="+ 여행 만들기"
+              onAction={() => router.push("/itinerary/trips/new")}
             />
-          ))
-        )}
-      </div>
+          ) : (
+            trips.map((trip) => (
+              <TripCard
+                key={trip.id}
+                trip={trip}
+                onSelect={handleSelect}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            ))
+          )}
+        </div>
+      </LoadingBoundary>
 
       {/* 수정 모달 */}
       {modal?.type === "edit" && (

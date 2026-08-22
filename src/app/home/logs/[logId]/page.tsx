@@ -2,7 +2,7 @@
 
 import { use, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { PageCard, LoadingState, ErrorState } from "@/components";
+import { PageCard, ErrorState, LoadingBoundary } from "@/components";
 import { LogDetailContent } from "@/components/log/LogDetailContent";
 import { useQuery } from "@tanstack/react-query";
 import { getLog, keys } from "@/shared/api/domains/travel-log";
@@ -48,29 +48,19 @@ export default function LogDetailPage({ params }: { params: Promise<{ logId: str
     };
   }, [log]);
 
-  if (isLoading) {
-    return (
-      <PageCard>
-        <LoadingState message="로그를 불러오는 중이에요" />
-      </PageCard>
-    );
-  }
-
-  if (isError || !detailLog) {
-    return (
-      <PageCard>
-        <ErrorState
-          code={404}
-          title="로그를 찾을 수 없어요"
-          description="삭제되었거나 존재하지 않는 로그예요."
-        />
-      </PageCard>
-    );
-  }
-
   return (
     <PageCard>
-      <LogDetailContent log={detailLog} onBack={() => router.back()} />
+      <LoadingBoundary isLoading={isLoading} message="로그를 불러오는 중이에요">
+        {isError || !detailLog ? (
+          <ErrorState
+            code={404}
+            title="로그를 찾을 수 없어요"
+            description="삭제되었거나 존재하지 않는 로그예요."
+          />
+        ) : (
+          <LogDetailContent log={detailLog} onBack={() => router.back()} />
+        )}
+      </LoadingBoundary>
     </PageCard>
   );
 }

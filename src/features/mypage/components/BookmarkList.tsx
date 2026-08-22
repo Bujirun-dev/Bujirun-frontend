@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BookmarkCard } from "./BookmarkCard";
-import { Toast, LoadingState, EmptyState } from "@/components";
+import { Toast, EmptyState, LoadingBoundary } from "@/components";
 import { bookmarkApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import type { Category } from "@/components";
@@ -45,52 +45,47 @@ export function BookmarkList() {
       setToastVisible(true);
     },
   });
-
-  if (isLoading) {
-    return <LoadingState message="북마크를 불러오는 중이에요" />;
-  }
-
-  if (bookmarks.length === 0) {
-    return (
-      <EmptyState
-        title="저장된 북마크가 없어요"
-        description={
-          <>
-            마음에 드는 관광지를
-            <br />
-            북마크에 담아보세요
-          </>
-        }
-        actionLabel="관광지 둘러보러 가기"
-        onAction={() => router.push("/mypage/bookmarks/search")}
-      />
-    );
-  }
-
   return (
-    <div className="flex flex-col gap-4">
-      {bookmarks.map((item) => (
-        <BookmarkCard
-          key={item.spotId}
-          name={item.name ?? ""}
-          category={toCategory(item.category, item.name ?? "")}
-          isBookmarked={true}
-          imageUrl={item.thumbnailUrl ?? undefined}
-          onBookmarkToggle={() => item.spotId && removeBookmark(item.spotId)}
-          onClick={() => item.spotId && router.push(`/mypage/bookmarks/${item.spotId}`)}
+    <LoadingBoundary isLoading={isLoading} message="북마크를 불러오는 중이에요">
+      {bookmarks.length === 0 ? (
+        <EmptyState
+          title="저장된 북마크가 없어요"
+          description={
+            <>
+              마음에 드는 관광지를
+              <br />
+              북마크에 담아보세요
+            </>
+          }
+          actionLabel="관광지 둘러보러 가기"
+          onAction={() => router.push("/mypage/bookmarks/search")}
         />
-      ))}
+      ) : (
+        <div className="flex flex-col gap-4">
+          {bookmarks.map((item) => (
+            <BookmarkCard
+              key={item.spotId}
+              name={item.name ?? ""}
+              category={toCategory(item.category, item.name ?? "")}
+              isBookmarked={true}
+              imageUrl={item.thumbnailUrl ?? undefined}
+              onBookmarkToggle={() => item.spotId && removeBookmark(item.spotId)}
+              onClick={() => item.spotId && router.push(`/mypage/bookmarks/${item.spotId}`)}
+            />
+          ))}
 
-      <Toast
-        isVisible={toastVisible}
-        message={
-          toastVariant === "success"
-            ? "북마크가 해제되었어요"
-            : "북마크 해제에 실패했어요. 다시 시도해주세요."
-        }
-        onHide={() => setToastVisible(false)}
-        variant={toastVariant}
-      />
-    </div>
+          <Toast
+            isVisible={toastVisible}
+            message={
+              toastVariant === "success"
+                ? "북마크가 해제되었어요"
+                : "북마크 해제에 실패했어요. 다시 시도해주세요."
+            }
+            onHide={() => setToastVisible(false)}
+            variant={toastVariant}
+          />
+        </div>
+      )}
+    </LoadingBoundary>
   );
 }

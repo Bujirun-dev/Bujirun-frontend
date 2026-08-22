@@ -3,7 +3,7 @@
 import { use, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { PageCard, LoadingState, ErrorState } from "@/components";
+import { PageCard, ErrorState, LoadingBoundary } from "@/components";
 import { LogDetailContent } from "@/components/log/LogDetailContent";
 import { SwitchButton } from "@/features/collection/components/SwitchButton";
 import { travelLogApi } from "@/shared/api/domains";
@@ -175,26 +175,6 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
     });
   };
 
-  if (isLoading) {
-    return (
-      <PageCard>
-        <LoadingState message="로그를 불러오는 중이에요" />
-      </PageCard>
-    );
-  }
-
-  if (isError || !travelLog) {
-    return (
-      <PageCard>
-        <ErrorState
-          code={404}
-          title="로그를 찾을 수 없어요"
-          description="삭제되었거나 존재하지 않는 로그예요."
-        />
-      </PageCard>
-    );
-  }
-
   const firstStopName = days[0]?.stops[0]?.place ?? "";
 
   const totalStops = days.reduce((count, day) => count + day.stops.length, 0);
@@ -203,23 +183,33 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
 
   return (
     <PageCard>
-      <LogDetailContent
-        log={{
-          title: travelLog.title ?? "여행 기록",
-          placeName: firstStopName,
-          extraCount,
-          duration: travelLog.duration ?? "",
-          date: travelLog.startDate ?? "",
-          days,
-        }}
-        onBack={() => router.back()}
-        headerRight={<SwitchButton isPublic={isVisible} onClick={handleVisibilityToggle} />}
-        editableTags
-        onAddTag={handleAddTag}
-        onDeleteTag={handleDeleteTag}
-        editableRepresentativePhoto
-        onSetRepresentativePhoto={handleSetRepresentativePhoto}
-      />
+      <LoadingBoundary isLoading={isLoading} message="로그를 불러오는 중이에요">
+        {isError || !travelLog ? (
+          <ErrorState
+            code={404}
+            title="로그를 찾을 수 없어요"
+            description="삭제되었거나 존재하지 않는 로그예요."
+          />
+        ) : (
+          <LogDetailContent
+            log={{
+              title: travelLog.title ?? "여행 기록",
+              placeName: firstStopName,
+              extraCount,
+              duration: travelLog.duration ?? "",
+              date: travelLog.startDate ?? "",
+              days,
+            }}
+            onBack={() => router.back()}
+            headerRight={<SwitchButton isPublic={isVisible} onClick={handleVisibilityToggle} />}
+            editableTags
+            onAddTag={handleAddTag}
+            onDeleteTag={handleDeleteTag}
+            editableRepresentativePhoto
+            onSetRepresentativePhoto={handleSetRepresentativePhoto}
+          />
+        )}
+      </LoadingBoundary>
     </PageCard>
   );
 }

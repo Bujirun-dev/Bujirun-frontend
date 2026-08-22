@@ -8,7 +8,7 @@ import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import calendarPlusIcon from "@/assets/icons/itinerary/calendar-plus.svg?url";
-import { PageCard, LoadingState, ErrorState } from "@/components";
+import { PageCard, ErrorState, LoadingBoundary } from "@/components";
 import { LogDetailContent, toLogDetailData } from "@/components/log/LogDetailContent";
 import { ImportLogModal } from "@/features/itinerary";
 import { useQuery } from "@tanstack/react-query";
@@ -59,49 +59,41 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
     }, 600);
   };
 
-  if (isLoading) {
-    return (
-      <PageCard>
-        <LoadingState message="로그를 불러오는 중이에요" />
-      </PageCard>
-    );
-  }
-
-  if (!log) {
-    return (
-      <PageCard>
-        <ErrorState
-          code={404}
-          title="로그를 찾을 수 없어요"
-          description="삭제되었거나 존재하지 않는 로그예요."
-        />
-      </PageCard>
-    );
-  }
-
   return (
     <PageCard>
-      <LogDetailContent
-        log={toLogDetailData(log)}
-        onBack={() => router.back()}
-        headerRight={
-          // 일정 담기 버튼
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="size-[28px] rounded-lg bg-system-scroll border-[0.5px] border-main-blue flex items-center justify-center shrink-0"
-          >
-            <Image src={calendarPlusIcon} alt="" width={16} height={16} aria-hidden />
-          </button>
-        }
-      />
+      <LoadingBoundary isLoading={isLoading} message="로그를 불러오는 중이에요">
+        {!log ? (
+          <ErrorState
+            code={404}
+            title="로그를 찾을 수 없어요"
+            description="삭제되었거나 존재하지 않는 로그예요."
+          />
+        ) : (
+          <>
+            <LogDetailContent
+              log={toLogDetailData(log)}
+              onBack={() => router.back()}
+              headerRight={
+                // 일정 담기 버튼
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="size-[28px] rounded-lg bg-system-scroll border-[0.5px] border-main-blue flex items-center justify-center shrink-0"
+                >
+                  <Image src={calendarPlusIcon} alt="" width={16} height={16} aria-hidden />
+                </button>
+              }
+            />
 
-      <ImportLogModal
-        isOpen={showAddModal}
-        isLoading={isImporting}
-        authorNickname={log.groupMembers?.[0]?.nickname ?? ""}
-        onClose={handleCloseAddModal}
-        onConfirm={handleImportLog}
-      />
+            <ImportLogModal
+              isOpen={showAddModal}
+              isLoading={isImporting}
+              authorNickname={log.groupMembers?.[0]?.nickname ?? ""}
+              onClose={handleCloseAddModal}
+              onConfirm={handleImportLog}
+            />
+          </>
+        )}
+      </LoadingBoundary>
     </PageCard>
   );
 }

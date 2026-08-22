@@ -13,6 +13,8 @@ import { SpeechBubble } from "@/components/ui/SpeechBubble";
 import { cn } from "@/shared/utils";
 
 interface LoadingModalProps {
+  message?: string;
+  isComplete?: boolean;
   className?: string;
 }
 
@@ -25,7 +27,11 @@ const LOADING_MESSAGES = [
   "다 됐어요 ❣️",
 ] as const;
 
-export function LoadingModal({ className }: LoadingModalProps) {
+export function LoadingModal({
+  message = "잠시만 기다려 주세요 😇",
+  isComplete = false,
+  className,
+}: LoadingModalProps) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -36,7 +42,7 @@ export function LoadingModal({ className }: LoadingModalProps) {
     return () => window.clearInterval(interval);
   }, []);
 
-  const normalizedProgress = Math.min(Math.max(progress, 0), 100);
+  const normalizedProgress = isComplete ? 100 : Math.min(Math.max(progress, 0), 100);
 
   const imageIndex = Math.min(
     Math.floor((normalizedProgress / 100) * LOADING_IMAGES.length),
@@ -102,7 +108,7 @@ export function LoadingModal({ className }: LoadingModalProps) {
         </div>
       </div>
 
-      <p className="mt-5 text-center text-sm text-primary">잠시만 기다려 주세요 😇</p>
+      <p className="mt-5 text-center text-sm text-primary">{message}</p>
     </Modal>
   );
 }

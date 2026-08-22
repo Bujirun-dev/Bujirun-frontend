@@ -3,7 +3,7 @@
 import { Suspense, useRef, useState, useEffect, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { PageCard, Toast, EmptyState, LoadingState } from "@/components";
+import { PageCard, Toast, EmptyState, LoadingBoundary, LoadingModal } from "@/components";
 import { ItineraryHeader, SlidingTimeline, ItineraryModals } from "@/features/itinerary";
 import type { ItineraryStop, ModalType } from "@/features/itinerary";
 import { itineraryApi, travelLogApi, userApi } from "@/shared/api/domains";
@@ -155,7 +155,7 @@ function ItineraryEmptyState() {
 function RouteLoadingFallback() {
   return (
     <PageCard>
-      <LoadingState />
+      <LoadingModal />
     </PageCard>
   );
 }
@@ -206,31 +206,32 @@ function ItineraryPageContent() {
     enabled: !!itineraryId,
   });
 
-  if (isListLoading || isDetailLoading) {
-    return (
-      <PageCard>
-        <LoadingState message="일정을 불러오는 중이에요" />
-      </PageCard>
-    );
-  }
+  const isLoading = isListLoading || isDetailLoading;
+
   if (!itineraries || itineraries.length === 0 || !itineraryId || !detail) {
-    return <ItineraryEmptyState />;
+    return (
+      <LoadingBoundary isLoading={isLoading} message="일정을 불러오는 중이에요">
+        <ItineraryEmptyState />
+      </LoadingBoundary>
+    );
   }
 
   const tripTimeBounds = getTripTimeBounds(itineraryId);
   const { days, dates, dayIds } = mapItineraryDetailToDays(detail, tripTimeBounds);
 
   return (
-    <ItineraryMain
-      key={itineraryId}
-      itineraryId={itineraryId}
-      groupId={detail.groupId}
-      tripTitle={detail.title ?? selectedItinerary?.title}
-      initialDays={days}
-      initialDates={dates}
-      dayIds={dayIds}
-      tripTimeBounds={tripTimeBounds}
-    />
+    <LoadingBoundary isLoading={isLoading} message="일정을 불러오는 중이에요">
+      <ItineraryMain
+        key={itineraryId}
+        itineraryId={itineraryId}
+        groupId={detail.groupId}
+        tripTitle={detail.title ?? selectedItinerary?.title}
+        initialDays={days}
+        initialDates={dates}
+        dayIds={dayIds}
+        tripTimeBounds={tripTimeBounds}
+      />
+    </LoadingBoundary>
   );
 }
 

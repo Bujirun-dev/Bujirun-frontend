@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { BackButton, PageCard, LoadingState, Toast } from "@/components"; // LoadingState, Toast 추가
+import { PageCard, Toast, LoadingBoundary } from "@/components"; // LoadingState, Toast 추가
 import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
 import { travelLogApi, spotApi, bookmarkApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
@@ -76,51 +76,56 @@ export default function BookmarkDetailPage({
     author: log.authorNickname ?? "",
   }));
 
-  if (isLoading) {
-    return (
-      <PageCard>
-        <div className="flex items-center gap-3 pb-4 shrink-0">
-          <BackButton className="bg-transparent" onClick={() => router.back()} />
-          <h1 className="font-ssurround font-bold text-lg text-text-heading">관광지 상세보기</h1>
-        </div>
-        <LoadingState message="관광지 정보를 불러오는 중이에요" />
-      </PageCard>
-    );
-  }
-
   return (
     <PageCard>
-      <PlaceDetailContent
-        place={{
-          // spot API 응답 전엔 목록에서 받은 thumbnail 사용, 그것도 없으면 플레이스홀더
-          imageUrl: spot?.thumbnailUrl ?? thumbnail ?? `https://picsum.photos/seed/${id}/400/300`,
-          name: spot?.name ?? "",
-          category: toCategory(spot?.category, spot?.name),
-          description: spot?.overview ?? "",
-          address: spot?.address ?? "",
-          isBookmarked,
-          infoItems: [
-            ...(spot?.operatingHours
-              ? [{ type: "clock" as const, label: "운영시간", value: spot.operatingHours }]
-              : []),
-            ...(spot?.tel ? [{ type: "call" as const, label: "문의", value: spot.tel }] : []),
-          ],
-        }}
-        onBookmark={() => toggleBookmark()}
-        onBack={() => router.back()}
-        relatedLogs={relatedLogs}
-        onViewMoreLogs={() => router.push(`/mypage/bookmarks/${id}/related-logs`)}
-        getRelatedLogHref={(logId) => `/mypage/logs/${logId}`}
-        onLogClick={(logId) => router.push(`/mypage/logs/${logId}`)}
-      />
+      <LoadingBoundary isLoading={isLoading} message="관광지 정보를 불러오는 중이에요">
+        <>
+          <PlaceDetailContent
+            place={{
+              imageUrl:
+                spot?.thumbnailUrl ?? thumbnail ?? `https://picsum.photos/seed/${id}/400/300`,
+              name: spot?.name ?? "",
+              category: toCategory(spot?.category, spot?.name),
+              description: spot?.overview ?? "",
+              address: spot?.address ?? "",
+              isBookmarked,
+              infoItems: [
+                ...(spot?.operatingHours
+                  ? [
+                      {
+                        type: "clock" as const,
+                        label: "운영시간",
+                        value: spot.operatingHours,
+                      },
+                    ]
+                  : []),
+                ...(spot?.tel
+                  ? [
+                      {
+                        type: "call" as const,
+                        label: "문의",
+                        value: spot.tel,
+                      },
+                    ]
+                  : []),
+              ],
+            }}
+            onBookmark={() => toggleBookmark()}
+            onBack={() => router.back()}
+            relatedLogs={relatedLogs}
+            onViewMoreLogs={() => router.push(`/mypage/bookmarks/${id}/related-logs`)}
+            getRelatedLogHref={(logId) => `/mypage/logs/${logId}`}
+            onLogClick={(logId) => router.push(`/mypage/logs/${logId}`)}
+          />
 
-      {/* 북마크 토스트 */}
-      <Toast
-        isVisible={toastVisible}
-        message={toastMessage}
-        onHide={() => setToastVisible(false)}
-        variant={toastVariant}
-      />
+          <Toast
+            isVisible={toastVisible}
+            message={toastMessage}
+            onHide={() => setToastVisible(false)}
+            variant={toastVariant}
+          />
+        </>
+      </LoadingBoundary>
     </PageCard>
   );
 }

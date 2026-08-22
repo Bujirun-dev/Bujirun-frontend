@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { apiClient, unwrap } from "@/shared/api";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
-import { LoadingState } from "@/components";
+import { LoadingBoundary } from "@/components";
 
 type AuthProviderProps = {
   children: ReactNode;
@@ -52,13 +52,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken, isPublicPath, setAccessToken, clear, router]);
 
-  if (!isReady) {
-    return (
-      <div className="flex h-screen flex-col">
-        <LoadingState message="부지런히 준비하고 있어요" />
-      </div>
-    );
-  }
+  return (
+    <LoadingBoundary isLoading={!isReady} message="부지런히 준비하고 있어요">
+      {children}
+    </LoadingBoundary>
+  );
 
   return <>{children}</>;
 }

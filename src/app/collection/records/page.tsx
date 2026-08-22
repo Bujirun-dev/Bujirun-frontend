@@ -11,7 +11,7 @@ import { RecordDeleteModal } from "@/features/collection/components/RecordDelete
 import { TripReceiptModal } from "@/features/receipt/components/TripReceiptModal";
 import type { ReceiptData } from "@/features/receipt/types/receipt";
 import bookIcon from "@/assets/icons/collection/book.png";
-import { Card, CategoryChip, PageCard, Toast, LoadingState, EmptyState } from "@/components";
+import { Card, CategoryChip, PageCard, Toast, EmptyState, LoadingBoundary } from "@/components";
 import type { Category } from "@/components/ui/CategoryChip";
 import { TripRecordItem } from "@/features/collection/components/TripRecordItem";
 import { getCategoryFromKo } from "@/shared/constants/category";
@@ -206,7 +206,9 @@ export default function CollectionRecordsPage() {
       {/* 하단 여행 기록 */}
       <PageCard>
         <div className="flex flex-1 flex-col gap-5">
-          {isLogsLoading && <LoadingState message="여행 기록을 불러오는 중이에요" />}
+          <LoadingBoundary isLoading={isLogsLoading} message="여행 기록을 불러오는 중이에요">
+            ...
+          </LoadingBoundary>
 
           {!isLogsLoading && !isLogsError && records.length === 0 && (
             <EmptyState

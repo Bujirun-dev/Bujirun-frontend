@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
-import { SearchBar, LoadingState, EmptyState } from "@/components";
+import { SearchBar, EmptyState, LoadingBoundary } from "@/components";
 import { PlaceSearchItem } from "./PlaceSearchItem";
 import { ConsonantIndexBar } from "./ConsonantIndexBar";
 import { CategoryFilterDropdown } from "./CategoryFilterDropdown";
@@ -252,122 +252,122 @@ export function PlaceSearchPanel({
       </div>
 
       {/* 목록 */}
-      {isLoading ? (
-        <LoadingState
-          message={debouncedSearchValue ? "검색하는 중이에요" : "관광지 목록을 불러오는 중이에요"}
-          className="pb-[30%]"
-        />
-      ) : filtered.length === 0 ? (
-        <EmptyState
-          title="검색 결과가 없어요"
-          description={
-            <>
-              <span>&quot;{searchValue}&quot;</span>에 대한 결과를 찾지 못했어요.
-              <br />
-              관광지 이름을 다시 확인해보세요.
-            </>
-          }
-          className="pb-[30%]"
-        />
-      ) : sortBy === "추천순" ? (
-        <div className="flex flex-col gap-2.5 overflow-x-hidden">
-          {filtered.map((place) => (
-            <PlaceSearchItem
-              key={place.id}
-              name={place.name}
-              category={place.category}
-              status={place.status}
-              imageUrl={place.imageUrl}
-              onClick={() => {
-                if (onPlaceSelect) {
-                  onPlaceSelect({
-                    id: place.id,
-                    name: place.name,
-                    category: place.category,
-                    status: place.status,
-                    imageUrl: place.imageUrl,
-                  });
-                } else {
-                  onClose?.();
-                  router.push(`/itinerary/place/${place.id}`);
-                }
-              }}
-              className="rounded-2xl border border-system-glassborder shadow-[2px_2px_6px_0px_var(--color-system-glassborder)]"
-            />
-          ))}
-        </div>
-      ) : (
-        /* 이름순 */
-        <div className="flex flex-1 gap-3 overflow-hidden">
-          <div ref={listRef} className="flex-1 overflow-y-auto">
-            {activeConsonants.map((consonant) => (
-              <div
-                key={consonant}
-                ref={(el) => {
-                  sectionRefs.current[consonant] = el;
+      <LoadingBoundary
+        isLoading={isLoading}
+        message={debouncedSearchValue ? "검색하는 중이에요" : "관광지 목록을 불러오는 중이에요"}
+      >
+        {filtered.length === 0 ? (
+          <EmptyState
+            title="검색 결과가 없어요"
+            description={
+              <>
+                <span>&quot;{searchValue}&quot;</span>에 대한 결과를 찾지 못했어요.
+                <br />
+                관광지 이름을 다시 확인해보세요.
+              </>
+            }
+            className="pb-[30%]"
+          />
+        ) : sortBy === "추천순" ? (
+          <div className="flex flex-col gap-2.5 overflow-x-hidden">
+            {filtered.map((place) => (
+              <PlaceSearchItem
+                key={place.id}
+                name={place.name}
+                category={place.category}
+                status={place.status}
+                imageUrl={place.imageUrl}
+                onClick={() => {
+                  if (onPlaceSelect) {
+                    onPlaceSelect({
+                      id: place.id,
+                      name: place.name,
+                      category: place.category,
+                      status: place.status,
+                      imageUrl: place.imageUrl,
+                    });
+                  } else {
+                    onClose?.();
+                    router.push(`/itinerary/place/${place.id}`);
+                  }
                 }}
-                data-consonant={consonant}
-              >
-                {/* 섹션 헤더 */}
-                <div className="mb-3 flex w-full items-center rounded-md bg-system-searchbg py-0.5 pl-1.5">
-                  <span className="text-xs font-medium text-sub-deepblue">{consonant}</span>
-                </div>
-                {/* 아이템 목록 */}
-                <div className="pl-1">
-                  {grouped[consonant].map((place, idx) => (
-                    <div key={place.id}>
-                      <button
-                        className={cn(
-                          "flex w-full items-center gap-1.5 text-left active:opacity-70",
-                          idx === 0 ? "pt-0 pb-2.5" : "py-2.5",
-                        )}
-                        onClick={() => {
-                          if (onPlaceSelect) {
-                            onPlaceSelect({
-                              id: place.id,
-                              name: place.name,
-                              category: place.category,
-                              status: place.status,
-                              imageUrl: place.imageUrl,
-                            });
-                          } else {
-                            onClose?.();
-                            router.push(`/itinerary/place/${place.id}`);
-                          }
-                        }}
-                      >
-                        <MarkerIcon
-                          width={12}
-                          height={12}
-                          className={cn(
-                            "shrink-0",
-                            place.status === "completed" ? "fill-sub-deepblue" : "fill-sub-pink",
-                          )}
-                          aria-hidden
-                        />
-                        <span className="min-w-0 flex-1 truncate text-sm font-normal text-text-primary">
-                          {place.name}
-                        </span>
-                      </button>
-                      {idx < grouped[consonant].length - 1 && (
-                        <div className="h-[0.3px] w-[calc(100%_-_12px)] bg-sub-lightgray" />
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <div className="mb-0.5" />
-              </div>
+                className="rounded-2xl border border-system-glassborder shadow-[2px_2px_6px_0px_var(--color-system-glassborder)]"
+              />
             ))}
           </div>
+        ) : (
+          <div className="flex flex-1 gap-3 overflow-hidden">
+            <div ref={listRef} className="flex-1 overflow-y-auto">
+              {activeConsonants.map((consonant) => (
+                <div
+                  key={consonant}
+                  ref={(el) => {
+                    sectionRefs.current[consonant] = el;
+                  }}
+                  data-consonant={consonant}
+                >
+                  <div className="mb-3 flex w-full items-center rounded-md bg-system-searchbg py-0.5 pl-1.5">
+                    <span className="text-xs font-medium text-sub-deepblue">{consonant}</span>
+                  </div>
 
-          {/* 우측 인덱스바 */}
-          <ConsonantIndexBar
-            activeConsonants={activeConsonants}
-            activeSection={activeSection}
-            onSelect={scrollToSection}
-          />
-        </div>
-      )}
+                  <div className="pl-1">
+                    {grouped[consonant].map((place, idx) => (
+                      <div key={place.id}>
+                        <button
+                          className={cn(
+                            "flex w-full items-center gap-1.5 text-left active:opacity-70",
+                            idx === 0 ? "pt-0 pb-2.5" : "py-2.5",
+                          )}
+                          onClick={() => {
+                            if (onPlaceSelect) {
+                              onPlaceSelect({
+                                id: place.id,
+                                name: place.name,
+                                category: place.category,
+                                status: place.status,
+                                imageUrl: place.imageUrl,
+                              });
+                            } else {
+                              onClose?.();
+                              router.push(`/itinerary/place/${place.id}`);
+                            }
+                          }}
+                        >
+                          <MarkerIcon
+                            width={12}
+                            height={12}
+                            className={cn(
+                              "shrink-0",
+                              place.status === "completed" ? "fill-sub-deepblue" : "fill-sub-pink",
+                            )}
+                            aria-hidden
+                          />
+
+                          <span className="min-w-0 flex-1 truncate text-sm font-normal text-text-primary">
+                            {place.name}
+                          </span>
+                        </button>
+
+                        {idx < grouped[consonant].length - 1 && (
+                          <div className="h-[0.3px] w-[calc(100%_-_12px)] bg-sub-lightgray" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mb-0.5" />
+                </div>
+              ))}
+            </div>
+
+            <ConsonantIndexBar
+              activeConsonants={activeConsonants}
+              activeSection={activeSection}
+              onSelect={scrollToSection}
+            />
+          </div>
+        )}
+      </LoadingBoundary>
     </div>
   );
 }

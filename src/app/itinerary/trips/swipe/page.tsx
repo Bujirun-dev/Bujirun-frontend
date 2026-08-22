@@ -7,14 +7,14 @@ import { useQuery } from "@tanstack/react-query";
 import pawIcon from "@/assets/icons/itinerary/paw-print.png";
 import { collectionApi, swipeApi } from "@/shared/api/domains";
 import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
-import { LoadingState } from "@/components";
+import { EmptyState, LoadingBoundary, LoadingModal } from "@/components";
 
 const SWIPE_THRESHOLD = 80;
 
 function PageLoadingFallback() {
   return (
     <div className="flex h-full flex-col">
-      <LoadingState />
+      <LoadingModal />
     </div>
   );
 }
@@ -53,7 +53,7 @@ function TripSwipeContent() {
     ...(accommodationAddress ? { accommodationAddress } : {}),
   }).toString();
 
-  const { data: spotsData } = useQuery({
+  const { data: spotsData, isLoading } = useQuery({
     queryKey: collectionApi.keys.swipeDeck(),
     queryFn: () => collectionApi.getSwipeDeck(),
   });
@@ -140,9 +140,9 @@ function TripSwipeContent() {
 
   if (!place) {
     return (
-      <div className="flex h-full flex-col">
-        <LoadingState message="관광지를 불러오는 중이에요" />
-      </div>
+      <LoadingBoundary isLoading={isLoading} message="관광지를 불러오는 중이에요">
+        <EmptyState title="추천할 관광지를 찾지 못했어요" />
+      </LoadingBoundary>
     );
   }
 
