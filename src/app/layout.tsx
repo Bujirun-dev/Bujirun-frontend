@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { AppShell } from "@/components";
 import "@/styles/globals.css";
+import { fontVariables } from "@/styles/fonts";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
@@ -34,7 +35,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className="h-full overflow-hidden overscroll-none antialiased">
+    <html
+      lang="ko"
+      className={`h-full overflow-hidden overscroll-none antialiased ${fontVariables}`}
+    >
       <body className="h-full overflow-hidden overscroll-none bg-background text-foreground">
         <Script
           src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&autoload=false&libraries=services`}
