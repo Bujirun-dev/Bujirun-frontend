@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { ProfileImageSelectModal } from "./ProfileImageSelectModal";
@@ -10,13 +11,10 @@ import { ProfileStats } from "./ProfileStats";
 import { PROFILE_IMAGES } from "@/components/profile/profileImages";
 import { Toast } from "@/components/ui/Toast";
 import { Card } from "@/components/ui/Card";
-import { CategoryChip } from "@/components/ui/CategoryChip";
 import type { Category } from "@/components/ui/CategoryChip";
-import { userApi, travelLogApi, visitApi } from "@/shared/api/domains";
+import { userApi, travelLogApi, spotApi } from "@/shared/api/domains";
+import { getCategoryFromKo } from "@/shared/constants/category";
 import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
-
-// TODO: 백엔드에서 태그 데이터 내려오면 API로 교체
-const MOCK_TAGS: Category[] = [];
 
 const AVATAR_SIZE = 100;
 
@@ -36,6 +34,7 @@ function resolveProfileImage(profileImageUrl?: string | null) {
 }
 
 export function MypageProfile() {
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   // NicknameInlineEdit의 closeEdit을 외부에서 호출하기 위한 ref
@@ -60,14 +59,30 @@ export function MypageProfile() {
     queryFn: () => travelLogApi.getMyLogs(),
   });
 
-  // 방문 인증 이력 — verified=true인 항목만 spotId 기준 중복 제거하여 실제 방문 관광지 수 산출
-  const { data: visitHistory = [] } = useQuery({
-    queryKey: visitApi.keys.history(),
-    queryFn: visitApi.getHistory,
+  // 수집 관광지 개수 및 최애 카테고리 — /collection/records 페이지와 완전히 동일한 계산 방식
+  const { data: spots = [] } = useQuery({
+    queryKey: spotApi.keys.search(),
+    queryFn: () => spotApi.searchSpots(),
   });
 
-  const visitedCount = [...new Set(visitHistory.filter((v) => v.verified).map((v) => v.spotId))]
-    .length;
+  const collectedPlaces = useMemo(
+    () => spots.filter((spot) => spot.isCollection && spot.collected),
+    [spots],
+  );
+  const collectedCount = collectedPlaces.length;
+
+  const favoriteCategory = useMemo(() => {
+    const count = collectedPlaces.reduce<Partial<Record<Category, number>>>((acc, place) => {
+      const category = getCategoryFromKo(place.category, place.name);
+
+      acc[category] = (acc[category] ?? 0) + 1;
+
+      return acc;
+    }, {});
+
+    return Object.entries(count).sort(([, a], [, b]) => (b ?? 0) - (a ?? 0))[0]?.[0] as
+      Category | undefined;
+  }, [collectedPlaces]);
 
   // 닉네임 수정
   const { mutate: updateNickname } = useMutation({
@@ -173,23 +188,15 @@ export function MypageProfile() {
             onValueChange={handleNicknameValueChange}
           />
 
-          {/* TODO: 백엔드에서 태그 데이터 내려오면 profile에서 읽도록 교체 */}
-          {MOCK_TAGS.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-1.5">
-              {MOCK_TAGS.map((tag) => (
-                <CategoryChip key={tag} category={tag} />
-              ))}
-            </div>
-          )}
-
-          {/* 활동 지표
-              - visitedCount: GPS 인증 성공한 관광지 수 (verified=true, spotId 중복 제거)
-              - completedItineraryCount: 백엔드 통계 API 추가되면 교체
-              - travelLogCount: 내 여행 로그 목록 길이 */}
+          {/* 활동 지표 — /collection/records 상단 요약 카드와 동일한 항목
+              - travelLogCount: 내 여행 로그 목록 길이
+              - collectedCount: 도감 수집 관광지 수
+              - favoriteCategory: 수집한 관광지 중 가장 많은 카테고리 */}
           <ProfileStats
-            visitedCount={visitedCount}
-            completedItineraryCount={0}
             travelLogCount={myLogs.length}
+            collectedCount={collectedCount}
+            favoriteCategory={favoriteCategory}
+            onClick={() => router.push("/collection/records")}
           />
         </div>
       </Card>
