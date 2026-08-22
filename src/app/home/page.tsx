@@ -33,9 +33,7 @@ export default function HomePage() {
     <main className="flex h-full flex-col">
       <div className="flex shrink-0 items-start justify-between gap-4 px-4">
         <div className="min-w-0 text-text-heading">
-          <p className="font-dxsubtitles text-md">
-            안녕{nickname ? `, ${nickname}` : ""} 👋
-          </p>
+          <p className="font-dxsubtitles text-md">안녕{nickname ? `, ${nickname}` : ""} 👋</p>
           <h1 className="mt-2 whitespace-pre-line font-proup text-2xl leading-[1.25]">
             {"오늘은 어디를\n탐험해볼까요?"}
           </h1>
