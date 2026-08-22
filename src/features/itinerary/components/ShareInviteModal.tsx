@@ -74,7 +74,7 @@ export function ShareInviteModal({
           <button
             type="button"
             onClick={handleKakaoShare}
-            className="flex items-center gap-3 rounded-xl bg-system-navbg px-3.5 py-3 text-left active:opacity-70"
+            className="flex items-center gap-3 rounded-2xl border border-system-glassborder bg-system-navbg px-3.5 py-3 text-left active:opacity-70"
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FEE500] text-base">
               💬
@@ -88,7 +88,7 @@ export function ShareInviteModal({
           <button
             type="button"
             onClick={handleCopyLink}
-            className="flex items-center gap-3 rounded-xl bg-system-navbg px-3.5 py-3 text-left active:opacity-70"
+            className="flex items-center gap-3 rounded-2xl border border-system-glassborder bg-system-navbg px-3.5 py-3 text-left active:opacity-70"
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-main-blue/10 text-base">
               🔗
