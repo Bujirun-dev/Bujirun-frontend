@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Bookmark, FileText, LogOut } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { MenuItem } from "./MenuItem";
-import { PrivacyPolicyModal } from "./PrivacyPolicyModal";
+import { PrivacyPolicyModal } from "@/components/legal/PrivacyPolicyModal";
 import { LogoutModal } from "./LogoutModal";
 import { logout } from "@/shared/api/domains/auth";
 import { useAuthStore } from "@/shared/stores/useAuthStore";

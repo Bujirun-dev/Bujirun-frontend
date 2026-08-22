@@ -8,6 +8,7 @@ import { TextInput } from "@/components/ui/TextInput";
 import { Card } from "@/components/ui/Card";
 import { ProfileImageSelector } from "@/components/profile/ProfileImageSelector";
 import { SignUpSuccessModal } from "@/features/auth/components/SignUpSuccessModal";
+import { PrivacyPolicyModal } from "@/components";
 import { PROFILE_IMAGES } from "@/components/profile/profileImages";
 import { apiClient, unwrap } from "@/shared/api";
 import type { OpBody, OpResponse } from "@/shared/api/types";
@@ -20,6 +21,7 @@ export default function SignUpPage() {
   const [selectedProfile, setSelectedProfile] = useState<number | null>(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isDuplicate, setIsDuplicate] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   const trimmedNickname = nickname.trim();
   const isNicknameValid =
@@ -73,7 +75,7 @@ export default function SignUpPage() {
         <p className="text-center font-ssurround font-bold text-xl text-text-heading mt-[35px]">
           회원가입
         </p>
-        <div className="px-[24px] mt-[40px] flex flex-col gap-[28px]">
+        <div className="px-[24px] mt-[32px] flex flex-col gap-[24px]">
           {/* 닉네임 입력 */}
           <section className="flex flex-col gap-[8px]">
             <label className="font-semibold text-lg text-text-primary">닉네임</label>
@@ -118,7 +120,21 @@ export default function SignUpPage() {
         </div>
 
         {/* 버튼 영역 */}
-        <div className="px-[24px] mt-auto mb-[36px]">
+        <div className="px-[24px] mt-6 mb-[24px]">
+          {/* 동의 안내 - 배경 박스 없이 캡션 텍스트로, 버튼 위에 배치
+              이용약관 콘텐츠가 별도로 없어 링크를 하나로 통합 (분리 시 실제로 없는 문서가 있는 것처럼 보임) */}
+          <p className="mb-3 text-center text-2xs leading-relaxed text-sub-gray">
+            가입 완료 시{" "}
+            <button
+              type="button"
+              onClick={() => setIsPrivacyOpen(true)}
+              className="underline underline-offset-2 text-sub-deepblue font-medium active:opacity-70"
+            >
+              이용약관 및 개인정보처리방침
+            </button>
+            에 동의한 것으로 간주됩니다.
+          </p>
+
           <Button
             variant="primary"
             disabled={!isFormValid || isPending}
@@ -134,6 +150,8 @@ export default function SignUpPage() {
         isOpen={isSuccessModalOpen}
         onClose={() => setIsSuccessModalOpen(false)}
       />
+
+      <PrivacyPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
     </>
   );
 }

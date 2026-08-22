@@ -9,4 +9,4 @@ export { WithdrawModal } from "./WithdrawModal";
 export { BookmarkCard } from "./BookmarkCard";
 export { BookmarkList } from "./BookmarkList";
 export { ProfileStats } from "./ProfileStats";
-export { PrivacyPolicyModal } from "./PrivacyPolicyModal";
+import { PrivacyPolicyModal } from "@/components/legal/PrivacyPolicyModal";
