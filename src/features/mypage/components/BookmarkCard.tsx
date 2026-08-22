@@ -35,11 +35,11 @@ export function BookmarkCard({
       onClick={onClick}
     >
       {/* 썸네일 - 이미지 없으면 placeholder */}
-      <div className="relative h-[80px] w-[108px] shrink-0 overflow-hidden rounded-[15px] border-[0.3px] border-system-glassborder bg-system-navbg">
+      <div className="relative h-[72px] w-[108px] shrink-0 overflow-hidden rounded-[15px] border-[0.3px] border-system-glassborder bg-system-navbg">
         {imageUrl && <Image src={imageUrl} alt={name} fill className="object-cover" />}
       </div>
 
-      <div className="flex flex-1 flex-col h-[80px]">
+      <div className="flex h-[72px] flex-1 flex-col">
         {/* 상단: 관광지명 + 북마크 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
