@@ -48,6 +48,6 @@ export function getInviteCopy(preview: InvitePreview | null) {
 
   return {
     title: `${preview.inviterNickname}님이 ‘${preview.groupName}’에 초대했어요 🌊`,
-    description: `${preview.memberCount}명의 친구가 함께 부산 여행을 준비하고 있어요. 지금 참여해보세요!`,
+    description: `벌써 ${preview.memberCount}명이 모였어요! 지금 바로 함께해요 🙌`,
   };
 }
