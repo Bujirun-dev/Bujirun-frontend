@@ -73,8 +73,8 @@ export function MypageProfile() {
       return acc;
     }, {});
 
-    return Object.entries(count).sort(([, a], [, b]) => (b ?? 0) - (a ?? 0))[0]?.[0] as
-      Category | undefined;
+    const sorted = Object.entries(count).sort(([, a], [, b]) => (b ?? 0) - (a ?? 0));
+    return sorted[0]?.[0] as Category | undefined;
   }, [collectedPlaces]);
 
   const { mutate: updateNickname } = useMutation({
