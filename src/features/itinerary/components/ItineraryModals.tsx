@@ -47,6 +47,7 @@ interface ItineraryModalsProps {
   onTimeChange: (value: { hour: number; minute: number }) => void;
   onOptimizeStart: () => void;
   isOptimizeDone?: boolean;
+  accommodationName?: string;
 }
 
 export function ItineraryModals({
@@ -67,6 +68,7 @@ export function ItineraryModals({
   onTimeChange,
   onOptimizeStart,
   isOptimizeDone,
+  accommodationName,
 }: ItineraryModalsProps) {
   return (
     <>
@@ -74,6 +76,7 @@ export function ItineraryModals({
         isOpen={modal === "optimize"}
         onClose={onClose}
         onConfirm={onOptimizeStart}
+        accommodationName={accommodationName}
       />
 
       <AiOptimizeLoadingModal
@@ -119,7 +122,7 @@ export function ItineraryModals({
             aria-hidden
           />
         }
-        iconClassName="size-[48px] bg-system-navbg"
+        iconClassName="size-[48px]"
         title="일정 삭제"
         description={`'${activeStop?.placeName ?? "관광지"}'을(를)\n일정에서 삭제하시겠어요?`}
         childrenVariant="card"

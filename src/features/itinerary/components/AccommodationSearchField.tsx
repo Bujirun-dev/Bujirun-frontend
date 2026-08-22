@@ -13,6 +13,12 @@ export interface AccommodationPlace {
 interface AccommodationSearchFieldProps {
   value: AccommodationPlace | null;
   onChange: (place: AccommodationPlace | null) => void;
+  // 기본 트리거(입력창/칩) 대신 다른 화면에 맞는 트리거를 직접 그리고 싶을 때 사용.
+  // 검색 모달을 여는 함수만 넘겨주고, 모달 자체는 이 컴포넌트가 계속 관리한다.
+  renderTrigger?: (args: {
+    value: AccommodationPlace | null;
+    onOpen: () => void;
+  }) => React.ReactNode;
 }
 
 function useDebouncedValue<T>(value: T, delayMs: number): T {
@@ -45,7 +51,11 @@ function loadKakaoMaps(): Promise<boolean> {
   });
 }
 
-export function AccommodationSearchField({ value, onChange }: AccommodationSearchFieldProps) {
+export function AccommodationSearchField({
+  value,
+  onChange,
+  renderTrigger,
+}: AccommodationSearchFieldProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<KakaoPlaceResult[]>([]);
@@ -108,7 +118,9 @@ export function AccommodationSearchField({ value, onChange }: AccommodationSearc
 
   return (
     <>
-      {value ? (
+      {renderTrigger ? (
+        renderTrigger({ value, onOpen: handleOpen })
+      ) : value ? (
         <div
           role="button"
           tabIndex={0}
@@ -160,7 +172,11 @@ export function AccommodationSearchField({ value, onChange }: AccommodationSearc
             className="!w-full"
             iconSize={11}
           />
-          <div className="h-[276px] w-full overflow-y-auto">
+          <div
+            className={`w-full overflow-y-auto transition-[height] duration-200 ${
+              query.trim() ? "h-[276px]" : "h-0"
+            }`}
+          >
             {isSearching ? (
               <LoadingState message="검색하는 중이에요" />
             ) : !query.trim() ? null : results.length === 0 ? (
