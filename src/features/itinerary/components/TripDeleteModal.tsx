@@ -25,7 +25,7 @@ export function TripDeleteModal({
         <Image src={removeIcon} alt="" width={25} height={25} className="icon-coral" aria-hidden />
       }
       iconClassName="size-[48px]"
-      title={isGroupTrip ? "여행 일정 나가기" : "여행 삭제"}
+      title={isGroupTrip ? "여행 나가기" : "여행 삭제"}
       description={
         isGroupTrip
           ? `'${tripName}' 여행 일정에서\n나가시겠어요?`
