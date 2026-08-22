@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/shared/utils";
 import { Button } from "./Button";
@@ -11,7 +11,7 @@ interface ModalProps {
   onClose: () => void;
   icon?: React.ReactNode;
   title?: string;
-  description?: string;
+  description?: ReactNode;
   children?: React.ReactNode;
   confirmText?: string;
   cancelText?: string;
@@ -113,7 +113,8 @@ export function Modal({
         {icon && (
           <div
             className={cn(
-              "w-[48px] h-[48px] rounded-full bg-system-navbg flex items-center justify-center text-2xl",
+              "w-[48px] h-[48px] rounded-full flex items-center justify-center text-2xl",
+              confirmVariant === "warning" ? "bg-system-coralbg" : "bg-system-navbg",
               iconClassName,
             )}
           >
@@ -131,9 +132,9 @@ export function Modal({
               </h2>
             )}
             {description && (
-              <p className="text-md font-medium text-text-primary leading-relaxed whitespace-pre-line break-keep">
+              <div className="text-md font-medium text-text-primary leading-relaxed whitespace-pre-line break-keep">
                 {description}
-              </p>
+              </div>
             )}
           </div>
         )}
@@ -143,7 +144,10 @@ export function Modal({
             <Card
               variant="glass-sm"
               className={cn(
-                "w-full rounded-lg px-3 py-2 flex flex-col gap-2 justify-center text-sm",
+                "w-full rounded-lg border px-3 py-2 flex flex-col gap-2 justify-center text-sm",
+                confirmVariant === "warning"
+                  ? "!border-sub-coral/20 !bg-[linear-gradient(to_bottom,color-mix(in_srgb,var(--color-main-white)_65%,transparent),color-mix(in_srgb,var(--color-system-coralbg)_60%,transparent))]"
+                  : "!border-main-blue/20 !bg-[linear-gradient(to_bottom,color-mix(in_srgb,var(--color-main-white)_65%,transparent),color-mix(in_srgb,var(--color-system-navbg)_60%,transparent))]",
                 childrenClassName,
               )}
             >

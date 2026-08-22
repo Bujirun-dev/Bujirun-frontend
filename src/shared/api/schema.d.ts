@@ -919,6 +919,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/itineraries/{itineraryId}/days/{dayId}/items/{itemId}/travel-mode/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 이동수단 변경 후보 옵션 조회 (담당: 윤제승)
+         * @description 직전 방문 항목과의 구간에 대해 선택 가능한 이동수단 후보(버스/지하철/택시/도보)와 각각의 실제 소요시간·요금을 조회합니다. DB에 저장된 값이 아니라 매번 새로 계산한 값이며, 확정하려면 이동수단 변경(travel-mode) API를 별도로 호출해야 합니다.
+         */
+        get: operations["getTravelModeOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/itineraries/vote-sessions/{sessionId}": {
         parameters: {
             query?: never;
@@ -968,6 +988,26 @@ export interface paths {
          * @description 현재 로그인한 사용자가 속한 그룹 목록을 조회합니다.
          */
         get: operations["myGroups"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/groups/invites/{inviteCode}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 초대 정보 미리보기 (담당: 윤제승)
+         * @description 초대 코드로 그룹명, 초대자 닉네임, 멤버 수를 조회합니다.
+         */
+        get: operations["previewInvite"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1032,6 +1072,26 @@ export interface paths {
          * @description 도감 카테고리(바다/자연/문화/체험)별로 랜덤 관광지 총 10곳을 반환합니다.
          */
         get: operations["getSwipeDeck"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/collections/my": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 내 도감 수집 현황 조회 (담당: 유정)
+         * @description 로그인한 사용자의 도감 수집 현황(전체 대상 수, 수집 수, 수집 목록)을 조회합니다.
+         */
+        get: operations["getMyCollections"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1310,6 +1370,7 @@ export interface components {
             /** Format: uuid */
             userId?: string;
             nickname?: string;
+            profileImageUrl?: string;
             /** Format: date-time */
             joinedAt?: string;
             isLeader?: boolean;
@@ -1431,6 +1492,8 @@ export interface components {
             /** Format: date */
             endAt?: string;
             endTime?: string;
+            accommodationName?: string;
+            accommodationAddress?: string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -1454,6 +1517,7 @@ export interface components {
             startStationName?: string;
             endStationName?: string;
             startArsId?: string;
+            transitDetail?: components["schemas"]["TransitDetail"];
             memo?: string;
         };
         SpotSummary: {
@@ -1467,6 +1531,57 @@ export interface components {
             thumbnailUrl?: string;
             collected?: boolean;
             visited?: boolean;
+        };
+        SubwayDeparture: {
+            departureTime?: string;
+            /** Format: int32 */
+            subwayClass?: number;
+            /** Format: int32 */
+            firstLastFlag?: number;
+        };
+        SubwaySegmentTimetable: {
+            /** Format: int32 */
+            subPathIndex?: number;
+            startStationName?: string;
+            endStationName?: string;
+            lineName?: string;
+            /** Format: int32 */
+            wayCode?: number;
+            upcomingDepartures?: components["schemas"]["SubwayDeparture"][];
+            /** Format: int32 */
+            nextDepartureMinutes?: number;
+            transferInfo?: components["schemas"]["SubwayTransitInfo"];
+        };
+        SubwayTransferDetail: {
+            /** Format: int32 */
+            takeStationId?: number;
+            takeLaneName?: string;
+            /** Format: int32 */
+            exStationId?: number;
+            exLaneName?: string;
+            /** Format: int32 */
+            fastTrainNo?: number;
+            /** Format: int32 */
+            fastTrainDoor?: number;
+        };
+        SubwayTransitInfo: {
+            /** Format: int32 */
+            count?: number;
+            transitTotalInfo?: components["schemas"]["SubwayTransferDetail"][];
+        };
+        TransitDetail: {
+            segments?: components["schemas"]["TransitDetailSegment"][];
+        };
+        TransitDetailSegment: {
+            /** Format: int32 */
+            index?: number;
+            trafficType?: string;
+            startName?: string;
+            endName?: string;
+            routeNo?: string;
+            /** Format: int32 */
+            sectionTime?: number;
+            subwaySchedule?: components["schemas"]["SubwaySegmentTimetable"];
         };
         CreateItineraryRequest: {
             planType?: string;
@@ -1774,6 +1889,8 @@ export interface components {
             /** Format: date */
             endAt?: string;
             endTime?: string;
+            accommodationName?: string;
+            accommodationAddress?: string;
             status?: string;
         };
         ItineraryOptimizeRequest: {
@@ -1796,6 +1913,15 @@ export interface components {
             /** Format: int32 */
             order?: number;
             arrivalTime?: string;
+            travelMode?: string;
+            /** Format: int32 */
+            travelTimeMin?: number;
+            routeType?: string;
+            routeNo?: string;
+            startStationName?: string;
+            endStationName?: string;
+            startArsId?: string;
+            transitDetail?: components["schemas"]["TransitDetail"];
         };
         ApiResponseString: {
             success?: boolean;
@@ -1954,6 +2080,11 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
         };
+        ApiResponseListTransitOption: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["TransitOption"][];
+        };
         ApiResponseListGroupMemberResponse: {
             success?: boolean;
             message?: string;
@@ -1963,6 +2094,17 @@ export interface components {
             success?: boolean;
             message?: string;
             data?: components["schemas"]["GroupResponse"][];
+        };
+        ApiResponseGroupInvitePreviewResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["GroupInvitePreviewResponse"];
+        };
+        GroupInvitePreviewResponse: {
+            groupName?: string;
+            inviterNickname?: string;
+            /** Format: int64 */
+            memberCount?: number;
         };
         CollectionListResponse: {
             /** Format: uuid */
@@ -1982,6 +2124,14 @@ export interface components {
             collected?: boolean;
             /** Format: date-time */
             collectedAt?: string;
+        };
+        MyCollectionResponse: {
+            /** Format: int64 */
+            totalCount?: number;
+            /** Format: int64 */
+            collectedCount?: number;
+            entries?: components["schemas"]["CollectionListResponse"][];
+            uncollectedEntries?: components["schemas"]["CollectionListResponse"][];
         };
         BookmarkListResponse: {
             /** Format: uuid */
@@ -3256,6 +3406,30 @@ export interface operations {
             };
         };
     };
+    getTravelModeOptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itineraryId: string;
+                dayId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListTransitOption"];
+                };
+            };
+        };
+    };
     getStatus_1: {
         parameters: {
             query?: never;
@@ -3316,6 +3490,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseListGroupResponse"];
+                };
+            };
+        };
+    };
+    previewInvite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inviteCode: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseGroupInvitePreviewResponse"];
                 };
             };
         };
@@ -3398,6 +3594,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SpotSearchResponse"][];
+                };
+            };
+        };
+    };
+    getMyCollections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MyCollectionResponse"];
                 };
             };
         };

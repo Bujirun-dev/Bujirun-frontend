@@ -63,7 +63,6 @@ export function AiOptimizeLoadingModal({
           aria-hidden
         />
       }
-      iconClassName="bg-sub-coral/10"
       title="AI가 최적 경로를 찾고 있어요"
       hideActions
       childrenVariant="card"

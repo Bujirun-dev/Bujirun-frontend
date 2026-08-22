@@ -13,7 +13,6 @@ import { Card } from "@/components/ui/Card";
 import { CategoryChip } from "@/components/ui/CategoryChip";
 import type { Category } from "@/components/ui/CategoryChip";
 import { userApi, travelLogApi, visitApi } from "@/shared/api/domains";
-import SuccessIcon from "@/assets/icons/mypage/success.svg?svgr";
 import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
 
 // TODO: 백엔드에서 태그 데이터 내려오면 API로 교체
@@ -43,6 +42,7 @@ export function MypageProfile() {
   const nicknameEditRef = useRef<NicknameInlineEditRef>(null);
 
   const [isProfileImageModalOpen, setIsProfileImageModalOpen] = useState(false);
+  const [toastVariant, setToastVariant] = useState<"success" | "error">("success");
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   // 닉네임 중복 여부 — mutation onError에서 409 감지 시 true로 설정
@@ -75,7 +75,7 @@ export function MypageProfile() {
     onSuccess: () => {
       setIsNicknameDuplicate(false);
       queryClient.invalidateQueries({ queryKey: userApi.keys.me() });
-      showToast("닉네임이 변경되었어요");
+      showToast("닉네임이 변경되었어요", "success");
       // 저장 성공 시 편집 모드 종료
       nicknameEditRef.current?.closeEdit();
     },
@@ -85,7 +85,7 @@ export function MypageProfile() {
         setIsNicknameDuplicate(true);
         return;
       }
-      showToast("닉네임 변경에 실패했어요");
+      showToast("닉네임 변경에 실패했어요", "error");
     },
   });
 
@@ -94,15 +94,16 @@ export function MypageProfile() {
     mutationFn: (imageId: number) => userApi.updateMyProfile({ profileImageUrl: String(imageId) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userApi.keys.me() });
-      showToast("프로필 사진이 변경되었어요");
+      showToast("프로필 사진이 변경되었어요", "success");
     },
     onError: () => {
-      showToast("프로필 사진 변경에 실패했어요");
+      showToast("프로필 사진 변경에 실패했어요", "error");
     },
   });
 
-  const showToast = useCallback((message: string) => {
+  const showToast = useCallback((message: string, variant: "success" | "error") => {
     setToastMessage(message);
+    setToastVariant(variant);
     setToastVisible(true);
   }, []);
 
@@ -204,9 +205,9 @@ export function MypageProfile() {
 
       <Toast
         isVisible={toastVisible}
-        message={toastMessage}
         onHide={hideToast}
-        icon={<SuccessIcon width={12} height={12} className="fill-white" />}
+        message={toastMessage}
+        variant={toastVariant}
       />
     </>
   );

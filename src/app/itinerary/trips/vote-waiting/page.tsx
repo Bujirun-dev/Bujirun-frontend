@@ -5,10 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Modal, Toast, LoadingState, Button } from "@/components";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { itineraryApi } from "@/shared/api/domains";
-import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
-import { useConfirmedItineraryWatcher } from "@/features/itinerary/hooks/useConfirmedItineraryWatcher";
 
 function getWinnerPlan(votes: Record<string, number>): string | null {
   const sorted = Object.entries(votes).sort((a, b) => b[1] - a[1]);
@@ -54,7 +52,12 @@ function VoteWaitingContent() {
   const endDate = searchParams.get("endDate") ?? "";
   const startTime = searchParams.get("startTime") ?? "";
   const endTime = searchParams.get("endTime") ?? "";
+  const accommodation = searchParams.get("accommodation") ?? "";
+  const accommodationAddress = searchParams.get("accommodationAddress") ?? "";
   const [selectedTiePlan, setSelectedTiePlan] = useState<string | null>(null);
+  const [toastVariant, setToastVariant] = useState<
+    "success" | "error" | "warning" | "itinerary" | "default"
+  >("default");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
 
@@ -64,18 +67,16 @@ function VoteWaitingContent() {
   // 확실하게 일정 화면으로 보낸다.
   const { voteStatus } = useVoteSessionPolling(sessionId, {
     onConfirmed: () => router.push("/itinerary"),
-    onError: () => setToastMessage("투표 현황을 불러오지 못했어요."),
+    onError: () => {
+      setToastVariant("error");
+      setToastMessage("투표 현황을 불러오지 못했어요.");
+    },
   });
   const voteCounts = voteStatus?.voteCounts ?? {};
   const doneCount = Math.min(totalSlots, voteStatus?.totalVotes ?? 0);
   const winnerPlan = getWinnerPlan(voteCounts);
   const tiedPlans = getTiedPlans(voteCounts);
   const showTieModal = doneCount >= totalSlots && !winnerPlan && !selectedTiePlan;
-
-  // 동률이라 방장이 "OO안 선택"으로 확정해도, 확정 이후엔 vote-status 조회가
-  // 백엔드에서 계속 실패해서(위 onError로 새는 중) useVoteSessionPolling의
-  // onConfirmed가 실제로는 못 불린다 — 참여자용 안전망으로 내 일정 목록을 우회 폴링.
-  const confirmedItinerary = useConfirmedItineraryWatcher(tripName, !!sessionId && !isHost);
 
   const confirmPlan = async (planType: string) => {
     setIsConfirming(true);
@@ -99,10 +100,18 @@ function VoteWaitingContent() {
               }
             : {}),
         });
-        if (newItineraryId) saveTripTimeBounds(newItineraryId, startTime, endTime);
+        if (newItineraryId) {
+          await itineraryApi.updateItinerary(newItineraryId, {
+            startTime,
+            endTime,
+            accommodationName: accommodation,
+            accommodationAddress,
+          });
+        }
       }
       router.push("/itinerary");
     } catch {
+      setToastVariant("error");
       setToastMessage("일정을 확정하지 못했어요. 다시 시도해주세요.");
     } finally {
       setIsConfirming(false);
@@ -117,6 +126,7 @@ function VoteWaitingContent() {
 
     // 단독 1위: 토스트 후 일정 메인 이동
     const toastTimer = window.setTimeout(() => {
+      setToastVariant("success");
       setToastMessage(`${winnerPlan}안이 최다 투표로 선택됐어요! 🎉`);
     }, 0);
     const timer = window.setTimeout(() => {
@@ -130,23 +140,9 @@ function VoteWaitingContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doneCount, totalSlots, winnerPlan]);
 
-  useEffect(() => {
-    if (!confirmedItinerary) return;
-    const toastTimer = window.setTimeout(() => {
-      setToastMessage(`${confirmedItinerary.planType ?? "선택한"}안이 확정됐어요! 🎉`);
-    }, 0);
-    const timer = window.setTimeout(() => {
-      router.push("/itinerary");
-    }, 1800);
-    return () => {
-      window.clearTimeout(toastTimer);
-      window.clearTimeout(timer);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [confirmedItinerary?.id]);
-
   const handleTiePick = (plan: string) => {
     setSelectedTiePlan(plan);
+    setToastVariant("success");
     setToastMessage(`방장이 ${plan}안을 선택했어요! 🎉`);
     window.setTimeout(() => {
       confirmPlan(plan);
@@ -240,6 +236,7 @@ function VoteWaitingContent() {
         isVisible={toastMessage !== null}
         onHide={() => setToastMessage(null)}
         message={toastMessage ?? ""}
+        variant={toastVariant}
       />
     </div>
   );

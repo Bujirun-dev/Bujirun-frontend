@@ -97,7 +97,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
         isVisible={toastMessage !== null}
         onHide={() => setToastMessage(null)}
         message={toastMessage ?? ""}
-        variant="error"
+        variant="warning"
       />
     </Modal>
   );

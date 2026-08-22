@@ -11,7 +11,7 @@ interface ToastProps {
   icon?: React.ReactNode;
   duration?: number;
   className?: string;
-  variant?: "success" | "error" | "warning" | "default";
+  variant?: "success" | "error" | "warning" | "itinerary" | "default";
 }
 
 const TOAST_ICONS = {
@@ -36,11 +36,17 @@ const TOAST_ICONS = {
     </svg>
   ),
 
+  itinerary: (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-3.5 shrink-0 fill-current">
+      <path d="m12,0C5.383,0,0,5.383,0,12s5.383,12,12,12,12-5.383,12-12S18.617,0,12,0Zm0,22c-5.514,0-10-4.486-10-10S6.486,2,12,2s10,4.486,10,10-4.486,10-10,10Zm4-14.828v-1.172c0-.553-.447-1-1-1s-1,.447-1,1v1h-4v-1c0-.553-.447-1-1-1s-1,.447-1,1v1.172c-1.164.413-2,1.524-2,2.828v4c0,1.654,1.346,3,3,3h6c1.654,0,3-1.346,3-3v-4c0-1.304-.836-2.415-2-2.828Zm-1,7.828h-6c-.552,0-1-.448-1-1v-3h8v3c0,.552-.448,1-1,1Z" />
+    </svg>
+  ),
+
   default: (
     <svg aria-hidden="true" viewBox="0 0 24 24" className="size-3.5 shrink-0 fill-current">
       <path d="M12,0A12,12,0,1,0,24,12,12.013,12.013,0,0,0,12,0Zm0,22A10,10,0,1,1,22,12,10.011,10.011,0,0,1,12,22Z" />
       <path d="M12,10H11a1,1,0,0,0,0,2h1v6a1,1,0,0,0,2,0V12A2,2,0,0,0,12,10Z" />
-      <circle cx="12" cy="6.5" r="1.5" />
+      <circle xmlns="http://www.w3.org/2000/svg" cx="12" cy="6.5" r="1.5" />
     </svg>
   ),
 } satisfies Record<NonNullable<ToastProps["variant"]>, React.ReactNode>;
@@ -66,7 +72,7 @@ export function Toast({
   const appRoot = typeof document === "undefined" ? null : document.getElementById("app-root");
 
   const toast = (
-    <div className="absolute bottom-[80px] left-1/2 z-50 -translate-x-1/2">
+    <div className="absolute bottom-23 left-1/2 z-50 -translate-x-1/2">
       <div
         className={cn(
           "flex h-[30px] w-[260px] items-center justify-center gap-1.5 rounded-lg px-3",
@@ -74,6 +80,7 @@ export function Toast({
             success: "bg-toastbg-success border border-toast-success text-toast-success",
             error: "bg-toastbg-error border border-toast-error text-toast-error",
             warning: "bg-toastbg-warning border border-toast-warning text-toast-warning",
+            itinerary: "bg-toastbg-itinerary border border-toast-itinerary text-toast-itinerary",
             default: "bg-toastbg-default border border-toast-default text-toast-default",
           }[variant],
           className,

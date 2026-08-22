@@ -31,7 +31,7 @@ export function AccountFooter() {
         <button
           type="button"
           onClick={() => setIsWithdrawOpen(true)}
-          className="text-3xs text-sub-gray underline underline-offset-2 active:opacity-60"
+          className="text-xs text-sub-gray underline underline-offset-2 active:opacity-60"
         >
           회원 탈퇴
         </button>

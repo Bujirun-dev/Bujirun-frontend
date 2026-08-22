@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import CalendarIcon from "@/assets/icons/itinerary/calendar.svg?svgr";
 import ClockIcon from "@/assets/icons/itinerary/clock.svg?svgr";
 import FriendsIcon from "@/assets/icons/itinerary/friends.svg?svgr";
+import HotelIcon from "@/assets/icons/itinerary/hotel.svg?svgr";
 import TitleIcon from "@/assets/icons/itinerary/title.svg?svgr";
 import NoIcon from "@/assets/icons/login-register/no.svg?svgr";
 import YesIcon from "@/assets/icons/login-register/yes.svg?svgr";
@@ -15,6 +16,8 @@ import {
   parseTripDateTime,
   toApiDate,
 } from "./TripDateTimePicker";
+import { AccommodationSearchField } from "./AccommodationSearchField";
+import type { AccommodationPlace } from "./AccommodationSearchField";
 import { cn } from "@/shared/utils";
 import { groupApi } from "@/shared/api/domains";
 
@@ -33,6 +36,7 @@ export function TripSetupForm() {
   const [startDate, setStartDate] = useState(DEFAULTS.start);
   const [endDate, setEndDate] = useState(DEFAULTS.end);
   const [friendCount, setFriendCount] = useState(2);
+  const [accommodation, setAccommodation] = useState<AccommodationPlace | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -92,6 +96,9 @@ export function TripSetupForm() {
         endDate: toApiDate(endDate),
         startTime: `${pad2(startDT.getHours())}:${pad2(startDT.getMinutes())}`,
         endTime: `${pad2(endDT.getHours())}:${pad2(endDT.getMinutes())}`,
+        ...(accommodation
+          ? { accommodation: accommodation.name, accommodationAddress: accommodation.address }
+          : {}),
       });
       router.push(`/itinerary/trips/invite?${params.toString()}`);
     } finally {
@@ -100,7 +107,7 @@ export function TripSetupForm() {
   };
 
   return (
-    <div className="-mx-6 flex flex-col gap-6 rounded-tl-[40px] rounded-tr-[40px] bg-white px-8 pt-10 pb-6">
+    <div className="-mx-6 flex flex-col gap-5 rounded-tl-[40px] rounded-tr-[40px] bg-white px-8 pt-10 pb-6">
       {/* 여행명 */}
       <section>
         <div className="flex items-center gap-1.5 mb-[10px]">
@@ -112,7 +119,7 @@ export function TripSetupForm() {
             type="text"
             value={tripName}
             onChange={(e) => setTripName(e.target.value.slice(0, 15))}
-            placeholder="2-15글자 입력 가능"
+            placeholder="여행 이름을 입력해주세요"
             className={cn(
               "w-full rounded-[10px] border py-[10px] pl-[15px] pr-10",
               "font-paperlogy font-medium text-xs text-sub-gray",
@@ -138,14 +145,11 @@ export function TripSetupForm() {
             </div>
           )}
         </div>
-        <p
-          className={cn(
-            "mt-[6px] h-[17px] pr-[8px] text-right font-paperlogy text-sm font-semibold text-sub-gray",
-            !hasName && "opacity-0",
-          )}
-        >
-          {nameLength}/15
-        </p>
+        {hasName && (
+          <p className="mt-[6px] h-[17px] pr-[8px] text-right font-paperlogy text-xs font-semibold text-sub-gray">
+            {nameLength}/15
+          </p>
+        )}
       </section>
 
       {/* 여행기간 */}
@@ -189,6 +193,16 @@ export function TripSetupForm() {
         </div>
       </section>
 
+      {/* 숙소 */}
+      <section>
+        <div className="flex items-center gap-1.5 mb-[10px]">
+          <HotelIcon width={14} height={14} aria-hidden />
+          <span className="font-ssurround font-bold text-md text-text-heading">숙소</span>
+          <span className="font-paperlogy font-medium text-xs text-sub-gray">(선택)</span>
+        </div>
+        <AccommodationSearchField value={accommodation} onChange={setAccommodation} />
+      </section>
+
       {/* 친구 수 */}
       <section className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
@@ -217,7 +231,7 @@ export function TripSetupForm() {
         isVisible={toastMessage !== null}
         onHide={() => setToastMessage(null)}
         message={toastMessage ?? ""}
-        variant="error"
+        variant="warning"
       />
     </div>
   );

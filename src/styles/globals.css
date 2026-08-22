@@ -1,135 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap");
-@import url("https://cdn.jsdelivr.net/gh/MonadABXY/mona-font/web/mona.css");
 @import "tailwindcss";
-
-@font-face {
-  font-family: "DXSubtitles";
-  src: url("/fonts/DXMSubtitlesM-KSCpc-EUC-H.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "GiantsInline";
-  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2307-1@1.1/Giants-Inline.woff2")
-    format("woff2");
-  font-weight: normal;
-  font-display: swap;
-}
-
-/* Paperlogy - Thin */
-@font-face {
-  font-family: "Paperlogy";
-  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-1Thin.woff2")
-    format("woff2");
-  font-weight: 100;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Paperlogy - ExtraLight */
-@font-face {
-  font-family: "Paperlogy";
-  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-2ExtraLight.woff2")
-    format("woff2");
-  font-weight: 200;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Paperlogy - Light */
-@font-face {
-  font-family: "Paperlogy";
-  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-3Light.woff2")
-    format("woff2");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Paperlogy - Regular */
-@font-face {
-  font-family: "Paperlogy";
-  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-4Regular.woff2")
-    format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Paperlogy-  Medium */
-@font-face {
-  font-family: "Paperlogy";
-  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-5Medium.woff2")
-    format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Paperlogy - SemiBold */
-@font-face {
-  font-family: "Paperlogy";
-  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-6SemiBold.woff2")
-    format("woff2");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Paperlogy - Bold */
-@font-face {
-  font-family: "Paperlogy";
-  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-7Bold.woff2")
-    format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Paperlogy - ExtraBold */
-@font-face {
-  font-family: "Paperlogy";
-  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-8ExtraBold.woff2")
-    format("woff2");
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Paperlogy - Black */
-@font-face {
-  font-family: "Paperlogy";
-  src: url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy-9Black.woff2")
-    format("woff2");
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Cafe24Ssurround";
-  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/Cafe24Ssurround.woff")
-    format("woff");
-  font-weight: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Cafe24ProUp";
-  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2507-1@1.0/Cafe24PROUP.woff2") format("woff2");
-  font-weight: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "LaundryGothic";
-  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicR.woff2")
-    format("woff2");
-  font-weight: 400;
-  font-display: swap;
-}
 
 @theme inline {
   /* Main */
@@ -159,7 +28,7 @@
   /* System */
   --color-system-whitebg: rgba(255, 255, 255, 0.4);
   --color-system-blackbg: rgba(0, 0, 0, 0.4);
-  --color-system-coralbg: rgba(255, 127, 80, 0.1);
+  --color-system-coralbg: #fff2ed;
   --color-system-navbg: #ecf5ff;
   --color-system-scroll: #d5e6ff;
   --color-system-searchbg: #f2f5fa;
@@ -187,6 +56,29 @@
   --color-toastbg-warning: #fef7e5;
   --color-toast-default: #999999;
   --color-toastbg-default: #f5f5f5;
+  --color-toast-itinerary: #4285f4;
+  --color-toastbg-itinerary: #ecf3fe;
+
+  /* Collection */
+  --color-collection-bg: #fffcf3;
+  --color-collection-border: #000000;
+  --color-collection-lever: #d9d9d9;
+  --color-collection-shelf: #fede7e;
+  --color-collection-indicator: #ff9300;
+  --color-collection-shadow: #646464;
+  --shadow-collection-button: 2px 2px 0 var(--color-collection-shadow);
+  --shadow-collection-button-active: 1px 1px 0 var(--color-collection-shadow);
+
+  --color-collection-all: #fede7e;
+  --color-collection-all-light: #fef8e4;
+  --color-collection-sea: #97c1ff;
+  --color-collection-sea-light: #eaf2fe;
+  --color-collection-nature: #cde9b1;
+  --color-collection-nature-light: #eef7e4;
+  --color-collection-culture: #ffb3c7;
+  --color-collection-culture-light: #fff0f4;
+  --color-collection-experience: #cab6ff;
+  --color-collection-experience-light: #f5f0ff;
 
   /* Font Size */
   --text-3xs: 9px;
@@ -202,14 +94,14 @@
   /* Spacing */
   --spacing-screen-x: 24px;
   --spacing-card-inner: 18px;
-  --font-giants: "GiantsInline", sans-serif;
-  --font-paperlogy: "Paperlogy", sans-serif;
-  --font-ssurround: "Cafe24Ssurround", sans-serif;
-  --font-proup: "Cafe24ProUp", sans-serif;
-  --font-laundrygothic: "LaundryGothic", sans-serif;
-  --font-courierprime: "Courier Prime", monospace;
-  --font-dxsubtitles: "DXSubtitles", sans-serif;
-  --font-mona: "Mona12", sans-serif;
+  --font-giants: var(--font-giants-local), sans-serif;
+  --font-paperlogy: var(--font-paperlogy-local), sans-serif;
+  --font-ssurround: var(--font-ssurround-local), sans-serif;
+  --font-proup: var(--font-proup-local), sans-serif;
+  --font-laundrygothic: var(--font-laundrygothic-local), sans-serif;
+  --font-courierprime: var(--font-courierprime-local), monospace;
+  --font-dxsubtitles: var(--font-dxsubtitles-local), sans-serif;
+  --font-mona: var(--font-mona-local), sans-serif;
 }
 
 /* SVG 아이콘 색상 필터 유틸리티 */
@@ -287,7 +179,7 @@ body {
 body {
   background: var(--color-main-white);
   color: var(--color-text-primary);
-  font-family: "Paperlogy", sans-serif;
+  font-family: var(--font-paperlogy-local), sans-serif;
 }
 
 * {

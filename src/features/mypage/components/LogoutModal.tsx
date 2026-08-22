@@ -2,8 +2,6 @@
 
 import Image from "next/image";
 import { Modal } from "@/components/ui/Modal";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
 import logoutIcon from "@/assets/icons/mypage/logout-blue.png";
 
 interface LogoutModalProps {
@@ -21,39 +19,15 @@ export function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalProps) {
       iconClassName="!bg-system-coralbg"
       title="로그아웃"
       titleClassName="tracking-[0.5px]"
-      className="gap-0 pt-[48px] pb-[40px]"
-      childrenVariant="plain"
+      description={`정말 로그아웃 하시겠어요?\n다음 여행도 함께 할게요!`}
+      cancelText="취소"
+      confirmText="로그아웃"
       confirmVariant="warning"
-      childrenClassName="mt-[20px]"
-      hideActions
-      footer={
-        <div className="flex w-full justify-center gap-[25px] mt-[24px]">
-          <Button
-            variant="secondary"
-            onClick={onClose}
-            className="w-[125px] h-[40px] border-sub-coral !text-sub-coral"
-          >
-            취소
-          </Button>
-          <Button variant="warning" onClick={onConfirm} className="w-[125px] h-[40px]">
-            로그아웃
-          </Button>
-        </div>
-      }
+      onConfirm={onConfirm}
     >
-      <div className="flex flex-col items-center gap-4 mt-[8px]">
-        <p className="text-lg font-semibold text-text-primary text-center leading-relaxed whitespace-pre-line">
-          {`정말 로그아웃 하시겠어요?\n다음 여행도 함께 할게요!`}
-        </p>
-        <Card
-          variant="glass-sm"
-          className="w-[275px] h-[31px] flex items-center justify-center rounded-lg p-0 mt-[35px]"
-        >
-          <p className="text-center text-sm font-medium text-sub-darkgray">
-            * 언제든 다시 로그인할 수 있어요.
-          </p>
-        </Card>
-      </div>
+      <p className="text-center text-sm font-medium text-sub-darkgray">
+        * 언제든 다시 로그인할 수 있어요.
+      </p>
     </Modal>
   );
 }
