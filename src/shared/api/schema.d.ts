@@ -1491,6 +1491,8 @@ export interface components {
             /** Format: date */
             endAt?: string;
             endTime?: string;
+            accommodationName?: string;
+            accommodationAddress?: string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -1886,6 +1888,8 @@ export interface components {
             /** Format: date */
             endAt?: string;
             endTime?: string;
+            accommodationName?: string;
+            accommodationAddress?: string;
             status?: string;
         };
         ItineraryOptimizeRequest: {

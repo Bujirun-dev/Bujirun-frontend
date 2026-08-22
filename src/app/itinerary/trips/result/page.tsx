@@ -16,7 +16,6 @@ import busanStationImg from "@/assets/place/busan-station.png";
 import mapCharacterImg from "@/assets/character/map.png";
 import { itineraryApi } from "@/shared/api/domains";
 import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
-import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
 import type { components } from "@/shared/api/schema";
@@ -291,9 +290,11 @@ function TripResultContent() {
           : {}),
       });
       if (newItineraryId) {
-        saveTripTimeBounds(newItineraryId, startTime, endTime, {
-          name: accommodation,
-          address: accommodationAddress,
+        await itineraryApi.updateItinerary(newItineraryId, {
+          startTime,
+          endTime,
+          accommodationName: accommodation,
+          accommodationAddress,
         });
       }
       setToastVariant("success");

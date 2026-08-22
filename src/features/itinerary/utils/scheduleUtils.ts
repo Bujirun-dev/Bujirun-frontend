@@ -96,13 +96,15 @@ export function buildDaysFromTravelLogDetail(log: TravelLogDetailResponse): {
 
 // 백엔드가 "H:mm:ss" 같은 형태로 시간을 내려줄 때가 있어서, 화면에는 항상
 // 초 없이 0으로 패딩된 "HH:mm" 형태로 통일해서 보여준다.
+// AI 생성/최적화 결과가 10분 단위가 아닌 값(예: 10:01)을 내려줄 수 있어서,
+// 여기서 항상 10분 단위로 반올림한다 — 일정 시간은 무조건 10분 단위로 맞추기로 함.
 export function normalizeTime(raw: string | undefined, fallback = "00:00"): string {
   if (!raw) return fallback;
   const [hour, minute] = raw.split(":");
   const h = Number(hour);
   const m = Number(minute);
   if (!Number.isFinite(h) || !Number.isFinite(m)) return fallback;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  return minutesToTime(roundToNearest10(h * 60 + m));
 }
 
 export function timeToMinutes(time: string): number {
@@ -115,6 +117,24 @@ export function minutesToTime(totalMinutes: number): string {
   const h = Math.floor(clamped / 60);
   const m = clamped % 60;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+// 자동으로 계산되는 시간(AI 생성/최적화/새 항목 추가 등)이 여행 시작/종료 시간을
+// 절대 벗어나지 않도록 첫날은 시작 시간 이상, 마지막날은 종료 시간 이하로 강제한다.
+export function clampToTripBounds(
+  totalMinutes: number,
+  dayIdx: number,
+  totalDays: number,
+  bounds?: TripTimeBoundsLike | null,
+): number {
+  let clamped = totalMinutes;
+  if (dayIdx === 0 && bounds?.startTime) {
+    clamped = Math.max(clamped, timeToMinutes(bounds.startTime));
+  }
+  if (dayIdx === totalDays - 1 && bounds?.endTime) {
+    clamped = Math.min(clamped, timeToMinutes(bounds.endTime));
+  }
+  return clamped;
 }
 
 // 교통수단을 바꿔서 자동으로 밀리는 시간은 10분 단위로 맞춘다 — 원래 있던 시간(예:
@@ -359,7 +379,14 @@ export function mapItineraryDetailToDays(
         id: item.id ?? `${day.id}-${idx}`,
         spotId: item.spot?.id,
         time: item.arrivalTime
-          ? normalizeTime(item.arrivalTime)
+          ? minutesToTime(
+              clampToTripBounds(
+                timeToMinutes(normalizeTime(item.arrivalTime)),
+                dayIdx,
+                totalDays,
+                timeBounds,
+              ),
+            )
           : getDefaultItemTime(dayIdx, totalDays, idx, items.length, timeBounds),
         placeName,
         imageUrl: item.spot?.thumbnailUrl || getFallbackImage(item.spot?.id),
