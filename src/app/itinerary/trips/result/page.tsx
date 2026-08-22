@@ -19,7 +19,6 @@ import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
-import { useConfirmedItineraryWatcher } from "@/features/itinerary/hooks/useConfirmedItineraryWatcher";
 import type { components } from "@/shared/api/schema";
 
 const PLAN_LABELS: Record<string, string> = {
@@ -144,6 +143,8 @@ function TripResultContent() {
   const endDate = searchParams.get("endDate") ?? "";
   const startTime = searchParams.get("startTime") || "10:00";
   const endTime = searchParams.get("endTime") || "17:00";
+  const accommodation = searchParams.get("accommodation") ?? "";
+  const accommodationAddress = searchParams.get("accommodationAddress") ?? "";
   const isHost = useIsGroupHost(groupId);
 
   // 스와이프 완료 직후 방장/참여자가 거의 동시에 이 페이지에 진입하면 각자의
@@ -193,11 +194,6 @@ function TripResultContent() {
   });
   const voteCounts = voteStatus?.voteCounts ?? {};
 
-  // 확정 이후엔 vote-status 조회가 백엔드에서 계속 실패해서(위 onError로 새는 중)
-  // useVoteSessionPolling의 onConfirmed가 실제로는 못 불린다 — 그룹 멤버라면 볼 수
-  // 있는 내 일정 목록을 우회 폴링해서 참여자가 확실히 넘어가도록 안전망을 둔다.
-  const confirmedItinerary = useConfirmedItineraryWatcher(tripName, !!sessionId && !isHost);
-
   const forwardParams = new URLSearchParams({
     count,
     days: String(totalDays),
@@ -205,7 +201,11 @@ function TripResultContent() {
     name: tripName,
     startDate,
     endDate,
+    startTime,
+    endTime,
     ...(sessionId ? { sessionId } : {}),
+    ...(accommodation ? { accommodation } : {}),
+    ...(accommodationAddress ? { accommodationAddress } : {}),
   }).toString();
 
   // days 수에 맞게 각 플랜 day 슬라이스 + 하루 최대 3곳(아침/오후/저녁) 슬롯에 맞춰 시간 배정
@@ -290,7 +290,12 @@ function TripResultContent() {
             }
           : {}),
       });
-      if (newItineraryId) saveTripTimeBounds(newItineraryId, startTime, endTime);
+      if (newItineraryId) {
+        saveTripTimeBounds(newItineraryId, startTime, endTime, {
+          name: accommodation,
+          address: accommodationAddress,
+        });
+      }
       setToastVariant("success");
       setToastMessage(`방장이 ${activePlan}안을 선택했어요! 🎉`);
       window.setTimeout(() => {
@@ -303,22 +308,6 @@ function TripResultContent() {
       setIsConfirming(false);
     }
   };
-
-  useEffect(() => {
-    if (!confirmedItinerary) return;
-    const toastTimer = window.setTimeout(() => {
-      setToastVariant("success");
-      setToastMessage(`방장이 ${confirmedItinerary.planType ?? activePlan}안을 선택했어요! 🎉`);
-    }, 0);
-    const timer = window.setTimeout(() => {
-      router.push("/itinerary");
-    }, 1800);
-    return () => {
-      window.clearTimeout(toastTimer);
-      window.clearTimeout(timer);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [confirmedItinerary?.id]);
 
   if (!hasReloaded || isGenerating) {
     return (

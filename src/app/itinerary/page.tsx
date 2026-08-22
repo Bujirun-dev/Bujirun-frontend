@@ -224,6 +224,7 @@ function ItineraryPageContent() {
     <ItineraryMain
       key={itineraryId}
       itineraryId={itineraryId}
+      groupId={detail.groupId}
       tripTitle={detail.title ?? selectedItinerary?.title}
       initialDays={days}
       initialDates={dates}
@@ -235,6 +236,7 @@ function ItineraryPageContent() {
 
 function ItineraryMain({
   itineraryId,
+  groupId,
   tripTitle,
   initialDays: initialDaysData,
   initialDates: initialDatesData,
@@ -242,6 +244,7 @@ function ItineraryMain({
   tripTimeBounds,
 }: {
   itineraryId: string;
+  groupId?: string;
   tripTitle?: string;
   initialDays: BaseStop[][];
   initialDates: string[];
@@ -665,6 +668,7 @@ function ItineraryMain({
           onLogsClick={() => router.push("/itinerary/logs")}
           onOptimizeClick={() => setModal("optimize")}
           onTripsClick={() => router.push("/itinerary/trips")}
+          onMembersClick={() => setModal("members")}
         />
         <SlidingTimeline
           allDayStops={allDayStops}
@@ -682,6 +686,7 @@ function ItineraryMain({
         modal={modal}
         activeStop={activeStop}
         itineraryId={itineraryId}
+        groupId={groupId}
         travelModeOptions={travelModeOptions}
         timeValue={timeValue}
         selectedRouteOptionId={selectedRouteOptionId}

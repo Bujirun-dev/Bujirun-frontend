@@ -29,6 +29,8 @@ function TripWaitingContent() {
   const totalSlots = Math.min(6, Math.max(2, Number(searchParams.get("count")) || 6));
   const days = searchParams.get("days") ?? "1";
   const groupId = searchParams.get("groupId") ?? "";
+  const accommodation = searchParams.get("accommodation") ?? "";
+  const accommodationAddress = searchParams.get("accommodationAddress") ?? "";
   const forwardParams = new URLSearchParams({
     count: String(totalSlots),
     days,
@@ -38,6 +40,8 @@ function TripWaitingContent() {
     endDate: searchParams.get("endDate") ?? "",
     startTime: searchParams.get("startTime") ?? "",
     endTime: searchParams.get("endTime") ?? "",
+    ...(accommodation ? { accommodation } : {}),
+    ...(accommodationAddress ? { accommodationAddress } : {}),
   }).toString();
 
   const { data: swipeStatus } = useQuery({

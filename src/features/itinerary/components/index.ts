@@ -27,3 +27,6 @@ export { ItineraryModals } from "./ItineraryModals";
 export type { ModalType } from "./ItineraryModals";
 export { PlaceSearchPanel } from "../../../components/place/PlaceSearchPanel";
 export { DayBadge } from "./DayBadge";
+export { TripMembersModal } from "./TripMembersModal";
+export { AccommodationSearchField } from "./AccommodationSearchField";
+export type { AccommodationPlace } from "./AccommodationSearchField";
