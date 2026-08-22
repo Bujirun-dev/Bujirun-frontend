@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/shared/utils";
 import { Card, Modal, SpeechBubble, Toast, LoadingState, ErrorState } from "@/components";
-import checkIcon from "@/assets/icons/itinerary/check.png";
+import checkIconWhite from "@/assets/icons/itinerary/check_white.png";
+import checkIconBlue from "@/assets/icons/itinerary/check_blue.png";
 import infoIcon from "@/assets/icons/itinerary/info.png";
 import freepassBlueIcon from "@/assets/icons/itinerary/freepass-blue.png";
 import flagImg from "@/assets/place/flag.png";
@@ -173,6 +174,9 @@ function TripResultContent() {
 
   const generatingMessage = useGeneratingMessage(isGenerating);
   const sessionId = generated?.voteSessionId ?? "";
+  const [toastVariant, setToastVariant] = useState<
+    "success" | "error" | "warning" | "itinerary" | "default"
+  >("default");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // 다른 참여자가 투표한 결과를 A/B/C 탭에 반영하기 위해 투표 현황을 폴링한다.
@@ -180,10 +184,14 @@ function TripResultContent() {
   // 없으므로 일정 화면으로 보낸다.
   const { voteStatus } = useVoteSessionPolling(sessionId, {
     onConfirmed: () => {
+      setToastVariant("success");
       setToastMessage("이미 일정이 확정됐어요. 일정 화면으로 이동할게요.");
       window.setTimeout(() => router.push("/itinerary"), 1500);
     },
-    onError: () => setToastMessage("투표 현황을 불러오지 못했어요."),
+    onError: () => {
+      setToastVariant("error");
+      setToastMessage("투표 현황을 불러오지 못했어요.");
+    },
   });
   const voteCounts = voteStatus?.voteCounts ?? {};
 
@@ -254,6 +262,7 @@ function TripResultContent() {
       setVotedPlan(planToVote);
       router.push(`/itinerary/trips/vote-waiting?${forwardParams}`);
     } catch {
+      setToastVariant("error");
       setToastMessage("투표에 실패했어요. 다시 시도해주세요.");
     }
   };
@@ -293,11 +302,13 @@ function TripResultContent() {
           address: accommodationAddress,
         });
       }
+      setToastVariant("success");
       setToastMessage(`방장이 ${activePlan}안을 선택했어요! 🎉`);
       window.setTimeout(() => {
         router.push("/itinerary");
       }, 1800);
     } catch {
+      setToastVariant("error");
       setToastMessage("일정을 확정하지 못했어요. 다시 시도해주세요.");
     } finally {
       setIsConfirming(false);
@@ -307,6 +318,7 @@ function TripResultContent() {
   useEffect(() => {
     if (!confirmedItinerary) return;
     const toastTimer = window.setTimeout(() => {
+      setToastVariant("success");
       setToastMessage(`방장이 ${confirmedItinerary.planType ?? activePlan}안을 선택했어요! 🎉`);
     }, 0);
     const timer = window.setTimeout(() => {
@@ -428,7 +440,7 @@ function TripResultContent() {
                   votedPlan === activePlan ? "bg-sub-pink" : "bg-sub-pink/50",
                 )}
               >
-                <Image src={checkIcon} alt="투표" width={14} height={14} aria-hidden />
+                <Image src={checkIconWhite} alt="투표" width={14} height={14} aria-hidden />
               </button>
               <div className="flex items-center gap-[2px] font-proup text-sm font-normal leading-none text-sub-pink">
                 <span>♥</span>
@@ -581,8 +593,7 @@ function TripResultContent() {
       <Modal
         isOpen={voteConfirmPlan !== null}
         onClose={() => setVoteConfirmPlan(null)}
-        icon={<Image src={checkIcon} alt="" width={20} height={20} aria-hidden />}
-        iconClassName="bg-sub-pink/30"
+        icon={<Image src={checkIconBlue} alt="" width={20} height={20} aria-hidden />}
         title="이 일정으로 투표할까요?"
         description={`${voteConfirmPlan}안에 투표하시겠어요?`}
         cancelText="취소"
@@ -596,7 +607,6 @@ function TripResultContent() {
         isOpen={freepassModal === "guide"}
         onClose={() => setFreepassModal(null)}
         icon={<Image src={freepassBlueIcon} alt="" width={25} height={25} aria-hidden />}
-        iconClassName="bg-system-navbg"
         title="방장 마음대로 프리패스!"
         description={"투표 결과와 상관없이\n방장이 원하는 추천 일정을 선택할 수 있어요."}
         childrenVariant="card"
@@ -616,7 +626,6 @@ function TripResultContent() {
         isOpen={freepassModal === "confirm"}
         onClose={() => setFreepassModal(null)}
         icon={<Image src={freepassBlueIcon} alt="" width={25} height={25} aria-hidden />}
-        iconClassName="bg-system-navbg"
         title="방장 마음대로 프리패스!"
         description={`${activePlan} 일정으로 선택하시겠어요?\n선택한 일정이 최종 일정으로 확정돼요.`}
         childrenVariant="card"
@@ -636,6 +645,7 @@ function TripResultContent() {
         isVisible={toastMessage !== null}
         onHide={() => setToastMessage(null)}
         message={toastMessage ?? ""}
+        variant={toastVariant}
       />
     </div>
   );

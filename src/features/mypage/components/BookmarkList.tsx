@@ -24,6 +24,7 @@ export function BookmarkList() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [toastVariant, setToastVariant] = useState<"success" | "error">("success");
   const [toastVisible, setToastVisible] = useState(false);
 
   const { data: bookmarks = [], isLoading } = useQuery({
@@ -36,6 +37,11 @@ export function BookmarkList() {
     mutationFn: (spotId: string) => bookmarkApi.removeBookmark(spotId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: bookmarkApi.keys.list() });
+      setToastVariant("success");
+      setToastVisible(true);
+    },
+    onError: () => {
+      setToastVariant("error");
       setToastVisible(true);
     },
   });
@@ -77,8 +83,13 @@ export function BookmarkList() {
 
       <Toast
         isVisible={toastVisible}
-        message="북마크가 해제되었어요"
+        message={
+          toastVariant === "success"
+            ? "북마크가 해제되었어요"
+            : "북마크 해제에 실패했어요. 다시 시도해주세요."
+        }
         onHide={() => setToastVisible(false)}
+        variant={toastVariant}
       />
     </div>
   );

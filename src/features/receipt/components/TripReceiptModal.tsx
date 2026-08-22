@@ -127,9 +127,9 @@ export function TripReceiptModal({
       {toast && (
         <Toast
           isVisible={toast.isVisible}
+          onHide={() => setToast((prev) => (prev ? { ...prev, isVisible: false } : null))}
           message={toast.message}
           variant={toast.variant}
-          onHide={() => setToast((prev) => (prev ? { ...prev, isVisible: false } : null))}
         />
       )}
     </>,

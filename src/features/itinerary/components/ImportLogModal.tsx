@@ -56,7 +56,7 @@ export function ImportLogModal({
       }
     >
       <p className="text-center font-medium text-sub-darkgray break-keep">
-        * 다른 사람의 일정을 불러오면 현재 일정은 사라져요.
+        * 불러온 일정 기간만큼 앞에서부터 채워지고, 겹치는 날짜의 기존 일정은 대체돼요.
       </p>
     </Modal>
   );

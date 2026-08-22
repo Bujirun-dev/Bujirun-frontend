@@ -10,6 +10,7 @@ import { TimelineSearchPopup } from "./TimelineSearchPopup";
 import { TimelineSearchTrigger } from "./TimelineSearchTrigger";
 import { TimelineTimePicker } from "./TimelineTimePicker";
 import { cn } from "@/shared/utils";
+import { MAX_STOPS_PER_DAY } from "@/features/itinerary/utils/scheduleUtils";
 import type { Category } from "@/components";
 import type { SearchPlace } from "../../../components/place/PlaceSearchPanel";
 import { CollaboratorBadge } from "./CollaboratorBadge";
@@ -123,7 +124,9 @@ export function ItineraryTimeline({
     setActiveSearchStopId(null);
     setPopupScrollSpace(0);
   };
+  const isFull = stops.length >= MAX_STOPS_PER_DAY;
   const openAddNew = () => {
+    if (isFull) return; // "+" 버튼을 이미 숨기지만, 다른 진입 경로 대비 방어적으로 한 번 더 막는다
     setActiveTimeStopId(null);
     setActiveDetailStopId(null);
     setActiveSearchStopId(null);
@@ -291,7 +294,7 @@ export function ItineraryTimeline({
               type="button"
               className={cn(
                 "flex size-[18px] shrink-0 items-center justify-center rounded-md bg-sub-coral active:opacity-70",
-                (activeSearchStopId || isAddingNew || isEmpty) && "invisible",
+                (activeSearchStopId || isAddingNew || isEmpty || isFull) && "invisible",
               )}
               onClick={openAddNew}
               aria-label="장소 추가"

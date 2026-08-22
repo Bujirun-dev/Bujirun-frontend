@@ -52,8 +52,6 @@ export function ReviewPromptModal({
       onConfirm={handleConfirm}
       childrenVariant="plain"
       className="max-w-[342px] px-8 pb-10 pt-12 gap-7"
-      iconClassName="bg-system-navbg"
-      titleClassName="leading-none"
       hideActions
       footer={
         <div className="mt-1 flex w-full gap-6">

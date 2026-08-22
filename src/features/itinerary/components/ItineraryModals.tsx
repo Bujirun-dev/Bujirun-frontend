@@ -14,7 +14,8 @@ import { TransportDetailModal } from "@/features/home/components/TransportDetail
 import type { TransportGroup, TransportOption } from "@/features/home/types/transport";
 import type { RouteOption } from "./TransportSelectSheet";
 import type { BaseStop } from "../utils/scheduleUtils";
-import { buildTransportOptions } from "../utils/scheduleUtils";
+import { buildTransportOptionsFromApi } from "../utils/scheduleUtils";
+import type { components } from "@/shared/api/schema";
 
 export type ModalType =
   | "optimize"
@@ -31,6 +32,9 @@ interface ItineraryModalsProps {
   activeStop: BaseStop | undefined;
   itineraryId: string;
   groupId?: string;
+  // GET .../travel-mode/options 조회 결과 — 지하철 전용/버스 전용/버스+지하철 조합/도보/택시
+  // 후보와 각각의 실제 요금·소요시간. transport 모달이 열려있을 때만 채워진다.
+  travelModeOptions?: components["schemas"]["TransitOption"][];
   timeValue: { hour: number; minute: number };
   selectedRouteOptionId: string;
   peerUpdateMessage?: string;
@@ -50,6 +54,7 @@ export function ItineraryModals({
   activeStop,
   itineraryId,
   groupId,
+  travelModeOptions,
   timeValue,
   selectedRouteOptionId,
   peerUpdateMessage,
@@ -95,7 +100,6 @@ export function ItineraryModals({
             aria-hidden
           />
         }
-        iconClassName="bg-sub-coral/10"
         title="일정이 업데이트됐어요"
         description={peerUpdateMessage}
         hideActions
@@ -140,10 +144,12 @@ export function ItineraryModals({
       />
 
       {(() => {
-        const routeOptions = buildTransportOptions(activeStop);
+        const fromPlace = activeStop?.transport?.from ?? "출발 장소";
+        const toPlace = activeStop?.transport?.to ?? "도착 장소";
+        const routeOptions = buildTransportOptionsFromApi(travelModeOptions, fromPlace, toPlace);
         const transportGroup: TransportGroup = {
-          fromPlace: activeStop?.transport?.from ?? "출발 장소",
-          toPlace: activeStop?.transport?.to ?? "도착 장소",
+          fromPlace,
+          toPlace,
           selectedOptionId: selectedRouteOptionId,
           options: routeOptions.map((option) => ({
             id: option.id,
@@ -166,7 +172,10 @@ export function ItineraryModals({
 
         return (
           <TransportDetailModal
-            isOpen={modal === "transport"}
+            // travelModeOptions는 모달이 열린 뒤 비동기로 조회되므로, 응답이 오기 전(첫 렌더에서
+            // routeOptions가 빈 배열)에는 아직 열지 않는다 — 빈 옵션으로 열면 TransportDetail이
+            // selectedOption을 못 찾아 undefined를 구조분해하다 터진다.
+            isOpen={modal === "transport" && routeOptions.length > 0}
             transportGroup={transportGroup}
             selectedOptionId={selectedRouteOptionId}
             onClose={onClose}

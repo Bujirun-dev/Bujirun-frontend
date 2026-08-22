@@ -234,7 +234,7 @@ export function TripSetupForm() {
         isVisible={toastMessage !== null}
         onHide={() => setToastMessage(null)}
         message={toastMessage ?? ""}
-        variant="error"
+        variant="warning"
       />
     </div>
   );

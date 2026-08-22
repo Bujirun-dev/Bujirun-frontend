@@ -14,9 +14,11 @@ import {
   buildTransportFromItem,
   getActiveTransportOptionId,
   mapItineraryDetailToDays,
+  MAX_STOPS_PER_DAY,
   normalizeTime,
   roundToNearest10,
   timeToMinutes,
+  toBackendTravelMode,
 } from "@/features/itinerary/utils/scheduleUtils";
 import { getTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import type { SearchPlace } from "@/components/place/PlaceSearchPanel";
@@ -104,17 +106,6 @@ function selectItinerary<T extends ItinerarySummaryForSelection>(
     return getTimestamp(b.createdAt) - getTimestamp(a.createdAt);
   })[0];
 }
-
-// TransportSelectSheet 카드 id → 백엔드 travelMode(walk/transit/taxi). 백엔드는 버스/지하철을
-// 하나의 "transit" 옵션으로만 계산해서 돌려주므로(둘 중 하나를 강제로 고를 순 없음),
-// "subway" 카드도 동일하게 transit으로 요청하고 실제 결과(버스/지하철)는 응답의
-// routeType을 그대로 따른다.
-const ROUTE_OPTION_TRAVEL_MODE: Record<string, string> = {
-  transit: "transit",
-  subway: "transit",
-  taxi: "taxi",
-  walk: "walk",
-};
 
 function getDefaultStopTime(dayStops: BaseStop[]): string {
   if (dayStops.length === 0) return DEFAULT_DAY_START;
@@ -324,6 +315,7 @@ function ItineraryMain({
 
   const {
     stopsPerDay,
+    seeded: yjsSeeded,
     collaboratorsByStop,
     setFocusedStop,
     logActivity,
@@ -368,20 +360,29 @@ function ItineraryMain({
 
   useEffect(() => {
     if (!importedLogId || !importedLog) return;
+    // Yjs 문서가 아직 시딩 전이면 day별 items 배열 자체가 doc 안에 없어서, 이 시점에
+    // pushYjsOptimizedOrder를 호출해도 조용히 아무 일도 안 일어난다(day map을 못 찾아
+    // no-op) — "로그 불러오기 버튼을 눌러도 일정이 그대로"인 버그의 원인이었다. seeded가
+    // true가 될 때(=day 구조가 doc에 만들어진 뒤)까지 기다렸다가 반영한다.
+    if (!yjsSeeded) return;
 
     // 로그 응답의 각 항목에 spotId/주소/썸네일/카테고리가 이미 내려오므로 그대로 쓴다
     // (예전엔 이름으로 관광지를 다시 검색해 매칭했었는데, 백엔드가 spotId를 내려주기
     // 시작한 뒤에도 안 지워져 있던 워크어라운드였음 — 이름이 안 맞으면 엉뚱한 스팟에
     // 매칭되거나 spotId가 비어 REST addItem 저장 자체가 안 되는 문제가 있었음).
-    const { days, dates } = buildDaysFromTravelLogDetail(importedLog);
-    // 실제 itinerary의 day 수와 다를 수 있어(로그 쪽 day 수 기준), 존재하는 day에만 반영한다.
+    const { days } = buildDaysFromTravelLogDetail(importedLog);
+    // 로그 쪽 day 수가 현재 일정보다 적을 수 있다(예: 2박3일 일정에 1박2일 로그를 불러오는
+    // 경우) — 그럴 땐 로그가 채워주는 날짜까지만 덮어쓰고, 남는 뒷날은 원래 상태(대개 빈
+    // 상태) 그대로 둔다. 로그 쪽 day 수가 더 많으면 초과분은 그냥 버린다(현재 일정 기준).
+    // 여행 날짜(tripDates)는 로그가 아니라 지금 이 일정 고유의 값이라 손대지 않는다 —
+    // 예전엔 로그의 dates로 덮어써서, 일정보다 짧은 로그를 불러오면 뒷날짜 자체가
+    // 화면에서 통째로 사라지는(사실상 일정이 로그 길이로 줄어드는) 버그가 있었다.
     days.forEach((dayStops, idx) => {
       if (idx < dayIdsSliced.length) pushYjsOptimizedOrder(idx, dayStops);
     });
     logActivity("import", "");
     flushNow();
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTripDates(dates);
     setCurrentDay(0);
     const toastTimer = window.setTimeout(() => {
       showToast("일정이 추가되었어요.");
@@ -392,10 +393,39 @@ function ItineraryMain({
       window.clearTimeout(toastTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [importedLogId, importedLog]);
+  }, [importedLogId, importedLog, yjsSeeded]);
 
   const activeStop = stopsPerDay[activeDayIdx]?.find((s) => s.id === activeStopId);
   const selectedRouteOptionId = getActiveTransportOptionId(activeStop);
+
+  // 이동수단 변경 모달을 열 때만 후보(지하철 전용/버스 전용/버스+지하철 조합/도보/택시)와
+  // 각각의 실제 요금·소요시간을 조회한다 — 확정 전 미리보기라 매번 새로 계산된 값이 필요하다.
+  //
+  // ItineraryItem은 "직전 항목 → 이 항목" 도착 구간 정보를 자기 자신에 저장하는 컨벤션이라
+  // (addItem/optimize/saveConfirmedItinerary 전부 동일), travel-mode 조회/변경 API는 activeStop
+  // 자신의 id가 아니라 "다음 항목"의 id를 받아야 한다. activeStopId를 그대로 넘기면 백엔드가
+  // "이 항목의 이전 항목"을 찾아 엉뚱한 구간을 계산하고, activeStop이 그 day의 첫 항목이면
+  // "첫 번째 방문 항목은 이동수단 옵션이 없습니다"를 잘못 던진다(2026-08-19 버그 리포트).
+  const travelModeOptionsDayId = dayIdsSliced[activeDayIdx];
+  const travelModeTargetItemId = activeStop?.transport?.toStopId;
+  const { data: travelModeOptions } = useQuery({
+    queryKey: itineraryApi.keys.travelModeOptions(
+      itineraryId ?? "",
+      travelModeOptionsDayId ?? "",
+      travelModeTargetItemId ?? "",
+    ),
+    queryFn: () =>
+      itineraryApi.getTravelModeOptions(
+        itineraryId as string,
+        travelModeOptionsDayId as string,
+        travelModeTargetItemId as string,
+      ),
+    enabled:
+      modal === "transport" &&
+      !!itineraryId &&
+      !!travelModeOptionsDayId &&
+      !!travelModeTargetItemId,
+  });
   const closeModal = () => setModal(null);
 
   const openDelete = (dayIdx: number, id: string) => {
@@ -461,8 +491,13 @@ function ItineraryMain({
 
     let updatedItem;
     try {
-      updatedItem = await itineraryApi.updateTravelMode(itineraryId, dayId, activeStopId, {
-        travelMode: ROUTE_OPTION_TRAVEL_MODE[option.id] ?? "transit",
+      // option.id는 화면 구분용 값(walk/taxi/bus/subway/combo)이라 백엔드 travelMode
+      // (walk/transit/taxi)와 다르다 — toBackendTravelMode()로 변환 후 전송한다.
+      // itemId는 activeStopId(출발 항목)가 아니라 nextStop.id(도착 항목) — ItineraryItem은
+      // "직전 항목 → 이 항목" 구간 정보를 도착 항목 자신에 저장하는 컨벤션이라, 백엔드가
+      // 재계산할 대상은 항상 도착 항목이다.
+      updatedItem = await itineraryApi.updateTravelMode(itineraryId, dayId, nextStop.id, {
+        travelMode: toBackendTravelMode(option.id),
       });
     } catch {
       closeModal();
@@ -587,6 +622,16 @@ function ItineraryMain({
   };
 
   const addNewStop = (dayIdx: number, place: SearchPlace) => {
+    // "+" 버튼은 10개가 차면 미리 숨기지만(ItineraryTimeline), 다른 참여자가 실시간으로
+    // 거의 동시에 채워 넣는 경우처럼 그 사이 정원이 찼을 수 있어 여기서도 한 번 더 막는다.
+    // 여길 통과해도 최종 판단은 항상 백엔드(addItem)가 한다.
+    if ((stopsPerDay[dayIdx]?.length ?? 0) >= MAX_STOPS_PER_DAY) {
+      showToast(
+        `하루 일정에는 관광지를 최대 ${MAX_STOPS_PER_DAY}개까지만 추가할 수 있어요.`,
+        "error",
+      );
+      return;
+    }
     const newStop: BaseStop = {
       id: `temp-${crypto.randomUUID()}`,
       spotId: place.id,
@@ -642,6 +687,7 @@ function ItineraryMain({
         activeStop={activeStop}
         itineraryId={itineraryId}
         groupId={groupId}
+        travelModeOptions={travelModeOptions}
         timeValue={timeValue}
         selectedRouteOptionId={selectedRouteOptionId}
         peerUpdateMessage={peerUpdateMessage}

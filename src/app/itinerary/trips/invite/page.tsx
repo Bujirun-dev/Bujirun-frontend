@@ -163,8 +163,6 @@ function TripInviteContent() {
         onHide={() => setShowExitWarning(false)}
         message="중간에 나가면 일정이 초기화될 수 있어요"
         variant="warning"
-        duration={4000}
-        className="!w-[330px]"
       />
     </div>
   );
