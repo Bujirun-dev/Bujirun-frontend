@@ -1370,6 +1370,7 @@ export interface components {
             /** Format: uuid */
             userId?: string;
             nickname?: string;
+            profileImageUrl?: string;
             /** Format: date-time */
             joinedAt?: string;
             isLeader?: boolean;
