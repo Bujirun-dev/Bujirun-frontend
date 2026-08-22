@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { Modal, LoadingState, EmptyState } from "@/components";
+import { PROFILE_IMAGES } from "@/components/profile/profileImages";
 import { groupApi } from "@/shared/api/domains";
 
 interface TripMembersModalProps {
@@ -30,23 +32,32 @@ export function TripMembersModal({ isOpen, groupId, onClose }: TripMembersModalP
       ) : !members || members.length === 0 ? (
         <EmptyState title="아직 참여한 친구가 없어요" size="sm" />
       ) : (
-        <ul className="flex w-full flex-col gap-2">
-          {members.map((member) => (
-            <li
-              key={member.userId}
-              className="flex items-center justify-between rounded-lg bg-system-navbg px-4 py-2.5"
-            >
-              <span className="text-md font-medium text-text-primary">
-                {member.nickname ?? "친구"}
-              </span>
-              {member.isLeader && (
-                <span className="rounded-md bg-main-blue/10 px-2 py-0.5 text-xs font-semibold text-main-blue">
-                  방장
+        <div className="grid w-full grid-cols-3 gap-x-2 gap-y-4">
+          {members.map((member, i) => (
+            <div key={member.userId} className="flex flex-col items-center gap-1.5">
+              <div className="relative size-[64px] shrink-0 overflow-hidden rounded-full bg-sub-lightblue">
+                <Image
+                  src={PROFILE_IMAGES[i % PROFILE_IMAGES.length].src}
+                  alt=""
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                  aria-hidden
+                />
+              </div>
+              <div className="flex max-w-full flex-col items-center gap-0.5">
+                <span className="max-w-full truncate text-xs font-semibold text-text-primary">
+                  {member.nickname ?? "친구"}
                 </span>
-              )}
-            </li>
+                {member.isLeader && (
+                  <span className="rounded-md bg-main-blue/10 px-1.5 py-0.5 text-2xs font-semibold text-main-blue">
+                    방장
+                  </span>
+                )}
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </Modal>
   );
