@@ -21,13 +21,7 @@ export function TripMembersModal({ isOpen, groupId, onClose }: TripMembersModalP
   });
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="여행 멤버"
-      hideActions
-      childrenVariant="plain"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title="여행 멤버" hideActions childrenVariant="plain">
       {isLoading ? (
         <LoadingState message="멤버를 불러오는 중이에요" />
       ) : !members || members.length === 0 ? (
@@ -43,7 +37,9 @@ export function TripMembersModal({ isOpen, groupId, onClose }: TripMembersModalP
                     <div className="flex size-[64px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-sub-lightblue">
                       <div className="relative size-[75px] shrink-0">
                         <Image
-                          src={member.profileImageUrl || PROFILE_IMAGES[i % PROFILE_IMAGES.length].src}
+                          src={
+                            member.profileImageUrl || PROFILE_IMAGES[i % PROFILE_IMAGES.length].src
+                          }
                           alt=""
                           fill
                           sizes="75px"
@@ -52,16 +48,14 @@ export function TripMembersModal({ isOpen, groupId, onClose }: TripMembersModalP
                         />
                       </div>
                     </div>
-                    <div className="flex max-w-full flex-col items-center gap-0.5">
-                      <span className="max-w-full truncate text-sm font-semibold text-text-primary">
-                        {member.nickname ?? "친구"}
-                      </span>
+                    <span className="flex max-w-full items-baseline justify-center gap-0.5 truncate text-sm font-semibold text-text-primary">
                       {member.isLeader && (
-                        <span className="rounded-md bg-main-blue/10 px-1.5 py-0.5 text-2xs font-semibold text-main-blue">
-                          방장
+                        <span aria-label="방장" className="text-xs leading-none">
+                          👑
                         </span>
                       )}
-                    </div>
+                      <span className="truncate">{member.nickname ?? "친구"}</span>
+                    </span>
                   </div>
                 );
               })}
