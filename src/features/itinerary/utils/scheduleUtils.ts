@@ -7,6 +7,12 @@ type ItineraryDetailResponse = components["schemas"]["ItineraryDetailResponse"];
 type TravelLogDetailResponse = components["schemas"]["TravelLogDetailResponse"];
 export type SpotSearchResponse = components["schemas"]["SpotSearchResponse"];
 
+// 하루 일정에 추가할 수 있는 관광지 최대 개수. 백엔드 ItineraryService.MAX_ITEMS_PER_DAY와
+// 동일한 값으로 맞춰둬야 한다 — 여기선 실시간 편집 중 굳이 "추가" 버튼을 보여줬다가 flush
+// 시점에 조용히 저장 실패하는 걸 막기 위한 프론트 쪽 방어선일 뿐, 실제 정원 판단의 기준(source
+// of truth)은 항상 백엔드다.
+export const MAX_STOPS_PER_DAY = 10;
+
 // 서버 응답을 받기 전까지 로컬 state에서 새 항목을 식별하기 위한 임시 id (Date.now/crypto 같은
 // impure 호출을 렌더 함수 안에서 쓰지 않도록 모듈 스코프 카운터로 대체).
 let tempStopIdCounter = 0;
@@ -90,13 +96,15 @@ export function buildDaysFromTravelLogDetail(log: TravelLogDetailResponse): {
 
 // 백엔드가 "H:mm:ss" 같은 형태로 시간을 내려줄 때가 있어서, 화면에는 항상
 // 초 없이 0으로 패딩된 "HH:mm" 형태로 통일해서 보여준다.
+// AI 생성/최적화 결과가 10분 단위가 아닌 값(예: 10:01)을 내려줄 수 있어서,
+// 여기서 항상 10분 단위로 반올림한다 — 일정 시간은 무조건 10분 단위로 맞추기로 함.
 export function normalizeTime(raw: string | undefined, fallback = "00:00"): string {
   if (!raw) return fallback;
   const [hour, minute] = raw.split(":");
   const h = Number(hour);
   const m = Number(minute);
   if (!Number.isFinite(h) || !Number.isFinite(m)) return fallback;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  return minutesToTime(roundToNearest10(h * 60 + m));
 }
 
 export function timeToMinutes(time: string): number {
@@ -109,6 +117,24 @@ export function minutesToTime(totalMinutes: number): string {
   const h = Math.floor(clamped / 60);
   const m = clamped % 60;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+// 자동으로 계산되는 시간(AI 생성/최적화/새 항목 추가 등)이 여행 시작/종료 시간을
+// 절대 벗어나지 않도록 첫날은 시작 시간 이상, 마지막날은 종료 시간 이하로 강제한다.
+export function clampToTripBounds(
+  totalMinutes: number,
+  dayIdx: number,
+  totalDays: number,
+  bounds?: TripTimeBoundsLike | null,
+): number {
+  let clamped = totalMinutes;
+  if (dayIdx === 0 && bounds?.startTime) {
+    clamped = Math.max(clamped, timeToMinutes(bounds.startTime));
+  }
+  if (dayIdx === totalDays - 1 && bounds?.endTime) {
+    clamped = Math.min(clamped, timeToMinutes(bounds.endTime));
+  }
+  return clamped;
 }
 
 // 교통수단을 바꿔서 자동으로 밀리는 시간은 10분 단위로 맞춘다 — 원래 있던 시간(예:
@@ -353,7 +379,14 @@ export function mapItineraryDetailToDays(
         id: item.id ?? `${day.id}-${idx}`,
         spotId: item.spot?.id,
         time: item.arrivalTime
-          ? normalizeTime(item.arrivalTime)
+          ? minutesToTime(
+              clampToTripBounds(
+                timeToMinutes(normalizeTime(item.arrivalTime)),
+                dayIdx,
+                totalDays,
+                timeBounds,
+              ),
+            )
           : getDefaultItemTime(dayIdx, totalDays, idx, items.length, timeBounds),
         placeName,
         imageUrl: item.spot?.thumbnailUrl || getFallbackImage(item.spot?.id),
@@ -420,6 +453,14 @@ const OPTION_TYPE_TO_TRAVEL_MODE: Record<string, string> = {
   택시: "taxi",
 };
 
+// RouteOption.id(화면용: walk/taxi/bus/subway/combo)를 백엔드
+// travelMode(walk/transit/taxi)로 변환한다.
+export function toBackendTravelMode(id: string): "walk" | "transit" | "taxi" {
+  if (id === "walk") return "walk";
+  if (id === "taxi") return "taxi";
+  return "transit";
+}
+
 type ApiTransitOption = components["schemas"]["TransitOption"];
 
 // GET .../travel-mode/options 응답(TransitOption[])을 화면 카드(RouteOption[])로 변환한다.
@@ -468,8 +509,12 @@ export function buildTransportOptionsFromApi(
 // activeStop에서 직접 계산한다.
 export function getActiveTransportOptionId(stop: BaseStop | undefined): string {
   const legs = stop?.transport?.legs ?? [];
-  // 서로 다른 대중교통으로 환승한 구간(버스+지하철 조합)은 legs가 2개 이상이다.
-  if (legs.length > 1) return "combo";
+  if (legs.length === 0) return "none"; // 아직 이동수단이 계산되지 않음 — 어떤 카드도 선택 표시하지 않는다
+
+  // 같은 타입으로만 환승(버스→버스 등)한 경우는 legs가 여러 개여도 combo가 아니라
+  // 해당 타입 하나로 본다 — 서로 다른 교통수단이 섞였을 때만 combo(2026-08-21 버그 리포트).
+  const types = new Set(legs.map((leg) => leg.type));
+  if (types.size > 1) return "combo";
 
   switch (legs[0]?.type) {
     case "지하철":
@@ -481,6 +526,6 @@ export function getActiveTransportOptionId(stop: BaseStop | undefined): string {
     case "도보":
       return "walk";
     default:
-      return "none"; // 아직 이동수단이 계산되지 않음 — 어떤 카드도 선택 표시하지 않는다
+      return "none";
   }
 }

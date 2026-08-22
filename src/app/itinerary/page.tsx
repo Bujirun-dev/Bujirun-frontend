@@ -3,22 +3,33 @@
 import { Suspense, useRef, useState, useEffect, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import HotelIcon from "@/assets/icons/itinerary/hotel.svg?svgr";
+import PencilIcon from "@/assets/icons/itinerary/pencil.svg?svgr";
 import { PageCard, Toast, EmptyState, LoadingState } from "@/components";
-import { ItineraryHeader, SlidingTimeline, ItineraryModals } from "@/features/itinerary";
-import type { ItineraryStop, ModalType } from "@/features/itinerary";
+import {
+  ItineraryHeader,
+  SlidingTimeline,
+  ItineraryModals,
+  AccommodationSearchField,
+} from "@/features/itinerary";
+import type { ItineraryStop, ModalType, AccommodationPlace } from "@/features/itinerary";
 import { itineraryApi, travelLogApi, userApi } from "@/shared/api/domains";
 import { useCollaborativeItinerary } from "@/features/itinerary/collab/useCollaborativeItinerary";
 import {
   type BaseStop,
   buildDaysFromTravelLogDetail,
   buildTransportFromItem,
+  clampToTripBounds,
   getActiveTransportOptionId,
   mapItineraryDetailToDays,
+  MAX_STOPS_PER_DAY,
+  minutesToTime,
   normalizeTime,
   roundToNearest10,
   timeToMinutes,
+  toBackendTravelMode,
 } from "@/features/itinerary/utils/scheduleUtils";
-import { getTripTimeBounds } from "@/shared/utils/tripTimeBounds";
+import type { TripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import type { SearchPlace } from "@/components/place/PlaceSearchPanel";
 import type { RouteOption } from "@/features/itinerary";
 import type {
@@ -105,18 +116,32 @@ function selectItinerary<T extends ItinerarySummaryForSelection>(
   })[0];
 }
 
-function getDefaultStopTime(dayStops: BaseStop[]): string {
-  if (dayStops.length === 0) return DEFAULT_DAY_START;
+function getDefaultStopTime(
+  dayStops: BaseStop[],
+  dayIdx: number,
+  totalDays: number,
+  bounds?: TripTimeBounds | null,
+): string {
+  if (dayStops.length === 0) {
+    return minutesToTime(
+      clampToTripBounds(timeToMinutes(DEFAULT_DAY_START), dayIdx, totalDays, bounds),
+    );
+  }
   const latestMin = Math.max(
     ...dayStops.map((stop) => {
       const [h, m] = stop.time.split(":").map(Number);
       return h * 60 + m;
     }),
   );
-  const nextMin = Math.min(latestMin + DEFAULT_STOP_GAP_MIN, 23 * 60 + 59);
-  const hh = String(Math.floor(nextMin / 60)).padStart(2, "0");
-  const mm = String(nextMin % 60).padStart(2, "0");
-  return `${hh}:${mm}`;
+  // 이전 항목 시간이 (AI 생성 등으로) 10분 단위가 아니어도, 새로 추가되는 항목은
+  // 항상 10분 단위에 맞추고, 여행 시작/종료 시간을 벗어나지 않게 한다.
+  const nextMin = clampToTripBounds(
+    Math.min(roundToNearest10(latestMin + DEFAULT_STOP_GAP_MIN), 23 * 60 + 59),
+    dayIdx,
+    totalDays,
+    bounds,
+  );
+  return minutesToTime(nextMin);
 }
 
 // 다른 참여자가 만든 변경을 토스트/안내팝업 메시지로 바꾸는 규칙. "누가 뭘 했는지"는
@@ -215,13 +240,23 @@ function ItineraryPageContent() {
     return <ItineraryEmptyState />;
   }
 
-  const tripTimeBounds = getTripTimeBounds(itineraryId);
+  // 시작/종료 시간, 숙소 전부 백엔드(Itinerary 엔티티)에 저장된 값을 그대로 쓴다.
+  const tripTimeBounds =
+    detail.startTime && detail.endTime
+      ? {
+          startTime: detail.startTime,
+          endTime: detail.endTime,
+          accommodationName: detail.accommodationName,
+          accommodationAddress: detail.accommodationAddress,
+        }
+      : null;
   const { days, dates, dayIds } = mapItineraryDetailToDays(detail, tripTimeBounds);
 
   return (
     <ItineraryMain
       key={itineraryId}
       itineraryId={itineraryId}
+      groupId={detail.groupId}
       tripTitle={detail.title ?? selectedItinerary?.title}
       initialDays={days}
       initialDates={dates}
@@ -233,6 +268,7 @@ function ItineraryPageContent() {
 
 function ItineraryMain({
   itineraryId,
+  groupId,
   tripTitle,
   initialDays: initialDaysData,
   initialDates: initialDatesData,
@@ -240,11 +276,12 @@ function ItineraryMain({
   tripTimeBounds,
 }: {
   itineraryId: string;
+  groupId?: string;
   tripTitle?: string;
   initialDays: BaseStop[][];
   initialDates: string[];
   dayIds: string[];
-  tripTimeBounds: ReturnType<typeof getTripTimeBounds>;
+  tripTimeBounds: TripTimeBounds | null;
 }) {
   const router = useRouter();
   // 실시간 공동편집 프레즌스(누가 어떤 항목을 보고 있는지)에 내 이름/아바타를 알리는 용도.
@@ -286,6 +323,30 @@ function ItineraryMain({
   const [toastVariant, setToastVariant] = useState<"default" | "error">("default");
   const [modal, setModal] = useState<ModalType | null>(null);
   const [peerUpdateMessage, setPeerUpdateMessage] = useState<string | undefined>(undefined);
+  const [accommodation, setAccommodation] = useState<AccommodationPlace | null>(
+    tripTimeBounds?.accommodationName
+      ? {
+          name: tripTimeBounds.accommodationName,
+          address: tripTimeBounds.accommodationAddress ?? "",
+        }
+      : null,
+  );
+
+  // TODO(백엔드 연동 예정): 숙소는 저장되지만 동선/시간 AI 최적화(onOptimizeClick,
+  // ItineraryOptimizeRequest)엔 아직 반영 안 된다. 최적화 요청에 숙소 좌표를 출발/도착
+  // 기준점으로 넘기려면 최적화 API에 좌표 필드 추가가 먼저 필요함.
+  const handleAccommodationChange = (place: AccommodationPlace | null) => {
+    setAccommodation(place);
+    itineraryApi
+      .updateItinerary(itineraryId, {
+        // 빈 문자열 = "지우기"를 명시적으로 보내는 신호. 필드 자체를 안 보내면(undefined)
+        // JSON에서 키가 통째로 빠져서 백엔드가 "안 건드림"과 구분을 못 하기 때문에,
+        // 지울 땐 null이 아니라 빈 문자열로 보낸다(백엔드에서 다시 null로 정규화함).
+        accommodationName: place?.name ?? "",
+        accommodationAddress: place?.address ?? "",
+      })
+      .catch(() => showToast("숙소 정보를 저장하지 못했어요.", "error"));
+  };
 
   const showToast = (message: string, variant: "default" | "error" = "default") => {
     setToastVariant(variant);
@@ -486,13 +547,13 @@ function ItineraryMain({
 
     let updatedItem;
     try {
-      // option.id는 buildTransportOptionsFromApi()가 만든 값이라 백엔드 travelMode
-      // (walk/taxi/bus/subway/combo)와 이미 동일하다 — 별도 매핑 불필요.
+      // option.id는 화면 구분용 값(walk/taxi/bus/subway/combo)이라 백엔드 travelMode
+      // (walk/transit/taxi)와 다르다 — toBackendTravelMode()로 변환 후 전송한다.
       // itemId는 activeStopId(출발 항목)가 아니라 nextStop.id(도착 항목) — ItineraryItem은
       // "직전 항목 → 이 항목" 구간 정보를 도착 항목 자신에 저장하는 컨벤션이라, 백엔드가
       // 재계산할 대상은 항상 도착 항목이다.
       updatedItem = await itineraryApi.updateTravelMode(itineraryId, dayId, nextStop.id, {
-        travelMode: option.id,
+        travelMode: toBackendTravelMode(option.id),
       });
     } catch {
       closeModal();
@@ -564,7 +625,17 @@ function ItineraryMain({
           const matchIdx = remaining.findIndex((s) => s.placeName === optimized.name);
           const existing = matchIdx >= 0 ? remaining.splice(matchIdx, 1)[0] : remaining.shift();
           return existing
-            ? { ...existing, time: normalizeTime(optimized.arrivalTime, existing.time) }
+            ? {
+                ...existing,
+                time: minutesToTime(
+                  clampToTripBounds(
+                    timeToMinutes(normalizeTime(optimized.arrivalTime, existing.time)),
+                    currentDay,
+                    dayIdsSliced.length,
+                    tripTimeBounds,
+                  ),
+                ),
+              }
             : null;
         })
         .filter((s): s is BaseStop => s !== null);
@@ -617,10 +688,25 @@ function ItineraryMain({
   };
 
   const addNewStop = (dayIdx: number, place: SearchPlace) => {
+    // "+" 버튼은 10개가 차면 미리 숨기지만(ItineraryTimeline), 다른 참여자가 실시간으로
+    // 거의 동시에 채워 넣는 경우처럼 그 사이 정원이 찼을 수 있어 여기서도 한 번 더 막는다.
+    // 여길 통과해도 최종 판단은 항상 백엔드(addItem)가 한다.
+    if ((stopsPerDay[dayIdx]?.length ?? 0) >= MAX_STOPS_PER_DAY) {
+      showToast(
+        `하루 일정에는 관광지를 최대 ${MAX_STOPS_PER_DAY}개까지만 추가할 수 있어요.`,
+        "error",
+      );
+      return;
+    }
     const newStop: BaseStop = {
       id: `temp-${crypto.randomUUID()}`,
       spotId: place.id,
-      time: getDefaultStopTime(stopsPerDay[dayIdx] ?? []),
+      time: getDefaultStopTime(
+        stopsPerDay[dayIdx] ?? [],
+        dayIdx,
+        dayIdsSliced.length,
+        tripTimeBounds,
+      ),
       placeName: place.name,
       imageUrl: place.imageUrl,
       category: place.category,
@@ -653,6 +739,27 @@ function ItineraryMain({
           onLogsClick={() => router.push("/itinerary/logs")}
           onOptimizeClick={() => setModal("optimize")}
           onTripsClick={() => router.push("/itinerary/trips")}
+          onMembersClick={() => setModal("members")}
+        />
+        <AccommodationSearchField
+          value={accommodation}
+          onChange={handleAccommodationChange}
+          renderTrigger={({ value: place, onOpen }) => (
+            <div className="mb-3 flex items-center gap-1.5 rounded-[14px] border border-main-blue bg-system-navbg px-4 py-2">
+              <HotelIcon width={14} height={14} className="shrink-0 fill-sub-gray" aria-hidden />
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-sub-darkgray">
+                {place?.name ?? "숙소를 등록해보세요"}
+              </span>
+              <button
+                type="button"
+                onClick={onOpen}
+                aria-label="숙소 수정"
+                className="flex size-[20px] shrink-0 items-center justify-center rounded-md bg-main-blue active:opacity-70"
+              >
+                <PencilIcon width={12} height={12} className="fill-main-white" aria-hidden />
+              </button>
+            </div>
+          )}
         />
         <SlidingTimeline
           allDayStops={allDayStops}
@@ -670,10 +777,12 @@ function ItineraryMain({
         modal={modal}
         activeStop={activeStop}
         itineraryId={itineraryId}
+        groupId={groupId}
         travelModeOptions={travelModeOptions}
         timeValue={timeValue}
         selectedRouteOptionId={selectedRouteOptionId}
         peerUpdateMessage={peerUpdateMessage}
+        accommodationName={accommodation?.name}
         onClose={closeModal}
         onConfirmDelete={confirmDelete}
         onConfirmTime={confirmTime}

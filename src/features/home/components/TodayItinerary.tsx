@@ -12,6 +12,7 @@ import { TransportDetailModal } from "@/features/home/components/TransportDetail
 import { ArrivalVerifyModal } from "@/features/itinerary/components/ArrivalVerifyModal";
 import { openKakaoMapRoute } from "@/features/itinerary/components/TransportSelectSheet";
 import { getSelectedTransportOption } from "@/features/home/data/sampleTransport";
+import { isReviewSkipped } from "@/shared/utils/skippedReviews";
 import type {
   TransportGroup,
   TransportOption,
@@ -166,7 +167,11 @@ export function TodayItinerary() {
     const reviewTarget = completedItineraries.find((itinerary) => {
       const log = logExists.find((item) => item.itineraryId === itinerary.id);
 
-      return !log?.hasLog;
+      // 로그가 없어도 사용자가 이 일정에 대한 영수증 팝업을 이미 취소한 적 있으면
+      // 다시 자동으로 띄우지 않는다 — 그렇지 않으면 취소 → 홈 재진입 → 같은 팝업이
+      // 다시 뜨는 무한루프가 됨(아직 수동으로 영수증 발행을 다시 시작할 진입로가 없어서,
+      // 이 자동 리다이렉트가 사실상 유일한 진입로였음).
+      return !log?.hasLog && !isReviewSkipped(itinerary.id);
     });
 
     if (!reviewTarget) return;

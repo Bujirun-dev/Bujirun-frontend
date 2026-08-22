@@ -20,7 +20,6 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@tanstack/react-query": "^5.100.11",
-    "@tanstack/react-query-devtools": "^5.100.11",
     "axios": "^1.16.1",
     "framer-motion": "^12.40.0",
     "html-to-image": "^1.11.13",
@@ -34,6 +33,7 @@
   },
   "devDependencies": {
     "@svgr/webpack": "^8.1.0",
+    "@tanstack/react-query-devtools": "^5.100.11",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

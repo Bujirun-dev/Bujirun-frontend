@@ -5,10 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Modal, Toast, LoadingState, Button } from "@/components";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { itineraryApi } from "@/shared/api/domains";
-import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
-import { useConfirmedItineraryWatcher } from "@/features/itinerary/hooks/useConfirmedItineraryWatcher";
 
 function getWinnerPlan(votes: Record<string, number>): string | null {
   const sorted = Object.entries(votes).sort((a, b) => b[1] - a[1]);
@@ -54,6 +52,8 @@ function VoteWaitingContent() {
   const endDate = searchParams.get("endDate") ?? "";
   const startTime = searchParams.get("startTime") ?? "";
   const endTime = searchParams.get("endTime") ?? "";
+  const accommodation = searchParams.get("accommodation") ?? "";
+  const accommodationAddress = searchParams.get("accommodationAddress") ?? "";
   const [selectedTiePlan, setSelectedTiePlan] = useState<string | null>(null);
   const [toastVariant, setToastVariant] = useState<
     "success" | "error" | "warning" | "itinerary" | "default"
@@ -78,11 +78,6 @@ function VoteWaitingContent() {
   const tiedPlans = getTiedPlans(voteCounts);
   const showTieModal = doneCount >= totalSlots && !winnerPlan && !selectedTiePlan;
 
-  // 동률이라 방장이 "OO안 선택"으로 확정해도, 확정 이후엔 vote-status 조회가
-  // 백엔드에서 계속 실패해서(위 onError로 새는 중) useVoteSessionPolling의
-  // onConfirmed가 실제로는 못 불린다 — 참여자용 안전망으로 내 일정 목록을 우회 폴링.
-  const confirmedItinerary = useConfirmedItineraryWatcher(tripName, !!sessionId && !isHost);
-
   const confirmPlan = async (planType: string) => {
     setIsConfirming(true);
     try {
@@ -105,7 +100,14 @@ function VoteWaitingContent() {
               }
             : {}),
         });
-        if (newItineraryId) saveTripTimeBounds(newItineraryId, startTime, endTime);
+        if (newItineraryId) {
+          await itineraryApi.updateItinerary(newItineraryId, {
+            startTime,
+            endTime,
+            accommodationName: accommodation,
+            accommodationAddress,
+          });
+        }
       }
       router.push("/itinerary");
     } catch {
@@ -137,22 +139,6 @@ function VoteWaitingContent() {
     // confirmPlan은 매 렌더마다 새로 만들어져서 참조 자체를 deps에 넣으면 안 됨
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doneCount, totalSlots, winnerPlan]);
-
-  useEffect(() => {
-    if (!confirmedItinerary) return;
-    const toastTimer = window.setTimeout(() => {
-      setToastVariant("success");
-      setToastMessage(`${confirmedItinerary.planType ?? "선택한"}안이 확정됐어요! 🎉`);
-    }, 0);
-    const timer = window.setTimeout(() => {
-      router.push("/itinerary");
-    }, 1800);
-    return () => {
-      window.clearTimeout(toastTimer);
-      window.clearTimeout(timer);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [confirmedItinerary?.id]);
 
   const handleTiePick = (plan: string) => {
     setSelectedTiePlan(plan);

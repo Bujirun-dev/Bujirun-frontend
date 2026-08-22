@@ -9,6 +9,7 @@ import { openKakaoMapRoute } from "./TransportSelectSheet";
 import { ArrivalVerifyModal } from "./ArrivalVerifyModal";
 import { AiOptimizeModal } from "./AiOptimizeModal";
 import { AiOptimizeLoadingModal } from "./AiOptimizeLoadingModal";
+import { TripMembersModal } from "./TripMembersModal";
 import { TransportDetailModal } from "@/features/home/components/TransportDetailModal";
 import type { TransportGroup, TransportOption } from "@/features/home/types/transport";
 import type { RouteOption } from "./TransportSelectSheet";
@@ -23,12 +24,14 @@ export type ModalType =
   | "time"
   | "transport"
   | "verify"
-  | "peerUpdate";
+  | "peerUpdate"
+  | "members";
 
 interface ItineraryModalsProps {
   modal: ModalType | null;
   activeStop: BaseStop | undefined;
   itineraryId: string;
+  groupId?: string;
   // GET .../travel-mode/options 조회 결과 — 지하철 전용/버스 전용/버스+지하철 조합/도보/택시
   // 후보와 각각의 실제 요금·소요시간. transport 모달이 열려있을 때만 채워진다.
   travelModeOptions?: components["schemas"]["TransitOption"][];
@@ -44,12 +47,14 @@ interface ItineraryModalsProps {
   onTimeChange: (value: { hour: number; minute: number }) => void;
   onOptimizeStart: () => void;
   isOptimizeDone?: boolean;
+  accommodationName?: string;
 }
 
 export function ItineraryModals({
   modal,
   activeStop,
   itineraryId,
+  groupId,
   travelModeOptions,
   timeValue,
   selectedRouteOptionId,
@@ -63,6 +68,7 @@ export function ItineraryModals({
   onTimeChange,
   onOptimizeStart,
   isOptimizeDone,
+  accommodationName,
 }: ItineraryModalsProps) {
   return (
     <>
@@ -70,6 +76,7 @@ export function ItineraryModals({
         isOpen={modal === "optimize"}
         onClose={onClose}
         onConfirm={onOptimizeStart}
+        accommodationName={accommodationName}
       />
 
       <AiOptimizeLoadingModal
@@ -78,6 +85,8 @@ export function ItineraryModals({
         onComplete={onClose}
         isDone={isOptimizeDone}
       />
+
+      <TripMembersModal isOpen={modal === "members"} groupId={groupId ?? ""} onClose={onClose} />
 
       {/* 다른 참여자가 여행 로그를 불러와 일정이 통째로 바뀌었을 때 알려주는 안내 팝업 —
           짧게 보여주고 자동으로 닫힌다(호출부의 타이머가 onClose를 부름). */}
@@ -113,7 +122,7 @@ export function ItineraryModals({
             aria-hidden
           />
         }
-        iconClassName="size-[48px] bg-system-navbg"
+        iconClassName="size-[48px]"
         title="일정 삭제"
         description={`'${activeStop?.placeName ?? "관광지"}'을(를)\n일정에서 삭제하시겠어요?`}
         childrenVariant="card"

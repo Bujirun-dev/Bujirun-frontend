@@ -10,6 +10,7 @@ interface ItineraryHeaderProps {
   onLogsClick: () => void;
   onOptimizeClick: () => void;
   onTripsClick: () => void;
+  onMembersClick: () => void;
 }
 
 export function ItineraryHeader({
@@ -18,11 +19,19 @@ export function ItineraryHeader({
   onLogsClick,
   onOptimizeClick,
   onTripsClick,
+  onMembersClick,
 }: ItineraryHeaderProps) {
   return (
     <div className="flex items-center gap-2.5 pb-3.5">
       <DayBadge day={currentDay + 1} />
-      <span className="flex-1 text-lg font-bold text-sub-deepblue">{tripName}</span>
+      <button
+        type="button"
+        onClick={onMembersClick}
+        aria-label="여행 멤버"
+        className="flex-1 truncate text-left text-lg font-bold text-sub-deepblue"
+      >
+        {tripName}
+      </button>
       <div className="flex items-center gap-1">
         <button
           className="size-[28px] rounded-lg bg-system-scroll border border-main-blue/30 flex items-center justify-center"

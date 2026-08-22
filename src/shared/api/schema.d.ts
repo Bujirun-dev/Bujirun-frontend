@@ -1370,6 +1370,7 @@ export interface components {
             /** Format: uuid */
             userId?: string;
             nickname?: string;
+            profileImageUrl?: string;
             /** Format: date-time */
             joinedAt?: string;
             isLeader?: boolean;
@@ -1491,6 +1492,8 @@ export interface components {
             /** Format: date */
             endAt?: string;
             endTime?: string;
+            accommodationName?: string;
+            accommodationAddress?: string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -1886,6 +1889,8 @@ export interface components {
             /** Format: date */
             endAt?: string;
             endTime?: string;
+            accommodationName?: string;
+            accommodationAddress?: string;
             status?: string;
         };
         ItineraryOptimizeRequest: {
