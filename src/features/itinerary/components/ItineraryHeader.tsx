@@ -1,5 +1,4 @@
 import Image from "next/image";
-import friendsIcon from "@/assets/icons/itinerary/friends.svg?url";
 import listIcon from "@/assets/icons/itinerary/list.svg?url";
 import magicWandIcon from "@/assets/icons/itinerary/magic-wand.svg?url";
 import mapMagnifierIcon from "@/assets/icons/itinerary/map-magnifier.svg?url";
@@ -25,15 +24,15 @@ export function ItineraryHeader({
   return (
     <div className="flex items-center gap-2.5 pb-3.5">
       <DayBadge day={currentDay + 1} />
-      <span className="flex-1 text-lg font-bold text-sub-deepblue">{tripName}</span>
+      <button
+        type="button"
+        onClick={onMembersClick}
+        aria-label="함께하는 친구"
+        className="flex-1 truncate text-left text-lg font-bold text-sub-deepblue"
+      >
+        {tripName}
+      </button>
       <div className="flex items-center gap-1">
-        <button
-          className="size-[28px] rounded-lg bg-system-scroll border border-main-blue/30 flex items-center justify-center"
-          onClick={onMembersClick}
-          aria-label="함께하는 친구"
-        >
-          <Image src={friendsIcon} alt="" width={20} height={20} aria-hidden />
-        </button>
         <button
           className="size-[28px] rounded-lg bg-system-scroll border border-main-blue/30 flex items-center justify-center"
           onClick={onLogsClick}
