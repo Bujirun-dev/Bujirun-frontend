@@ -120,6 +120,7 @@ function replaceItemsArray(
   doc: Y.Doc,
   dayIdx: number,
   mutate: (stops: BaseStop[]) => BaseStop[],
+  options: { allowNewIds?: boolean } = {},
 ): void {
   doc.transact(() => {
     const items = getItemsArray(doc, dayIdx);
@@ -129,7 +130,12 @@ function replaceItemsArray(
     const nextStops = mutate(currentMaps.map(fromItemMap));
     const nextById = new Map(nextStops.map((stop) => [stop.id, stop]));
     // 동시에 다른 피어가 지운 항목은 currentIds에 이미 없으니 여기서 자동으로 걸러진다.
-    const nextIds = nextStops.map((stop) => stop.id).filter((id) => currentIds.includes(id));
+    // 단, mutate가 현재 배열의 부분집합/순열이 아니라 애초에 한 번도 존재한 적 없는 새
+    // id의 항목들을 통째로 돌려주는 경우(로그 불러오기 등, allowNewIds:true)엔 이 필터를
+    // 적용하면 안 된다 — 전부 "현재 배열에 없는 id"로 걸러져 day가 통째로 비어버린다.
+    const nextIds = options.allowNewIds
+      ? nextStops.map((stop) => stop.id)
+      : nextStops.map((stop) => stop.id).filter((id) => currentIds.includes(id));
 
     const anchorIds = longestCommonSubsequenceIds(currentIds, nextIds);
 
@@ -379,6 +385,15 @@ export function updateStopStatus(
 
 export function pushOptimizedOrder(doc: Y.Doc, dayIdx: number, stops: BaseStop[]): void {
   replaceItemsArray(doc, dayIdx, () => stops);
+}
+
+// 로그 불러오기 전용. pushOptimizedOrder는 "현재 day의 기존 항목을 재정렬"하는 용도라
+// nextStops의 id가 현재 배열에 이미 있어야 하는데(그래야 동시 삭제된 항목을 되살리지
+// 않을 수 있음), 로그 불러오기는 애초에 한 번도 존재한 적 없는 새 id의 항목들로 day를
+// 통째로 갈아끼우는 것이라 그 필터를 걸면 전부 걸러져서 day가 완전히 비어버린다
+// (2026-08-23 실서버 테스트로 재현·확인됨). allowNewIds:true로 그 필터만 건너뛴다.
+export function replaceStopsWithImportedLog(doc: Y.Doc, dayIdx: number, stops: BaseStop[]): void {
+  replaceItemsArray(doc, dayIdx, () => stops, { allowNewIds: true });
 }
 
 export function resolveTempId(doc: Y.Doc, dayIdx: number, tempId: string, realId: string): void {
