@@ -33,7 +33,7 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
 }
 
 // 카카오맵 SDK는 layout.tsx에서 autoload=false로 로드되므로, 최초 사용 시점에
-// kakao.maps.load()로 한 번 초기화해줘야 한다 (TransportSelectSheet의 지오코딩과 동일한 패턴).
+// kakao.maps.load()로 한 번 초기화해줘야 한다 (openKakaoMapRoute의 지오코딩과 동일한 패턴).
 function loadKakaoMaps(): Promise<boolean> {
   return new Promise((resolve) => {
     if (window.kakao?.maps) {
