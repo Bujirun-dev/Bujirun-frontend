@@ -248,6 +248,8 @@ function ItineraryPageContent() {
           endTime: detail.endTime,
           accommodationName: detail.accommodationName,
           accommodationAddress: detail.accommodationAddress,
+          accommodationLat: detail.accommodationLat,
+          accommodationLng: detail.accommodationLng,
         }
       : null;
   const { days, dates, dayIds } = mapItineraryDetailToDays(detail, tripTimeBounds);
@@ -328,6 +330,8 @@ function ItineraryMain({
       ? {
           name: tripTimeBounds.accommodationName,
           address: tripTimeBounds.accommodationAddress ?? "",
+          lat: tripTimeBounds.accommodationLat,
+          lng: tripTimeBounds.accommodationLng,
         }
       : null,
   );
@@ -344,6 +348,8 @@ function ItineraryMain({
         // 지울 땐 null이 아니라 빈 문자열로 보낸다(백엔드에서 다시 null로 정규화함).
         accommodationName: place?.name ?? "",
         accommodationAddress: place?.address ?? "",
+        accommodationLat: place?.lat,
+        accommodationLng: place?.lng,
       })
       .catch(() => showToast("숙소 정보를 저장하지 못했어요.", "error"));
   };
