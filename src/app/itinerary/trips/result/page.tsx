@@ -5,7 +5,16 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/shared/utils";
-import { Card, Modal, SpeechBubble, Toast, LoadingState, ErrorState } from "@/components";
+import {
+  Card,
+  CategoryChip,
+  Modal,
+  SpeechBubble,
+  Toast,
+  LoadingState,
+  ErrorState,
+} from "@/components";
+import type { Category } from "@/components";
 import checkIconWhite from "@/assets/icons/itinerary/check_white.png";
 import checkIconBlue from "@/assets/icons/itinerary/check_blue.png";
 import infoIcon from "@/assets/icons/itinerary/info.png";
@@ -13,7 +22,6 @@ import freepassBlueIcon from "@/assets/icons/itinerary/freepass-blue.png";
 import flagImg from "@/assets/place/flag.png";
 import houseImg from "@/assets/place/house.png";
 import busanStationImg from "@/assets/place/busan-station.png";
-import mapCharacterImg from "@/assets/character/map.png";
 import { itineraryApi } from "@/shared/api/domains";
 import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
@@ -48,9 +56,9 @@ function useGeneratingMessage(isGenerating: boolean) {
   return isGenerating ? message : GENERATE_LOADING_MESSAGES[0].message;
 }
 
-type Place = { id: string; name: string; image: string; time?: string };
+type Place = { id: string; name: string; image: string; time?: string; category?: string };
 type Day = { day: number; label: string; places: Place[] };
-type Plan = { id: string; days: Day[]; voteCount: number };
+type Plan = { id: string; days: Day[]; voteCount: number; summaryReason?: string };
 
 type PlanOption = components["schemas"]["PlanOption"];
 
@@ -58,6 +66,7 @@ function mapPlanOption(planId: string, plan?: PlanOption): Plan {
   return {
     id: planId,
     voteCount: 0,
+    summaryReason: plan?.summaryReason,
     days: (plan?.days ?? []).map((d, i) => ({
       day: d.day ?? i + 1,
       label: `Day ${d.day ?? i + 1}`,
@@ -65,9 +74,39 @@ function mapPlanOption(planId: string, plan?: PlanOption): Plan {
         id: s.contentId ?? `${planId}-${i}-${j}`,
         name: s.name ?? "",
         image: s.thumbnailUrl || getFallbackImage(s.contentId),
+        category: s.category,
       })),
     })),
   };
+}
+
+// 백엔드 카테고리 문자열을 CategoryChip이 쓰는 4종 카테고리로 정규화 (PlaceSection.tsx와 동일 규칙)
+function toCategory(value?: string): Category {
+  if (!value) return "experience";
+  if (value.includes("자연")) return "nature";
+  if (value.includes("바다")) return "sea";
+  if (value.includes("문화")) return "culture";
+  return "experience";
+}
+
+// 플랜에 포함된 장소들의 카테고리를 등장 빈도 순으로 최대 3개까지 뽑는다.
+function topCategories(plan: Plan, max = 3): Category[] {
+  const counts = new Map<Category, number>();
+  for (const day of plan.days) {
+    for (const place of day.places) {
+      const category = toCategory(place.category);
+      counts.set(category, (counts.get(category) ?? 0) + 1);
+    }
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([category]) => category)
+    .slice(0, max);
+}
+
+// 백엔드 문구 끝의 마침표/물결 등을 정리하고 항상 "!"로 끝맺는다.
+function formatReasonText(text: string): string {
+  return `${text.trim().replace(/[.!?~]+$/, "")}!`;
 }
 
 // 하루 최대 3곳(아침/오후/저녁) 기준 슬롯. 첫날은 실제 시작 시간, 마지막날은 실제 종료
@@ -238,6 +277,11 @@ function TripResultContent() {
   const [isFreepassMode, setIsFreepassMode] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const currentPlan = plans.find((p) => p.id === activePlan) ?? plans[0];
+  const isFreeEditPlan = activePlan === "C";
+  const reasonText = formatReasonText(
+    currentPlan.summaryReason || "친구들 취향을 분석해서 추천한 일정이에요",
+  );
+  const reasonCategories = topCategories(currentPlan);
 
   const getVoteCount = (plan: Plan) => plan.voteCount + (votedPlan === plan.id ? 1 : 0);
 
@@ -333,12 +377,23 @@ function TripResultContent() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* 추천 이유 glass 카드 */}
-      <div className="shrink-0 pb-[30px]">
-        <div
-          aria-hidden="true"
-          className="h-[100px] w-full rounded-[20px] border border-system-navbg bg-gradient-to-b from-system-glassfrom to-system-glassto backdrop-blur-[15px]"
-        />
+      {/* 추천 이유 카드 (C안은 자유 편집형이라 추천 이유 대신 안내 문구) */}
+      <div className="shrink-0 pb-[20px]">
+        <Card variant="glass-sm">
+          <p className="flex items-center gap-1 font-ssurround font-bold text-md text-sub-deepblue">
+            {isFreeEditPlan ? "부지런이 알려드려요" : "부지런이 추천해요"}
+            <Image src={freepassBlueIcon} alt="" width={14} height={14} aria-hidden />
+          </p>
+          <p className="mt-1 line-clamp-2 min-h-[38px] font-paperlogy text-sm text-text-primary leading-snug">
+            {isFreeEditPlan ? "C안은 직접 일정을 채워가는 자유 편집형 일정이에요!" : reasonText}
+          </p>
+          <div className="mt-2 flex min-h-[26px] flex-wrap gap-1.5">
+            {!isFreeEditPlan &&
+              reasonCategories.map((category) => (
+                <CategoryChip key={category} category={category} size="md" />
+              ))}
+          </div>
+        </Card>
       </div>
 
       {/* 투표 섹션 - PageCard 스타일 */}
@@ -427,27 +482,17 @@ function TripResultContent() {
               </div>
             </div>
 
-            {/* 타임라인 */}
+            {/* 타임라인 - A/B 카드와 높이를 맞추기 위해 최소 높이를 공유 */}
             {activePlan === "C" ? (
               <Card
                 variant="glass-sm"
-                className="mt-3 flex flex-col items-center gap-1.5 px-8 py-11 text-center"
+                className="mt-3 flex flex-col items-center gap-1.5 px-8 py-6 text-center"
               >
-                <Image
-                  src={mapCharacterImg}
-                  alt=""
-                  width={132}
-                  height={132}
-                  className="-mt-1"
-                  aria-hidden
-                />
                 <p className="font-ssurround font-bold text-lg text-text-heading">
                   자유 편집형 일정
                 </p>
                 <p className="mt-1 font-paperlogy text-sm font-medium text-sub-darkgray leading-relaxed whitespace-pre-line">
-                  {
-                    "C안은 AI가 미리 짜주지 않아요.\n확정 후 친구들과 함께 직접\n일정을 자유롭게 채워보세요!"
-                  }
+                  {"친구들과 원하는 장소를 직접 추가해\n자유롭게 일정을 만들어보세요!"}
                 </p>
               </Card>
             ) : (
