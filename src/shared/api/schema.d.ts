@@ -1494,6 +1494,10 @@ export interface components {
             endTime?: string;
             accommodationName?: string;
             accommodationAddress?: string;
+            /** Format: double */
+            accommodationLat?: number;
+            /** Format: double */
+            accommodationLng?: number;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -1581,6 +1585,7 @@ export interface components {
             routeNo?: string;
             /** Format: int32 */
             sectionTime?: number;
+            startArsId?: string;
             subwaySchedule?: components["schemas"]["SubwaySegmentTimetable"];
         };
         CreateItineraryRequest: {
@@ -1891,6 +1896,10 @@ export interface components {
             endTime?: string;
             accommodationName?: string;
             accommodationAddress?: string;
+            /** Format: double */
+            accommodationLat?: number;
+            /** Format: double */
+            accommodationLng?: number;
             status?: string;
         };
         ItineraryOptimizeRequest: {
