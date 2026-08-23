@@ -1494,6 +1494,10 @@ export interface components {
             endTime?: string;
             accommodationName?: string;
             accommodationAddress?: string;
+            /** Format: double */
+            accommodationLat?: number;
+            /** Format: double */
+            accommodationLng?: number;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -1892,6 +1896,10 @@ export interface components {
             endTime?: string;
             accommodationName?: string;
             accommodationAddress?: string;
+            /** Format: double */
+            accommodationLat?: number;
+            /** Format: double */
+            accommodationLng?: number;
             status?: string;
         };
         ItineraryOptimizeRequest: {

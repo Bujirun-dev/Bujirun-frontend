@@ -8,6 +8,8 @@ import type { KakaoPlaceResult } from "@/shared/types/kakao-map";
 export interface AccommodationPlace {
   name: string;
   address: string;
+  lat?: number;
+  lng?: number;
 }
 
 interface AccommodationSearchFieldProps {
@@ -107,6 +109,8 @@ export function AccommodationSearchField({
     onChange({
       name: place.place_name,
       address: place.road_address_name || place.address_name,
+      lat: Number(place.y),
+      lng: Number(place.x),
     });
     handleClose();
   };

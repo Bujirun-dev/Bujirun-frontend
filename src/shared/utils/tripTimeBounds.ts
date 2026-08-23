@@ -6,4 +6,6 @@ export interface TripTimeBounds {
   endTime: string;
   accommodationName?: string;
   accommodationAddress?: string;
+  accommodationLat?: number;
+  accommodationLng?: number;
 }
