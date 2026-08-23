@@ -1581,6 +1581,7 @@ export interface components {
             routeNo?: string;
             /** Format: int32 */
             sectionTime?: number;
+            startArsId?: string;
             subwaySchedule?: components["schemas"]["SubwaySegmentTimetable"];
         };
         CreateItineraryRequest: {
