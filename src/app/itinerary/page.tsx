@@ -389,6 +389,7 @@ function ItineraryMain({
     updateStopTransport: updateYjsStopTransport,
     updateStopStatus: updateYjsStopStatus,
     pushOptimizedOrder: pushYjsOptimizedOrder,
+    replaceStopsWithImportedLog: replaceYjsStopsWithImportedLog,
     shiftFollowingStopTimes: shiftYjsFollowingStopTimes,
   } = useCollaborativeItinerary(
     itineraryId,
@@ -439,8 +440,12 @@ function ItineraryMain({
     // 여행 날짜(tripDates)는 로그가 아니라 지금 이 일정 고유의 값이라 손대지 않는다 —
     // 예전엔 로그의 dates로 덮어써서, 일정보다 짧은 로그를 불러오면 뒷날짜 자체가
     // 화면에서 통째로 사라지는(사실상 일정이 로그 길이로 줄어드는) 버그가 있었다.
+    // pushYjsOptimizedOrder(재정렬 전용)는 "현재 배열에 이미 있는 id만" 반영하는 필터가
+    // 있어서, 로그에서 새로 만들어진(한 번도 존재한 적 없는) id의 항목들을 넣으면 전부
+    // 걸러져 day가 통째로 비어버렸다(2026-08-23 실서버 테스트로 재현). 로그 불러오기
+    // 전용 함수로 교체.
     days.forEach((dayStops, idx) => {
-      if (idx < dayIdsSliced.length) pushYjsOptimizedOrder(idx, dayStops);
+      if (idx < dayIdsSliced.length) replaceYjsStopsWithImportedLog(idx, dayStops);
     });
     logActivity("import", "");
     flushNow();

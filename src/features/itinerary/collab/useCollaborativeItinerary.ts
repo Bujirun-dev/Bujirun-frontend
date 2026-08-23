@@ -15,6 +15,7 @@ import {
   readStopsFromYjs,
   reconcileTransportFromRest,
   replaceStop as yReplaceStop,
+  replaceStopsWithImportedLog as yReplaceStopsWithImportedLog,
   resolveTempId,
   seedYjsDays,
   shiftFollowingStopTimes as yShiftFollowingStopTimes,
@@ -306,6 +307,8 @@ export function useCollaborativeItinerary(
       yUpdateStopStatus(doc, dayIdx, itemId, status),
     pushOptimizedOrder: (dayIdx: number, stops: BaseStop[]) =>
       yPushOptimizedOrder(doc, dayIdx, stops),
+    replaceStopsWithImportedLog: (dayIdx: number, stops: BaseStop[]) =>
+      yReplaceStopsWithImportedLog(doc, dayIdx, stops),
     shiftFollowingStopTimes: (
       dayIdx: number,
       fromItemId: string,
