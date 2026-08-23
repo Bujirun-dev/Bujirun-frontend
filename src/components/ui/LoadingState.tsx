@@ -12,7 +12,7 @@ import { Modal } from "@/components/ui/Modal";
 import { SpeechBubble } from "@/components/ui/SpeechBubble";
 import { cn } from "@/shared/utils";
 
-interface LoadingModalProps {
+interface LoadingStateProps {
   message?: string;
   isComplete?: boolean;
   className?: string;
@@ -27,11 +27,11 @@ const LOADING_MESSAGES = [
   "다 됐어요 ❣️",
 ] as const;
 
-export function LoadingModal({
+export function LoadingState({
   message = "잠시만 기다려 주세요 😇",
   isComplete = false,
   className,
-}: LoadingModalProps) {
+}: LoadingStateProps) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {

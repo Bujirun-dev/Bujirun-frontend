@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import AngleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?svgr";
-import { PageCard, FilterChips, EmptyState, LoadingModal, LoadingBoundary } from "@/components";
+import { PageCard, FilterChips, EmptyState, LoadingBoundary, LoadingState } from "@/components";
 import { LogCard } from "@/features/itinerary";
 import { travelLogApi } from "@/shared/api/domains";
 import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
@@ -140,7 +140,7 @@ export default function LogsPage() {
 
               <div ref={sentinelRef} className="h-1 shrink-0" />
 
-              {isLoading && <LoadingModal message="더 불러오는 중이에요" className="py-4" />}
+              {isLoading && <LoadingState message="더 불러오는 중이에요" className="py-4" />}
             </>
           )}
         </div>

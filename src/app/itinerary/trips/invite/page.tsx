@@ -6,12 +6,12 @@ import { useQuery } from "@tanstack/react-query";
 import { ParticipantAvatarGrid, ShareInviteModal } from "@/features/itinerary/components";
 import { groupApi, userApi } from "@/shared/api/domains";
 import { initKakaoShare } from "@/shared/utils/kakaoShare";
-import { LoadingModal, Toast } from "@/components";
+import { LoadingState, Toast } from "@/components";
 
 function PageLoadingFallback() {
   return (
     <div className="flex h-full flex-col">
-      <LoadingModal />
+      <LoadingState />
     </div>
   );
 }

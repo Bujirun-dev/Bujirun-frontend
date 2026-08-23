@@ -32,7 +32,7 @@ export { BottomNavigation } from "./layout/BottomNavigation";
 export { ScrollToTop } from "./layout/ScrollToTop";
 export { PageCard } from "./layout/PageCard";
 export { StaircaseGlassCard } from "./ui/StaircaseGlassCard";
-export { LoadingModal } from "./ui/LoadingModal";
+export { LoadingState } from "./ui/LoadingState";
 export { LoadingBoundary } from "./ui/LoadingBoundary";
 export { EmptyState } from "./ui/EmptyState";
 export { ErrorState } from "./ui/ErrorState";

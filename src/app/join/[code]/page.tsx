@@ -7,14 +7,14 @@ import { groupApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import { savePendingInvite } from "@/shared/utils/pendingInvite";
 import { KakaoLoginButton } from "@/components/ui/KakaoLoginButton";
-import { LoadingModal } from "@/components";
+import { LoadingState } from "@/components";
 
 type JoinStatus = "unauthenticated" | "joining" | "success" | "error";
 
 function PageLoadingFallback() {
   return (
     <div className="flex h-full flex-col">
-      <LoadingModal />
+      <LoadingState />
     </div>
   );
 }

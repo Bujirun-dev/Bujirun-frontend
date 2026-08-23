@@ -4,13 +4,13 @@ import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
-import { LoadingModal } from "@/components";
+import { LoadingState } from "@/components";
 import { swipeApi } from "@/shared/api/domains";
 
 function PageLoadingFallback() {
   return (
     <div className="flex h-full flex-col">
-      <LoadingModal />
+      <LoadingState />
     </div>
   );
 }

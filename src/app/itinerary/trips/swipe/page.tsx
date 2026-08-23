@@ -7,14 +7,14 @@ import { useQuery } from "@tanstack/react-query";
 import pawIcon from "@/assets/icons/itinerary/paw-print.png";
 import { collectionApi, swipeApi } from "@/shared/api/domains";
 import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
-import { EmptyState, LoadingBoundary, LoadingModal } from "@/components";
+import { EmptyState, LoadingBoundary, LoadingState } from "@/components";
 
 const SWIPE_THRESHOLD = 80;
 
 function PageLoadingFallback() {
   return (
     <div className="flex h-full flex-col">
-      <LoadingModal />
+      <LoadingState />
     </div>
   );
 }

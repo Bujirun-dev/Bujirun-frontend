@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/shared/utils";
-import { Card, Modal, SpeechBubble, Toast, ErrorState, LoadingModal } from "@/components";
+import { Card, Modal, SpeechBubble, Toast, ErrorState, LoadingState } from "@/components";
 import checkIconWhite from "@/assets/icons/itinerary/check_white.png";
 import checkIconBlue from "@/assets/icons/itinerary/check_blue.png";
 import infoIcon from "@/assets/icons/itinerary/info.png";
@@ -118,7 +118,7 @@ function ResultPlaceNode({ place }: { place: Place }) {
 function PageLoadingFallback() {
   return (
     <div className="flex h-full flex-col">
-      <LoadingModal />
+      <LoadingState />
     </div>
   );
 }
@@ -312,7 +312,7 @@ function TripResultContent() {
   if (!hasReloaded || isGenerating) {
     return (
       <div className="flex h-full flex-col">
-        <LoadingModal message={generatingMessage} />
+        <LoadingState message={generatingMessage} />
       </div>
     );
   }

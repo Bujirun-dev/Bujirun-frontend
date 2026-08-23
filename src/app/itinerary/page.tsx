@@ -3,7 +3,7 @@
 import { Suspense, useRef, useState, useEffect, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { PageCard, Toast, EmptyState, LoadingBoundary, LoadingModal } from "@/components";
+import { PageCard, Toast, EmptyState, LoadingBoundary, LoadingState } from "@/components";
 import { ItineraryHeader, SlidingTimeline, ItineraryModals } from "@/features/itinerary";
 import type { ItineraryStop, ModalType } from "@/features/itinerary";
 import { itineraryApi, travelLogApi, userApi } from "@/shared/api/domains";
@@ -155,7 +155,7 @@ function ItineraryEmptyState() {
 function RouteLoadingFallback() {
   return (
     <PageCard>
-      <LoadingModal />
+      <LoadingState />
     </PageCard>
   );
 }

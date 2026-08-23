@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { LoadingModal } from "./LoadingModal";
+import { LoadingState } from "./LoadingState";
 
 interface LoadingBoundaryProps {
   isLoading: boolean;
@@ -52,7 +52,7 @@ export function LoadingBoundary({
   }, [isLoading, delay, minDuration]);
 
   if (isLoading || showLoading) {
-    return showLoading ? <LoadingModal message={message} isComplete={isComplete} /> : null;
+    return showLoading ? <LoadingState message={message} isComplete={isComplete} /> : null;
   }
 
   return children;
