@@ -75,10 +75,12 @@ function TripSwipeContent() {
   const swipesRef = useRef<{ contentId: string; liked: boolean }[]>([]);
   const total = places.length;
   const place = places[currentIndex];
-  // 다음 카드 이미지를 미리 받아둔다 — 안 그러면 스와이프하는 순간에야 fetch가 시작돼서,
+  // 다음 1~2장을 미리 받아둔다 — 안 그러면 스와이프하는 순간에야 fetch가 시작돼서,
   // 느린 네트워크/기기에서 새 카드로 넘어간 뒤에도 한동안 직전 사진이 그대로 보이는(이름은
   // 바뀌었는데 사진만 안 바뀌어서 "이미지가 중복된다"로 보이는) 현상이 있었다.
-  const nextPlace = places[currentIndex + 1];
+  // next/image가 실제로 쓰는 최적화 URL(/_next/image?...)과 동일한 요청을 미리 보내야
+  // 브라우저 캐시가 재사용된다 — 원본 URL로 raw <img> 프리로드하면 캐시 키가 달라서 무효했다.
+  const preloadPlaces = places.slice(currentIndex + 1, currentIndex + 3);
   const progress = total > 0 ? (currentIndex + 1) / total : 0;
 
   const handleSwipe = (direction: "left" | "right") => {
@@ -224,12 +226,13 @@ function TripSwipeContent() {
           <span className="text-lg leading-none">❣️</span>
         </div>
 
-        {/* 다음 카드 이미지 프리로드용(화면엔 안 보임) — 미리 fetch만 시작해두기 위함 */}
-        {nextPlace ? (
-          // next/image 최적화 파이프라인 없이 브라우저 캐시에 원본을 그대로 미리 받아두려는 용도라 일반 img를 씀
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={nextPlace.image} alt="" width={1} height={1} className="hidden" aria-hidden />
-        ) : null}
+        {/* 다음 카드 이미지 프리로드용(화면엔 안 보임) — 실제 카드와 동일한 sizes로 next/image
+            최적화 URL을 미리 요청해서, 카드가 넘어갈 때 브라우저 캐시를 그대로 히트하게 한다. */}
+        {preloadPlaces.map((p) => (
+          <div key={p.id} className="absolute h-px w-px overflow-hidden opacity-0" aria-hidden>
+            <Image src={p.image} alt="" fill sizes="390px" priority />
+          </div>
+        ))}
       </div>
     </div>
   );
