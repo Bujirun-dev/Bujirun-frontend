@@ -153,7 +153,7 @@ function TripInviteContent() {
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
         title={`${nickname}님이 ‘${tripName}’에 초대했어요 🌊`}
-        description={`${joinedCount}명의 친구가 함께 부산 여행을 준비하고 있어요. 지금 참여해보세요!`}
+        description={`벌써 ${joinedCount}명이 모였어요! 지금 바로 함께해요 🙌`}
         imageUrl={shareImageUrl}
         inviteUrl={inviteUrl}
       />
