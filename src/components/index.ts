@@ -41,3 +41,5 @@ export { PlaceSearchPanel } from "./place/PlaceSearchPanel";
 export type { SearchPlace, PlaceSearchState } from "./place/PlaceSearchPanel";
 export { PlaceSearchItem } from "./place/PlaceSearchItem";
 export { LoadingModal } from "./ui/LoadingModal";
+//개인정보
+export { PrivacyPolicyModal } from "./legal/PrivacyPolicyModal";
