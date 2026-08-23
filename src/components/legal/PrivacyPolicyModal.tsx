@@ -50,17 +50,24 @@ export function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyModalProps)
       title="약관 및 개인정보 처리방침"
       hideActions
       childrenVariant="plain"
-      className="max-h-[75dvh]"
+      closeButtonClassName="text-sub-gray"
     >
-      <div className="flex w-full flex-col gap-4 overflow-y-auto pr-1">
-        {POLICY_SECTIONS.map(({ title, content }) => (
-          <div key={title} className="flex flex-col gap-1.5">
-            <h3 className="text-sm font-bold text-text-heading">{title}</h3>
-            <p className="whitespace-pre-line text-xs leading-relaxed text-sub-darkgray">
-              {content}
-            </p>
-          </div>
-        ))}
+      {/* 모달 컨텐츠 전체 높이 고정 300px + 여기서만 스크롤 */}
+      <div className="max-h-[340px] min-h-0 w-full overflow-y-auto pr-1">
+        <div className="flex w-full flex-col gap-4 text-left">
+          {POLICY_SECTIONS.map(({ title, content }) => (
+            <div key={title} className="flex flex-col gap-1.5">
+              {/* 제목 - 박스 밖 */}
+              <h3 className="text-sm font-bold text-text-heading">{title}</h3>
+              {/* 내용 - 회색 박스 안 */}
+              <div className="rounded-lg bg-system-searchbg p-3">
+                <p className="whitespace-pre-line break-keep text-xs leading-relaxed text-sub-darkgray">
+                  {content}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </Modal>
   );
