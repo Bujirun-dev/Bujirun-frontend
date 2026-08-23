@@ -55,7 +55,8 @@ function TransportLegRow({ leg, metaText }: { leg: TransportLeg; metaText?: stri
   const [isRotating, setIsRotating] = useState(false);
   const { text: arrivalText, refetch } = useLiveBusArrivalText(leg);
   const showArrival =
-    !!arrivalText && ARRIVAL_VISIBLE_TYPES.includes(leg.type as (typeof ARRIVAL_VISIBLE_TYPES)[number]);
+    !!arrivalText &&
+    ARRIVAL_VISIBLE_TYPES.includes(leg.type as (typeof ARRIVAL_VISIBLE_TYPES)[number]);
 
   const handleArrivalClick = (e: React.MouseEvent) => {
     // TransportCard가 버튼(상세 열기/옵션 선택) 안에 들어가는 경우가 있어, 새로고침
