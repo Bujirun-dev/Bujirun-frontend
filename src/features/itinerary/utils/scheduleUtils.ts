@@ -194,7 +194,16 @@ function legsFromTransitDetail(
   transitDetail: components["schemas"]["TransitDetail"] | undefined,
   fallbackFrom: string,
   fallbackTo: string,
-): { type: TransportType; routeName: string; from: string; to: string }[] | undefined {
+):
+  | {
+      type: TransportType;
+      routeName: string;
+      from: string;
+      to: string;
+      arsId?: string;
+      routeNo?: string;
+    }[]
+  | undefined {
   const segments = (transitDetail?.segments ?? []).filter(
     (s): s is typeof s & { trafficType: TransportType } =>
       !!s.trafficType &&
@@ -208,6 +217,9 @@ function legsFromTransitDetail(
     routeName: s.routeNo || s.trafficType,
     from: s.startName || fallbackFrom,
     to: s.endName || fallbackTo,
+    // 버스 실시간 도착정보 폴링용. 버스 구간에만 값이 있고 지하철 등은 빈 문자열일 수 있음
+    arsId: s.startArsId,
+    routeNo: s.routeNo,
   }));
 }
 
