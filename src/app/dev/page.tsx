@@ -20,14 +20,14 @@ export default function DevPage() {
       <EmptyState
         title="아직 여행 기록이 없어요"
         description="여행을 시작하고 나만의 기록을 남겨보세요."
-        // secondaryAction={{
-        //   label: "뒤로가기",
-        //   onClick: handleBack,
-        // }}
-        // primaryAction={{
-        //   label: "여행 시작하기",
-        //   onClick: handleStart,
-        // }}
+        secondaryAction={{
+          label: "뒤로가기",
+          onClick: handleBack,
+        }}
+        primaryAction={{
+          label: "여행 시작하기",
+          onClick: handleStart,
+        }}
       />
     </section>
   );

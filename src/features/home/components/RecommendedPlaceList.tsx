@@ -20,7 +20,10 @@ export function RecommendedPlaceList() {
     <LoadingBoundary isLoading={isLoading} message="추천 관광지를 불러오는 중이에요">
       {recommendedPlaces.length === 0 ? (
         <div className="flex h-full flex-col">
-          <EmptyState title="추천할 관광지가 없어요" description="이미 다 모으셨나봐요!" />
+          <EmptyState
+            title="추천할 관광지가 없어요"
+            description="수집할 수 있는 관광지를 모두 모았어요!"
+          />
         </div>
       ) : (
         <div className="flex flex-col gap-[20px]">

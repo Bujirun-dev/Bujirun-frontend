@@ -258,15 +258,15 @@ export function PlaceSearchPanel({
       >
         {filtered.length === 0 ? (
           <EmptyState
+            variant="compact"
             title="검색 결과가 없어요"
             description={
               <>
-                <span>&quot;{searchValue}&quot;</span>에 대한 결과를 찾지 못했어요.
+                &quot;{debouncedSearchValue}&quot;에 대한 결과를 찾지 못했어요.
                 <br />
                 관광지 이름을 다시 확인해보세요.
               </>
             }
-            className="pb-[30%]"
           />
         ) : sortBy === "추천순" ? (
           <div className="flex flex-col gap-2.5 overflow-x-hidden">

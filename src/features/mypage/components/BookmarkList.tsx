@@ -49,16 +49,18 @@ export function BookmarkList() {
     <LoadingBoundary isLoading={isLoading} message="북마크를 불러오는 중이에요">
       {bookmarks.length === 0 ? (
         <EmptyState
-          title="저장된 북마크가 없어요"
+          title="아직 저장된 관광지가 없어요"
           description={
             <>
-              마음에 드는 관광지를
+              마음에 드는 관광지를 저장해두고
               <br />
-              북마크에 담아보세요
+              나중에 다시 확인해보세요.
             </>
           }
-          actionLabel="관광지 둘러보러 가기"
-          onAction={() => router.push("/mypage/bookmarks/search")}
+          primaryAction={{
+            label: "관광지 둘러보기",
+            onClick: () => router.push("/mypage/bookmarks/search"),
+          }}
         />
       ) : (
         <div className="flex flex-col gap-4">

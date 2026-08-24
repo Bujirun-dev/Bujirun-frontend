@@ -134,6 +134,7 @@ const ACTIVITY_MESSAGES: Record<ActivityAction, (entry: ActivityLogEntry) => str
 
 function ItineraryEmptyState() {
   const router = useRouter();
+
   return (
     <PageCard>
       <EmptyState
@@ -145,8 +146,10 @@ function ItineraryEmptyState() {
             여행을 시작해볼까요?
           </>
         }
-        actionLabel="여행 목록 보기"
-        onAction={() => router.push("/itinerary/trips")}
+        primaryAction={{
+          label: "여행 목록 보기",
+          onClick: () => router.push("/itinerary/trips"),
+        }}
       />
     </PageCard>
   );

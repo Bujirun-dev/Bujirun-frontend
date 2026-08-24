@@ -205,7 +205,7 @@ export function EmptyState({
           </div>
         )}
 
-        <div className={cn("flex flex-col items-center gap-1", variant === "default" && "mt-3")}>
+        <div className={cn("flex flex-col items-center gap-2", variant === "default" && "mt-3")}>
           <p
             className={cn(
               "font-ssurround font-bold text-text-heading",
@@ -228,7 +228,7 @@ export function EmptyState({
         </div>
 
         {(primaryAction || secondaryAction) && (
-          <div className={cn("flex w-full gap-2", variant === "default" ? "mt-2" : "mt-3")}>
+          <div className={cn("flex w-full gap-2", variant === "default" ? "mt-2" : "")}>
             {secondaryAction && (
               <Button variant="secondary" onClick={secondaryAction.onClick}>
                 {secondaryAction.label}

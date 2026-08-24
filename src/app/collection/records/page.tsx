@@ -207,30 +207,29 @@ export default function CollectionRecordsPage() {
       <PageCard>
         <div className="flex flex-1 flex-col gap-5">
           <LoadingBoundary isLoading={isLogsLoading} message="여행 기록을 불러오는 중이에요">
-            ...
-          </LoadingBoundary>
-
-          {!isLogsLoading && !isLogsError && records.length === 0 && (
-            <EmptyState
-              title="아직 저장된 여행 기록이 없어요"
-              description="여행을 시작하고 기록을 남겨보세요!"
-              actionLabel="여행 시작하기"
-              onAction={() => router.push("/itinerary/trips/new")}
-            />
-          )}
-
-          {!isLogsLoading &&
-            !isLogsError &&
-            records.map((record) => (
-              <TripRecordItem
-                key={record.logId}
-                id={record.id}
-                title={record.title}
-                period={record.period}
-                onDelete={openDeleteModal}
-                onTitleClick={openReceiptModal}
+            {!isLogsError && records.length === 0 && (
+              <EmptyState
+                title="아직 저장된 여행 기록이 없어요"
+                description="여행을 시작하고 기록을 남겨보세요!"
+                primaryAction={{
+                  label: "여행 시작하기",
+                  onClick: () => router.push("/itinerary/trips/new"),
+                }}
               />
-            ))}
+            )}
+
+            {!isLogsError &&
+              records.map((record) => (
+                <TripRecordItem
+                  key={record.logId}
+                  id={record.id}
+                  title={record.title}
+                  period={record.period}
+                  onDelete={openDeleteModal}
+                  onTitleClick={openReceiptModal}
+                />
+              ))}
+          </LoadingBoundary>
         </div>
       </PageCard>
 

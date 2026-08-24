@@ -67,7 +67,10 @@ export function RelatedLogsContent({
       <div className="flex flex-1 flex-col overflow-y-auto pb-6">
         <LoadingBoundary isLoading={isLoading ?? false} message="관련 로그를 불러오는 중이에요">
           {relatedLogs.length === 0 ? (
-            <EmptyState title="아직 관련 로그가 없어요" />
+            <EmptyState
+              title="아직 관련 로그가 없어요"
+              description="이 관광지와 관련된 여행 로그가 아직 없어요."
+            />
           ) : (
             <div className="flex flex-col gap-4">
               {relatedLogs.map((log) => {

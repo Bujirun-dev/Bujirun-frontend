@@ -161,9 +161,19 @@ export function AccommodationSearchField({ value, onChange }: AccommodationSearc
             iconSize={11}
           />
           <div className="h-[276px] w-full overflow-y-auto">
-            <LoadingBoundary isLoading={isSearching} message="검색하는 중이에요">
+            <LoadingBoundary
+              isLoading={isSearching}
+              message="검색하는 중이에요..."
+              variant="inline"
+              delay={200}
+              minDuration={500}
+            >
               {!query.trim() ? null : results.length === 0 ? (
-                <EmptyState title="검색 결과가 없어요" size="sm" />
+                <EmptyState
+                  variant="compact"
+                  title="검색 결과가 없어요."
+                  description="정확하게 입력했는지 확인해보세요!"
+                />
               ) : (
                 <ul className="flex flex-col gap-1">
                   {results.map((place) => (

@@ -189,13 +189,15 @@ export function TodayItinerary() {
             <h2 className="font-ssurround text-lg text-text-heading">오늘의 일정</h2>
           </div>
 
-          <Card variant="glass-sm" className="mt-4">
+          <Card variant="glass-sm" className="relative mt-4 min-h-[140px]">
             <EmptyState
-              size="sm"
+              variant="compact"
               title="아직 여행 일정이 없어요!"
               description="친구들과 부산 여행을 시작해보세요!"
-              actionLabel="여행 시작하기"
-              onAction={handleStartTrip}
+              primaryAction={{
+                label: "여행 시작하기",
+                onClick: handleStartTrip,
+              }}
             />
           </Card>
         </div>

@@ -160,9 +160,7 @@ export default function TripsPage() {
           {trips.length === 0 ? (
             <EmptyState
               title="아직 여행이 없어요"
-              description="오른쪽 위 + 버튼으로 새 여행을 만들어보세요"
-              actionLabel="+ 여행 만들기"
-              onAction={() => router.push("/itinerary/trips/new")}
+              description="오른쪽 위 (+) 버튼으로 새 여행을 만들어보세요"
             />
           ) : (
             trips.map((trip) => (

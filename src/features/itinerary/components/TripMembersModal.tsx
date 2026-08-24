@@ -29,7 +29,7 @@ export function TripMembersModal({ isOpen, groupId, onClose }: TripMembersModalP
     >
       <LoadingBoundary isLoading={isLoading} message="멤버를 불러오는 중이에요">
         {!members || members.length === 0 ? (
-          <EmptyState title="아직 참여한 친구가 없어요" size="sm" />
+          <EmptyState variant="compact" title="아직 함께하는 친구가 없어요!" />
         ) : (
           <div className="grid w-full grid-cols-3 gap-x-2 gap-y-4">
             {members.map((member, i) => (

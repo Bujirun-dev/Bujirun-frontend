@@ -121,7 +121,11 @@ export default function LogsPage() {
       <LoadingBoundary isLoading={isFetchingLogs} message="로그를 불러오는 중이에요">
         <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-7">
           {visibleLogs.length === 0 ? (
-            <EmptyState title="해당 카테고리의 로그가 없어요" />
+            <EmptyState
+              variant="compact"
+              title="해당 카테고리의 로그가 없어요"
+              description="다른 카테고리의 여행 로그를 둘러보세요."
+            />
           ) : (
             <>
               {visibleLogs.map((log) => (
