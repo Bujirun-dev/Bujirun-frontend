@@ -7,6 +7,7 @@ interface LoadingBoundaryProps {
   isLoading: boolean;
   children: ReactNode;
   message?: string;
+  variant?: "modal" | "inline";
   delay?: number;
   minDuration?: number;
 }
@@ -15,6 +16,7 @@ export function LoadingBoundary({
   isLoading,
   children,
   message,
+  variant = "modal",
   delay = 300,
   minDuration = 1000,
 }: LoadingBoundaryProps) {
@@ -52,7 +54,9 @@ export function LoadingBoundary({
   }, [isLoading, delay, minDuration]);
 
   if (isLoading || showLoading) {
-    return showLoading ? <LoadingState message={message} isComplete={isComplete} /> : null;
+    return showLoading ? (
+      <LoadingState message={message} isComplete={isComplete} variant={variant} />
+    ) : null;
   }
 
   return children;

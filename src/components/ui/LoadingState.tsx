@@ -15,6 +15,7 @@ import { cn } from "@/shared/utils";
 interface LoadingStateProps {
   message?: string;
   isComplete?: boolean;
+  variant?: "modal" | "inline";
   className?: string;
 }
 
@@ -30,6 +31,7 @@ const LOADING_MESSAGES = [
 export function LoadingState({
   message = "잠시만 기다려 주세요 😇",
   isComplete = false,
+  variant = "modal",
   className,
 }: LoadingStateProps) {
   const [progress, setProgress] = useState(0);
@@ -48,6 +50,19 @@ export function LoadingState({
     Math.floor((normalizedProgress / 100) * LOADING_IMAGES.length),
     LOADING_IMAGES.length - 1,
   );
+
+  if (variant === "inline") {
+    return (
+      <div
+        className={cn(
+          "absolute inset-0 flex h-full w-full flex-col items-center justify-center text-center font-ssurround text-md text-heading",
+          className,
+        )}
+      >
+        {message}
+      </div>
+    );
+  }
 
   return (
     <Modal
