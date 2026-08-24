@@ -20,6 +20,7 @@ interface EmptyStateProps {
   primaryAction?: EmptyStateAction;
   secondaryAction?: EmptyStateAction;
   variant?: EmptyStateVariant;
+  showBackground?: boolean;
   className?: string;
 }
 
@@ -29,6 +30,7 @@ export function EmptyState({
   primaryAction,
   secondaryAction,
   variant = "default",
+  showBackground = false,
   className,
 }: EmptyStateProps) {
   return (
@@ -43,10 +45,10 @@ export function EmptyState({
         className,
       )}
     >
-      {variant === "default" && (
+      {variant === "default" && showBackground && (
         <Image
           src={blurBg}
-          alt="배경"
+          alt=""
           fill
           priority
           aria-hidden
@@ -61,9 +63,18 @@ export function EmptyState({
         )}
       >
         {variant === "default" && (
-          <div className="relative flex w-45 h-full items-end justify-center">
+          <div className="relative flex h-full w-45 items-end justify-center">
+            {/* 캐릭터 뒤 블러 */}
+            {!showBackground && (
+              <div
+                aria-hidden
+                className="pointer-events-none absolute bottom-10 left-1/2 z-0 h-[50px] w-[200px] -translate-x-1/2 rounded-full bg-main-blue/50 blur-3xl"
+              />
+            )}
+
             {/* 캐릭터 */}
             <div className="absolute bottom-3 z-20 h-[180px] w-full overflow-hidden">
+              {" "}
               <motion.div
                 className="absolute inset-x-0 bottom-0 flex justify-center"
                 initial={{ y: 100 }}
@@ -144,7 +155,7 @@ export function EmptyState({
                 </div>
               </motion.div>
             </div>
-            {/* 검은 홀 */}
+            {/* 홀 */}
             <div className="relative z-10 h-[24px] w-[190px] rounded-[50%] bg-system-blackbg/40" />
             {/* 손 */}
             <motion.div
