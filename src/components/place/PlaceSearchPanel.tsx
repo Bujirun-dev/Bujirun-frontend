@@ -255,6 +255,9 @@ export function PlaceSearchPanel({
       <LoadingBoundary
         isLoading={isLoading}
         message={debouncedSearchValue ? "검색하는 중이에요" : "관광지 목록을 불러오는 중이에요"}
+        variant="inline"
+        delay={150}
+        minDuration={500}
       >
         {filtered.length === 0 ? (
           <EmptyState

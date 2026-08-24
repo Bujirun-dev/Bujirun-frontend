@@ -12,11 +12,7 @@ import { EmptyState, LoadingBoundary, LoadingState } from "@/components";
 const SWIPE_THRESHOLD = 80;
 
 function PageLoadingFallback() {
-  return (
-    <div className="flex h-full flex-col">
-      <LoadingState />
-    </div>
-  );
+  return <LoadingState />;
 }
 
 export default function TripSwipePage() {

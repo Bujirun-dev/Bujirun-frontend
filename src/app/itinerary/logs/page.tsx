@@ -123,7 +123,7 @@ export default function LogsPage() {
           {visibleLogs.length === 0 ? (
             <EmptyState
               variant="compact"
-              title="해당 카테고리의 로그가 없어요"
+              title="해당 카테고리의 로그가 없어요."
               description="다른 카테고리의 여행 로그를 둘러보세요."
             />
           ) : (
@@ -144,7 +144,11 @@ export default function LogsPage() {
 
               <div ref={sentinelRef} className="h-1 shrink-0" />
 
-              {isLoading && <LoadingState message="더 불러오는 중이에요" className="py-4" />}
+              {isLoading && (
+                <div className="relative h-[72px] w-full shrink-0">
+                  <LoadingState variant="inline" message="로그를 더 불러오는 중이에요..." />
+                </div>
+              )}
             </>
           )}
         </div>

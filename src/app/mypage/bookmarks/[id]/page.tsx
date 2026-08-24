@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { PageCard, Toast, LoadingBoundary } from "@/components"; // LoadingState, Toast 추가
+import { PageCard, Toast, LoadingBoundary } from "@/components";
 import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
 import { travelLogApi, spotApi, bookmarkApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";

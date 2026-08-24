@@ -4,8 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Button } from "./Button";
 import { cn } from "@/shared/utils";
-import blurBg from "@/assets/empty/blurbg.png";
-import emptyCharacter from "@/assets/empty/character.png";
+import emptyCharacter from "@/assets/character/empty/empty.png";
 
 interface EmptyStateAction {
   label: string;
@@ -20,7 +19,6 @@ interface EmptyStateProps {
   primaryAction?: EmptyStateAction;
   secondaryAction?: EmptyStateAction;
   variant?: EmptyStateVariant;
-  showBackground?: boolean;
   className?: string;
 }
 
@@ -30,7 +28,6 @@ export function EmptyState({
   primaryAction,
   secondaryAction,
   variant = "default",
-  showBackground = false,
   className,
 }: EmptyStateProps) {
   return (
@@ -40,22 +37,11 @@ export function EmptyState({
       transition={{ duration: 0.35, ease: "easeOut" }}
       className={cn(
         variant === "default"
-          ? "absolute inset-0 flex h-full w-full flex-col items-center justify-center overflow-hidden px-5 py-10 text-center"
-          : "absolute inset-0 flex h-full w-full flex-col items-center justify-center px-5 text-center",
+          ? "pointer-events-none absolute inset-0 flex h-full w-full flex-col items-center justify-center overflow-hidden px-5 py-10 text-center"
+          : "pointer-events-none relative flex w-full flex-col items-center justify-center px-5 py-8 text-center",
         className,
       )}
     >
-      {variant === "default" && showBackground && (
-        <Image
-          src={blurBg}
-          alt=""
-          fill
-          priority
-          aria-hidden
-          className="pointer-events-none object-cover"
-        />
-      )}
-
       <div
         className={cn(
           "relative z-10 flex w-full flex-col items-center gap-3",
@@ -65,12 +51,10 @@ export function EmptyState({
         {variant === "default" && (
           <div className="relative flex h-full w-45 items-end justify-center">
             {/* 캐릭터 뒤 블러 */}
-            {!showBackground && (
-              <div
-                aria-hidden
-                className="pointer-events-none absolute bottom-10 left-1/2 z-0 h-[50px] w-[200px] -translate-x-1/2 rounded-full bg-main-blue/50 blur-3xl"
-              />
-            )}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute bottom-10 left-1/2 z-0 h-[50px] w-[200px] -translate-x-1/2 rounded-full bg-main-blue/50 blur-3xl"
+            />
 
             {/* 캐릭터 */}
             <div className="absolute bottom-3 z-20 h-[180px] w-full overflow-hidden">
@@ -228,7 +212,12 @@ export function EmptyState({
         </div>
 
         {(primaryAction || secondaryAction) && (
-          <div className={cn("flex w-full gap-2", variant === "default" ? "mt-2" : "")}>
+          <div
+            className={cn(
+              "pointer-events-auto flex w-full gap-2",
+              variant === "default" ? "mt-2" : "",
+            )}
+          >
             {secondaryAction && (
               <Button variant="secondary" onClick={secondaryAction.onClick}>
                 {secondaryAction.label}

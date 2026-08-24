@@ -8,11 +8,7 @@ import { LoadingState } from "@/components";
 import { swipeApi } from "@/shared/api/domains";
 
 function PageLoadingFallback() {
-  return (
-    <div className="flex h-full flex-col">
-      <LoadingState />
-    </div>
-  );
+  return <LoadingState />;
 }
 
 export default function TripWaitingPage() {

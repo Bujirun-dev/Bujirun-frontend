@@ -158,7 +158,7 @@ function ItineraryEmptyState() {
 function RouteLoadingFallback() {
   return (
     <PageCard>
-      <LoadingState />
+      <LoadingState variant="inline" />
     </PageCard>
   );
 }

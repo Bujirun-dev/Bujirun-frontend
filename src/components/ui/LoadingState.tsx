@@ -19,14 +19,17 @@ interface LoadingStateProps {
   className?: string;
 }
 
-const LOADING_IMAGES = [loading1, loading2, loading3, loading4, loading5] as const;
+const LOADING_IMAGES = [loading1, loading2, loading3, loading4] as const;
+
 const LOADING_MESSAGES = [
   "부산으로 가는 중 ...",
   "관광지 사진도 찍고 🌄",
   "셀카도 찍고 📸",
   "쁘이 ✌️",
-  "다 됐어요 ❣️",
 ] as const;
+
+const COMPLETE_IMAGE = loading5;
+const COMPLETE_MESSAGE = "다 됐어요 ❣️";
 
 export function LoadingState({
   message = "잠시만 기다려 주세요 😇",
@@ -35,21 +38,39 @@ export function LoadingState({
   className,
 }: LoadingStateProps) {
   const [progress, setProgress] = useState(0);
+  const [imageIndex, setImageIndex] = useState(0);
 
   useEffect(() => {
+    if (isComplete) return;
+
     const interval = window.setInterval(() => {
-      setProgress((prev) => Math.min(prev + 1, 100));
-    }, 50);
+      setProgress((prev) => {
+        if (prev < 60) return Math.min(prev + 2, 60);
+        if (prev < 80) return Math.min(prev + 1, 80);
+        if (prev < 90) return Math.min(prev + 0.3, 90);
+
+        return Math.min(prev + 0.05, 95);
+      });
+    }, 100);
 
     return () => window.clearInterval(interval);
-  }, []);
+  }, [isComplete]);
 
-  const normalizedProgress = isComplete ? 100 : Math.min(Math.max(progress, 0), 100);
+  useEffect(() => {
+    if (isComplete) return;
 
-  const imageIndex = Math.min(
-    Math.floor((normalizedProgress / 100) * LOADING_IMAGES.length),
-    LOADING_IMAGES.length - 1,
-  );
+    const interval = window.setInterval(() => {
+      setImageIndex((prev) => (prev + 1) % LOADING_IMAGES.length);
+    }, 1200);
+
+    return () => window.clearInterval(interval);
+  }, [isComplete]);
+
+  const normalizedProgress = isComplete ? 100 : Math.min(Math.max(progress, 0), 95);
+
+  const currentImage = isComplete ? COMPLETE_IMAGE : LOADING_IMAGES[imageIndex];
+
+  const currentMessage = isComplete ? COMPLETE_MESSAGE : LOADING_MESSAGES[imageIndex];
 
   if (variant === "inline") {
     return (
@@ -83,24 +104,17 @@ export function LoadingState({
         tailCenter
         bubbleClassName="!w-[190px] !rounded-3xl mt-1 py-2 justify-center font-ssurround text-md text-heading"
       >
-        {LOADING_MESSAGES[imageIndex]}
+        {currentMessage}
       </SpeechBubble>
 
       <div className="flex flex-col items-center mt-2">
         <div className="relative h-[160px] w-[160px]">
-          {LOADING_IMAGES.map((image, index) => (
-            <Image
-              key={index}
-              src={image}
-              alt={index === imageIndex ? "로딩 중인 부지런 캐릭터" : ""}
-              aria-hidden={index !== imageIndex}
-              priority
-              className={cn(
-                "absolute inset-0 h-auto w-[160px] transition-opacity duration-500 ease-in-out",
-                index === imageIndex ? "opacity-100" : "opacity-0",
-              )}
-            />
-          ))}
+          <Image
+            src={currentImage}
+            alt={isComplete ? "로딩 완료 부지런 캐릭터" : "로딩 중인 부지런 캐릭터"}
+            priority
+            className="absolute inset-0 h-auto w-[160px] transition-opacity duration-500 ease-in-out"
+          />
         </div>
 
         <div className="h-3 w-15 -translate-x-[2px] rounded-[50%] bg-system-scroll blur-[1px]" />
