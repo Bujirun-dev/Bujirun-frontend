@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { travelLogApi, userApi, spotApi } from "@/shared/api/domains";
+import { SPOT_LIST_STALE_TIME_MS } from "@/shared/api/domains/spot";
 import { convertTripLogToReceipt } from "@/features/receipt/utils/convertTripLogToReceipt";
 import { PROFILE_IMAGES } from "@/components/profile/profileImages";
 import { RecordDeleteModal } from "@/features/collection/components/RecordDeleteModal";
@@ -35,6 +36,7 @@ export default function CollectionRecordsPage() {
   const { data: spots = [] } = useQuery({
     queryKey: spotApi.keys.search(),
     queryFn: () => spotApi.searchSpots(),
+    staleTime: SPOT_LIST_STALE_TIME_MS,
   });
 
   // 수집된 장소 목록

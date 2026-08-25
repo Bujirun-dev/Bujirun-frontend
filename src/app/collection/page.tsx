@@ -47,7 +47,7 @@ export default function CollectionPage() {
       if (!spot.name) return;
 
       const image = new window.Image();
-      image.src = `/collection/${spot.name}.png`;
+      image.src = `/collection/${spot.name}.webp`;
     });
   }, [spots]);
 

@@ -13,6 +13,7 @@ import { Toast } from "@/components/ui/Toast";
 import { Card } from "@/components/ui/Card";
 import type { Category } from "@/components/ui/CategoryChip";
 import { userApi, travelLogApi, spotApi } from "@/shared/api/domains";
+import { SPOT_LIST_STALE_TIME_MS } from "@/shared/api/domains/spot";
 import { getCategoryFromKo } from "@/shared/constants/category";
 import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
 
@@ -58,6 +59,7 @@ export function MypageProfile() {
   const { data: spots = [] } = useQuery({
     queryKey: spotApi.keys.search(),
     queryFn: () => spotApi.searchSpots(),
+    staleTime: SPOT_LIST_STALE_TIME_MS,
   });
 
   const collectedPlaces = useMemo(

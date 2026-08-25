@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { keys, searchSpots } from "@/shared/api/domains/spot";
+import { keys, searchSpots, SPOT_LIST_STALE_TIME_MS } from "@/shared/api/domains/spot";
 import { CategoryChip } from "@/components";
 import type { Category } from "@/components";
 
@@ -27,6 +27,7 @@ export function PlaceSection() {
   } = useQuery({
     queryKey: keys.search(),
     queryFn: () => searchSpots(),
+    staleTime: SPOT_LIST_STALE_TIME_MS,
   });
 
   const recommendedPlaces = [...spots]

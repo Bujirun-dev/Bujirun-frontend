@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { keys, searchSpots } from "@/shared/api/domains/spot";
+import { keys, searchSpots, SPOT_LIST_STALE_TIME_MS } from "@/shared/api/domains/spot";
 
 type CollectionProgressValue = {
   total: number;
@@ -13,6 +13,7 @@ export function useCollectionProgress() {
   const { data = [], ...query } = useQuery({
     queryKey: keys.search(),
     queryFn: () => searchSpots(),
+    staleTime: SPOT_LIST_STALE_TIME_MS,
   });
 
   const { total, count, categoryProgress } = useMemo(() => {
