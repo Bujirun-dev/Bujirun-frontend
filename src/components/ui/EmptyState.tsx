@@ -53,7 +53,12 @@ export function EmptyState({
             {/* 캐릭터 뒤 블러 */}
             <div
               aria-hidden
-              className="pointer-events-none absolute bottom-10 left-1/2 z-0 h-[50px] w-[200px] -translate-x-1/2 rounded-full bg-main-blue/50 blur-3xl"
+              className="pointer-events-none absolute bottom-8 left-[36%] z-0 h-[80px] w-[190px] -translate-x-1/2 rounded-full bg-main-blue/50 blur-3xl"
+            />
+
+            <div
+              aria-hidden
+              className="pointer-events-none absolute bottom-8 left-[64%] z-0 h-[80px] w-[190px] -translate-x-1/2 rounded-full bg-sub-violet/50 blur-3xl"
             />
 
             {/* 캐릭터 */}
@@ -82,7 +87,7 @@ export function EmptyState({
                   />
                   {/* 왼쪽 눈동자 */}
                   <motion.span
-                    className="absolute left-[40%] top-[65%] size-[12px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-system-black"
+                    className="absolute z-30 left-[40%] top-[65%] size-[12px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-system-black"
                     animate={{
                       x: [0, 0, -4, 4, -4, 4, 0, 0],
                       y: [
@@ -110,7 +115,7 @@ export function EmptyState({
                   />
                   {/* 오른쪽 눈동자 */}
                   <motion.span
-                    className="absolute left-[60%] top-[65%] size-[12px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-system-black"
+                    className="absolute z-30 left-[60%] top-[65%] size-[12px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-system-black"
                     animate={{
                       x: [0, 0, -4, 4, -4, 4, 0, 0],
                       y: [
@@ -139,8 +144,30 @@ export function EmptyState({
                 </div>
               </motion.div>
             </div>
+
+            {/* 등장 강조선 */}
+            <motion.div
+              aria-hidden
+              className="pointer-events-none absolute bottom-14 left-1/2 z-30 -translate-x-1/2"
+              animate={{ opacity: [0, 0, 1, 1, 0, 0] }}
+              transition={{
+                duration: 10,
+                times: [0, 0.09, 0.1, 0.18, 0.19, 1],
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            >
+              <span className="absolute -left-[22px] top-[1px] h-[2px] w-[8px] origin-center rotate-[55deg] rounded-full bg-sub-gray" />
+              <span className="absolute -left-[4px] -top-[3px] h-[2px] w-[10px] origin-center rotate-90 rounded-full bg-sub-gray" />
+              <span className="absolute left-[15px] top-[1px] h-[2px] w-[8px] origin-center -rotate-[55deg] rounded-full bg-sub-gray" />
+            </motion.div>
+
             {/* 홀 */}
-            <div className="relative z-10 h-[24px] w-[190px] rounded-[50%] bg-system-blackbg/40" />
+            <div className="relative z-10 h-[28px] w-[190px] rounded-[50%] bg-system-blackbg/20 shadow-[inset_0_8px_12px_rgba(0,0,0,0.28),inset_0_-3px_5px_rgba(255,255,255,0.14)]">
+              <div className="absolute inset-x-[10px] top-[5px] h-[14px] rounded-[50%] bg-system-blackbg/30 blur-[1px]" />
+              <div className="absolute inset-x-[18px] bottom-[2px] h-[6px] rounded-[50%] bg-main-whitebg" />
+            </div>
+
             {/* 손 */}
             <motion.div
               className="pointer-events-none absolute bottom-1 z-30 flex w-[150px] justify-between px-[8px]"
@@ -149,7 +176,7 @@ export function EmptyState({
               }}
               transition={{
                 duration: 10,
-                times: [0, 0.2, 0.35, 0.351, 0.97, 0.971, 1],
+                times: [0, 0.2, 0.3, 0.301, 0.97, 0.971, 1],
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
@@ -159,7 +186,7 @@ export function EmptyState({
             </motion.div>
             {/* 멘트 */}
             <motion.p
-              className="absolute bottom-21 z-30 font-ssurround text-sm font-bold tracking-[0.08em] text-text-heading"
+              className="absolute bottom-21.5 z-30 font-ssurround text-sm font-bold tracking-[0.08em] text-text-heading"
               animate={{
                 opacity: [0, 0, 1, 1, 0, 0],
               }}
@@ -173,7 +200,7 @@ export function EmptyState({
               HMM...
             </motion.p>
             <motion.p
-              className="absolute bottom-21 z-30 font-ssurround text-sm font-bold tracking-[0.08em] text-text-heading"
+              className="absolute bottom-21.5 z-30 font-ssurround text-sm font-bold tracking-[0.08em] text-text-heading"
               animate={{
                 opacity: [0, 0, 1, 1, 0, 0],
               }}
@@ -189,7 +216,7 @@ export function EmptyState({
           </div>
         )}
 
-        <div className={cn("flex flex-col items-center gap-2", variant === "default" && "mt-3")}>
+        <div className={cn("flex flex-col items-center gap-1.5", variant === "default" && "mt-6")}>
           <p
             className={cn(
               "font-ssurround font-bold text-text-heading",
@@ -215,7 +242,7 @@ export function EmptyState({
           <div
             className={cn(
               "pointer-events-auto flex w-full gap-2",
-              variant === "default" ? "mt-2" : "",
+              variant === "default" ? "mt-2.5" : "",
             )}
           >
             {secondaryAction && (
