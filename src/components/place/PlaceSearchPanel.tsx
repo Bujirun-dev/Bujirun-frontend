@@ -153,7 +153,7 @@ export function PlaceSearchPanel({
   }, [debouncedSearchValue, sortBy, categoryFilter]);
 
   // category는 서버 쿼리로 안 넘긴다 — 백엔드 필터 파라미터가 어떤 값을 받는지 보장이
-  // 안 돼서, 항목별로 이미 내려오는 category 필드를 우리 4개 카테고리로 매핑해
+  // 안 돼서, 항목별로 이미 내려오는 collectionCategory 필드를 우리 4개 카테고리로 매핑해
   // 프론트에서 직접 필터링한다(아래 categoryFiltered).
   const { data: searchResults, isLoading } = useQuery({
     queryKey: spotApi.keys.search({
@@ -170,7 +170,7 @@ export function PlaceSearchPanel({
   const mapped: SearchPlace[] = (searchResults ?? []).map((spot) => ({
     id: spot.spotId ?? spot.name ?? "",
     name: spot.name ?? "이름 미상",
-    category: getCategoryFromKo(spot.category ?? "", spot.name),
+    category: getCategoryFromKo(spot.collectionCategory ?? "", spot.name),
     // 도감에 없는 관광지(isCollection: false)는 수집 여부 배지를 아예 안 보여준다.
     status: spot.isCollection ? (spot.collected ? "completed" : "uncollected") : undefined,
     imageUrl: spot.thumbnailUrl || getFallbackImage(spot.spotId ?? spot.name),

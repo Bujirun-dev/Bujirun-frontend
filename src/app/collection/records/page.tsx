@@ -47,7 +47,7 @@ export default function CollectionRecordsPage() {
   // 최애 카테고리 계산
   const favoriteCategory = useMemo(() => {
     const count = collectedPlaces.reduce<Partial<Record<Category, number>>>((acc, place) => {
-      const category = getCategoryFromKo(place.category, place.name);
+      const category = getCategoryFromKo(place.collectionCategory, place.name);
 
       acc[category] = (acc[category] ?? 0) + 1;
 

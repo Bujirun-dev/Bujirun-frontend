@@ -86,7 +86,7 @@ export function PlaceSection() {
             />
 
             <div className="absolute right-2 top-2">
-              <CategoryChip category={toCategory(place.category)} variant="strong" />
+              <CategoryChip category={toCategory(place.collectionCategory)} variant="strong" />
             </div>
 
             <div className="absolute bottom-2 left-2">
