@@ -680,7 +680,7 @@ function ItineraryMain({
       time: existingTime,
       placeName: place.name,
       imageUrl: place.imageUrl,
-      category: place.category,
+      category: place.collectionCategory,
       status: place.status === "completed" ? "completed" : "verify",
     });
     logActivity("replace", place.name);
@@ -720,7 +720,7 @@ function ItineraryMain({
       ),
       placeName: place.name,
       imageUrl: place.imageUrl,
-      category: place.category,
+      category: place.collectionCategory,
       status: place.status === "completed" ? "completed" : "verify",
     };
     logActivity("add", place.name);

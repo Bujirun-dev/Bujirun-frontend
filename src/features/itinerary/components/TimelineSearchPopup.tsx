@@ -31,7 +31,7 @@ function SelectedPlacePreview({
   const { place, toggleBookmark, relatedLogs } = useSpotDetail(selectedPlace.id, {
     name: selectedPlace.name,
     imageUrl: selectedPlace.imageUrl,
-    category: selectedPlace.category,
+    category: selectedPlace.collectionCategory,
   });
 
   return (

@@ -87,11 +87,10 @@ export function Shelf({ spots, category, onSpotClick }: ShelfProps) {
                         onClick={() => spot.spotId && onSpotClick?.(spot.spotId)}
                       >
                         <Image
-                          src={`/collection/${spot.name}.png`}
+                          src={`/collection/${spot.name}.webp`}
                           alt={spot.name}
                           width={70}
                           height={70}
-                          unoptimized
                           className={`aspect-square max-w-[70px] w-full border border-collection-border object-contain ${
                             spot.collectedAt ? "" : "grayscale opacity-80"
                           }`}

@@ -13,15 +13,15 @@ interface RecommendedPlaceCardProps {
 export function RecommendedPlaceCard({ place }: RecommendedPlaceCardProps) {
   const router = useRouter();
 
-  if (!place.thumbnailUrl || !place.name || !place.spotId || !place.category) {
+  if (!place.thumbnailUrl || !place.name || !place.spotId || !place.collectionCategory) {
     return null;
   }
 
-  const category = place.category.includes("자연")
+  const collectionCategory = place.collectionCategory.includes("자연")
     ? "nature"
-    : place.category.includes("바다")
+    : place.collectionCategory.includes("바다")
       ? "sea"
-      : place.category.includes("문화")
+      : place.collectionCategory.includes("문화")
         ? "culture"
         : "experience";
 
@@ -29,7 +29,7 @@ export function RecommendedPlaceCard({ place }: RecommendedPlaceCardProps) {
     <PlaceCard
       imageUrl={place.thumbnailUrl}
       name={place.name}
-      category={category}
+      category={collectionCategory}
       status="pending"
       showBookmark
       isBookmarked={place.collected}

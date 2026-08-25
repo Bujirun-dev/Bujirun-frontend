@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ParticipantAvatarGrid, ShareInviteModal } from "@/features/itinerary/components";
 import { groupApi, userApi } from "@/shared/api/domains";
-import { initKakaoShare } from "@/shared/utils/kakaoShare";
 import { LoadingState, Toast } from "@/components";
 
 function PageLoadingFallback() {
@@ -54,10 +53,6 @@ function TripInviteContent() {
     queryKey: userApi.keys.me(),
     queryFn: userApi.getMyProfile,
   });
-
-  useEffect(() => {
-    initKakaoShare();
-  }, []);
 
   const goToPersonality = () => {
     const nextParams = new URLSearchParams({

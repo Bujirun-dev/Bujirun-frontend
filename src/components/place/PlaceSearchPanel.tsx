@@ -84,7 +84,7 @@ function getInitial(name: string): string {
 export type SearchPlace = {
   id: string;
   name: string;
-  category: Category;
+  collectionCategory: Category;
   // 도감(수집) 대상이 아닌 관광지는 수집 상태 자체가 의미 없어서 undefined —
   // 이 경우 배지를 아예 안 보여준다.
   status?: "uncollected" | "completed";
@@ -153,7 +153,7 @@ export function PlaceSearchPanel({
   }, [debouncedSearchValue, sortBy, categoryFilter]);
 
   // category는 서버 쿼리로 안 넘긴다 — 백엔드 필터 파라미터가 어떤 값을 받는지 보장이
-  // 안 돼서, 항목별로 이미 내려오는 category 필드를 우리 4개 카테고리로 매핑해
+  // 안 돼서, 항목별로 이미 내려오는 collectionCategory 필드를 우리 4개 카테고리로 매핑해
   // 프론트에서 직접 필터링한다(아래 categoryFiltered).
   const { data: searchResults, isLoading } = useQuery({
     queryKey: spotApi.keys.search({
@@ -170,7 +170,7 @@ export function PlaceSearchPanel({
   const mapped: SearchPlace[] = (searchResults ?? []).map((spot) => ({
     id: spot.spotId ?? spot.name ?? "",
     name: spot.name ?? "이름 미상",
-    category: getCategoryFromKo(spot.category ?? "", spot.name),
+    collectionCategory: getCategoryFromKo(spot.collectionCategory ?? "", spot.name),
     // 도감에 없는 관광지(isCollection: false)는 수집 여부 배지를 아예 안 보여준다.
     status: spot.isCollection ? (spot.collected ? "completed" : "uncollected") : undefined,
     imageUrl: spot.thumbnailUrl || getFallbackImage(spot.spotId ?? spot.name),
@@ -179,7 +179,7 @@ export function PlaceSearchPanel({
   const filtered: SearchPlace[] =
     categoryFilter === "all"
       ? mapped
-      : mapped.filter((place) => place.category === CATEGORY_LABEL_KO[categoryFilter]);
+      : mapped.filter((place) => place.collectionCategory === CATEGORY_LABEL_KO[categoryFilter]);
 
   const sorted = [...filtered].sort((a, b) => a.name.localeCompare(b.name, "ko"));
 
@@ -275,7 +275,7 @@ export function PlaceSearchPanel({
             <PlaceSearchItem
               key={place.id}
               name={place.name}
-              category={place.category}
+              category={place.collectionCategory}
               status={place.status}
               imageUrl={place.imageUrl}
               onClick={() => {
@@ -283,7 +283,7 @@ export function PlaceSearchPanel({
                   onPlaceSelect({
                     id: place.id,
                     name: place.name,
-                    category: place.category,
+                    collectionCategory: place.collectionCategory,
                     status: place.status,
                     imageUrl: place.imageUrl,
                   });
@@ -326,7 +326,7 @@ export function PlaceSearchPanel({
                             onPlaceSelect({
                               id: place.id,
                               name: place.name,
-                              category: place.category,
+                              collectionCategory: place.collectionCategory,
                               status: place.status,
                               imageUrl: place.imageUrl,
                             });

@@ -12,8 +12,8 @@ declare global {
 
 // 카카오 디벨로퍼스 콘솔에서 "카카오톡 공유" 활성화 + Web 플랫폼 도메인 등록 + JS 키 발급이 끝나야 동작한다.
 // 그 전까지는 window.Kakao가 없거나 초기화가 안 되어 있으니 항상 false를 반환해 호출부가 클립보드 복사로 대체하게 한다.
-export function initKakaoShare(): boolean {
-  if (typeof window === "undefined" || !window.Kakao) return false;
+export async function initKakaoShare(): Promise<boolean> {
+  if (typeof window === "undefined" || !(await loadKakaoShareSdk()) || !window.Kakao) return false;
   if (window.Kakao.isInitialized()) return true;
 
   // 카카오 디벨로퍼스 앱은 JavaScript 키가 하나뿐이라, 카카오맵에 쓰는 키를 그대로 재사용한다.
@@ -36,13 +36,13 @@ interface ShareInviteLinkParams {
 }
 
 // 카카오톡 공유 카드로 전송을 시도한다. SDK가 준비돼 있지 않으면 false를 반환한다.
-export function shareInviteLink({
+export async function shareInviteLink({
   title,
   description,
   imageUrl,
   inviteUrl,
-}: ShareInviteLinkParams): boolean {
-  if (!initKakaoShare() || !window.Kakao) return false;
+}: ShareInviteLinkParams): Promise<boolean> {
+  if (!(await initKakaoShare()) || !window.Kakao) return false;
 
   try {
     window.Kakao.Share.sendDefault({
@@ -65,3 +65,4 @@ export function shareInviteLink({
     return false;
   }
 }
+import { loadKakaoShareSdk } from "./kakaoSdk";
