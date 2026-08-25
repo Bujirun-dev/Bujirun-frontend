@@ -17,7 +17,7 @@ export function RecommendedPlaceCard({ place }: RecommendedPlaceCardProps) {
     return null;
   }
 
-  const category = place.collectionCategory.includes("자연")
+  const collectionCategory = place.collectionCategory.includes("자연")
     ? "nature"
     : place.collectionCategory.includes("바다")
       ? "sea"
@@ -29,7 +29,7 @@ export function RecommendedPlaceCard({ place }: RecommendedPlaceCardProps) {
     <PlaceCard
       imageUrl={place.thumbnailUrl}
       name={place.name}
-      category={category}
+      category={collectionCategory}
       status="pending"
       showBookmark
       isBookmarked={place.collected}
