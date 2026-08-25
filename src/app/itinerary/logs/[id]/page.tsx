@@ -67,6 +67,10 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
             code={404}
             title="로그를 찾을 수 없어요"
             description="삭제되었거나 존재하지 않는 로그예요."
+            primaryAction={{
+              label: "이전으로 돌아가기",
+              onClick: () => router.back(),
+            }}
           />
         ) : (
           <>

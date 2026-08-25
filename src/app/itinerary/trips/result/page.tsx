@@ -324,7 +324,14 @@ function TripResultContent() {
           code={503}
           title="일정 생성에 실패했어요"
           description="잠시 후 다시 시도해주세요."
-          onRetry={() => refetchGenerate()}
+          primaryAction={{
+            label: "다시 시도",
+            onClick: () => refetchGenerate(),
+          }}
+          secondaryAction={{
+            label: "홈으로 돌아가기",
+            onClick: () => router.push("/home"),
+          }}
         />
       </div>
     );

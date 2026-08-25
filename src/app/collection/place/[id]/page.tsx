@@ -23,6 +23,10 @@ export default function CollectionPlaceDetailPage({ params }: { params: Promise<
             code={404}
             title="관광지를 찾을 수 없어요"
             description="삭제되었거나 존재하지 않는 페이지예요."
+            primaryAction={{
+              label: "도감으로 돌아가기",
+              onClick: () => router.push(`/collection?category=${encodeURIComponent(category)}`),
+            }}
           />
         ) : (
           <PlaceDetailContent

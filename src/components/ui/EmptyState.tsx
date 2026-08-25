@@ -216,7 +216,7 @@ export function EmptyState({
           </div>
         )}
 
-        <div className={cn("flex flex-col items-center gap-1.5", variant === "default" && "mt-6")}>
+        <div className={cn("flex flex-col items-center gap-3", variant === "default" && "mt-6")}>
           <p
             className={cn(
               "font-ssurround font-bold text-text-heading",
@@ -242,7 +242,7 @@ export function EmptyState({
           <div
             className={cn(
               "pointer-events-auto flex w-full gap-2",
-              variant === "default" ? "mt-2.5" : "",
+              variant === "default" ? "mt-4" : "",
             )}
           >
             {secondaryAction && (

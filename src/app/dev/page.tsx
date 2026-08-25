@@ -2,31 +2,28 @@
 
 import { useRouter } from "next/navigation";
 
-import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
 
 export default function DevPage() {
   const router = useRouter();
 
-  const handleStart = () => {
-    router.push("/home");
-  };
-
-  const handleBack = () => {
-    router.back();
+  const handleRetry = () => {
+    router.refresh();
   };
 
   return (
-    <section className="flex min-h-full items-center justify-center">
-      <EmptyState
-        title="아직 여행 기록이 없어요"
-        description="여행을 시작하고 나만의 기록을 남겨보세요."
-        secondaryAction={{
-          label: "뒤로가기",
-          onClick: handleBack,
-        }}
+    <section className="flex min-h-full items-center justify-center bg-main-white">
+      <ErrorState
+        code={503}
+        title="일정 생성에 실패했어요"
+        description="잠시 후 다시 시도해주세요."
         primaryAction={{
-          label: "여행 시작하기",
-          onClick: handleStart,
+          label: "다시 시도",
+          onClick: () => refetchGenerate(),
+        }}
+        secondaryAction={{
+          label: "홈으로 돌아가기",
+          onClick: () => router.push("/home"),
         }}
       />
     </section>
