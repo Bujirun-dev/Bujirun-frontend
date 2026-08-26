@@ -62,7 +62,7 @@ export function EmptyState({
                 className="absolute inset-x-0 bottom-0 flex justify-center"
                 initial={{ y: 180 }}
                 animate={{
-                  y: [180, 110, 110, 180, 180, 30, 30, 180, 180],
+                  y: [180, 110, 110, 180, 180, 20, 20, 180, 180],
                 }}
                 transition={{
                   duration: 15,
@@ -71,19 +71,19 @@ export function EmptyState({
                   ease: "easeInOut",
                 }}
               >
-                <div className="relative w-[130px]">
+                <div className="relative w-[105px]">
                   <Image
                     src={emptyCharacter}
                     alt="캐릭터"
-                    width={130}
+                    width={105}
                     priority
                     className="block h-auto w-full"
                   />
                   {/* 왼쪽 눈동자 */}
                   <motion.span
-                    className="absolute z-30 left-[37%] top-[48%] w-[6px] h-[7px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-system-black"
+                    className="absolute z-30 left-[37%] top-[48%] w-[5px] h-[7px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-system-black"
                     animate={{
-                      x: [0, 0, -3, 3, -3, 3, 0, 0],
+                      x: [0, 0, -2.5, 2.5, -2.5, 2.5, 0, 0],
                     }}
                     transition={{
                       duration: 15,
@@ -94,9 +94,9 @@ export function EmptyState({
                   />
                   {/* 오른쪽 눈동자 */}
                   <motion.span
-                    className="absolute z-30 right-[33%] top-[50%] w-[6px] h-[8px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-system-black"
+                    className="absolute z-30 right-[33%] top-[50%] w-[5px] h-[7px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-system-black"
                     animate={{
-                      x: [0, 0, -3, 3, -3, 3, 0, 0],
+                      x: [0, 0, -2.5, 2.5, -2.5, 2.5, 0, 0],
                     }}
                     transition={{
                       duration: 15,
@@ -144,14 +144,14 @@ export function EmptyState({
             </div>
 
             {/* 홀 */}
-            <div className="relative z-10 h-[28px] w-[190px] rounded-[50%] bg-text-primary/30 shadow-[inset_0_8px_12px_rgba(0,0,0,0.1),inset_0_-3px_5px_rgba(255,255,255,0.14)]">
+            <div className="relative z-10 h-[28px] w-[150px] rounded-[50%] bg-text-primary/30 shadow-[inset_0_8px_12px_rgba(0,0,0,0.1),inset_0_-3px_5px_rgba(255,255,255,0.14)]">
               <div className="absolute inset-x-[10px] top-[5px] h-[14px] rounded-[50%] bg-text-primary/50 blur-[1px]" />
               <div className="absolute inset-x-[18px] bottom-[2px] h-[6px] rounded-[50%] bg-main-whitebg" />
             </div>
 
             {/* 손 */}
             <motion.div
-              className="pointer-events-none absolute -bottom-4 z-30 w-[100px]"
+              className="pointer-events-none absolute -bottom-4 z-30 w-[80px]"
               animate={{
                 opacity: [0, 0, 0, 1, 1, 0, 0],
               }}
@@ -165,7 +165,7 @@ export function EmptyState({
               <Image
                 src={emptyPaws}
                 alt="빈 상태 캐릭터 손"
-                width={100}
+                width={80}
                 className="block h-auto w-full"
               />
             </motion.div>
@@ -187,7 +187,7 @@ export function EmptyState({
             </motion.p>
 
             <motion.p
-              className="absolute bottom-35 z-30 font-ssurround text-sm font-bold tracking-[0.08em] text-text-heading"
+              className="absolute bottom-30 z-30 font-ssurround text-sm font-bold tracking-[0.08em] text-text-heading"
               animate={{
                 opacity: [0, 0, 1, 1, 0, 0],
               }}
