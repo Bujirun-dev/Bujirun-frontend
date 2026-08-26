@@ -315,6 +315,7 @@ export function ItineraryTimeline({
 
         {isEmpty && !isAddingNew && (
           <EmptyState
+            className="-translate-y-5"
             title="아직 이 날 일정이 없어요"
             description="가고 싶은 관광지를 추가해 일정을 채워보세요!"
             primaryAction={{

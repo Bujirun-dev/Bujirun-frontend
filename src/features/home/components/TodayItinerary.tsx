@@ -181,7 +181,7 @@ export function TodayItinerary() {
     router.replace(`/home/review?itineraryId=${reviewTarget.id}`);
   }, [completedItineraries, logExists, router]);
 
-  if (isError || !hasSchedule || !day) {
+  if (isError || !hasSchedule || !day || plans.length === 0) {
     return (
       <LoadingBoundary isLoading={isLoading} message="오늘의 일정을 불러오는 중이에요">
         <div>

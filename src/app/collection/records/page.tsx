@@ -70,6 +70,7 @@ export default function CollectionRecordsPage() {
       })),
     [myLogs],
   );
+
   const [selectedDeleteTripId, setSelectedDeleteTripId] = useState<number | null>(null);
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
@@ -208,14 +209,17 @@ export default function CollectionRecordsPage() {
         <div className="flex flex-1 flex-col gap-5">
           <LoadingBoundary isLoading={isLogsLoading} message="여행 기록을 불러오는 중이에요">
             {!isLogsError && records.length === 0 && (
-              <EmptyState
-                title="아직 저장된 여행 기록이 없어요"
-                description="여행을 시작하고 기록을 남겨보세요!"
-                primaryAction={{
-                  label: "여행 시작하기",
-                  onClick: () => router.push("/itinerary/trips/new"),
-                }}
-              />
+              <div className="flex flex-1 -translate-y-17 items-center justify-center">
+                <EmptyState
+                  variant="compact"
+                  title="아직 저장된 여행 기록이 없어요"
+                  description="여행을 시작하고 기록을 남겨보세요!"
+                  primaryAction={{
+                    label: "여행 시작하기",
+                    onClick: () => router.push("/itinerary/trips/new"),
+                  }}
+                />
+              </div>
             )}
 
             {!isLogsError &&

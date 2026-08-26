@@ -58,6 +58,7 @@ function TripSwipeContent() {
     queryKey: collectionApi.keys.swipeDeck(),
     queryFn: () => collectionApi.getSwipeDeck(),
   });
+
   const places = useMemo(
     () =>
       (spotsData ?? []).map((spot) => ({
@@ -141,20 +142,23 @@ function TripSwipeContent() {
 
   if (!place) {
     return (
-      <LoadingBoundary isLoading={isLoading} message="관광지를 불러오는 중이에요">
-        <EmptyState
-          title="추천할 관광지를 찾지 못했어요"
-          description="잠시 후 다시 시도하거나 이전 단계로 돌아가보세요."
-          secondaryAction={{
-            label: "뒤로가기",
-            onClick: () => router.back(),
-          }}
-          primaryAction={{
-            label: isFetching ? "불러오는 중..." : "다시 시도",
-            onClick: () => void refetch(),
-          }}
-        />
-      </LoadingBoundary>
+      <div className="absolute inset-0 z-10 -translate-y-10 bg-main-white">
+        <LoadingBoundary isLoading={isLoading} message="관광지를 불러오는 중이에요">
+          <EmptyState
+            title="추천할 관광지를 찾지 못했어요"
+            description="잠시 후 다시 시도하거나 이전 단계로 돌아가보세요."
+            secondaryAction={{
+              label: "뒤로가기",
+              onClick: () => router.back(),
+            }}
+            primaryAction={{
+              label: isFetching ? "불러오는 중..." : "다시 시도",
+              onClick: () => void refetch(),
+            }}
+            className="h-full"
+          />
+        </LoadingBoundary>
+      </div>
     );
   }
 

@@ -8,7 +8,7 @@ export default function NotFound() {
   const router = useRouter();
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="absolute inset-0 z-10 bg-main-white">
       <ErrorState
         code={404}
         primaryAction={{

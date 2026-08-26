@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import errorCharacter from "@/assets/character/error/error.png";
+import errorCharacter from "@/assets/character/state/error.png";
 import { Button } from "./Button";
 import { cn } from "@/shared/utils";
 
@@ -84,13 +84,15 @@ export function ErrorState({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
       className={cn(
-        "flex flex-1 flex-col items-center justify-center px-6 py-10 text-center",
+        "flex min-h-full w-full flex-1 flex-col items-center justify-center px-6 py-10 text-center",
         className,
       )}
     >
-      <div className="relative flex items-center justify-center">
+      <div className="relative flex h-[220px] w-[220px] items-center justify-center overflow-visible">
+        {/* 캐릭터 뒤 블러 */}
         <div className="absolute size-[160px] rounded-full bg-main-blue/30 blur-3xl" />
 
+        {/* 왼쪽 효과 */}
         <motion.svg
           viewBox="0 0 24 24"
           className="absolute left-11 top-6.5 size-2.5 text-main-blue"
@@ -201,6 +203,7 @@ export function ErrorState({
           />
         </motion.svg>
 
+        {/* 오른쪽 효과 */}
         <motion.svg viewBox="0 0 60 60" className="absolute right-6 top-5 size-6 -rotate-18">
           <motion.path
             d="M8 45 C18 30, 22 52, 32 35 S45 20, 52 30"
@@ -320,6 +323,7 @@ export function ErrorState({
           <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1" />
         </motion.svg>
 
+        {/* 캐릭터 */}
         <motion.div
           animate={{ y: [0, -10, 0] }}
           transition={{
@@ -338,6 +342,7 @@ export function ErrorState({
         </motion.div>
       </div>
 
+      {/* 문구 */}
       <div className="mt-2 flex flex-col items-center gap-3">
         <p className="font-ssurround text-lg font-bold text-text-heading">
           {title ?? preset.title}
@@ -350,6 +355,7 @@ export function ErrorState({
         )}
       </div>
 
+      {/* 버튼 */}
       {(primaryAction || secondaryAction) && (
         <div className="pointer-events-auto mt-4 flex w-full gap-2">
           {secondaryAction && (

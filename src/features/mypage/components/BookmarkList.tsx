@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BookmarkCard } from "./BookmarkCard";
-import { Toast, EmptyState, LoadingBoundary } from "@/components";
+import { Toast, EmptyState, LoadingBoundary, ErrorState } from "@/components";
 import { bookmarkApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import type { Category } from "@/components";
@@ -27,7 +27,12 @@ export function BookmarkList() {
   const [toastVariant, setToastVariant] = useState<"success" | "error">("success");
   const [toastVisible, setToastVisible] = useState(false);
 
-  const { data: bookmarks = [], isLoading } = useQuery({
+  const {
+    data: bookmarks = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: bookmarkApi.keys.list(),
     queryFn: () => bookmarkApi.getBookmarks(),
     enabled: !!accessToken,
@@ -45,10 +50,26 @@ export function BookmarkList() {
       setToastVisible(true);
     },
   });
+
+  if (isError) {
+    return (
+      <ErrorState
+        code={500}
+        title="북마크를 불러오지 못했어요"
+        description="잠시 후 다시 시도해주세요."
+        primaryAction={{
+          label: "다시 시도하기",
+          onClick: () => refetch(),
+        }}
+      />
+    );
+  }
+
   return (
     <LoadingBoundary isLoading={isLoading} message="북마크를 불러오는 중이에요">
       {bookmarks.length === 0 ? (
         <EmptyState
+          className="-translate-y-5"
           title="아직 저장된 관광지가 없어요"
           description={
             <>
