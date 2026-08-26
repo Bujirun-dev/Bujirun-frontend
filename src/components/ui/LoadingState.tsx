@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import loading1 from "@/assets/loading/loading1.png";
-import loading2 from "@/assets/loading/loading2.png";
-import loading3 from "@/assets/loading/loading3.png";
-import loading4 from "@/assets/loading/loading4.png";
-import loading5 from "@/assets/loading/loading5.png";
-import loadingTurtle from "@/assets/loading/loading_turtle.png";
+import loading1 from "@/assets/character/loading/loading1.png";
+import loading2 from "@/assets/character/loading/loading2.png";
+import loading3 from "@/assets/character/loading/loading3.png";
+import loading4 from "@/assets/character/loading/loading4.png";
+import loading5 from "@/assets/character/loading/loading5.png";
+import loadingTurtle from "@/assets/character/loading/loading_turtle.png";
 import { Modal } from "@/components/ui/Modal";
 import { SpeechBubble } from "@/components/ui/SpeechBubble";
 import { cn } from "@/shared/utils";
