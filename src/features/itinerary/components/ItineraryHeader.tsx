@@ -27,7 +27,7 @@ export function ItineraryHeader({
       <button
         type="button"
         onClick={onMembersClick}
-        aria-label="함께하는 친구"
+        aria-label="여행 멤버"
         className="flex-1 truncate text-left text-lg font-bold text-sub-deepblue"
       >
         {tripName}

@@ -3,27 +3,7 @@
 import Image from "next/image";
 import faceImg from "@/assets/character/face.png";
 import { cn } from "@/shared/utils";
-
-const SLOT_LAYOUTS: Record<number, number[]> = {
-  2: [2],
-  3: [3],
-  4: [2, 2],
-  5: [2, 3],
-  6: [3, 3],
-};
-
-function buildRows(total: number): number[][] {
-  const rowCounts = SLOT_LAYOUTS[total] ?? SLOT_LAYOUTS[6];
-  let idx = 0;
-
-  return rowCounts.map((count) =>
-    Array.from({ length: count }, () => {
-      const current = idx;
-      idx += 1;
-      return current;
-    }),
-  );
-}
+import { buildAvatarRows } from "../utils/avatarLayout";
 
 function ParticipantAvatar({ active }: { active: boolean }) {
   return (
@@ -56,7 +36,7 @@ export function ParticipantAvatarGrid({
   activeCount,
   className,
 }: ParticipantAvatarGridProps) {
-  const rows = buildRows(total);
+  const rows = buildAvatarRows(total);
 
   return (
     <div className={cn("flex flex-col items-center gap-y-3", className)}>

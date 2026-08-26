@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Modal, Toast, Button, LoadingState } from "@/components";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { itineraryApi } from "@/shared/api/domains";
-import { saveTripTimeBounds } from "@/shared/utils/tripTimeBounds";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
 
@@ -102,9 +101,11 @@ function VoteWaitingContent() {
             : {}),
         });
         if (newItineraryId) {
-          saveTripTimeBounds(newItineraryId, startTime, endTime, {
-            name: accommodation,
-            address: accommodationAddress,
+          await itineraryApi.updateItinerary(newItineraryId, {
+            startTime,
+            endTime,
+            accommodationName: accommodation,
+            accommodationAddress,
           });
         }
       }

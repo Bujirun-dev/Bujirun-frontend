@@ -16,7 +16,7 @@ interface ReissueData {
 }
 
 // 로그인 없이 접근 가능한 경로
-const PUBLIC_PATHS = ["/login", "/auth/kakao/callback", "/signup"];
+const PUBLIC_PATHS = ["/login", "/auth/kakao/callback", "/signup", "/join"];
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const setAccessToken = useAuthStore((s) => s.setAccessToken);

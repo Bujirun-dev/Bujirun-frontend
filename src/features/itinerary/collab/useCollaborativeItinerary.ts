@@ -15,10 +15,10 @@ import {
   readStopsFromYjs,
   reconcileTransportFromRest,
   replaceStop as yReplaceStop,
+  replaceStopsWithImportedLog as yReplaceStopsWithImportedLog,
   resolveTempId,
   seedYjsDays,
   shiftFollowingStopTimes as yShiftFollowingStopTimes,
-  updateStopStatus as yUpdateStopStatus,
   updateStopTime as yUpdateStopTime,
   updateStopTransport as yUpdateStopTransport,
   type ActivityAction,
@@ -66,6 +66,22 @@ export function useCollaborativeItinerary(
   // days가 서버에 이미 있던 days와 합쳐져 개수가 배로 늘어나는 버그가 있었다.)
   const [doc] = useState(() => new Y.Doc());
   const [stopsPerDay, setStopsPerDay] = useState<BaseStop[][]>(initialDays);
+
+  // 방문인증 완료(status==="completed") 여부는 "나"만의 상태라 Yjs 공유 문서에는 아예
+  // 안 싣는다(itineraryYjsSchema의 LOCAL_ONLY_FIELDS 참고) — 대신 이 컴포넌트 로컬
+  // state로만 들고 있다가 stopsPerDay를 노출할 때 덧씌운다. 그래야 같은 일정을 보고
+  // 있는 다른 그룹원이 인증해도 내 화면엔 반영되지 않고, 내가 직접 인증했을 때만 내
+  // 화면에서 바로 "완료"로 바뀐다(REST로 재조회해도 백엔드가 개인별로 계산해주므로
+  // 동일한 값으로 수렴함).
+  const [completedStopIds, setCompletedStopIds] = useState<Set<string>>(
+    () =>
+      new Set(
+        initialDays
+          .flat()
+          .filter((stop) => stop.status === "completed")
+          .map((stop) => stop.id),
+      ),
+  );
 
   // effect/콜백 안에서 최신 값을 읽기 위한 ref (stale closure 방지). 렌더 중 값을 그대로
   // 대입하면 안 되므로(react-hooks/refs) effect에서 매 렌더 최신값으로 갱신한다.
@@ -283,8 +299,17 @@ export function useCollaborativeItinerary(
     yLogActivity(doc, currentUser?.nickname ?? "누군가", action, placeName);
   };
 
+  // stopsPerDay(Yjs 유래, 그룹 공유)엔 status가 없으므로(itineraryYjsSchema 참고), 여기서
+  // 로컬 전용 completedStopIds를 덧씌워 화면에 넘긴다.
+  const stopsPerDayWithStatus = stopsPerDay.map((day) =>
+    day.map((stop) => ({
+      ...stop,
+      status: (completedStopIds.has(stop.id) ? "completed" : "verify") as BaseStop["status"],
+    })),
+  );
+
   return {
-    stopsPerDay,
+    stopsPerDay: stopsPerDayWithStatus,
     status,
     seeded,
     collaboratorsByStop,
@@ -302,10 +327,19 @@ export function useCollaborativeItinerary(
       yReplaceStop(doc, dayIdx, itemId, newStop),
     updateStopTransport: (dayIdx: number, itemId: string, transport: BaseStop["transport"]) =>
       yUpdateStopTransport(doc, dayIdx, itemId, transport),
-    updateStopStatus: (dayIdx: number, itemId: string, status: BaseStop["status"]) =>
-      yUpdateStopStatus(doc, dayIdx, itemId, status),
+    // 인증완료 표시는 "나"만의 로컬 상태다 — Yjs로 보내지 않고 이 클라이언트의 state만
+    // 바꾼다(status===undefined면 되돌리기, 지금은 완료 표시 전용으로만 호출됨).
+    updateStopStatus: (_dayIdx: number, itemId: string, status: BaseStop["status"]) =>
+      setCompletedStopIds((prev) => {
+        const next = new Set(prev);
+        if (status === "completed") next.add(itemId);
+        else next.delete(itemId);
+        return next;
+      }),
     pushOptimizedOrder: (dayIdx: number, stops: BaseStop[]) =>
       yPushOptimizedOrder(doc, dayIdx, stops),
+    replaceStopsWithImportedLog: (dayIdx: number, stops: BaseStop[]) =>
+      yReplaceStopsWithImportedLog(doc, dayIdx, stops),
     shiftFollowingStopTimes: (
       dayIdx: number,
       fromItemId: string,

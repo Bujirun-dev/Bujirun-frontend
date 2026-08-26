@@ -184,11 +184,13 @@ export function PlaceDetailContent({
     <div className={cn("flex flex-col", compact ? "gap-3 py-3" : "gap-5 py-5")}>
       {/* 소개 */}
       <section className="flex flex-col gap-2">
-        <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-xl")}>소개</h2>
+        <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-lg")}>소개</h2>
         <p
           className={cn(
-            "whitespace-pre-line tracking-[0.015em] text-text-primary",
-            compact ? "text-xs font-normal leading-loose" : "text-md leading-[1.75]",
+            "whitespace-pre-line text-text-primary",
+            compact
+              ? "text-xs font-normal leading-loose tracking-[0.015em]"
+              : "text-md leading-[1.85] tracking-[0.025em]",
             canExpandDescription && !isDescriptionExpanded && "line-clamp-3",
           )}
         >
@@ -210,7 +212,7 @@ export function PlaceDetailContent({
       {/* 위치 */}
       <section className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-xl")}>
+          <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-lg")}>
             위치
           </h2>
           {mapUrl && (
@@ -234,7 +236,7 @@ export function PlaceDetailContent({
         <>
           <hr className="border-[0.3px] border-sub-lightgray" />
           <section className="flex flex-col gap-2">
-            <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-xl")}>
+            <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-lg")}>
               정보
             </h2>
             <Card
@@ -260,7 +262,7 @@ export function PlaceDetailContent({
           <hr className="border-[0.3px] border-sub-lightgray" />
           <section className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-xl")}>
+              <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-lg")}>
                 관련 로그
               </h2>
               {relatedLogsHref ? (
@@ -350,7 +352,7 @@ export function PlaceDetailContent({
     <div
       className={cn(
         "relative w-full shrink-0 overflow-hidden",
-        compact ? "h-[145px] rounded-[10px]" : "h-[210px] rounded-[15px]",
+        compact ? "h-[145px] rounded-[10px]" : "h-[195px] rounded-[15px]",
       )}
     >
       <Image src={imageUrl} alt={name} fill sizes="390px" className="object-cover" />
@@ -364,8 +366,8 @@ export function PlaceDetailContent({
         {toast}
         <div
           className={cn(
-            "absolute inset-x-0 top-0 z-20 flex shrink-0 items-center gap-3 bg-main-white",
-            compact ? "h-9" : "h-11",
+            "absolute inset-x-0 top-0 z-20 flex shrink-0 gap-3 bg-main-white",
+            compact ? "h-9 items-center" : "h-11 items-start",
           )}
         >
           <BackButton className="bg-transparent" onClick={onBack} />

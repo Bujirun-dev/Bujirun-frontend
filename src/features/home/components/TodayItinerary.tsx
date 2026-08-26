@@ -10,7 +10,7 @@ import { useAuthStore } from "@/shared/stores/useAuthStore";
 import { TransportSummaryCard } from "@/features/home/components/TransportSummaryCard";
 import { TransportDetailModal } from "@/features/home/components/TransportDetailModal";
 import { ArrivalVerifyModal } from "@/features/itinerary/components/ArrivalVerifyModal";
-import { openKakaoMapRoute } from "@/features/itinerary/components/TransportSelectSheet";
+import { openKakaoMapRoute } from "@/features/itinerary/components/transportRoute";
 import { getSelectedTransportOption } from "@/features/home/data/sampleTransport";
 import { isReviewSkipped } from "@/shared/utils/skippedReviews";
 import type {

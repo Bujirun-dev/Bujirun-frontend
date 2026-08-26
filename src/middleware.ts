@@ -2,7 +2,14 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // 로그인 없이 접근 가능한 경로
-const PUBLIC_PATHS = ["/login", "/auth/kakao/callback", "/signup", "/join"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/auth/kakao/callback",
+  "/signup",
+  "/join",
+  "/manifest.webmanifest",
+  "/icons",
+];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

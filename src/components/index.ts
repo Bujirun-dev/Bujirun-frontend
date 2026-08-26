@@ -41,3 +41,5 @@ export type { ErrorStateCode } from "./ui/ErrorState";
 export { PlaceSearchPanel } from "./place/PlaceSearchPanel";
 export type { SearchPlace, PlaceSearchState } from "./place/PlaceSearchPanel";
 export { PlaceSearchItem } from "./place/PlaceSearchItem";
+//개인정보
+export { PrivacyPolicyModal } from "./legal/PrivacyPolicyModal";

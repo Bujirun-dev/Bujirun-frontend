@@ -645,7 +645,7 @@ export interface paths {
         head?: never;
         /**
          * 방문 항목 이동수단 변경 (담당: 윤제승)
-         * @description 사용자가 도보/대중교통/택시 중 원하는 이동수단을 선택하면, 직전 방문 항목과의 구간을 해당 수단 기준으로 재계산해 저장합니다.
+         * @description 사용자가 도보(walk)/택시(taxi)/버스 전용(bus)/지하철 전용(subway)/버스+지하철 조합(combo) 중 원하는 이동수단을 선택하면, 직전 방문 항목과의 구간을 해당 수단 기준으로 재계산해 저장합니다. transit은 하위호환용으로 대중교통 중 가장 빠른 옵션이 선택됩니다.
          */
         patch: operations["updateTravelMode"];
         trace?: never;
@@ -928,7 +928,7 @@ export interface paths {
         };
         /**
          * 이동수단 변경 후보 옵션 조회 (담당: 윤제승)
-         * @description 직전 방문 항목과의 구간에 대해 선택 가능한 이동수단 후보(버스/지하철/택시/도보)와 각각의 실제 소요시간·요금을 조회합니다. DB에 저장된 값이 아니라 매번 새로 계산한 값이며, 확정하려면 이동수단 변경(travel-mode) API를 별도로 호출해야 합니다.
+         * @description 직전 방문 항목과의 구간에 대해 선택 가능한 이동수단 후보와 각각의 실제 소요시간·요금을 조회합니다. 대중교통은 ODsay가 pathType별로 계산해준 지하철 전용/버스 전용/버스+지하철 조합을 각각 별도 옵션(type: "지하철"/"버스"/"버스+지하철")으로 반환하며, 요금은 실제 계산값입니다. DB에 저장된 값이 아니라 매번 새로 계산한 값이며, 확정하려면 이동수단 변경(travel-mode) API를 별도로 호출해야 합니다(travelMode에 walk/taxi/bus/subway/combo 중 선택한 옵션의 종류를 그대로 전달).
          */
         get: operations["getTravelModeOptions"];
         put?: never;
@@ -1370,6 +1370,7 @@ export interface components {
             /** Format: uuid */
             userId?: string;
             nickname?: string;
+            profileImageUrl?: string;
             /** Format: date-time */
             joinedAt?: string;
             isLeader?: boolean;
@@ -1491,6 +1492,12 @@ export interface components {
             /** Format: date */
             endAt?: string;
             endTime?: string;
+            accommodationName?: string;
+            accommodationAddress?: string;
+            /** Format: double */
+            accommodationLat?: number;
+            /** Format: double */
+            accommodationLng?: number;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
@@ -1578,6 +1585,7 @@ export interface components {
             routeNo?: string;
             /** Format: int32 */
             sectionTime?: number;
+            startArsId?: string;
             subwaySchedule?: components["schemas"]["SubwaySegmentTimetable"];
         };
         CreateItineraryRequest: {
@@ -1886,6 +1894,12 @@ export interface components {
             /** Format: date */
             endAt?: string;
             endTime?: string;
+            accommodationName?: string;
+            accommodationAddress?: string;
+            /** Format: double */
+            accommodationLat?: number;
+            /** Format: double */
+            accommodationLng?: number;
             status?: string;
         };
         ItineraryOptimizeRequest: {

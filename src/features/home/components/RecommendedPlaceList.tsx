@@ -1,17 +1,18 @@
 "use client";
 
-import { searchSpots } from "@/shared/api/domains/spot";
+import { keys, searchSpots, SPOT_LIST_STALE_TIME_MS } from "@/shared/api/domains/spot";
 import { useQuery } from "@tanstack/react-query";
 import { RecommendedPlaceCard } from "@/features/home/components/RecommendedPlaceCard";
 import { EmptyState, LoadingBoundary } from "@/components";
 
 export function RecommendedPlaceList() {
   const { data: places = [], isLoading } = useQuery({
-    queryKey: ["recommended-spots"],
+    queryKey: keys.search({ sort: "RECOMMEND" }),
     queryFn: () =>
       searchSpots({
         sort: "RECOMMEND",
       }),
+    staleTime: SPOT_LIST_STALE_TIME_MS,
   });
 
   const recommendedPlaces = places.filter((place) => place.isCollection && !place.collected);

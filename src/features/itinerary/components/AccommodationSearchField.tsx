@@ -8,11 +8,19 @@ import type { KakaoPlaceResult } from "@/shared/types/kakao-map";
 export interface AccommodationPlace {
   name: string;
   address: string;
+  lat?: number;
+  lng?: number;
 }
 
 interface AccommodationSearchFieldProps {
   value: AccommodationPlace | null;
   onChange: (place: AccommodationPlace | null) => void;
+  // 기본 트리거(입력창/칩) 대신 다른 화면에 맞는 트리거를 직접 그리고 싶을 때 사용.
+  // 검색 모달을 여는 함수만 넘겨주고, 모달 자체는 이 컴포넌트가 계속 관리한다.
+  renderTrigger?: (args: {
+    value: AccommodationPlace | null;
+    onOpen: () => void;
+  }) => React.ReactNode;
 }
 
 function useDebouncedValue<T>(value: T, delayMs: number): T {
@@ -25,7 +33,7 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
 }
 
 // 카카오맵 SDK는 layout.tsx에서 autoload=false로 로드되므로, 최초 사용 시점에
-// kakao.maps.load()로 한 번 초기화해줘야 한다 (TransportSelectSheet의 지오코딩과 동일한 패턴).
+// kakao.maps.load()로 한 번 초기화해줘야 한다 (openKakaoMapRoute의 지오코딩과 동일한 패턴).
 function loadKakaoMaps(): Promise<boolean> {
   return new Promise((resolve) => {
     if (window.kakao?.maps) {
@@ -45,7 +53,11 @@ function loadKakaoMaps(): Promise<boolean> {
   });
 }
 
-export function AccommodationSearchField({ value, onChange }: AccommodationSearchFieldProps) {
+export function AccommodationSearchField({
+  value,
+  onChange,
+  renderTrigger,
+}: AccommodationSearchFieldProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<KakaoPlaceResult[]>([]);
@@ -97,6 +109,8 @@ export function AccommodationSearchField({ value, onChange }: AccommodationSearc
     onChange({
       name: place.place_name,
       address: place.road_address_name || place.address_name,
+      lat: Number(place.y),
+      lng: Number(place.x),
     });
     handleClose();
   };
@@ -108,7 +122,9 @@ export function AccommodationSearchField({ value, onChange }: AccommodationSearc
 
   return (
     <>
-      {value ? (
+      {renderTrigger ? (
+        renderTrigger({ value, onOpen: handleOpen })
+      ) : value ? (
         <div
           role="button"
           tabIndex={0}

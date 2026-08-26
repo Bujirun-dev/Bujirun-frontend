@@ -13,16 +13,24 @@ import { getErrorMessage } from "@/shared/utils";
 
 type ModalState = { type: "edit"; trip: Trip } | { type: "delete"; trip: Trip } | null;
 
-function toTripDate(apiDate?: string): string {
+// apiTime이 없으면(옛날 트립 등 아직 시간이 저장 안 된 경우에만) 00:00으로 대체한다 —
+// 실제 저장된 시간이 있는데 여기서 무시하고 00:00을 보여주면, 사용자가 이름/날짜만
+// 고치고 저장해도 진짜 시작/종료 시간이 조용히 자정으로 덮어써진다.
+function toTripDate(apiDate?: string, apiTime?: string): string {
   if (!apiDate) {
     const today = new Date();
-    return `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, "0")}.${String(today.getDate()).padStart(2, "0")} 00:00`;
+    return `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, "0")}.${String(today.getDate()).padStart(2, "0")} ${apiTime ?? "00:00"}`;
   }
-  return `${apiDate.replaceAll("-", ".")} 00:00`;
+  return `${apiDate.replaceAll("-", ".")} ${apiTime ?? "00:00"}`;
 }
 
 function toApiDate(tripDate: string): string {
   return tripDate.split(" ")[0].replaceAll(".", "-");
+}
+
+// "YYYY.MM.DD HH:mm"에서 시간만 뽑아낸다
+function toApiTime(tripDate: string): string {
+  return tripDate.split(" ")[1] ?? "00:00";
 }
 
 export default function TripsPage() {
@@ -31,6 +39,7 @@ export default function TripsPage() {
   const [modal, setModal] = useState<ModalState>(null);
   const [completedAction, setCompletedAction] = useState<"delete" | "leave" | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   const { data: summaries, isLoading } = useQuery({
     queryKey: itineraryApi.keys.lists(),
@@ -40,8 +49,8 @@ export default function TripsPage() {
   const trips: Trip[] = (summaries ?? []).map((summary) => ({
     id: summary.id ?? "",
     name: summary.title ?? "제목 없음",
-    startDate: toTripDate(summary.startAt),
-    endDate: toTripDate(summary.endAt),
+    startDate: toTripDate(summary.startAt, summary.startTime),
+    endDate: toTripDate(summary.endAt, summary.endTime),
     groupId: summary.groupId,
   }));
 
@@ -77,6 +86,14 @@ export default function TripsPage() {
       setModal(null);
       const startAt = toApiDate(updated.startDate);
       const endAt = toApiDate(updated.endDate);
+      const startTime = toApiTime(updated.startDate);
+      const endTime = toApiTime(updated.endDate);
+      const previousStartTime = queryClient
+        .getQueryData<typeof summaries>(itineraryApi.keys.lists())
+        ?.find((summary) => summary.id === updated.id)?.startTime;
+      // 시작 시간이 실제로 밀렸으면 백엔드가 이후 일정들의 방문 시각도 같은 만큼 밀어준다
+      // (ItineraryService.update 참고) — 사용자가 그걸 모르고 넘어가지 않게 안내한다.
+      const timeShifted = Boolean(previousStartTime) && previousStartTime !== startTime;
 
       // 네트워크 응답을 기다리지 않고 목록에 바로 반영 — 실패하면 finally의 invalidate가
       // 서버 값으로 다시 맞춰준다.
@@ -91,7 +108,12 @@ export default function TripsPage() {
           title: updated.name,
           startAt,
           endAt,
+          startTime,
+          endTime,
         });
+        if (timeShifted) {
+          setInfoMessage("시작 시간이 바뀌어서 이후 일정 시간도 함께 조정됐어요.");
+        }
       } catch (error) {
         setErrorMessage(getErrorMessage(error, "여행 수정에 실패했어요. 다시 시도해주세요."));
       } finally {
@@ -206,6 +228,12 @@ export default function TripsPage() {
         onHide={() => setErrorMessage(null)}
         message={errorMessage ?? ""}
         variant="error"
+      />
+      <Toast
+        isVisible={infoMessage !== null}
+        onHide={() => setInfoMessage(null)}
+        message={infoMessage ?? ""}
+        variant="success"
       />
     </PageCard>
   );
