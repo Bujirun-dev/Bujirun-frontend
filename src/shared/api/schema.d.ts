@@ -462,6 +462,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/migration/tourapi-overview/summarize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** (담당: 유정) */
+        post: operations["summarizeTourApiOverviewDescriptions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/migration/tourapi-overview/run": {
         parameters: {
             query?: never;
@@ -1140,6 +1157,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/migration/tourapi-overview/summarize/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** (담당: 유정) */
+        get: operations["tourApiSummarizeStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/migration/tourapi-overview/status": {
         parameters: {
             query?: never;
@@ -1423,6 +1457,7 @@ export interface components {
             spotId?: string;
             spotName?: string;
             spotCategory?: string;
+            spotCollectionCategory?: string;
             spotAddress?: string;
             spotLat?: number;
             spotLng?: number;
@@ -2753,6 +2788,28 @@ export interface operations {
             };
         };
     };
+    summarizeTourApiOverviewDescriptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+    };
     runTourApiOverview: {
         parameters: {
             query?: never;
@@ -3665,6 +3722,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["BookmarkListResponse"][];
+                };
+            };
+        };
+    };
+    tourApiSummarizeStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: unknown;
+                    };
                 };
             };
         };

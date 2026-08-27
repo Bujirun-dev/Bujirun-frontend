@@ -130,7 +130,8 @@ export function TripReceipt({ receipt }: TripReceiptProps) {
                     <div className="min-w-0 space-y-1.5">
                       <p className="truncate font-bold">{place.name}</p>
                       <p className="text-xs font-bold">
-                        <span aria-hidden="true">{place.categoryIcon}</span> {place.category}
+                        <span aria-hidden="true">{place.categoryIcon}</span>{" "}
+                        {place.collectionCategory}
                       </p>
                     </div>
                   </li>
