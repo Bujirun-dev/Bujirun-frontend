@@ -13,6 +13,7 @@
   --color-sub-violet: #cab6ff;
   --color-sub-coral: #ff7f50;
   --color-sub-gray: #999999;
+  --color-sub-deepgray: #777777;
   --color-sub-darkgray: #888888;
   --color-sub-lightgray: #d9d9d9;
 
@@ -28,6 +29,7 @@
   /* System */
   --color-system-whitebg: rgba(255, 255, 255, 0.4);
   --color-system-blackbg: rgba(0, 0, 0, 0.4);
+  --color-system-black: #000000;
   --color-system-coralbg: #fff2ed;
   --color-system-navbg: #ecf5ff;
   --color-system-scroll: #d5e6ff;

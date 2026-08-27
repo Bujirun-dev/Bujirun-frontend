@@ -3,7 +3,7 @@
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { PageCard, LoadingState, ErrorState } from "@/components";
+import { PageCard, ErrorState, LoadingBoundary } from "@/components";
 import type { Category } from "@/components";
 import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
 import { bookmarkApi, spotApi, travelLogApi } from "@/shared/api/domains";
@@ -94,26 +94,6 @@ export default function RecommendedPlaceDetailPage({
     },
   });
 
-  if (isLoading) {
-    return (
-      <PageCard>
-        <LoadingState message="관광지 정보를 불러오는 중이에요" />
-      </PageCard>
-    );
-  }
-
-  if (isError || !spot || !spot.name) {
-    return (
-      <PageCard>
-        <ErrorState
-          code={404}
-          title="관광지를 찾을 수 없어요"
-          description="삭제되었거나 존재하지 않는 페이지예요."
-        />
-      </PageCard>
-    );
-  }
-
   const relatedLogs = logs.slice(0, 2).map((log) => ({
     id: log.id ?? "",
     imageUrl: log.thumbnailPhotoUrl ?? "",
@@ -122,47 +102,61 @@ export default function RecommendedPlaceDetailPage({
 
   return (
     <PageCard>
-      <PlaceDetailContent
-        onBack={() => router.back()}
-        place={{
-          imageUrl: spot.thumbnailUrl ?? `https://picsum.photos/seed/${id}/400/300`,
-          name: spot.name,
-          category: toCategory(spot.collectionCategory, spot.name),
-          description: spot.overview ?? "",
-          address: spot.address ?? "",
-          isBookmarked,
-          infoItems: [
-            ...(spot.operatingHours
-              ? [
-                  {
-                    type: "clock" as const,
-                    label: "운영시간",
-                    value: spot.operatingHours,
-                  },
-                ]
-              : []),
+      <LoadingBoundary isLoading={isLoading} message="관광지 정보를 불러오는 중이에요">
+        {isError || !spot || !spot.name ? (
+          <ErrorState
+            code={404}
+            title="관광지를 찾을 수 없어요"
+            description="삭제되었거나 존재하지 않는 페이지예요."
+            primaryAction={{
+              label: "추천 여행지로 돌아가기",
+              onClick: () => router.push("/home/recommend"),
+            }}
+          />
+        ) : (
+          <PlaceDetailContent
+            onBack={() => router.back()}
+            place={{
+              imageUrl: spot.thumbnailUrl ?? `https://picsum.photos/seed/${id}/400/300`,
+              name: spot.name,
+              category: toCategory(spot.collectionCategory, spot.name),
+              description: spot.overview ?? "",
+              address: spot.address ?? "",
+              isBookmarked,
+              infoItems: [
+                ...(spot.operatingHours
+                  ? [
+                      {
+                        type: "clock" as const,
+                        label: "운영시간",
+                        value: spot.operatingHours,
+                      },
+                    ]
+                  : []),
 
-            ...(spot.tel
-              ? [
-                  {
-                    type: "call" as const,
-                    label: "문의",
-                    value: spot.tel,
-                  },
-                ]
-              : []),
-          ],
-        }}
-        onBookmark={() => {
-          if (!isBookmarkPending) {
-            toggleBookmark();
-          }
-        }}
-        relatedLogs={relatedLogs}
-        onViewMoreLogs={() => router.push(`/home/recommend/${id}/related-logs`)}
-        getRelatedLogHref={(logId) => `/home/logs/${logId}`}
-        onLogClick={(logId) => router.push(`/home/logs/${logId}`)}
-      />
+                ...(spot.tel
+                  ? [
+                      {
+                        type: "call" as const,
+                        label: "문의",
+                        value: spot.tel,
+                      },
+                    ]
+                  : []),
+              ],
+            }}
+            onBookmark={() => {
+              if (!isBookmarkPending) {
+                toggleBookmark();
+              }
+            }}
+            relatedLogs={relatedLogs}
+            onViewMoreLogs={() => router.push(`/home/recommend/${id}/related-logs`)}
+            getRelatedLogHref={(logId) => `/home/logs/${logId}`}
+            onLogClick={(logId) => router.push(`/home/logs/${logId}`)}
+          />
+        )}
+      </LoadingBoundary>
     </PageCard>
   );
 }

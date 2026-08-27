@@ -364,12 +364,20 @@ function TripResultContent() {
 
   if (isGenerateError) {
     return (
-      <div className="flex h-full flex-col">
+      <div className="absolute inset-0 z-10 bg-main-white">
         <ErrorState
           code={503}
           title="일정 생성에 실패했어요"
           description="잠시 후 다시 시도해주세요."
-          onRetry={() => refetchGenerate()}
+          primaryAction={{
+            label: "다시 시도",
+            onClick: () => refetchGenerate(),
+          }}
+          secondaryAction={{
+            label: "홈으로 돌아가기",
+            onClick: () => router.push("/home"),
+          }}
+          className="h-full"
         />
       </div>
     );

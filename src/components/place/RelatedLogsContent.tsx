@@ -4,11 +4,11 @@ import { useRouter } from "next/navigation";
 import { BackButton } from "@/components/ui/BackButton";
 import { CategoryChip } from "@/components/ui/CategoryChip";
 import { PageCard } from "@/components/layout/PageCard";
-import { LoadingState } from "@/components/ui/LoadingState";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LogCard } from "@/features/itinerary";
 import type { Category } from "@/components/ui/CategoryChip";
 import type { components } from "@/shared/api/schema.d";
+import { LoadingBoundary } from "../ui/LoadingBoundary";
 
 type TravelLogSummary = components["schemas"]["TravelLogSummaryResponse"];
 
@@ -65,24 +65,28 @@ export function RelatedLogsContent({
       )}
 
       <div className="flex flex-1 flex-col overflow-y-auto pb-6">
-        {isLoading ? (
-          <LoadingState message="관련 로그를 불러오는 중이에요" />
-        ) : relatedLogs.length === 0 ? (
-          <EmptyState title="아직 관련 로그가 없어요" />
-        ) : (
-          <div className="flex flex-col gap-4">
-            {relatedLogs.map((log) => {
-              const cardProps = toLogCardProps(log);
-              return (
-                <LogCard
-                  key={log.id}
-                  {...cardProps}
-                  onClick={() => log.id && router.push(`${logHrefBase}/${log.id}`)}
-                />
-              );
-            })}
-          </div>
-        )}
+        <LoadingBoundary isLoading={isLoading ?? false} message="관련 로그를 불러오는 중이에요">
+          {relatedLogs.length === 0 ? (
+            <EmptyState
+              title="아직 관련 로그가 없어요"
+              description="이 관광지와 관련된 여행 로그가 아직 없어요."
+            />
+          ) : (
+            <div className="flex flex-col gap-4">
+              {relatedLogs.map((log) => {
+                const cardProps = toLogCardProps(log);
+
+                return (
+                  <LogCard
+                    key={log.id}
+                    {...cardProps}
+                    onClick={() => log.id && router.push(`${logHrefBase}/${log.id}`)}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </LoadingBoundary>
       </div>
     </PageCard>
   );

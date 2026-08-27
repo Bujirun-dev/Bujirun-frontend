@@ -12,7 +12,7 @@ import { RecordDeleteModal } from "@/features/collection/components/RecordDelete
 import { TripReceiptModal } from "@/features/receipt/components/TripReceiptModal";
 import type { ReceiptData } from "@/features/receipt/types/receipt";
 import bookIcon from "@/assets/icons/collection/book.png";
-import { Card, CategoryChip, PageCard, Toast, LoadingState, EmptyState } from "@/components";
+import { Card, CategoryChip, PageCard, Toast, EmptyState, LoadingBoundary } from "@/components";
 import type { Category } from "@/components/ui/CategoryChip";
 import { TripRecordItem } from "@/features/collection/components/TripRecordItem";
 import { getCategoryFromKo } from "@/shared/constants/category";
@@ -72,6 +72,7 @@ export default function CollectionRecordsPage() {
       })),
     [myLogs],
   );
+
   const [selectedDeleteTripId, setSelectedDeleteTripId] = useState<number | null>(null);
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
@@ -208,29 +209,33 @@ export default function CollectionRecordsPage() {
       {/* 하단 여행 기록 */}
       <PageCard>
         <div className="flex flex-1 flex-col gap-5">
-          {isLogsLoading && <LoadingState message="여행 기록을 불러오는 중이에요" />}
+          <LoadingBoundary isLoading={isLogsLoading} message="여행 기록을 불러오는 중이에요">
+            {!isLogsError && records.length === 0 && (
+              <div className="flex flex-1 -translate-y-17 items-center justify-center">
+                <EmptyState
+                  variant="compact"
+                  title="아직 저장된 여행 기록이 없어요"
+                  description="여행을 시작하고 기록을 남겨보세요!"
+                  primaryAction={{
+                    label: "여행 시작하기",
+                    onClick: () => router.push("/itinerary/trips/new"),
+                  }}
+                />
+              </div>
+            )}
 
-          {!isLogsLoading && !isLogsError && records.length === 0 && (
-            <EmptyState
-              title="아직 저장된 여행 기록이 없어요"
-              description="여행을 시작하고 기록을 남겨보세요!"
-              actionLabel="여행 시작하기"
-              onAction={() => router.push("/itinerary/trips/new")}
-            />
-          )}
-
-          {!isLogsLoading &&
-            !isLogsError &&
-            records.map((record) => (
-              <TripRecordItem
-                key={record.logId}
-                id={record.id}
-                title={record.title}
-                period={record.period}
-                onDelete={openDeleteModal}
-                onTitleClick={openReceiptModal}
-              />
-            ))}
+            {!isLogsError &&
+              records.map((record) => (
+                <TripRecordItem
+                  key={record.logId}
+                  id={record.id}
+                  title={record.title}
+                  period={record.period}
+                  onDelete={openDeleteModal}
+                  onTitleClick={openReceiptModal}
+                />
+              ))}
+          </LoadingBoundary>
         </div>
       </PageCard>
 

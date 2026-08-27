@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import CloseIcon from "@/assets/icons/mypage/close.svg?svgr";
-import { Modal, SearchBar, LoadingState, EmptyState } from "@/components";
+import { Modal, SearchBar, EmptyState, LoadingBoundary } from "@/components";
 import type { KakaoPlaceResult } from "@/shared/types/kakao-map";
 
 export interface AccommodationPlace {
@@ -176,35 +176,41 @@ export function AccommodationSearchField({
             className="!w-full"
             iconSize={11}
           />
-          <div
-            className={`w-full overflow-y-auto transition-[height] duration-200 ${
-              query.trim() ? "h-[276px]" : "h-0"
-            }`}
-          >
-            {isSearching ? (
-              <LoadingState message="검색하는 중이에요" />
-            ) : !query.trim() ? null : results.length === 0 ? (
-              <EmptyState title="검색 결과가 없어요" size="sm" />
-            ) : (
-              <ul className="flex flex-col gap-1">
-                {results.map((place) => (
-                  <li key={place.id}>
-                    <button
-                      type="button"
-                      onClick={() => handleSelect(place)}
-                      className="flex w-full flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 text-left active:bg-system-navbg"
-                    >
-                      <span className="font-paperlogy font-semibold text-xs text-text-primary">
-                        {place.place_name}
-                      </span>
-                      <span className="font-paperlogy font-medium text-2xs text-sub-gray">
-                        {place.road_address_name || place.address_name}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+          <div className="h-[276px] w-full overflow-y-auto">
+            <LoadingBoundary
+              isLoading={isSearching}
+              message="검색하는 중이에요..."
+              variant="inline"
+              delay={200}
+              minDuration={500}
+            >
+              {!query.trim() ? null : results.length === 0 ? (
+                <EmptyState
+                  variant="compact"
+                  title="검색 결과가 없어요."
+                  description="정확하게 입력했는지 확인해보세요!"
+                />
+              ) : (
+                <ul className="flex flex-col gap-1">
+                  {results.map((place) => (
+                    <li key={place.id}>
+                      <button
+                        type="button"
+                        onClick={() => handleSelect(place)}
+                        className="flex w-full flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 text-left active:bg-system-navbg"
+                      >
+                        <span className="font-paperlogy font-semibold text-xs text-text-primary">
+                          {place.place_name}
+                        </span>
+                        <span className="font-paperlogy font-medium text-2xs text-sub-gray">
+                          {place.road_address_name || place.address_name}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </LoadingBoundary>
           </div>
         </div>
       </Modal>

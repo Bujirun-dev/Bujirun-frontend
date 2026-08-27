@@ -7,7 +7,7 @@
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { PageCard, LoadingState, ErrorState } from "@/components";
+import { PageCard, ErrorState, LoadingBoundary } from "@/components";
 import { LogDetailContent, toLogDetailData } from "@/components/log/LogDetailContent";
 import { travelLogApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
@@ -27,30 +27,23 @@ export default function MypageLogDetailPage({ params }: { params: Promise<{ id: 
   const router = useRouter();
   const { data: log, isLoading } = useLogDetail(id);
 
-  if (isLoading) {
-    return (
-      <PageCard>
-        <LoadingState message="로그를 불러오는 중이에요" />
-      </PageCard>
-    );
-  }
-
-  if (!log) {
-    return (
-      <PageCard>
-        <ErrorState
-          code={404}
-          title="로그를 찾을 수 없어요"
-          description="삭제되었거나 존재하지 않는 로그예요."
-        />
-      </PageCard>
-    );
-  }
-
   return (
     <PageCard>
-      {/* 읽기 전용 — editableTags, editableRepresentativePhoto 미사용 */}
-      <LogDetailContent log={toLogDetailData(log)} onBack={() => router.back()} />
+      <LoadingBoundary isLoading={isLoading} message="로그를 불러오는 중이에요">
+        {!log ? (
+          <ErrorState
+            code={404}
+            title="로그를 찾을 수 없어요"
+            description="삭제되었거나 존재하지 않는 로그예요."
+            primaryAction={{
+              label: "이전으로 돌아가기",
+              onClick: () => router.back(),
+            }}
+          />
+        ) : (
+          <LogDetailContent log={toLogDetailData(log)} onBack={() => router.back()} />
+        )}
+      </LoadingBoundary>
     </PageCard>
   );
 }

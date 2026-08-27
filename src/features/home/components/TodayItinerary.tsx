@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { travelLogApi } from "@/shared/api/domains";
 import { useQuery } from "@tanstack/react-query";
-import { Card, StatusBadge, LoadingState, EmptyState } from "@/components";
+import { Card, StatusBadge, EmptyState, LoadingBoundary } from "@/components";
 import { useTodayItinerary } from "@/features/home/hooks/useTodayItinerary";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import { TransportSummaryCard } from "@/features/home/components/TransportSummaryCard";
@@ -181,150 +181,142 @@ export function TodayItinerary() {
     router.replace(`/home/review?itineraryId=${reviewTarget.id}`);
   }, [completedItineraries, logExists, router]);
 
-  if (isLoading) {
+  if (isError || !hasSchedule || !day || plans.length === 0) {
     return (
-      <div className="flex min-h-[220px] flex-col">
-        <LoadingState message="오늘의 일정을 불러오는 중이에요" />
-      </div>
-    );
-  }
+      <LoadingBoundary isLoading={isLoading} message="오늘의 일정을 불러오는 중이에요">
+        <div>
+          <div className="flex items-end gap-3">
+            <h2 className="font-ssurround text-lg text-text-heading">오늘의 일정</h2>
+          </div>
 
-  if (isError || !hasSchedule || !day) {
-    return (
-      <div>
-        <div className="flex items-end gap-3">
-          <h2 className="font-ssurround text-lg text-text-heading">오늘의 일정</h2>
+          <Card variant="glass-sm" className="relative mt-4 min-h-[140px]">
+            <EmptyState
+              variant="compact"
+              title="아직 여행 일정이 없어요!"
+              description="친구들과 부산 여행을 시작해보세요!"
+              primaryAction={{
+                label: "여행 시작하기",
+                onClick: handleStartTrip,
+              }}
+            />
+          </Card>
         </div>
-
-        <Card variant="glass-sm" className="mt-4">
-          <EmptyState
-            size="sm"
-            title="아직 여행 일정이 없어요!"
-            description="친구들과 부산 여행을 시작해보세요!"
-            actionLabel="여행 시작하기"
-            onAction={handleStartTrip}
-          />
-        </Card>
-      </div>
+      </LoadingBoundary>
     );
   }
 
   return (
-    <div>
-      <div className="flex items-end gap-3">
-        <h2 className="font-ssurround text-lg text-text-heading">오늘의 일정</h2>
-        <p className="font-paperlogy text-sm font-semibold text-sub-darkgray">
-          {formatDate(date ?? "")}
-        </p>
-      </div>
-
-      <ol className="mt-4">
-        {plans.map((plan, index) => {
-          const spotId = plan.spot?.id;
-          const placeName = plan.spot?.name ?? "이름 없는 장소";
-          const isVisited = plan.spot?.visited ?? false;
-          const nextPlan = plans[index + 1];
-          const nextPlaceName = nextPlan?.spot?.name;
-
-          // 이동 정보는 도착 스팟(nextPlan)에 저장된 실제 값을 그대로 쓴다.
-          const transportGroup = nextPlaceName
-            ? buildTransportGroup(placeName, nextPlaceName, nextPlan)
-            : null;
-          const selectedOptionId = transportGroup
-            ? (selectedOptionIdByRoute[getTransportRouteKey(transportGroup)] ??
-              transportGroup.selectedOptionId)
-            : undefined;
-          const selectedOption = transportGroup
-            ? getSelectedTransportOption(transportGroup, selectedOptionId)
-            : null;
-
-          return (
-            <li
-              key={plan.id ?? `${placeName}-${index}`}
-              className="relative flex items-start justify-between gap-2"
-            >
-              {index < plans.length - 1 && (
-                <span
-                  className="absolute left-[7.5px] top-[30px] bottom-[-15px] w-px bg-sub-gray"
-                  aria-hidden="true"
-                />
-              )}
-
-              <div className="flex min-w-0 flex-1 items-start gap-3 pt-[7px]">
-                <span
-                  className={
-                    isVisited
-                      ? "size-4 shrink-0 rounded-full bg-main-blue"
-                      : "size-4 shrink-0 rounded-full bg-sub-pink"
-                  }
-                />
-
-                <div className="min-w-0 flex-1">
-                  <p className="leading-4 text-md font-medium text-text-primary">{placeName}</p>
-                  {transportGroup && selectedOption ? (
-                    <button
-                      type="button"
-                      className="my-3 w-full text-left"
-                      onClick={() => openTransportModal(transportGroup)}
-                    >
-                      <TransportSummaryCard {...selectedOption} />
-                    </button>
-                  ) : (
-                    nextPlaceName && <p className="my-3 text-sm text-sub-darkgray">교통정보 없음</p>
-                  )}
+    <LoadingBoundary isLoading={isLoading} message="오늘의 일정을 불러오는 중이에요">
+      <div>
+        <div className="flex items-end gap-3">
+          <h2 className="font-ssurround text-lg text-text-heading">오늘의 일정</h2>
+          <p className="font-paperlogy text-sm font-semibold text-sub-darkgray">
+            {formatDate(date ?? "")}
+          </p>
+        </div>
+        <ol className="mt-4">
+          {plans.map((plan, index) => {
+            const spotId = plan.spot?.id;
+            const placeName = plan.spot?.name ?? "이름 없는 장소";
+            const isVisited = plan.spot?.visited ?? false;
+            const nextPlan = plans[index + 1];
+            const nextPlaceName = nextPlan?.spot?.name;
+            // 이동 정보는 도착 스팟(nextPlan)에 저장된 실제 값을 그대로 쓴다.
+            const transportGroup = nextPlaceName
+              ? buildTransportGroup(placeName, nextPlaceName, nextPlan)
+              : null;
+            const selectedOptionId = transportGroup
+              ? (selectedOptionIdByRoute[getTransportRouteKey(transportGroup)] ??
+                transportGroup.selectedOptionId)
+              : undefined;
+            const selectedOption = transportGroup
+              ? getSelectedTransportOption(transportGroup, selectedOptionId)
+              : null;
+            return (
+              <li
+                key={plan.id ?? `${placeName}-${index}`}
+                className="relative flex items-start justify-between gap-2"
+              >
+                {index < plans.length - 1 && (
+                  <span
+                    className="absolute left-[7.5px] top-[30px] bottom-[-15px] w-px bg-sub-gray"
+                    aria-hidden="true"
+                  />
+                )}
+                <div className="flex min-w-0 flex-1 items-start gap-3 pt-[7px]">
+                  <span
+                    className={
+                      isVisited
+                        ? "size-4 shrink-0 rounded-full bg-main-blue"
+                        : "size-4 shrink-0 rounded-full bg-sub-pink"
+                    }
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="leading-4 text-md font-medium text-text-primary">{placeName}</p>
+                    {transportGroup && selectedOption ? (
+                      <button
+                        type="button"
+                        className="my-3 w-full text-left"
+                        onClick={() => openTransportModal(transportGroup)}
+                      >
+                        <TransportSummaryCard {...selectedOption} />
+                      </button>
+                    ) : (
+                      nextPlaceName && (
+                        <p className="my-3 text-sm text-sub-darkgray">교통정보 없음</p>
+                      )
+                    )}
+                  </div>
                 </div>
-              </div>
-
-              {isVisited ? (
-                <StatusBadge
-                  status="completed"
-                  className="mt-[7px] shrink-0 px-2.5 py-1.5 text-sm"
-                />
-              ) : (
-                <button
-                  type="button"
-                  className="mt-[7px] shrink-0"
-                  onClick={() => {
-                    if (!spotId || !plan.id) return;
-
-                    openVerifyModal(spotId, placeName);
-                  }}
-                >
-                  <StatusBadge status="verify" className="px-2.5 py-1.5 text-sm" />
-                </button>
-              )}
-            </li>
-          );
-        })}
-      </ol>
-
-      <TransportDetailModal
-        isOpen={selectedTransportGroup !== null}
-        transportGroup={selectedTransportGroup ?? EMPTY_TRANSPORT_GROUP}
-        selectedOptionId={
-          selectedTransportGroup
-            ? (selectedOptionIdByRoute[getTransportRouteKey(selectedTransportGroup)] ??
-              selectedTransportGroup.selectedOptionId)
-            : EMPTY_TRANSPORT_GROUP.selectedOptionId
-        }
-        onClose={closeTransportModal}
-        onChange={handleChangeTransportOption}
-        onKakaoMapClick={() =>
-          selectedTransportGroup &&
-          openKakaoMapRoute(selectedTransportGroup.fromPlace, selectedTransportGroup.toPlace)
-        }
-      />
-      {selectedVerifySpot && itinerary?.id && (
-        <ArrivalVerifyModal
-          spotId={selectedVerifySpot.spotId}
-          itineraryId={itinerary.id}
-          isOpen
-          placeName={selectedVerifySpot.placeName}
-          onClose={closeVerifyModal}
-          onVerify={closeVerifyModal}
-          onLater={closeVerifyModal}
+                {isVisited ? (
+                  <StatusBadge
+                    status="completed"
+                    className="mt-[7px] shrink-0 px-2.5 py-1.5 text-sm"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    className="mt-[7px] shrink-0"
+                    onClick={() => {
+                      if (!spotId || !plan.id) return;
+                      openVerifyModal(spotId, placeName);
+                    }}
+                  >
+                    <StatusBadge status="verify" className="px-2.5 py-1.5 text-sm" />
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+        <TransportDetailModal
+          isOpen={selectedTransportGroup !== null}
+          transportGroup={selectedTransportGroup ?? EMPTY_TRANSPORT_GROUP}
+          selectedOptionId={
+            selectedTransportGroup
+              ? (selectedOptionIdByRoute[getTransportRouteKey(selectedTransportGroup)] ??
+                selectedTransportGroup.selectedOptionId)
+              : EMPTY_TRANSPORT_GROUP.selectedOptionId
+          }
+          onClose={closeTransportModal}
+          onChange={handleChangeTransportOption}
+          onKakaoMapClick={() =>
+            selectedTransportGroup &&
+            openKakaoMapRoute(selectedTransportGroup.fromPlace, selectedTransportGroup.toPlace)
+          }
         />
-      )}
-    </div>
+        {selectedVerifySpot && itinerary?.id && (
+          <ArrivalVerifyModal
+            spotId={selectedVerifySpot.spotId}
+            itineraryId={itinerary.id}
+            isOpen
+            placeName={selectedVerifySpot.placeName}
+            onClose={closeVerifyModal}
+            onVerify={closeVerifyModal}
+            onLater={closeVerifyModal}
+          />
+        )}
+      </div>
+    </LoadingBoundary>
   );
 }

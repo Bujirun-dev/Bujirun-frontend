@@ -2,7 +2,7 @@
 
 import { Fragment, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Modal, Toast, LoadingState, Button } from "@/components";
+import { Modal, Toast, Button, LoadingState } from "@/components";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { itineraryApi } from "@/shared/api/domains";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";

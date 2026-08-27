@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import faceImg from "@/assets/character/face.png";
 import swipeRightIcon from "@/assets/icons/itinerary/swipe-right.png";
 import swipeLeftIcon from "@/assets/icons/itinerary/swipe-left.png";
-import { SpeechBubble, LoadingState, Toast, Button } from "@/components";
+import { SpeechBubble, Toast, Button, LoadingState } from "@/components";
 import { collectionApi, swipeApi } from "@/shared/api/domains";
 
 const TOTAL_SLOTS = 6; // mock - 실제로는 searchParams 또는 API

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import HotelIcon from "@/assets/icons/itinerary/hotel.svg?svgr";
 import PencilIcon from "@/assets/icons/itinerary/pencil.svg?svgr";
-import { PageCard, Toast, EmptyState, LoadingState } from "@/components";
+import { PageCard, Toast, EmptyState, LoadingBoundary, LoadingState } from "@/components";
 import {
   ItineraryHeader,
   SlidingTimeline,
@@ -157,6 +157,7 @@ const ACTIVITY_MESSAGES: Record<ActivityAction, (entry: ActivityLogEntry) => str
 
 function ItineraryEmptyState() {
   const router = useRouter();
+
   return (
     <PageCard>
       <EmptyState
@@ -168,8 +169,10 @@ function ItineraryEmptyState() {
             여행을 시작해볼까요?
           </>
         }
-        actionLabel="여행 목록 보기"
-        onAction={() => router.push("/itinerary/trips")}
+        primaryAction={{
+          label: "여행 목록 보기",
+          onClick: () => router.push("/itinerary/trips"),
+        }}
       />
     </PageCard>
   );
@@ -178,7 +181,7 @@ function ItineraryEmptyState() {
 function RouteLoadingFallback() {
   return (
     <PageCard>
-      <LoadingState />
+      <LoadingState variant="inline" />
     </PageCard>
   );
 }
@@ -229,15 +232,14 @@ function ItineraryPageContent() {
     enabled: !!itineraryId,
   });
 
-  if (isListLoading || isDetailLoading) {
-    return (
-      <PageCard>
-        <LoadingState message="일정을 불러오는 중이에요" />
-      </PageCard>
-    );
-  }
+  const isLoading = isListLoading || isDetailLoading;
+
   if (!itineraries || itineraries.length === 0 || !itineraryId || !detail) {
-    return <ItineraryEmptyState />;
+    return (
+      <LoadingBoundary isLoading={isLoading} message="일정을 불러오는 중이에요">
+        <ItineraryEmptyState />
+      </LoadingBoundary>
+    );
   }
 
   // 시작/종료 시간, 숙소 전부 백엔드(Itinerary 엔티티)에 저장된 값을 그대로 쓴다.
@@ -255,16 +257,18 @@ function ItineraryPageContent() {
   const { days, dates, dayIds } = mapItineraryDetailToDays(detail, tripTimeBounds);
 
   return (
-    <ItineraryMain
-      key={itineraryId}
-      itineraryId={itineraryId}
-      groupId={detail.groupId}
-      tripTitle={detail.title ?? selectedItinerary?.title}
-      initialDays={days}
-      initialDates={dates}
-      dayIds={dayIds}
-      tripTimeBounds={tripTimeBounds}
-    />
+    <LoadingBoundary isLoading={isLoading} message="일정을 불러오는 중이에요">
+      <ItineraryMain
+        key={itineraryId}
+        itineraryId={itineraryId}
+        groupId={detail.groupId}
+        tripTitle={detail.title ?? selectedItinerary?.title}
+        initialDays={days}
+        initialDates={dates}
+        dayIds={dayIds}
+        tripTimeBounds={tripTimeBounds}
+      />
+    </LoadingBoundary>
   );
 }
 
