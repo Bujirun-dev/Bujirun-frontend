@@ -173,6 +173,7 @@ export function VendingMachine({
                                 alt={spot.name}
                                 width={56}
                                 height={56}
+                                unoptimized
                                 className={`mx-auto aspect-square w-full max-w-[56px] rounded-[6px] border-[1px] border-collection-border object-contain ${
                                   spot.collectedAt ? "" : "grayscale opacity-80"
                                 }`}

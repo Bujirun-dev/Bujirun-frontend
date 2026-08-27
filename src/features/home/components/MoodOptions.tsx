@@ -32,7 +32,7 @@ export function MoodOptions({ selectedMood, onSelect, className }: MoodOptionsPr
             type="button"
             aria-label={`${mood} 기분 선택`}
             className={cn(
-              "flex size-7 shrink-0 items-center justify-center rounded-full transition active:scale-95",
+              "flex size-6 shrink-0 items-center justify-center rounded-full transition active:scale-95",
               isSelected ? "bg-main-blue" : "bg-main-white border border-main-blue/20",
             )}
             onClick={() => onSelect(mood)}
