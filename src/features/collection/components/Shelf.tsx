@@ -91,6 +91,7 @@ export function Shelf({ spots, category, onSpotClick }: ShelfProps) {
                           alt={spot.name}
                           width={70}
                           height={70}
+                          unoptimized
                           className={`aspect-square max-w-[70px] w-full border border-collection-border object-contain ${
                             spot.collectedAt ? "" : "grayscale opacity-80"
                           }`}
