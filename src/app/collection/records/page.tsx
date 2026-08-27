@@ -306,7 +306,7 @@ export default function CollectionRecordsPage() {
                       <div key={place.spotId} className="flex min-w-0 flex-col items-center gap-4">
                         <button
                           type="button"
-                          onClick={() => router.push(`/place/${place.spotId}`)}
+                          onClick={() => router.push(`/collection/place/${place.spotId}`)}
                           className="z-10"
                         >
                           <Image
@@ -315,7 +315,7 @@ export default function CollectionRecordsPage() {
                             width={72}
                             height={72}
                             unoptimized
-                            className="aspect-square w-[72px] object-contain"
+                            className="aspect-square w-[72px] object-contain border border-collection-border"
                           />
                         </button>
 
