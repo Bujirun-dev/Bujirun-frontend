@@ -70,7 +70,6 @@ export default function CollectionRecordsPage() {
 
       return acc;
     }, {});
-
     return Object.entries(count).sort(([, a], [, b]) => (b ?? 0) - (a ?? 0))[0]?.[0] as
       Category | undefined;
   }, [collectedPlaces]);
