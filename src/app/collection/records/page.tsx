@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import shelfImage from "@/assets/collection/shelf-all.png";
 import { cn } from "@/shared/utils";
 import { useMemo, useState, useCallback } from "react";
@@ -22,11 +22,14 @@ import { getCategoryFromKo } from "@/shared/constants/category";
 export default function CollectionRecordsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
   const [toast, setToast] = useState<{
     message: string;
     variant: "success" | "error";
   } | null>(null);
-  const [summaryView, setSummaryView] = useState<"records" | "places">("records");
+  const [summaryView, setSummaryView] = useState<"records" | "places">(
+    searchParams.get("view") === "places" ? "places" : "records",
+  );
   const {
     data: myLogs = [],
     isLoading: isLogsLoading,
@@ -69,8 +72,7 @@ export default function CollectionRecordsPage() {
     }, {});
 
     return Object.entries(count).sort(([, a], [, b]) => (b ?? 0) - (a ?? 0))[0]?.[0] as
-      | Category
-      | undefined;
+      Category | undefined;
   }, [collectedPlaces]);
 
   // 여행 기록 관련 상태
