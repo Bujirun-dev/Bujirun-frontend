@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import shelfImage from "@/assets/collection/shelf-all.png";
 import { cn } from "@/shared/utils";
 import { useMemo, useState, useCallback } from "react";
@@ -22,11 +22,14 @@ import { getCategoryFromKo } from "@/shared/constants/category";
 export default function CollectionRecordsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
   const [toast, setToast] = useState<{
     message: string;
     variant: "success" | "error";
   } | null>(null);
-  const [summaryView, setSummaryView] = useState<"records" | "places">("records");
+  const [summaryView, setSummaryView] = useState<"records" | "places">(
+    searchParams.get("view") === "places" ? "places" : "records",
+  );
   const {
     data: myLogs = [],
     isLoading: isLogsLoading,
@@ -41,7 +44,6 @@ export default function CollectionRecordsPage() {
     staleTime: SPOT_LIST_STALE_TIME_MS,
   });
 
-  // 수집된 장소 목록
   const collectedPlaces = useMemo(
     () => spots.filter((spot) => spot.isCollection && spot.collected),
     [spots],
@@ -58,7 +60,6 @@ export default function CollectionRecordsPage() {
     return rows;
   }, [collectedPlaces]);
 
-  // 최애 카테고리 계산
   const favoriteCategory = useMemo(() => {
     const count = collectedPlaces.reduce<Partial<Record<Category, number>>>((acc, place) => {
       const collectionCategory = getCategoryFromKo(place.collectionCategory, place.name);
@@ -73,7 +74,6 @@ export default function CollectionRecordsPage() {
       | undefined;
   }, [collectedPlaces]);
 
-  // 여행 기록 관련 상태
   const records = useMemo(
     () =>
       myLogs.map((log, index) => ({
@@ -89,7 +89,6 @@ export default function CollectionRecordsPage() {
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
-  // 삭제 모달
   const openDeleteModal = useCallback((tripId: number) => {
     setSelectedDeleteTripId(tripId);
   }, []);
@@ -98,7 +97,6 @@ export default function CollectionRecordsPage() {
     setSelectedDeleteTripId(null);
   }, []);
 
-  // 영수증 모달
   const openReceiptModal = useCallback((tripId: number) => {
     setSelectedTripId(tripId);
     setIsReceiptOpen(true);
@@ -145,7 +143,6 @@ export default function CollectionRecordsPage() {
       ? convertTripLogToReceipt(selectedTravelLog, me.id, me.nickname, profileImage)
       : undefined;
 
-  // 여행 기록 삭제
   const handleDelete = async () => {
     if (selectedDeleteTripId === null) return;
 
@@ -178,7 +175,6 @@ export default function CollectionRecordsPage() {
 
   return (
     <section className="relative flex h-full flex-col gap-6">
-      {/*상단 요약 카드 */}
       <Card variant="white" className="rounded-[25px]">
         <div className="px-5 py-2">
           <div className="flex items-center gap-2">
@@ -256,7 +252,6 @@ export default function CollectionRecordsPage() {
         </div>
       </Card>
 
-      {/* 하단 여행 기록 / 수집 관광지 */}
       <PageCard>
         {summaryView === "records" ? (
           <div className="flex flex-1 flex-col gap-5 pt-4">
@@ -339,7 +334,6 @@ export default function CollectionRecordsPage() {
         )}
       </PageCard>
 
-      {/* 삭제 확인 모달 */}
       <RecordDeleteModal
         isOpen={selectedDeleteTrip !== null}
         tripName={selectedDeleteTrip?.title ?? ""}
@@ -348,7 +342,6 @@ export default function CollectionRecordsPage() {
         onConfirm={handleDelete}
       />
 
-      {/* 여행 영수증 모달 */}
       <TripReceiptModal
         isOpen={isReceiptOpen && !isReceiptLoading}
         receipt={selectedReceipt}

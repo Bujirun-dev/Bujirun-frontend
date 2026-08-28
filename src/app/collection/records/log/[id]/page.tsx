@@ -1,9 +1,9 @@
 "use client";
 
 import { use, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { PageCard, ErrorState, LoadingBoundary } from "@/components";
+import { PageCard, ErrorState, LoadingBoundary, Toast } from "@/components";
 import { LogDetailContent } from "@/components/log/LogDetailContent";
 import { SwitchButton } from "@/features/collection/components/SwitchButton";
 import { travelLogApi } from "@/shared/api/domains";
@@ -29,9 +29,14 @@ type LogDay = {
 export default function LogDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [localVisibility, setLocalVisibility] = useState<boolean | null>(null);
   const [editedDays, setEditedDays] = useState<LogDay[] | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    variant: "success" | "error";
+  } | null>(null);
 
   const {
     data: travelLog,
@@ -78,8 +83,27 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
   const days = editedDays ?? apiDays;
   const isVisible = localVisibility ?? travelLog?.isPublic ?? false;
 
+  // 공개/비공개 전환: 서버에 반영 후 성공/실패에 따라 토스트 표시
+  const updateVisibilityMutation = useMutation({
+    mutationFn: (nextIsPublic: boolean) => travelLogApi.updateLog(id, { isPublic: nextIsPublic }),
+    onSuccess: (_, nextIsPublic) => {
+      setLocalVisibility(nextIsPublic);
+      setToast({
+        message: nextIsPublic ? "공개로 전환했어요" : "비공개로 전환했어요",
+        variant: "success",
+      });
+      queryClient.invalidateQueries({ queryKey: travelLogApi.keys.detail(id) });
+    },
+    onError: () => {
+      setToast({
+        message: "전환에 실패했어요. 다시 시도해주세요",
+        variant: "error",
+      });
+    },
+  });
+
   const handleVisibilityToggle = () => {
-    setLocalVisibility((prev) => !(prev ?? travelLog?.isPublic ?? false));
+    updateVisibilityMutation.mutate(!isVisible);
   };
 
   const handleAddTag = async (dayIndex: number, stopIndex: number, tag: string) => {
@@ -214,6 +238,13 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
           />
         )}
       </LoadingBoundary>
+
+      <Toast
+        isVisible={toast !== null}
+        onHide={() => setToast(null)}
+        message={toast?.message ?? ""}
+        variant={toast?.variant ?? "default"}
+      />
     </PageCard>
   );
 }
