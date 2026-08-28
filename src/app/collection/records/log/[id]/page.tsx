@@ -1,9 +1,9 @@
 "use client";
 
 import { use, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { PageCard, ErrorState, LoadingBoundary } from "@/components";
+import { PageCard, ErrorState, Toast, LoadingBoundary } from "@/components";
 import { LogDetailContent } from "@/components/log/LogDetailContent";
 import { SwitchButton } from "@/features/collection/components/SwitchButton";
 import { travelLogApi } from "@/shared/api/domains";
@@ -32,6 +32,8 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
 
   const [localVisibility, setLocalVisibility] = useState<boolean | null>(null);
   const [editedDays, setEditedDays] = useState<LogDay[] | null>(null);
+  const [toast, setToast] = useState({ visible: false, message: "" });
+  const queryClient = useQueryClient();
 
   const {
     data: travelLog,
@@ -78,10 +80,24 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
   const days = editedDays ?? apiDays;
   const isVisible = localVisibility ?? travelLog?.isPublic ?? false;
 
-  const handleVisibilityToggle = () => {
-    setLocalVisibility((prev) => !(prev ?? travelLog?.isPublic ?? false));
-  };
+  const updateVisibilityMutation = useMutation({
+    mutationFn: (nextIsPublic: boolean) => travelLogApi.updateLog(id, { isPublic: nextIsPublic }),
+    onSuccess: (_, nextIsPublic) => {
+      setLocalVisibility(nextIsPublic);
+      setToast({
+        visible: true,
+        message: nextIsPublic ? "공개로 전환했어요" : "비공개로 전환했어요",
+      });
+      queryClient.invalidateQueries({ queryKey: travelLogApi.keys.detail(id) });
+    },
+    onError: () => {
+      setToast({ visible: true, message: "변경에 실패했어요. 다시 시도해주세요" });
+    },
+  });
 
+  const handleVisibilityToggle = () => {
+    updateVisibilityMutation.mutate(!isVisible);
+  };
   const handleAddTag = async (dayIndex: number, stopIndex: number, tag: string) => {
     const targetStop = days[dayIndex]?.stops[stopIndex];
 
@@ -183,37 +199,29 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
 
   return (
     <PageCard>
-      <LoadingBoundary isLoading={isLoading} message="로그를 불러오는 중이에요">
-        {isError || !travelLog ? (
-          <ErrorState
-            code={404}
-            title="로그를 찾을 수 없어요"
-            description="삭제되었거나 존재하지 않는 로그예요."
-            primaryAction={{
-              label: "여행 기록으로 돌아가기",
-              onClick: () => router.push("/collection/records"),
-            }}
-          />
-        ) : (
-          <LogDetailContent
-            log={{
-              title: travelLog.title ?? "여행 기록",
-              placeName: firstStopName,
-              extraCount,
-              duration: travelLog.duration ?? "",
-              date: travelLog.startDate ?? "",
-              days,
-            }}
-            onBack={() => router.back()}
-            headerRight={<SwitchButton isPublic={isVisible} onClick={handleVisibilityToggle} />}
-            editableTags
-            onAddTag={handleAddTag}
-            onDeleteTag={handleDeleteTag}
-            editableRepresentativePhoto
-            onSetRepresentativePhoto={handleSetRepresentativePhoto}
-          />
-        )}
-      </LoadingBoundary>
+      <LogDetailContent
+        log={{
+          title: travelLog.title ?? "여행 기록",
+          placeName: firstStopName,
+          extraCount,
+          duration: travelLog.duration ?? "",
+          date: travelLog.startDate ?? "",
+          days,
+        }}
+        onBack={() => router.back()}
+        headerRight={<SwitchButton isPublic={isVisible} onClick={handleVisibilityToggle} />}
+        editableTags
+        onAddTag={handleAddTag}
+        onDeleteTag={handleDeleteTag}
+        editableRepresentativePhoto
+        onSetRepresentativePhoto={handleSetRepresentativePhoto}
+      />
+      <Toast
+        isVisible={toast.visible}
+        message={toast.message}
+        onHide={() => setToast((t) => ({ ...t, visible: false }))}
+        className="bg-main-blue border-main-blue text-main-white"
+      />
     </PageCard>
   );
 }
