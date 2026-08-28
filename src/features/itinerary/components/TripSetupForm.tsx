@@ -97,7 +97,12 @@ export function TripSetupForm() {
         startTime: `${pad2(startDT.getHours())}:${pad2(startDT.getMinutes())}`,
         endTime: `${pad2(endDT.getHours())}:${pad2(endDT.getMinutes())}`,
         ...(accommodation
-          ? { accommodation: accommodation.name, accommodationAddress: accommodation.address }
+          ? {
+              accommodation: accommodation.name,
+              accommodationAddress: accommodation.address,
+              ...(accommodation.lat != null ? { accommodationLat: String(accommodation.lat) } : {}),
+              ...(accommodation.lng != null ? { accommodationLng: String(accommodation.lng) } : {}),
+            }
           : {}),
       });
       router.push(`/itinerary/trips/invite?${params.toString()}`);

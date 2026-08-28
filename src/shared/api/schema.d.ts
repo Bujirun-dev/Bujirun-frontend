@@ -1700,6 +1700,14 @@ export interface components {
             startDate: string;
             /** Format: date */
             endDate: string;
+            startTime?: string;
+            endTime?: string;
+            accommodationName?: string;
+            accommodationAddress?: string;
+            /** Format: double */
+            accommodationLat?: number;
+            /** Format: double */
+            accommodationLng?: number;
             days?: components["schemas"]["DayInput"][];
             /** Format: uuid */
             requesterId?: string;
