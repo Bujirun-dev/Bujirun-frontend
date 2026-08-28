@@ -180,7 +180,8 @@ export function MypageProfile() {
             travelLogCount={myLogs.length}
             collectedCount={collectedCount}
             favoriteCategory={favoriteCategory}
-            onClick={() => router.push("/collection/records")}
+            onTravelLogClick={() => router.push("/collection/records")}
+            onCollectedClick={() => router.push("/collection/records?view=places")}
           />
         </div>
       </Card>
