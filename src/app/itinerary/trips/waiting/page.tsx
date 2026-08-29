@@ -27,6 +27,8 @@ function TripWaitingContent() {
   const groupId = searchParams.get("groupId") ?? "";
   const accommodation = searchParams.get("accommodation") ?? "";
   const accommodationAddress = searchParams.get("accommodationAddress") ?? "";
+  const accommodationLat = searchParams.get("accommodationLat") ?? "";
+  const accommodationLng = searchParams.get("accommodationLng") ?? "";
   const forwardParams = new URLSearchParams({
     count: String(totalSlots),
     days,
@@ -38,6 +40,8 @@ function TripWaitingContent() {
     endTime: searchParams.get("endTime") ?? "",
     ...(accommodation ? { accommodation } : {}),
     ...(accommodationAddress ? { accommodationAddress } : {}),
+    ...(accommodationLat ? { accommodationLat } : {}),
+    ...(accommodationLng ? { accommodationLng } : {}),
   }).toString();
 
   const { data: swipeStatus } = useQuery({

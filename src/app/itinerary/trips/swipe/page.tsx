@@ -36,6 +36,8 @@ function TripSwipeContent() {
   const endTime = searchParams.get("endTime") ?? "";
   const accommodation = searchParams.get("accommodation") ?? "";
   const accommodationAddress = searchParams.get("accommodationAddress") ?? "";
+  const accommodationLat = searchParams.get("accommodationLat") ?? "";
+  const accommodationLng = searchParams.get("accommodationLng") ?? "";
   const forwardParams = new URLSearchParams({
     count,
     days,
@@ -47,6 +49,8 @@ function TripSwipeContent() {
     endTime,
     ...(accommodation ? { accommodation } : {}),
     ...(accommodationAddress ? { accommodationAddress } : {}),
+    ...(accommodationLat ? { accommodationLat } : {}),
+    ...(accommodationLng ? { accommodationLng } : {}),
   }).toString();
 
   const {

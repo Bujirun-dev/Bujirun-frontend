@@ -46,6 +46,8 @@ function TripPersonalityContent() {
   const isGuest = searchParams.get("role") === "guest";
   const accommodation = searchParams.get("accommodation") ?? "";
   const accommodationAddress = searchParams.get("accommodationAddress") ?? "";
+  const accommodationLat = searchParams.get("accommodationLat") ?? "";
+  const accommodationLng = searchParams.get("accommodationLng") ?? "";
   const forwardParams = new URLSearchParams({
     count: String(totalSlots),
     days,
@@ -57,6 +59,8 @@ function TripPersonalityContent() {
     endTime: searchParams.get("endTime") ?? "",
     ...(accommodation ? { accommodation } : {}),
     ...(accommodationAddress ? { accommodationAddress } : {}),
+    ...(accommodationLat ? { accommodationLat } : {}),
+    ...(accommodationLng ? { accommodationLng } : {}),
   }).toString();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
