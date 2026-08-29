@@ -75,13 +75,18 @@ export function Toast({
     <div className="absolute bottom-23 left-1/2 z-50 -translate-x-1/2">
       <div
         className={cn(
-          "flex h-[30px] w-[260px] items-center justify-center gap-1.5 rounded-lg px-3",
+          "flex h-[30px] min-w-[220px] w-fit max-w-[340px] items-center justify-center gap-1.5 rounded-lg px-4",
           {
-            success: "bg-toastbg-success border border-toast-success text-toast-success",
-            error: "bg-toastbg-error border border-toast-error text-toast-error",
-            warning: "bg-toastbg-warning border border-toast-warning text-toast-warning",
-            itinerary: "bg-toastbg-itinerary border border-toast-itinerary text-toast-itinerary",
-            default: "bg-toastbg-default border border-toast-default text-toast-default",
+            success:
+              "bg-toastbg-success border border-toast-success text-toast-success shadow-[2px_4px_4px_color-mix(in_srgb,var(--color-toast-success)_10%,transparent)]",
+            error:
+              "bg-toastbg-error border border-toast-error text-toast-error shadow-[2px_4px_4px_color-mix(in_srgb,var(--color-toast-error)_10%,transparent)]",
+            warning:
+              "bg-toastbg-warning border border-toast-warning text-toast-warning shadow-[2px_4px_4px_color-mix(in_srgb,var(--color-toast-warning)_10%,transparent)]",
+            itinerary:
+              "bg-toastbg-itinerary border border-toast-itinerary text-toast-itinerary shadow-[2px_4px_4px_color-mix(in_srgb,var(--color-toast-itinerary)_10%,transparent)]",
+            default:
+              "bg-toastbg-default border border-toast-default text-toast-default shadow-[2px_4px_4px_color-mix(in_srgb,var(--color-toast-default)_10%,transparent)]",
           }[variant],
           className,
         )}
