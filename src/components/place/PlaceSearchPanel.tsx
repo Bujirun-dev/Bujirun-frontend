@@ -14,20 +14,12 @@ import { spotApi } from "@/shared/api/domains";
 import { getCategoryFromKo, CATEGORY_LABEL_KO } from "@/shared/constants/category";
 import type { SpotSearchCategory } from "@/shared/constants/category";
 import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
+import { useDebouncedValue } from "@/shared/hooks";
 
 type SortOption = "추천순" | "이름순";
 type CategoryFilter = SpotSearchCategory | "all";
 
 const SORT_OPTIONS: SortOption[] = ["추천순", "이름순"];
-
-function useDebouncedValue<T>(value: T, delayMs: number): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = window.setTimeout(() => setDebounced(value), delayMs);
-    return () => window.clearTimeout(timer);
-  }, [value, delayMs]);
-  return debounced;
-}
 
 const CONSONANTS = [
   "ㄱ",

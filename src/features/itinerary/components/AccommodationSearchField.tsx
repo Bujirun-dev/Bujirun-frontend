@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import CloseIcon from "@/assets/icons/mypage/close.svg?svgr";
 import HotelIcon from "@/assets/icons/itinerary/hotel.svg?svgr";
 import { Modal, SearchBar, EmptyState, LoadingBoundary } from "@/components";
+import { useDebouncedValue } from "@/shared/hooks";
 import type { KakaoPlaceResult } from "@/shared/types/kakao-map";
 
 export interface AccommodationPlace {
@@ -22,15 +23,6 @@ interface AccommodationSearchFieldProps {
     value: AccommodationPlace | null;
     onOpen: () => void;
   }) => React.ReactNode;
-}
-
-function useDebouncedValue<T>(value: T, delayMs: number): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = window.setTimeout(() => setDebounced(value), delayMs);
-    return () => window.clearTimeout(timer);
-  }, [value, delayMs]);
-  return debounced;
 }
 
 // 카카오맵 SDK는 layout.tsx에서 autoload=false로 로드되므로, 최초 사용 시점에

@@ -222,7 +222,7 @@ function TripSwipeContent() {
             src={place.image}
             alt={place.name}
             fill
-            sizes="390px"
+            sizes="(max-width: 390px) calc(100vw - 48px), 342px"
             className="object-cover pointer-events-none"
             draggable={false}
             priority
@@ -283,9 +283,16 @@ function TripSwipeContent() {
 
         {/* 다음 카드 이미지 프리로드용(화면엔 안 보임) — 실제 카드와 동일한 sizes로 next/image
             최적화 URL을 미리 요청해서, 카드가 넘어갈 때 브라우저 캐시를 그대로 히트하게 한다. */}
-        {preloadPlaces.map((p) => (
+        {preloadPlaces.slice(0, 1).map((p) => (
           <div key={p.id} className="absolute h-px w-px overflow-hidden opacity-0" aria-hidden>
-            <Image src={p.image} alt="" fill sizes="390px" priority />
+            <Image
+              src={p.image}
+              alt=""
+              fill
+              sizes="(max-width: 390px) calc(100vw - 48px), 342px"
+              loading="eager"
+              fetchPriority="low"
+            />
           </div>
         ))}
       </div>
