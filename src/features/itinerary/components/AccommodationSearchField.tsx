@@ -63,8 +63,9 @@ export function AccommodationSearchField({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<KakaoPlaceResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [pendingOutsideBusanPlace, setPendingOutsideBusanPlace] =
-    useState<KakaoPlaceResult | null>(null);
+  const [pendingOutsideBusanPlace, setPendingOutsideBusanPlace] = useState<KakaoPlaceResult | null>(
+    null,
+  );
   const debouncedQuery = useDebouncedValue(query, 300);
 
   useEffect(() => {
