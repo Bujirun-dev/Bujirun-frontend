@@ -8,6 +8,7 @@ import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
 import { travelLogApi, spotApi, bookmarkApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import type { Category } from "@/components";
+import { BOOKMARK_TOAST_MESSAGE } from "@/shared/constants/bookmark";
 
 function toCategory(value?: string, name?: string): Category {
   if (name?.includes("해수욕장") || name?.includes("해변")) return "sea";
@@ -58,14 +59,16 @@ export default function BookmarkDetailPage({
     onSuccess: () => {
       // 토스트 메시지 표시
       setToastVariant("success");
-      setToastMessage(isBookmarked ? "북마크가 해제되었어요" : "북마크에 추가되었어요");
+      setToastMessage(
+        isBookmarked ? BOOKMARK_TOAST_MESSAGE.removed : BOOKMARK_TOAST_MESSAGE.added,
+      );
       setToastVisible(true);
       setIsBookmarked((prev) => !prev);
       queryClient.invalidateQueries({ queryKey: bookmarkApi.keys.list() });
     },
     onError: () => {
       setToastVariant("error");
-      setToastMessage("북마크 변경에 실패했어요. 다시 시도해주세요.");
+      setToastMessage(BOOKMARK_TOAST_MESSAGE.error);
       setToastVisible(true);
     },
   });

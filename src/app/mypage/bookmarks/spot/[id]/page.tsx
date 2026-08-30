@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PageCard, ErrorState, Toast, LoadingBoundary } from "@/components";
 import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
 import { useSpotDetail } from "@/features/itinerary/hooks/useSpotDetail";
+import { BOOKMARK_TOAST_MESSAGE } from "@/shared/constants/bookmark";
 
 export default function BookmarkSpotDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -21,11 +22,13 @@ export default function BookmarkSpotDetailPage({ params }: { params: Promise<{ i
       await toggleBookmark();
 
       setToastVariant("success");
-      setToastMessage(isBookmarked ? "북마크가 해제되었어요" : "북마크에 추가되었어요");
+      setToastMessage(
+        isBookmarked ? BOOKMARK_TOAST_MESSAGE.removed : BOOKMARK_TOAST_MESSAGE.added,
+      );
       setToastVisible(true);
     } catch {
       setToastVariant("error");
-      setToastMessage("북마크 변경에 실패했어요. 다시 시도해주세요.");
+      setToastMessage(BOOKMARK_TOAST_MESSAGE.error);
       setToastVisible(true);
     }
   };

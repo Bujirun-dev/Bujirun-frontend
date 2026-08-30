@@ -7,6 +7,7 @@ import { BookmarkCard } from "./BookmarkCard";
 import { Toast, EmptyState, LoadingBoundary, ErrorState } from "@/components";
 import { bookmarkApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
+import { BOOKMARK_TOAST_MESSAGE } from "@/shared/constants/bookmark";
 import type { Category } from "@/components";
 
 function toCategory(value?: string, name?: string): Category | undefined {
@@ -104,8 +105,8 @@ export function BookmarkList() {
           isVisible={toastVisible}
           message={
             toastVariant === "success"
-              ? "북마크가 해제되었어요"
-              : "북마크 해제에 실패했어요. 다시 시도해주세요."
+              ? BOOKMARK_TOAST_MESSAGE.removed
+              : BOOKMARK_TOAST_MESSAGE.error
           }
           onHide={() => setToastVisible(false)}
           variant={toastVariant}
