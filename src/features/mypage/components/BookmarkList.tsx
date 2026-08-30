@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BookmarkCard } from "./BookmarkCard";
-import { Toast, EmptyState, LoadingBoundary, ErrorState } from "@/components";
+import { Toast, EmptyState, PlaceCardListSkeleton, ErrorState } from "@/components";
 import { bookmarkApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import { BOOKMARK_TOAST_MESSAGE } from "@/shared/constants/bookmark";
@@ -66,52 +66,50 @@ export function BookmarkList() {
     );
   }
 
-  return (
-    <LoadingBoundary isLoading={isLoading} message="북마크를 불러오는 중이에요">
-      <>
-        {bookmarks.length === 0 ? (
-          <EmptyState
-            className="-translate-y-5"
-            title="아직 저장된 관광지가 없어요"
-            description={
-              <>
-                마음에 드는 관광지를 저장해두고
-                <br />
-                나중에 다시 확인해보세요.
-              </>
-            }
-            primaryAction={{
-              label: "관광지 둘러보기",
-              onClick: () => router.push("/mypage/bookmarks/search"),
-            }}
-          />
-        ) : (
-          <div className="flex flex-col gap-4">
-            {bookmarks.map((item) => (
-              <BookmarkCard
-                key={item.spotId}
-                name={item.name ?? ""}
-                category={toCategory(item.category, item.name ?? "")}
-                isBookmarked={true}
-                imageUrl={item.thumbnailUrl ?? undefined}
-                onBookmarkToggle={() => item.spotId && removeBookmark(item.spotId)}
-                onClick={() => item.spotId && router.push(`/mypage/bookmarks/${item.spotId}`)}
-              />
-            ))}
-          </div>
-        )}
+  if (isLoading) return <PlaceCardListSkeleton />;
 
-        <Toast
-          isVisible={toastVisible}
-          message={
-            toastVariant === "success"
-              ? BOOKMARK_TOAST_MESSAGE.removed
-              : BOOKMARK_TOAST_MESSAGE.error
+  return (
+    <>
+      {bookmarks.length === 0 ? (
+        <EmptyState
+          className="-translate-y-5"
+          title="아직 저장된 관광지가 없어요"
+          description={
+            <>
+              마음에 드는 관광지를 저장해두고
+              <br />
+              나중에 다시 확인해보세요.
+            </>
           }
-          onHide={() => setToastVisible(false)}
-          variant={toastVariant}
+          primaryAction={{
+            label: "관광지 둘러보기",
+            onClick: () => router.push("/mypage/bookmarks/search"),
+          }}
         />
-      </>
-    </LoadingBoundary>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {bookmarks.map((item) => (
+            <BookmarkCard
+              key={item.spotId}
+              name={item.name ?? ""}
+              category={toCategory(item.category, item.name ?? "")}
+              isBookmarked={true}
+              imageUrl={item.thumbnailUrl ?? undefined}
+              onBookmarkToggle={() => item.spotId && removeBookmark(item.spotId)}
+              onClick={() => item.spotId && router.push(`/mypage/bookmarks/${item.spotId}`)}
+            />
+          ))}
+        </div>
+      )}
+
+      <Toast
+        isVisible={toastVisible}
+        message={
+          toastVariant === "success" ? BOOKMARK_TOAST_MESSAGE.removed : BOOKMARK_TOAST_MESSAGE.error
+        }
+        onHide={() => setToastVisible(false)}
+        variant={toastVariant}
+      />
+    </>
   );
 }

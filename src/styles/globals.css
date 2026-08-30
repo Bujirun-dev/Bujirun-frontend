@@ -111,6 +111,12 @@
   filter: brightness(0) saturate(100%) invert(60%) sepia(95%) saturate(476%) hue-rotate(185deg)
     brightness(104%) contrast(101%);
 }
+
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
 @utility icon-pink {
   filter: brightness(0) saturate(100%) invert(79%) sepia(40%) saturate(850%) hue-rotate(297deg)
     brightness(102%) contrast(101%);

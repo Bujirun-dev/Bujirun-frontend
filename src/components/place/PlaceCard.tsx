@@ -17,6 +17,7 @@ interface PlaceCardProps {
   isBookmarked?: boolean;
   showBookmark?: boolean;
   onDelete?: () => void;
+  onBookmarkToggle?: () => void;
   onClick?: () => void;
   onVerify?: () => void;
   className?: string;
@@ -30,6 +31,7 @@ export function PlaceCard({
   isBookmarked = false,
   showBookmark = false,
   onDelete,
+  onBookmarkToggle,
   onClick,
   onVerify,
   className,
@@ -73,14 +75,23 @@ export function PlaceCard({
         )}
 
         {showBookmark && (
-          <Image
-            src={isBookmarked ? bookmarkOnIcon : bookmarkOffIcon}
-            alt=""
-            width={16}
-            height={16}
-            aria-hidden
-            className="absolute top-[10px] right-[10px]"
-          />
+          <button
+            type="button"
+            aria-label={isBookmarked ? "북마크 해제" : "북마크 추가"}
+            className="absolute right-[10px] top-[10px] active:opacity-70"
+            onClick={(event) => {
+              event.stopPropagation();
+              onBookmarkToggle?.();
+            }}
+          >
+            <Image
+              src={isBookmarked ? bookmarkOnIcon : bookmarkOffIcon}
+              alt=""
+              width={16}
+              height={16}
+              aria-hidden
+            />
+          </button>
         )}
 
         {onDelete && (

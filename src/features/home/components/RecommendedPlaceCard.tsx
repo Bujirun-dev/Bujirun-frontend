@@ -2,15 +2,21 @@
 
 import type { OpResponse } from "@/shared/api/types";
 import { useRouter } from "next/navigation";
-import { PlaceCard } from "@/components/place/PlaceCard";
+import { BookmarkCard } from "@/features/mypage/components/BookmarkCard";
 
 type Place = OpResponse<"search">[number];
 
 interface RecommendedPlaceCardProps {
   place: Place;
+  isBookmarked: boolean;
+  onBookmarkToggle: () => void;
 }
 
-export function RecommendedPlaceCard({ place }: RecommendedPlaceCardProps) {
+export function RecommendedPlaceCard({
+  place,
+  isBookmarked,
+  onBookmarkToggle,
+}: RecommendedPlaceCardProps) {
   const router = useRouter();
 
   if (!place.thumbnailUrl || !place.name || !place.spotId || !place.collectionCategory) {
@@ -26,13 +32,13 @@ export function RecommendedPlaceCard({ place }: RecommendedPlaceCardProps) {
         : "experience";
 
   return (
-    <PlaceCard
+    <BookmarkCard
       imageUrl={place.thumbnailUrl}
       name={place.name}
       category={collectionCategory}
       status="pending"
-      showBookmark
-      isBookmarked={place.collected}
+      isBookmarked={isBookmarked}
+      onBookmarkToggle={onBookmarkToggle}
       onClick={() => router.push(`/home/recommend/${place.spotId}`)}
     />
   );
