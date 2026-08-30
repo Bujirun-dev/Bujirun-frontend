@@ -35,8 +35,9 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
     return Math.max(0, Math.round((endDay.getTime() - startDay.getTime()) / 86_400_000));
   });
   const minStartDate = formatTripDateTime(new Date());
-  const minEnd = parseTripDateTime(minStartDate);
+  const minEnd = parseTripDateTime(startDate);
   minEnd.setDate(minEnd.getDate() + originalNights);
+  if (originalNights > 0) minEnd.setHours(0, 0, 0, 0);
   const minEndDate = formatTripDateTime(minEnd);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -55,21 +56,6 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
 
     setStartDate(nextStartDate);
     setEndDate(formatTripDateTime(nextEnd));
-  };
-
-  const handleEndDateChange = (nextEndDate: string) => {
-    const nextEnd = parseTripDateTime(nextEndDate);
-    const currentStart = parseTripDateTime(startDate);
-    const nextStart = new Date(
-      nextEnd.getFullYear(),
-      nextEnd.getMonth(),
-      nextEnd.getDate() - originalNights,
-      currentStart.getHours(),
-      currentStart.getMinutes(),
-    );
-
-    setStartDate(formatTripDateTime(nextStart));
-    setEndDate(nextEndDate);
   };
 
   const handleConfirm = () => {
@@ -122,8 +108,9 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
             <DateTimeLabel label="종료 시간" />
             <TripDateTimePicker
               value={endDate}
-              onChange={handleEndDateChange}
+              onChange={setEndDate}
               minValue={minEndDate}
+              lockDate
               onInvalidSelect={() => setToastMessage("지난 날짜/시간은 선택할 수 없어요.")}
               className="flex-1 w-auto"
             />
@@ -132,8 +119,8 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
 
         <Card variant="glass-sm" className="mt-5 w-full rounded-lg px-3 py-2">
           <p className="text-center text-sm font-medium text-sub-darkgray break-keep">
-            * 처음 정한 여행 일수는 그대로 유지돼요. 날짜를 옮기면 다른 날짜도 같은 간격으로
-            이동하고, 시간은 각각 바꿀 수 있어요.
+            * 처음 정한 여행 일수는 그대로 유지돼요. 시작 날짜를 옮기면 종료 날짜가 자동으로
+            변경되고, 시간은 각각 바꿀 수 있어요.
           </p>
         </Card>
       </div>
