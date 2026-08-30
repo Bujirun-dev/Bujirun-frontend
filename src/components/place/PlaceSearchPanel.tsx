@@ -4,7 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
-import { SearchBar, EmptyState, LoadingBoundary } from "@/components";
+import CloseIcon from "@/assets/icons/mypage/close.svg?svgr";
+import { SearchBar, EmptyState } from "@/components";
+import { PlaceSearchSkeleton } from "./PlaceSkeletons";
 import { PlaceSearchItem } from "./PlaceSearchItem";
 import { ConsonantIndexBar } from "./ConsonantIndexBar";
 import { CategoryFilterDropdown } from "./CategoryFilterDropdown";
@@ -199,6 +201,17 @@ export function PlaceSearchPanel({
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="mb-3 flex items-center justify-center self-start -translate-y-0.5"
+          aria-label="관광지 검색 닫기"
+        >
+          <CloseIcon width={18} height={18} className="text-sub-darkgray" aria-hidden />
+        </button>
+      )}
+
       {/* 검색바 */}
       <div className="pb-3.5">
         <SearchBar
@@ -244,125 +257,119 @@ export function PlaceSearchPanel({
       </div>
 
       {/* 목록 */}
-      <LoadingBoundary
-        isLoading={isLoading}
-        message={debouncedSearchValue ? "검색하는 중이에요" : "관광지 목록을 불러오는 중이에요"}
-        variant="inline"
-        delay={150}
-        minDuration={500}
-      >
-        {filtered.length === 0 ? (
-          <EmptyState
-            variant="compact"
-            title="검색 결과가 없어요"
-            description={
-              <>
-                &quot;{debouncedSearchValue}&quot;에 대한 결과를 찾지 못했어요.
-                <br />
-                관광지 이름을 다시 확인해보세요.
-              </>
-            }
-          />
-        ) : sortBy === "추천순" ? (
-          <div className="flex flex-col gap-2.5 overflow-x-hidden">
-            {filtered.map((place) => (
-              <PlaceSearchItem
-                key={place.id}
-                name={place.name}
-                category={place.collectionCategory}
-                status={place.status}
-                imageUrl={place.imageUrl}
-                onClick={() => {
-                  if (onPlaceSelect) {
-                    onPlaceSelect({
-                      id: place.id,
-                      name: place.name,
-                      collectionCategory: place.collectionCategory,
-                      status: place.status,
-                      imageUrl: place.imageUrl,
-                    });
-                  } else {
-                    onClose?.();
-                    router.push(`/itinerary/place/${place.id}`);
-                  }
+      {isLoading ? (
+        <PlaceSearchSkeleton />
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          variant="compact"
+          title="검색 결과가 없어요"
+          description={
+            <>
+              &quot;{debouncedSearchValue}&quot;에 대한 결과를 찾지 못했어요.
+              <br />
+              관광지 이름을 다시 확인해보세요.
+            </>
+          }
+        />
+      ) : sortBy === "추천순" ? (
+        <div className="flex flex-col gap-2.5 overflow-x-hidden">
+          {filtered.map((place) => (
+            <PlaceSearchItem
+              key={place.id}
+              name={place.name}
+              category={place.collectionCategory}
+              status={place.status}
+              imageUrl={place.imageUrl}
+              onClick={() => {
+                if (onPlaceSelect) {
+                  onPlaceSelect({
+                    id: place.id,
+                    name: place.name,
+                    collectionCategory: place.collectionCategory,
+                    status: place.status,
+                    imageUrl: place.imageUrl,
+                  });
+                } else {
+                  onClose?.();
+                  router.push(`/itinerary/place/${place.id}`);
+                }
+              }}
+              className="rounded-2xl border border-system-glassborder shadow-[2px_2px_6px_0px_var(--color-system-glassborder)]"
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-1 gap-3 overflow-hidden">
+          <div ref={listRef} className="flex-1 overflow-y-auto">
+            {activeConsonants.map((consonant) => (
+              <div
+                key={consonant}
+                ref={(el) => {
+                  sectionRefs.current[consonant] = el;
                 }}
-                className="rounded-2xl border border-system-glassborder shadow-[2px_2px_6px_0px_var(--color-system-glassborder)]"
-              />
+                data-consonant={consonant}
+              >
+                <div className="mb-3 flex w-full items-center rounded-md bg-system-searchbg py-0.5 pl-1.5">
+                  <span className="text-xs font-medium text-sub-deepblue">{consonant}</span>
+                </div>
+
+                <div className="pl-1">
+                  {grouped[consonant].map((place, idx) => (
+                    <div key={place.id}>
+                      <button
+                        className={cn(
+                          "flex w-full items-center gap-1.5 text-left active:opacity-70",
+                          idx === 0 ? "pt-0 pb-2.5" : "py-2.5",
+                        )}
+                        onClick={() => {
+                          if (onPlaceSelect) {
+                            onPlaceSelect({
+                              id: place.id,
+                              name: place.name,
+                              collectionCategory: place.collectionCategory,
+                              status: place.status,
+                              imageUrl: place.imageUrl,
+                            });
+                          } else {
+                            onClose?.();
+                            router.push(`/itinerary/place/${place.id}`);
+                          }
+                        }}
+                      >
+                        <MarkerIcon
+                          width={12}
+                          height={12}
+                          className={cn(
+                            "shrink-0",
+                            place.status === "completed" ? "fill-sub-deepblue" : "fill-sub-pink",
+                          )}
+                          aria-hidden
+                        />
+
+                        <span className="min-w-0 flex-1 truncate text-sm font-normal text-text-primary">
+                          {place.name}
+                        </span>
+                      </button>
+
+                      {idx < grouped[consonant].length - 1 && (
+                        <div className="h-[0.3px] w-[calc(100%_-_12px)] bg-sub-lightgray" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mb-0.5" />
+              </div>
             ))}
           </div>
-        ) : (
-          <div className="flex flex-1 gap-3 overflow-hidden">
-            <div ref={listRef} className="flex-1 overflow-y-auto">
-              {activeConsonants.map((consonant) => (
-                <div
-                  key={consonant}
-                  ref={(el) => {
-                    sectionRefs.current[consonant] = el;
-                  }}
-                  data-consonant={consonant}
-                >
-                  <div className="mb-3 flex w-full items-center rounded-md bg-system-searchbg py-0.5 pl-1.5">
-                    <span className="text-xs font-medium text-sub-deepblue">{consonant}</span>
-                  </div>
 
-                  <div className="pl-1">
-                    {grouped[consonant].map((place, idx) => (
-                      <div key={place.id}>
-                        <button
-                          className={cn(
-                            "flex w-full items-center gap-1.5 text-left active:opacity-70",
-                            idx === 0 ? "pt-0 pb-2.5" : "py-2.5",
-                          )}
-                          onClick={() => {
-                            if (onPlaceSelect) {
-                              onPlaceSelect({
-                                id: place.id,
-                                name: place.name,
-                                collectionCategory: place.collectionCategory,
-                                status: place.status,
-                                imageUrl: place.imageUrl,
-                              });
-                            } else {
-                              onClose?.();
-                              router.push(`/itinerary/place/${place.id}`);
-                            }
-                          }}
-                        >
-                          <MarkerIcon
-                            width={12}
-                            height={12}
-                            className={cn(
-                              "shrink-0",
-                              place.status === "completed" ? "fill-sub-deepblue" : "fill-sub-pink",
-                            )}
-                            aria-hidden
-                          />
-
-                          <span className="min-w-0 flex-1 truncate text-sm font-normal text-text-primary">
-                            {place.name}
-                          </span>
-                        </button>
-
-                        {idx < grouped[consonant].length - 1 && (
-                          <div className="h-[0.3px] w-[calc(100%_-_12px)] bg-sub-lightgray" />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mb-0.5" />
-                </div>
-              ))}
-            </div>
-
-            <ConsonantIndexBar
-              activeConsonants={activeConsonants}
-              activeSection={activeSection}
-              onSelect={scrollToSection}
-            />
-          </div>
-        )}
-      </LoadingBoundary>
+          <ConsonantIndexBar
+            activeConsonants={activeConsonants}
+            activeSection={activeSection}
+            onSelect={scrollToSection}
+          />
+        </div>
+      )}
     </div>
   );
 }

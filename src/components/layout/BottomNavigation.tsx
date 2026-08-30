@@ -1,8 +1,20 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
+import EmergencyIcon from "@/assets/icons/itinerary/emergency-on.svg?svgr";
 import { navigationItems } from "@/shared/constants/navigation";
+import { useItineraryGenerationLockStore } from "@/shared/stores";
+
+const LOCKED_WORKFLOW_ROUTES = [
+  "/itinerary/trips/swipe",
+  "/itinerary/trips/waiting",
+  "/itinerary/trips/result",
+  "/itinerary/trips/vote-waiting",
+];
 
 const ICON_PATHS = {
   "/": {
@@ -57,42 +69,74 @@ function NavIcon({ href, isActive }: { href: string; isActive: boolean }) {
 
 export function BottomNavigation() {
   const pathname = usePathname();
+  const [showNavigationWarning, setShowNavigationWarning] = useState(false);
+  const isGenerationLocked = useItineraryGenerationLockStore((state) => state.isLocked);
+  const lockGeneration = useItineraryGenerationLockStore((state) => state.lock);
+
+  useEffect(() => {
+    if (LOCKED_WORKFLOW_ROUTES.some((route) => pathname.startsWith(route))) {
+      lockGeneration();
+    }
+  }, [lockGeneration, pathname]);
 
   // 로그인/회원가입 페이지에서는 숨기기
   if (pathname === "/login" || pathname === "/signup") return null;
 
   return (
-    <nav className="z-30 w-full shrink-0 bg-main-white backdrop-blur">
-      <div className="grid h-[72px] grid-cols-4 p-2">
-        {navigationItems.map((item) => {
-          const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+    <>
+      <nav className="z-30 w-full shrink-0 bg-main-white backdrop-blur">
+        <div className="grid h-[72px] grid-cols-4 p-2">
+          {navigationItems.map((item) => {
+            const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={isActive ? "page" : undefined}
-              className="relative flex min-w-0 flex-col items-center justify-center text-xs font-semibold transition-colors"
-            >
-              <div
-                className={`absolute size-12 rounded-2xl transition-all duration-500 ease-out ${
-                  isActive ? "bg-main-blue/[0.18]" : "bg-transparent"
-                }`}
-              />
-              <div className="relative flex translate-y-0.5 flex-col items-center justify-center gap-1.5">
-                <NavIcon href={item.href} isActive={isActive} />
-                <span
-                  className={`text-xs font-semibold leading-none transition-all duration-500 ease-out ${
-                    isActive ? "text-sub-deepblue" : "text-text-primary"
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={isActive ? "page" : undefined}
+                onClick={(event) => {
+                  if (!isGenerationLocked) return;
+                  event.preventDefault();
+                  setShowNavigationWarning(true);
+                }}
+                className="relative flex min-w-0 flex-col items-center justify-center text-xs font-semibold transition-colors"
+              >
+                <div
+                  className={`absolute size-12 rounded-2xl transition-all duration-500 ease-out ${
+                    isActive ? "bg-main-blue/[0.18]" : "bg-transparent"
                   }`}
-                >
-                  {item.label}
-                </span>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+                />
+                <div className="relative flex translate-y-0.5 flex-col items-center justify-center gap-1.5">
+                  <NavIcon href={item.href} isActive={isActive} />
+                  <span
+                    className={`text-xs font-semibold leading-none transition-all duration-500 ease-out ${
+                      isActive ? "text-sub-deepblue" : "text-text-primary"
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+
+      <Modal
+        isOpen={showNavigationWarning}
+        onClose={() => setShowNavigationWarning(false)}
+        hideCloseButton
+        hideActions
+        confirmVariant="warning"
+        icon={<EmergencyIcon width={25} height={25} className="text-sub-coral" aria-hidden />}
+        title="지금은 이동할 수 없어요!"
+        description={"일정 생성이 진행 중이에요.\n투표가 완료될 때까지 현재 화면을 유지해주세요."}
+        footer={
+          <Button variant="warning" onClick={() => setShowNavigationWarning(false)}>
+            계속 진행하기
+          </Button>
+        }
+      />
+    </>
   );
 }

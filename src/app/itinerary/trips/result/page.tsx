@@ -15,14 +15,15 @@ import {
   ErrorState,
 } from "@/components";
 import type { Category } from "@/components";
+import VoteIcon from "@/assets/icons/itinerary/vote-yea.svg?svgr";
 import checkIconWhite from "@/assets/icons/itinerary/check_white.png";
-import checkIconBlue from "@/assets/icons/itinerary/check_blue.png";
 import infoIcon from "@/assets/icons/itinerary/info.png";
 import freepassBlueIcon from "@/assets/icons/itinerary/freepass-blue.png";
 import flagImg from "@/assets/place/flag.png";
 import houseImg from "@/assets/place/house.png";
 import busanStationImg from "@/assets/place/busan-station.png";
 import { itineraryApi } from "@/shared/api/domains";
+import { useItineraryGenerationLockStore } from "@/shared/stores";
 import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
@@ -217,12 +218,14 @@ function TripResultContent() {
     "success" | "error" | "warning" | "itinerary" | "default"
   >("default");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const unlockGeneration = useItineraryGenerationLockStore((state) => state.unlock);
 
   // 다른 참여자가 투표한 결과를 A/B/C 탭에 반영하기 위해 투표 현황을 폴링한다.
   // 다른 클라이언트가 먼저 프리패스 등으로 이미 확정해버린 경우, 더 투표할 필요가
   // 없으므로 일정 화면으로 보낸다.
   const { voteStatus } = useVoteSessionPolling(sessionId, {
     onConfirmed: () => {
+      unlockGeneration();
       setToastVariant("success");
       setToastMessage("이미 일정이 확정됐어요. 일정 화면으로 이동할게요.");
       window.setTimeout(() => router.push("/itinerary"), 1500);
@@ -349,6 +352,7 @@ function TripResultContent() {
       setToastVariant("success");
       setToastMessage(`방장이 ${activePlan}안을 선택했어요! 🎉`);
       window.setTimeout(() => {
+        unlockGeneration();
         router.push("/itinerary");
       }, 1800);
     } catch {
@@ -630,7 +634,7 @@ function TripResultContent() {
       <Modal
         isOpen={voteConfirmPlan !== null}
         onClose={() => setVoteConfirmPlan(null)}
-        icon={<Image src={checkIconBlue} alt="" width={20} height={20} aria-hidden />}
+        icon={<VoteIcon width={28} height={28} className="text-sub-deepblue" aria-hidden />}
         title="이 일정으로 투표할까요?"
         description={`${voteConfirmPlan}안에 투표하시겠어요?`}
         cancelText="취소"

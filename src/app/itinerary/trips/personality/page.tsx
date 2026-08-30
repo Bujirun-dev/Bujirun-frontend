@@ -6,8 +6,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import faceImg from "@/assets/character/face.png";
 import swipeRightIcon from "@/assets/icons/itinerary/swipe-right.png";
 import swipeLeftIcon from "@/assets/icons/itinerary/swipe-left.png";
-import { SpeechBubble, Toast, Button, LoadingState } from "@/components";
+import EmergencyIcon from "@/assets/icons/itinerary/emergency-on.svg?svgr";
+import { SpeechBubble, Toast, Button, LoadingState, Modal } from "@/components";
 import { collectionApi, swipeApi } from "@/shared/api/domains";
+import { useItineraryGenerationLockStore } from "@/shared/stores";
 
 const TOTAL_SLOTS = 6; // mock - 실제로는 searchParams 또는 API
 
@@ -66,6 +68,8 @@ function TripPersonalityContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showExitWarning, setShowExitWarning] = useState(isGuest);
+  const [pendingStart, setPendingStart] = useState<"like-all" | "swipe" | null>(null);
+  const lockGeneration = useItineraryGenerationLockStore((state) => state.lock);
 
   // "난 다 좋아"도 실제 스와이프처럼 서버에 좋아요 기록을 남겨야 그룹 일정
   // 자동생성이 취합할 스와이프 데이터가 생긴다 (안 보내면 백엔드 generate가 500).
@@ -81,15 +85,32 @@ function TripPersonalityContent() {
         .filter((contentId): contentId is string => !!contentId)
         .map((contentId) => ({ contentId, liked: true }));
       if (swipes.length === 0) {
+        useItineraryGenerationLockStore.getState().unlock();
         setToastMessage("이미 도감을 다 채우셨네요! 그룹 일정 생성이 어려울 수 있어요.");
         return;
       }
       await swipeApi.submitSwipes({ swipes, groupId: groupId || undefined });
       router.push(`/itinerary/trips/waiting?${forwardParams}`);
     } catch {
+      useItineraryGenerationLockStore.getState().unlock();
       setToastMessage("좋아요 등록에 실패했어요. 다시 시도해주세요.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleStartConfirm = () => {
+    const nextStep = pendingStart;
+    setPendingStart(null);
+    lockGeneration();
+
+    if (nextStep === "like-all") {
+      void handleLikeAll();
+      return;
+    }
+
+    if (nextStep === "swipe") {
+      router.push(`/itinerary/trips/swipe?${forwardParams}`);
     }
   };
 
@@ -147,21 +168,32 @@ function TripPersonalityContent() {
         <div className="mt-[24px] flex w-full gap-3">
           <Button
             variant="secondary"
-            onClick={handleLikeAll}
+            onClick={() => setPendingStart("like-all")}
             disabled={isSubmitting}
             className="flex-1 disabled:opacity-50"
           >
             난 다 좋아!
           </Button>
-          <Button
-            variant="primary"
-            onClick={() => router.push(`/itinerary/trips/swipe?${forwardParams}`)}
-            className="flex-1"
-          >
+          <Button variant="primary" onClick={() => setPendingStart("swipe")} className="flex-1">
             취향분석 할래!
           </Button>
         </div>
       </div>
+
+      <Modal
+        isOpen={pendingStart !== null}
+        onClose={() => setPendingStart(null)}
+        confirmVariant="warning"
+        icon={<EmergencyIcon width={25} height={25} className="text-sub-coral" aria-hidden />}
+        title="시작 전 꼭 확인해주세요!"
+        description={
+          "지금부터 일정 생성이 끝날 때까지\n다른 탭으로 이동할 수 없어요.\n투표 완료 전에는 현재 화면을 유지해주세요."
+        }
+        cancelText="취소"
+        confirmText="확인하고 시작"
+        onCancel={() => setPendingStart(null)}
+        onConfirm={handleStartConfirm}
+      />
 
       <Toast
         isVisible={toastMessage !== null}

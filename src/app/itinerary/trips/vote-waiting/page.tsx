@@ -7,6 +7,7 @@ import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { itineraryApi } from "@/shared/api/domains";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
+import { useItineraryGenerationLockStore } from "@/shared/stores";
 
 function getWinnerPlan(votes: Record<string, number>): string | null {
   const sorted = Object.entries(votes).sort((a, b) => b[1] - a[1]);
@@ -62,13 +63,17 @@ function VoteWaitingContent() {
   >("default");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
+  const unlockGeneration = useItineraryGenerationLockStore((state) => state.unlock);
 
   // 방장이 finalize를 호출하면 status가 "confirmed"로 바뀐다. 이는 클라이언트가
   // voteCounts로 계산한 winnerPlan/동률 로직과 별개로 백엔드가 실제로 확정했음을
   // 보장하는 신호라서, 동률이라 방장 선택을 기다리던 참여자를 포함해 전원을
   // 확실하게 일정 화면으로 보낸다.
   const { voteStatus } = useVoteSessionPolling(sessionId, {
-    onConfirmed: () => router.push("/itinerary"),
+    onConfirmed: () => {
+      unlockGeneration();
+      router.push("/itinerary");
+    },
     onError: () => {
       setToastVariant("error");
       setToastMessage("투표 현황을 불러오지 못했어요.");
@@ -112,6 +117,7 @@ function VoteWaitingContent() {
             : {}),
         });
       }
+      unlockGeneration();
       router.push("/itinerary");
     } catch {
       setToastVariant("error");

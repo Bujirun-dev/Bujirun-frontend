@@ -34,6 +34,7 @@ export { PageCard } from "./layout/PageCard";
 export { StaircaseGlassCard } from "./ui/StaircaseGlassCard";
 export { LoadingState } from "./ui/LoadingState";
 export { LoadingBoundary } from "./ui/LoadingBoundary";
+export { Skeleton } from "./ui/Skeleton";
 export { EmptyState } from "./ui/EmptyState";
 export { ErrorState } from "./ui/ErrorState";
 export type { ErrorStateCode } from "./ui/ErrorState";
@@ -41,5 +42,10 @@ export type { ErrorStateCode } from "./ui/ErrorState";
 export { PlaceSearchPanel } from "./place/PlaceSearchPanel";
 export type { SearchPlace, PlaceSearchState } from "./place/PlaceSearchPanel";
 export { PlaceSearchItem } from "./place/PlaceSearchItem";
+export {
+  PlaceSearchSkeleton,
+  PlaceCardListSkeleton,
+  HomePlaceRowSkeleton,
+} from "./place/PlaceSkeletons";
 //개인정보
 export { PrivacyPolicyModal } from "./legal/PrivacyPolicyModal";
