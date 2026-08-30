@@ -20,30 +20,42 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
   const [startDate, setStartDate] = useState(() =>
     formatTripDateTime(parseTripDateTime(trip.startDate)),
   );
-  // 처음 생성 시 정한 여행 기간(밤 수)은 수정 화면에서도 그대로 고정한다 —
-  // 줄이는 것도 늘리는 것도 허용하지 않고, 시작일과 종료일 중 어느 쪽을 옮기든
-  // 나머지 한쪽이 같은 기간만큼 따라 움직인다. startDate만 상태로 두고 endDate는
-  // 항상 거기서 파생시켜야, 두 값이 따로 놀아서 기간이 어긋나는 걸 원천적으로 막을 수 있다.
-  const [originalDurationMs] = useState(
-    () => parseTripDateTime(trip.endDate).getTime() - parseTripDateTime(trip.startDate).getTime(),
-  );
-  const endDate = formatTripDateTime(
-    new Date(parseTripDateTime(startDate).getTime() + originalDurationMs),
-  );
+  const [endDate, setEndDate] = useState(() => formatTripDateTime(parseTripDateTime(trip.endDate)));
+  // 처음 생성한 여행의 숙박 수만 고정한다. 시작/종료 시간은 각각 독립적으로 바꿀 수 있고,
+  // 날짜를 옮길 때만 반대쪽 날짜가 같은 숙박 수만큼 따라간다.
+  const [originalNights] = useState(() => {
+    const initialStart = parseTripDateTime(trip.startDate);
+    const initialEnd = parseTripDateTime(trip.endDate);
+    const startDay = new Date(
+      initialStart.getFullYear(),
+      initialStart.getMonth(),
+      initialStart.getDate(),
+    );
+    const endDay = new Date(initialEnd.getFullYear(), initialEnd.getMonth(), initialEnd.getDate());
+    return Math.max(0, Math.round((endDay.getTime() - startDay.getTime()) / 86_400_000));
+  });
   const minStartDate = formatTripDateTime(new Date());
-  // 종료 시간을 옮겼을 때 시작 시간이 과거로 밀려나지 않도록, "지금 시작했을 때의 종료 시간"을
-  // 종료 시간 쪽의 최소값으로 둔다.
-  const minEndDate = formatTripDateTime(
-    new Date(parseTripDateTime(minStartDate).getTime() + originalDurationMs),
-  );
+  const minEnd = parseTripDateTime(startDate);
+  minEnd.setDate(minEnd.getDate() + originalNights);
+  if (originalNights > 0) minEnd.setHours(0, 0, 0, 0);
+  const minEndDate = formatTripDateTime(minEnd);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleEndDateChange = (nextEndDate: string) => {
-    setStartDate(
-      formatTripDateTime(new Date(parseTripDateTime(nextEndDate).getTime() - originalDurationMs)),
+  const handleStartDateChange = (nextStartDate: string) => {
+    const nextStart = parseTripDateTime(nextStartDate);
+    const currentEnd = parseTripDateTime(endDate);
+    const nextEnd = new Date(
+      nextStart.getFullYear(),
+      nextStart.getMonth(),
+      nextStart.getDate() + originalNights,
+      currentEnd.getHours(),
+      currentEnd.getMinutes(),
     );
+
+    setStartDate(nextStartDate);
+    setEndDate(formatTripDateTime(nextEnd));
   };
 
   const handleConfirm = () => {
@@ -86,7 +98,7 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
             <DateTimeLabel label="시작 시간" />
             <TripDateTimePicker
               value={startDate}
-              onChange={setStartDate}
+              onChange={handleStartDateChange}
               minValue={minStartDate}
               onInvalidSelect={() => setToastMessage("지난 날짜/시간은 선택할 수 없어요.")}
               className="flex-1 w-auto"
@@ -96,8 +108,9 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
             <DateTimeLabel label="종료 시간" />
             <TripDateTimePicker
               value={endDate}
-              onChange={handleEndDateChange}
+              onChange={setEndDate}
               minValue={minEndDate}
+              lockDate
               onInvalidSelect={() => setToastMessage("지난 날짜/시간은 선택할 수 없어요.")}
               className="flex-1 w-auto"
             />
@@ -106,8 +119,8 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
 
         <Card variant="glass-sm" className="mt-5 w-full rounded-lg px-3 py-2">
           <p className="text-center text-sm font-medium text-sub-darkgray break-keep">
-            * 처음 정한 여행 기간은 그대로 유지돼요. 시작이나 종료 중 하나를 옮기면 나머지 하나도
-            같이 이동해요.
+            * 처음 정한 여행 일수는 그대로 유지돼요. 시작 날짜를 옮기면 종료 날짜가 자동으로
+            변경되고, 시간은 각각 바꿀 수 있어요.
           </p>
         </Card>
       </div>

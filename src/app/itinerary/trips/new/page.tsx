@@ -23,8 +23,8 @@ export default function TripNewPage() {
           <br />
           부지런이 도와줄게요!
         </p>
-        <div className="absolute right-[16px] bottom-[-12px] z-10">
-          <Image src={travelImg} alt="" width={150} height={161} aria-hidden />
+        <div className="absolute right-[4px] bottom-0 z-10">
+          <Image src={travelImg} alt="" width={205} height={220} aria-hidden />
         </div>
       </div>
 

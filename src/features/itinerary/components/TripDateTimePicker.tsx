@@ -11,6 +11,8 @@ interface TripDateTimePickerProps {
   minValue?: string;
   maxValue?: string;
   className?: string;
+  // 날짜는 고정하고 시간만 바꿔야 하는 경우 사용한다.
+  lockDate?: boolean;
   // min/max를 벗어난 값을 선택/입력하려고 했을 때 알려준다. 안쪽 값은 자동으로
   // min/max에 맞춰 잘리므로(clamp), 이건 어디까지나 "왜 이 값으로 바뀌었는지" 안내용.
   onInvalidSelect?: (reason: "min" | "max") => void;
@@ -58,6 +60,7 @@ export function TripDateTimePicker({
   minValue,
   maxValue,
   className,
+  lockDate = false,
   onInvalidSelect,
 }: TripDateTimePickerProps) {
   const selectedDate = parseTripDateTime(value);
@@ -150,7 +153,7 @@ export function TripDateTimePicker({
 
     updatePopupPosition();
     setIsOpen(true);
-    setShowTimeWheel(false);
+    setShowTimeWheel(lockDate);
     setCalendarMonth(new Date(targetDate.getFullYear(), targetDate.getMonth(), 1));
   };
   const moveCalendarMonth = (amount: number) => {
@@ -203,61 +206,65 @@ export function TripDateTimePicker({
           className="fixed z-50 w-[168px] rounded-xl border-[0.5px] border-sub-lightblue bg-main-white/95 p-1.5 backdrop-blur-[12px]"
           style={{ top: popupPos.top, left: popupPos.left }}
         >
-          <div className="mb-1 flex items-center justify-between">
-            <button
-              type="button"
-              aria-label="이전 달"
-              className="flex size-5 items-center justify-center text-sm font-bold text-text-primary active:opacity-70"
-              onClick={() => moveCalendarMonth(-1)}
-            >
-              &lt;
-            </button>
-            <span className="font-ssurround text-xs font-bold text-text-heading">
-              {calendarMonth.getFullYear()}.{pad(calendarMonth.getMonth() + 1)}
-            </span>
-            <button
-              type="button"
-              aria-label="다음 달"
-              className="flex size-5 items-center justify-center text-sm font-bold text-text-primary active:opacity-70"
-              onClick={() => moveCalendarMonth(1)}
-            >
-              &gt;
-            </button>
-          </div>
-          <div className="grid grid-cols-7 gap-0.5 text-center font-paperlogy text-2xs font-medium text-sub-gray">
-            {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
-              <span key={day}>{day}</span>
-            ))}
-          </div>
-          <div className="mt-1 grid grid-cols-7 gap-0.5">
-            {calendarDays.map((day, index) => {
-              if (!day) return <span key={`empty-${index}`} />;
-
-              const isSelected =
-                selectedDate.getFullYear() === calendarMonth.getFullYear() &&
-                selectedDate.getMonth() === calendarMonth.getMonth() &&
-                selectedDate.getDate() === day;
-              const isDisabled = isDisabledDate(day);
-
-              return (
+          {!lockDate && (
+            <>
+              <div className="mb-1 flex items-center justify-between">
                 <button
                   type="button"
-                  key={day}
-                  disabled={isDisabled}
-                  className={`h-4 font-paperlogy text-2xs font-medium active:opacity-70 ${
-                    isDisabled
-                      ? "text-sub-lightgray"
-                      : isSelected
-                        ? "rounded-md bg-main-blue text-main-white"
-                        : "text-text-primary"
-                  }`}
-                  onClick={() => handleDateSelect(day)}
+                  aria-label="이전 달"
+                  className="flex size-5 items-center justify-center text-sm font-bold text-text-primary active:opacity-70"
+                  onClick={() => moveCalendarMonth(-1)}
                 >
-                  {day}
+                  &lt;
                 </button>
-              );
-            })}
-          </div>
+                <span className="font-ssurround text-xs font-bold text-text-heading">
+                  {calendarMonth.getFullYear()}.{pad(calendarMonth.getMonth() + 1)}
+                </span>
+                <button
+                  type="button"
+                  aria-label="다음 달"
+                  className="flex size-5 items-center justify-center text-sm font-bold text-text-primary active:opacity-70"
+                  onClick={() => moveCalendarMonth(1)}
+                >
+                  &gt;
+                </button>
+              </div>
+              <div className="grid grid-cols-7 gap-0.5 text-center font-paperlogy text-2xs font-medium text-sub-gray">
+                {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
+                  <span key={day}>{day}</span>
+                ))}
+              </div>
+              <div className="mt-1 grid grid-cols-7 gap-0.5">
+                {calendarDays.map((day, index) => {
+                  if (!day) return <span key={`empty-${index}`} />;
+
+                  const isSelected =
+                    selectedDate.getFullYear() === calendarMonth.getFullYear() &&
+                    selectedDate.getMonth() === calendarMonth.getMonth() &&
+                    selectedDate.getDate() === day;
+                  const isDisabled = isDisabledDate(day);
+
+                  return (
+                    <button
+                      type="button"
+                      key={day}
+                      disabled={isDisabled}
+                      className={`h-4 font-paperlogy text-2xs font-medium active:opacity-70 ${
+                        isDisabled
+                          ? "text-sub-lightgray"
+                          : isSelected
+                            ? "rounded-md bg-main-blue text-main-white"
+                            : "text-text-primary"
+                      }`}
+                      onClick={() => handleDateSelect(day)}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
           {showTimeWheel && (
             <div className="relative mt-1.5 rounded-lg border-[0.5px] border-sub-lightblue bg-main-blue/10 px-2 py-1">
               {/* 가운데(선택된) 줄 강조 바 — TimelineTimePicker와 같은 방식 */}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import CloseIcon from "@/assets/icons/mypage/close.svg?svgr";
+import HotelIcon from "@/assets/icons/itinerary/hotel.svg?svgr";
 import { Modal, SearchBar, EmptyState, LoadingBoundary } from "@/components";
 import type { KakaoPlaceResult } from "@/shared/types/kakao-map";
 
@@ -62,6 +63,9 @@ export function AccommodationSearchField({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<KakaoPlaceResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [pendingOutsideBusanPlace, setPendingOutsideBusanPlace] = useState<KakaoPlaceResult | null>(
+    null,
+  );
   const debouncedQuery = useDebouncedValue(query, 300);
 
   useEffect(() => {
@@ -105,7 +109,7 @@ export function AccommodationSearchField({
     setResults([]);
   };
 
-  const handleSelect = (place: KakaoPlaceResult) => {
+  const selectPlace = (place: KakaoPlaceResult) => {
     onChange({
       name: place.place_name,
       address: place.road_address_name || place.address_name,
@@ -113,6 +117,22 @@ export function AccommodationSearchField({
       lng: Number(place.x),
     });
     handleClose();
+  };
+
+  const handleSelect = (place: KakaoPlaceResult) => {
+    const addresses = `${place.road_address_name} ${place.address_name}`;
+    if (!addresses.includes("부산")) {
+      setPendingOutsideBusanPlace(place);
+      return;
+    }
+
+    selectPlace(place);
+  };
+
+  const handleOutsideBusanConfirm = () => {
+    if (!pendingOutsideBusanPlace) return;
+    selectPlace(pendingOutsideBusanPlace);
+    setPendingOutsideBusanPlace(null);
   };
 
   const handleClear = (e: React.MouseEvent) => {
@@ -214,6 +234,18 @@ export function AccommodationSearchField({
           </div>
         </div>
       </Modal>
+
+      <Modal
+        isOpen={pendingOutsideBusanPlace !== null}
+        onClose={() => setPendingOutsideBusanPlace(null)}
+        icon={<HotelIcon width={24} height={24} aria-hidden />}
+        title="숙소 위치를 확인해주세요"
+        description={`선택하신 숙소는 부산 외 지역에 있어요.\n이 숙소가 맞는지 한 번 더 확인해주세요 😊`}
+        cancelText="다시 선택하기"
+        confirmText="그대로 선택하기"
+        onConfirm={handleOutsideBusanConfirm}
+        className="!max-w-[300px]"
+      />
     </>
   );
 }

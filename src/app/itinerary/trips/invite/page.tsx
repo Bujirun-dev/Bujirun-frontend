@@ -151,8 +151,8 @@ function TripInviteContent() {
       <ShareInviteModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
-        title={`${nickname}님이 ‘${tripName}’에 초대했어요 🌊`}
-        description={`벌써 ${joinedCount}명이 모였어요! 지금 바로 함께해요 🙌`}
+        title={`${nickname}님이 '${tripName}'에 초대했어요 🌊`}
+        description="친구가 부산 여행에 초대했어요! 함께 일정을 만들어봐요!🤩"
         imageUrl={shareImageUrl}
         inviteUrl={inviteUrl}
       />
@@ -162,6 +162,7 @@ function TripInviteContent() {
         onHide={() => setShowExitWarning(false)}
         message="중간에 나가면 일정이 초기화될 수 있어요"
         variant="warning"
+        duration={5000}
       />
     </div>
   );
