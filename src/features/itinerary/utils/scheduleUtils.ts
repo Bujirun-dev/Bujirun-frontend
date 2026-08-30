@@ -403,7 +403,10 @@ export function mapItineraryDetailToDays(
         placeName,
         imageUrl: item.spot?.thumbnailUrl || getFallbackImage(item.spot?.id),
         category: getCategoryFromKo(item.spot?.category ?? "", placeName),
-        status: "verify",
+        // item.spot.visited는 "나(현재 로그인한 사용자)"의 방문인증 여부다(백엔드가
+        // userId 기준으로 계산해서 내려줌) — 그룹 일정이어도 다른 멤버의 인증 여부가
+        // 섞이지 않는다.
+        status: item.spot?.visited ? "completed" : "verify",
         // 여행 메모(실데이터)만 우선 보여준다 — 없으면 TimelinePlaceDetailPopup이
         // spotId로 실제 관광지 소개글을 조회해서 보여준다(useSpotDetail).
         description: item.memo,

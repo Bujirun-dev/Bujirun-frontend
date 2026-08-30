@@ -16,7 +16,7 @@ export interface ReceiptPlace {
   id: string;
   time: string;
   name: string;
-  category: string;
+  collectionCategory: string;
   categoryIcon: string;
   image: StaticImageData | string;
 }

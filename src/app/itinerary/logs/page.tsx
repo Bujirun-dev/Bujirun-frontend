@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import AngleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?svgr";
-import { PageCard, FilterChips, LoadingState, EmptyState } from "@/components";
+import { PageCard, FilterChips, EmptyState, LoadingBoundary, LoadingState } from "@/components";
 import { LogCard } from "@/features/itinerary";
 import { travelLogApi } from "@/shared/api/domains";
 import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
@@ -118,32 +118,43 @@ export default function LogsPage() {
       </div>
 
       {/* 로그 목록 */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-7">
-        {isFetchingLogs ? (
-          <LoadingState message="로그를 불러오는 중이에요" />
-        ) : visibleLogs.length === 0 ? (
-          <EmptyState title="해당 카테고리의 로그가 없어요" />
-        ) : (
-          <>
-            {visibleLogs.map((log) => (
-              <LogCard
-                key={log.id}
-                imageUrl={log.imageUrl}
-                placeName={log.placeName}
-                extraCount={log.extraCount}
-                author={log.author}
-                duration={log.duration}
-                date={log.date}
-                downloadCount={log.downloadCount}
-                onClick={() => router.push(`/itinerary/logs/${log.id}`)}
+      <LoadingBoundary isLoading={isFetchingLogs} message="로그를 불러오는 중이에요">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-7">
+          {visibleLogs.length === 0 ? (
+            <div className="flex flex-1 -translate-y-20 items-center justify-center">
+              <EmptyState
+                variant="compact"
+                title="해당 카테고리의 로그가 없어요."
+                description="다른 카테고리의 여행 로그를 둘러보세요."
               />
-            ))}
-            {/* 무한 스크롤 감지 sentinel */}
-            <div ref={sentinelRef} className="h-1 shrink-0" />
-            {isLoading && <LoadingState message="더 불러오는 중이에요" className="py-4" />}
-          </>
-        )}
-      </div>
+            </div>
+          ) : (
+            <>
+              {visibleLogs.map((log) => (
+                <LogCard
+                  key={log.id}
+                  imageUrl={log.imageUrl}
+                  placeName={log.placeName}
+                  extraCount={log.extraCount}
+                  author={log.author}
+                  duration={log.duration}
+                  date={log.date}
+                  downloadCount={log.downloadCount}
+                  onClick={() => router.push(`/itinerary/logs/${log.id}`)}
+                />
+              ))}
+
+              <div ref={sentinelRef} className="h-1 shrink-0" />
+
+              {isLoading && (
+                <div className="relative h-[72px] w-full shrink-0">
+                  <LoadingState variant="inline" message="로그를 더 불러오는 중이에요..." />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </LoadingBoundary>
     </PageCard>
   );
 }

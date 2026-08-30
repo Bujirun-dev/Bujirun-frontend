@@ -74,7 +74,7 @@ export function ReviewPromptModal({
       }
     >
       <div className="w-full bg-receipt-bg mb-7 px-7 py-5">
-        <div className="grid grid-cols-[74px_1fr] items-center gap-y-2 font-courierprime text-lg text-text-receipt-main">
+        <div className="grid grid-cols-[70px_1fr] items-center gap-y-2 font-courierprime text-lg text-text-receipt-main">
           <span className="font-bold tracking-wide">TITLE</span>
           <span className="font-semibold text-md">{tripTitle}</span>
 

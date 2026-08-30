@@ -1,21 +1,35 @@
 "use client";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import characterImg from "@/assets/character/map.png";
 import removeIcon from "@/assets/icons/itinerary/remove.svg?url";
 import magicWandIcon from "@/assets/icons/itinerary/magic-wand.svg?url";
 import { Modal, TimePicker } from "@/components";
-import { openKakaoMapRoute } from "./TransportSelectSheet";
-import { ArrivalVerifyModal } from "./ArrivalVerifyModal";
-import { AiOptimizeModal } from "./AiOptimizeModal";
-import { AiOptimizeLoadingModal } from "./AiOptimizeLoadingModal";
-import { TripMembersModal } from "./TripMembersModal";
-import { TransportDetailModal } from "@/features/home/components/TransportDetailModal";
+import { openKakaoMapRoute } from "./transportRoute";
 import type { TransportGroup, TransportOption } from "@/features/home/types/transport";
-import type { RouteOption } from "./TransportSelectSheet";
+import type { RouteOption } from "./transportRoute";
 import type { BaseStop } from "../utils/scheduleUtils";
 import { buildTransportOptionsFromApi } from "../utils/scheduleUtils";
 import type { components } from "@/shared/api/schema";
+
+const ArrivalVerifyModal = dynamic(() =>
+  import("./ArrivalVerifyModal").then((module) => module.ArrivalVerifyModal),
+);
+const AiOptimizeModal = dynamic(() =>
+  import("./AiOptimizeModal").then((module) => module.AiOptimizeModal),
+);
+const AiOptimizeLoadingModal = dynamic(() =>
+  import("./AiOptimizeLoadingModal").then((module) => module.AiOptimizeLoadingModal),
+);
+const TripMembersModal = dynamic(() =>
+  import("./TripMembersModal").then((module) => module.TripMembersModal),
+);
+const TransportDetailModal = dynamic(() =>
+  import("@/features/home/components/TransportDetailModal").then(
+    (module) => module.TransportDetailModal,
+  ),
+);
 
 export type ModalType =
   | "optimize"
@@ -72,21 +86,25 @@ export function ItineraryModals({
 }: ItineraryModalsProps) {
   return (
     <>
-      <AiOptimizeModal
-        isOpen={modal === "optimize"}
-        onClose={onClose}
-        onConfirm={onOptimizeStart}
-        accommodationName={accommodationName}
-      />
+      {modal === "optimize" && (
+        <AiOptimizeModal
+          isOpen
+          onClose={onClose}
+          onConfirm={onOptimizeStart}
+          accommodationName={accommodationName}
+        />
+      )}
 
-      <AiOptimizeLoadingModal
-        isOpen={modal === "optimizing"}
-        onClose={onClose}
-        onComplete={onClose}
-        isDone={isOptimizeDone}
-      />
+      {modal === "optimizing" && (
+        <AiOptimizeLoadingModal
+          isOpen
+          onClose={onClose}
+          onComplete={onClose}
+          isDone={isOptimizeDone}
+        />
+      )}
 
-      <TripMembersModal isOpen={modal === "members"} groupId={groupId ?? ""} onClose={onClose} />
+      {modal === "members" && <TripMembersModal isOpen groupId={groupId ?? ""} onClose={onClose} />}
 
       {/* 다른 참여자가 여행 로그를 불러와 일정이 통째로 바뀌었을 때 알려주는 안내 팝업 —
           짧게 보여주고 자동으로 닫힌다(호출부의 타이머가 onClose를 부름). */}
@@ -173,12 +191,12 @@ export function ItineraryModals({
           if (original) onConfirmTransport(original);
         };
 
-        return (
+        return modal === "transport" && routeOptions.length > 0 ? (
           <TransportDetailModal
             // travelModeOptions는 모달이 열린 뒤 비동기로 조회되므로, 응답이 오기 전(첫 렌더에서
             // routeOptions가 빈 배열)에는 아직 열지 않는다 — 빈 옵션으로 열면 TransportDetail이
             // selectedOption을 못 찾아 undefined를 구조분해하다 터진다.
-            isOpen={modal === "transport" && routeOptions.length > 0}
+            isOpen
             transportGroup={transportGroup}
             selectedOptionId={selectedRouteOptionId}
             onClose={onClose}
@@ -187,19 +205,20 @@ export function ItineraryModals({
               openKakaoMapRoute(transportGroup.fromPlace, transportGroup.toPlace)
             }
           />
-        );
+        ) : null;
       })()}
 
-      {activeStop?.spotId && (
+      {modal === "verify" && activeStop?.spotId && (
         <ArrivalVerifyModal
-          isOpen={modal === "verify"}
+          isOpen
           spotId={activeStop.spotId}
           itineraryId={itineraryId}
           placeName={activeStop.placeName}
           characterImageUrl={characterImg.src}
           onClose={onClose}
           onVerify={onConfirmVerify}
-          onLater={onVerifyContinue ?? onClose}
+          onContinue={onVerifyContinue}
+          onLater={onClose}
         />
       )}
     </>

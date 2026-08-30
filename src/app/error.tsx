@@ -15,8 +15,16 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <div className="flex h-full flex-col">
-      <ErrorState code={500} onRetry={unstable_retry} />
+    <div className="flex h-full items-center justify-center">
+      <div className="w-full max-w-[320px] rounded-2xl bg-main-white p-[20px]">
+        <ErrorState
+          code={500}
+          primaryAction={{
+            label: "다시 시도하기",
+            onClick: unstable_retry,
+          }}
+        />
+      </div>
     </div>
   );
 }

@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import CloseIcon from "@/assets/icons/mypage/close.svg?svgr";
-import { Modal, SearchBar, LoadingState, EmptyState } from "@/components";
+import HotelIcon from "@/assets/icons/itinerary/hotel.svg?svgr";
+import { Modal, SearchBar, EmptyState, LoadingBoundary } from "@/components";
+import { useDebouncedValue } from "@/shared/hooks";
 import type { KakaoPlaceResult } from "@/shared/types/kakao-map";
 
 export interface AccommodationPlace {
@@ -23,17 +25,8 @@ interface AccommodationSearchFieldProps {
   }) => React.ReactNode;
 }
 
-function useDebouncedValue<T>(value: T, delayMs: number): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = window.setTimeout(() => setDebounced(value), delayMs);
-    return () => window.clearTimeout(timer);
-  }, [value, delayMs]);
-  return debounced;
-}
-
 // 카카오맵 SDK는 layout.tsx에서 autoload=false로 로드되므로, 최초 사용 시점에
-// kakao.maps.load()로 한 번 초기화해줘야 한다 (TransportSelectSheet의 지오코딩과 동일한 패턴).
+// kakao.maps.load()로 한 번 초기화해줘야 한다 (openKakaoMapRoute의 지오코딩과 동일한 패턴).
 function loadKakaoMaps(): Promise<boolean> {
   return new Promise((resolve) => {
     if (window.kakao?.maps) {
@@ -62,6 +55,9 @@ export function AccommodationSearchField({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<KakaoPlaceResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [pendingOutsideBusanPlace, setPendingOutsideBusanPlace] = useState<KakaoPlaceResult | null>(
+    null,
+  );
   const debouncedQuery = useDebouncedValue(query, 300);
 
   useEffect(() => {
@@ -105,7 +101,7 @@ export function AccommodationSearchField({
     setResults([]);
   };
 
-  const handleSelect = (place: KakaoPlaceResult) => {
+  const selectPlace = (place: KakaoPlaceResult) => {
     onChange({
       name: place.place_name,
       address: place.road_address_name || place.address_name,
@@ -113,6 +109,22 @@ export function AccommodationSearchField({
       lng: Number(place.x),
     });
     handleClose();
+  };
+
+  const handleSelect = (place: KakaoPlaceResult) => {
+    const addresses = `${place.road_address_name} ${place.address_name}`;
+    if (!addresses.includes("부산")) {
+      setPendingOutsideBusanPlace(place);
+      return;
+    }
+
+    selectPlace(place);
+  };
+
+  const handleOutsideBusanConfirm = () => {
+    if (!pendingOutsideBusanPlace) return;
+    selectPlace(pendingOutsideBusanPlace);
+    setPendingOutsideBusanPlace(null);
   };
 
   const handleClear = (e: React.MouseEvent) => {
@@ -176,38 +188,56 @@ export function AccommodationSearchField({
             className="!w-full"
             iconSize={11}
           />
-          <div
-            className={`w-full overflow-y-auto transition-[height] duration-200 ${
-              query.trim() ? "h-[276px]" : "h-0"
-            }`}
-          >
-            {isSearching ? (
-              <LoadingState message="검색하는 중이에요" />
-            ) : !query.trim() ? null : results.length === 0 ? (
-              <EmptyState title="검색 결과가 없어요" size="sm" />
-            ) : (
-              <ul className="flex flex-col gap-1">
-                {results.map((place) => (
-                  <li key={place.id}>
-                    <button
-                      type="button"
-                      onClick={() => handleSelect(place)}
-                      className="flex w-full flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 text-left active:bg-system-navbg"
-                    >
-                      <span className="font-paperlogy font-semibold text-xs text-text-primary">
-                        {place.place_name}
-                      </span>
-                      <span className="font-paperlogy font-medium text-2xs text-sub-gray">
-                        {place.road_address_name || place.address_name}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+          <div className="h-[276px] w-full overflow-y-auto">
+            <LoadingBoundary
+              isLoading={isSearching}
+              message="검색하는 중이에요..."
+              variant="inline"
+              delay={200}
+              minDuration={500}
+            >
+              {!query.trim() ? null : results.length === 0 ? (
+                <EmptyState
+                  variant="compact"
+                  title="검색 결과가 없어요."
+                  description="정확하게 입력했는지 확인해보세요!"
+                />
+              ) : (
+                <ul className="flex flex-col gap-1">
+                  {results.map((place) => (
+                    <li key={place.id}>
+                      <button
+                        type="button"
+                        onClick={() => handleSelect(place)}
+                        className="flex w-full flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 text-left active:bg-system-navbg"
+                      >
+                        <span className="font-paperlogy font-semibold text-xs text-text-primary">
+                          {place.place_name}
+                        </span>
+                        <span className="font-paperlogy font-medium text-2xs text-sub-gray">
+                          {place.road_address_name || place.address_name}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </LoadingBoundary>
           </div>
         </div>
       </Modal>
+
+      <Modal
+        isOpen={pendingOutsideBusanPlace !== null}
+        onClose={() => setPendingOutsideBusanPlace(null)}
+        icon={<HotelIcon width={24} height={24} aria-hidden />}
+        title="숙소 위치를 확인해주세요"
+        description={`선택하신 숙소는 부산 외 지역에 있어요.\n이 숙소가 맞는지 한 번 더 확인해주세요 😊`}
+        cancelText="다시 선택하기"
+        confirmText="그대로 선택하기"
+        onConfirm={handleOutsideBusanConfirm}
+        className="!max-w-[300px]"
+      />
     </>
   );
 }

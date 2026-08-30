@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
-import { Modal, LoadingState, EmptyState } from "@/components";
+import { Modal, LoadingBoundary } from "@/components";
 import { PROFILE_IMAGES } from "@/components/profile/profileImages";
 import { groupApi } from "@/shared/api/domains";
 import { buildAvatarRows } from "../utils/avatarLayout";
@@ -11,6 +11,25 @@ interface TripMembersModalProps {
   isOpen: boolean;
   groupId: string;
   onClose: () => void;
+}
+
+function resolveProfileImage(profileImageUrl: string | undefined, fallbackIndex: number) {
+  const value = profileImageUrl?.trim();
+  const presetId = value ? Number(value) : NaN;
+  const presetImage = Number.isInteger(presetId)
+    ? PROFILE_IMAGES.find((image) => image.id === presetId)
+    : undefined;
+
+  if (presetImage) return { src: presetImage.src, isPreset: true };
+
+  if (value && /^(https?:\/\/|\/)/.test(value)) {
+    return { src: value, isPreset: false };
+  }
+
+  return {
+    src: PROFILE_IMAGES[fallbackIndex % PROFILE_IMAGES.length].src,
+    isPreset: true,
+  };
 }
 
 export function TripMembersModal({ isOpen, groupId, onClose }: TripMembersModalProps) {
@@ -22,47 +41,52 @@ export function TripMembersModal({ isOpen, groupId, onClose }: TripMembersModalP
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="여행 멤버" hideActions childrenVariant="plain">
-      {isLoading ? (
-        <LoadingState message="멤버를 불러오는 중이에요" />
-      ) : !members || members.length === 0 ? (
-        <EmptyState title="아직 참여한 친구가 없어요" size="sm" />
-      ) : (
+      <LoadingBoundary isLoading={isLoading} message="멤버를 불러오는 중이에요">
         <div className="flex w-full flex-col items-center gap-y-4">
-          {buildAvatarRows(members.length).map((row, rowIndex) => (
-            <div key={rowIndex} className="flex gap-x-4">
-              {row.map((i) => {
-                const member = members[i];
-                return (
-                  <div key={member.userId} className="flex w-[64px] flex-col items-center gap-1.5">
-                    <div className="flex size-[64px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-sub-lightblue">
-                      <div className="relative size-[75px] shrink-0">
+          {members &&
+            buildAvatarRows(members.length).map((row, rowIndex) => (
+              <div key={rowIndex} className="flex gap-x-4">
+                {row.map((i) => {
+                  const member = members[i];
+
+                  const profileImage = resolveProfileImage(member.profileImageUrl, i);
+
+                  return (
+                    <div
+                      key={member.userId}
+                      className="flex w-[64px] flex-col items-center gap-1.5"
+                    >
+                      <div className="relative size-[64px] shrink-0 overflow-hidden rounded-full bg-sub-lightblue">
                         <Image
-                          src={
-                            member.profileImageUrl || PROFILE_IMAGES[i % PROFILE_IMAGES.length].src
-                          }
+                          src={profileImage.src}
                           alt=""
                           fill
-                          sizes="75px"
-                          className="object-cover"
+                          sizes="64px"
+                          unoptimized={!profileImage.isPreset}
+                          className={
+                            profileImage.isPreset
+                              ? "object-cover scale-[1.27] origin-[center_10%]"
+                              : "object-cover"
+                          }
                           aria-hidden
                         />
                       </div>
+
+                      <span className="flex max-w-full items-baseline justify-center gap-0.5 truncate text-sm font-semibold text-text-primary">
+                        {member.isLeader && (
+                          <span aria-label="방장" className="text-xs leading-none">
+                            👑
+                          </span>
+                        )}
+                        <span className="truncate">{member.nickname ?? "친구"}</span>
+                      </span>
                     </div>
-                    <span className="flex max-w-full items-baseline justify-center gap-0.5 truncate text-sm font-semibold text-text-primary">
-                      {member.isLeader && (
-                        <span aria-label="방장" className="text-xs leading-none">
-                          👑
-                        </span>
-                      )}
-                      <span className="truncate">{member.nickname ?? "친구"}</span>
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+                  );
+                })}
+              </div>
+            ))}
         </div>
-      )}
+      </LoadingBoundary>
     </Modal>
   );
 }

@@ -73,7 +73,7 @@ export default function BookmarkDetailPage({
           // spot API 응답 전엔 목록에서 받은 thumbnail 사용, 그것도 없으면 플레이스홀더
           imageUrl: spot?.thumbnailUrl ?? thumbnail ?? `https://picsum.photos/seed/${id}/400/300`,
           name: spot?.name ?? "",
-          category: toCategory(spot?.category, spot?.name),
+          category: toCategory(spot?.collectionCategory, spot?.name),
           description: spot?.overview ?? "",
           address: spot?.address ?? "",
           isBookmarked,

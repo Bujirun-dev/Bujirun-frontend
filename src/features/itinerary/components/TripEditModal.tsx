@@ -20,17 +20,43 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
   const [startDate, setStartDate] = useState(() =>
     formatTripDateTime(parseTripDateTime(trip.startDate)),
   );
-  // 처음 생성 시 정한 여행 기간(밤 수)은 수정 화면에서도 그대로 고정한다 —
-  // 줄이는 것도 늘리는 것도 허용하지 않고, 시작일을 옮기면 종료일이 같은 기간만큼 따라 움직인다.
-  const [originalDurationMs] = useState(
-    () => parseTripDateTime(trip.endDate).getTime() - parseTripDateTime(trip.startDate).getTime(),
-  );
-  const endDate = formatTripDateTime(
-    new Date(parseTripDateTime(startDate).getTime() + originalDurationMs),
-  );
+  const [endDate, setEndDate] = useState(() => formatTripDateTime(parseTripDateTime(trip.endDate)));
+  // 처음 생성한 여행의 숙박 수만 고정한다. 시작/종료 시간은 각각 독립적으로 바꿀 수 있고,
+  // 날짜를 옮길 때만 반대쪽 날짜가 같은 숙박 수만큼 따라간다.
+  const [originalNights] = useState(() => {
+    const initialStart = parseTripDateTime(trip.startDate);
+    const initialEnd = parseTripDateTime(trip.endDate);
+    const startDay = new Date(
+      initialStart.getFullYear(),
+      initialStart.getMonth(),
+      initialStart.getDate(),
+    );
+    const endDay = new Date(initialEnd.getFullYear(), initialEnd.getMonth(), initialEnd.getDate());
+    return Math.max(0, Math.round((endDay.getTime() - startDay.getTime()) / 86_400_000));
+  });
+  const minStartDate = formatTripDateTime(new Date());
+  const minEnd = parseTripDateTime(startDate);
+  minEnd.setDate(minEnd.getDate() + originalNights);
+  if (originalNights > 0) minEnd.setHours(0, 0, 0, 0);
+  const minEndDate = formatTripDateTime(minEnd);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const handleStartDateChange = (nextStartDate: string) => {
+    const nextStart = parseTripDateTime(nextStartDate);
+    const currentEnd = parseTripDateTime(endDate);
+    const nextEnd = new Date(
+      nextStart.getFullYear(),
+      nextStart.getMonth(),
+      nextStart.getDate() + originalNights,
+      currentEnd.getHours(),
+      currentEnd.getMinutes(),
+    );
+
+    setStartDate(nextStartDate);
+    setEndDate(formatTripDateTime(nextEnd));
+  };
 
   const handleConfirm = () => {
     onConfirm({ ...trip, name, startDate, endDate });
@@ -72,23 +98,29 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
             <DateTimeLabel label="시작 시간" />
             <TripDateTimePicker
               value={startDate}
-              onChange={setStartDate}
-              minValue={formatTripDateTime(new Date())}
+              onChange={handleStartDateChange}
+              minValue={minStartDate}
               onInvalidSelect={() => setToastMessage("지난 날짜/시간은 선택할 수 없어요.")}
               className="flex-1 w-auto"
             />
           </div>
           <div className="flex items-center gap-2">
             <DateTimeLabel label="종료 시간" />
-            <div className="flex h-[27px] flex-1 items-center rounded-lg border-[0.5px] border-sub-lightblue bg-main-blue/20 px-3 text-2xs font-light text-text-primary">
-              {endDate}
-            </div>
+            <TripDateTimePicker
+              value={endDate}
+              onChange={setEndDate}
+              minValue={minEndDate}
+              lockDate
+              onInvalidSelect={() => setToastMessage("지난 날짜/시간은 선택할 수 없어요.")}
+              className="flex-1 w-auto"
+            />
           </div>
         </div>
 
         <Card variant="glass-sm" className="mt-5 w-full rounded-lg px-3 py-2">
           <p className="text-center text-sm font-medium text-sub-darkgray break-keep">
-            * 처음 정한 여행 기간은 그대로 유지돼요. 시작일을 옮기면 종료일도 같이 이동해요.
+            * 처음 정한 여행 일수는 그대로 유지돼요. 시작 날짜를 옮기면 종료 날짜가 자동으로
+            변경되고, 시간은 각각 바꿀 수 있어요.
           </p>
         </Card>
       </div>

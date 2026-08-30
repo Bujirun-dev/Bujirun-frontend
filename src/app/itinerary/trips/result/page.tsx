@@ -183,6 +183,8 @@ function TripResultContent() {
   const endTime = searchParams.get("endTime") || "17:00";
   const accommodation = searchParams.get("accommodation") ?? "";
   const accommodationAddress = searchParams.get("accommodationAddress") ?? "";
+  const accommodationLat = searchParams.get("accommodationLat") ?? "";
+  const accommodationLng = searchParams.get("accommodationLng") ?? "";
   const isHost = useIsGroupHost(groupId);
 
   // 스와이프 완료 직후 방장/참여자가 거의 동시에 이 페이지에 진입하면 각자의
@@ -244,6 +246,8 @@ function TripResultContent() {
     ...(sessionId ? { sessionId } : {}),
     ...(accommodation ? { accommodation } : {}),
     ...(accommodationAddress ? { accommodationAddress } : {}),
+    ...(accommodationLat ? { accommodationLat } : {}),
+    ...(accommodationLng ? { accommodationLng } : {}),
   }).toString();
 
   // days 수에 맞게 각 플랜 day 슬라이스 + 하루 최대 3곳(아침/오후/저녁) 슬롯에 맞춰 시간 배정
@@ -317,12 +321,21 @@ function TripResultContent() {
     setFreepassModal(null);
     setIsConfirming(true);
     try {
-      const newItineraryId = await itineraryApi.finalizeItinerary(sessionId, {
+      // finalize 요청에 숙소/시간까지 함께 실어서 원자적으로 저장한다 — 세션이
+      // "confirmed"로 바뀌는 시점과 숙소 저장 시점 사이에 참여자가 일정 화면으로
+      // 넘어가버려 숙소 정보가 비어 보이던 race condition을 없애기 위함.
+      await itineraryApi.finalizeItinerary(sessionId, {
         freePass: true,
         selectedPlan: activePlan,
         title: tripName,
         startDate,
         endDate,
+        startTime,
+        endTime,
+        accommodationName: accommodation,
+        accommodationAddress,
+        ...(accommodationLat ? { accommodationLat: Number(accommodationLat) } : {}),
+        ...(accommodationLng ? { accommodationLng: Number(accommodationLng) } : {}),
         // C안(자유 편집형)은 AI가 만든 내용이 없어서, 빈 Day만 일수에 맞게 만들어달라고 명시해야 한다.
         ...(activePlan === "C"
           ? {
@@ -333,14 +346,6 @@ function TripResultContent() {
             }
           : {}),
       });
-      if (newItineraryId) {
-        await itineraryApi.updateItinerary(newItineraryId, {
-          startTime,
-          endTime,
-          accommodationName: accommodation,
-          accommodationAddress,
-        });
-      }
       setToastVariant("success");
       setToastMessage(`방장이 ${activePlan}안을 선택했어요! 🎉`);
       window.setTimeout(() => {
@@ -364,12 +369,20 @@ function TripResultContent() {
 
   if (isGenerateError) {
     return (
-      <div className="flex h-full flex-col">
+      <div className="absolute inset-0 z-10 bg-main-white">
         <ErrorState
           code={503}
           title="일정 생성에 실패했어요"
           description="잠시 후 다시 시도해주세요."
-          onRetry={() => refetchGenerate()}
+          primaryAction={{
+            label: "다시 시도",
+            onClick: () => refetchGenerate(),
+          }}
+          secondaryAction={{
+            label: "홈으로 돌아가기",
+            onClick: () => router.push("/home"),
+          }}
+          className="h-full"
         />
       </div>
     );

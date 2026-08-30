@@ -71,10 +71,10 @@ export function convertTripLogToReceipt(
             ?.filter((item) => item.visited)
             .map((item) => ({
               id: item.id ?? "",
-              time: item.arrivalTime ?? "",
+              time: item.arrivalTime?.slice(0, 5) ?? "",
               name: item.spotName ?? "",
-              category: item.spotCategory ?? "",
-              categoryIcon: CATEGORY_ICON[item.spotCategory ?? ""] ?? "",
+              collectionCategory: item.spotCollectionCategory ?? "",
+              categoryIcon: CATEGORY_ICON[item.spotCollectionCategory ?? ""] ?? "",
               image:
                 item.photos?.find((photo) => photo.representative)?.photoUrl ??
                 item.photos?.[0]?.photoUrl ??

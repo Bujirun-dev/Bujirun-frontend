@@ -13,6 +13,7 @@ import { Toast } from "@/components/ui/Toast";
 import { Card } from "@/components/ui/Card";
 import type { Category } from "@/components/ui/CategoryChip";
 import { userApi, travelLogApi, spotApi } from "@/shared/api/domains";
+import { SPOT_LIST_STALE_TIME_MS } from "@/shared/api/domains/spot";
 import { getCategoryFromKo } from "@/shared/constants/category";
 import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
 
@@ -58,6 +59,7 @@ export function MypageProfile() {
   const { data: spots = [] } = useQuery({
     queryKey: spotApi.keys.search(),
     queryFn: () => spotApi.searchSpots(),
+    staleTime: SPOT_LIST_STALE_TIME_MS,
   });
 
   const collectedPlaces = useMemo(
@@ -68,8 +70,8 @@ export function MypageProfile() {
 
   const favoriteCategory = useMemo(() => {
     const count = collectedPlaces.reduce<Partial<Record<Category, number>>>((acc, place) => {
-      const category = getCategoryFromKo(place.category, place.name);
-      acc[category] = (acc[category] ?? 0) + 1;
+      const collectionCategory = getCategoryFromKo(place.collectionCategory, place.name);
+      acc[collectionCategory] = (acc[collectionCategory] ?? 0) + 1;
       return acc;
     }, {});
 
@@ -178,7 +180,8 @@ export function MypageProfile() {
             travelLogCount={myLogs.length}
             collectedCount={collectedCount}
             favoriteCategory={favoriteCategory}
-            onClick={() => router.push("/collection/records")}
+            onTravelLogClick={() => router.push("/collection/records")}
+            onCollectedClick={() => router.push("/collection/records?view=places")}
           />
         </div>
       </Card>

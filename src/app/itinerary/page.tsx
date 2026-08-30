@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import HotelIcon from "@/assets/icons/itinerary/hotel.svg?svgr";
 import PencilIcon from "@/assets/icons/itinerary/pencil.svg?svgr";
-import { PageCard, Toast, EmptyState, LoadingState } from "@/components";
+import { PageCard, Toast, EmptyState, LoadingBoundary, LoadingState } from "@/components";
 import {
   ItineraryHeader,
   SlidingTimeline,
@@ -91,11 +91,17 @@ function selectItinerary<T extends ItinerarySummaryForSelection>(
   requestedTripId: string | null,
   lastViewedItineraryId: string | null,
 ): T | undefined {
-  const requested = itineraries.find((itinerary) => itinerary.id === requestedTripId);
+  const today = getLocalDateString();
+  // 여행 목록 화면과 동일하게 종료일이 지난 일정은 메인 화면에서도 제외한다.
+  // 날짜가 없는 기존 일정은 잘못 숨기지 않도록 후보에 남겨둔다.
+  const visibleItineraries = itineraries.filter(
+    (itinerary) => !itinerary.endAt || itinerary.endAt >= today,
+  );
+
+  const requested = visibleItineraries.find((itinerary) => itinerary.id === requestedTripId);
   if (requested) return requested;
 
-  const today = getLocalDateString();
-  const ongoingToday = itineraries.filter(
+  const ongoingToday = visibleItineraries.filter(
     (itinerary) =>
       !!itinerary.startAt &&
       !!itinerary.endAt &&
@@ -108,7 +114,7 @@ function selectItinerary<T extends ItinerarySummaryForSelection>(
     if (lastViewed) return lastViewed;
   }
 
-  const candidates = ongoingToday.length > 0 ? ongoingToday : itineraries;
+  const candidates = ongoingToday.length > 0 ? ongoingToday : visibleItineraries;
   return [...candidates].sort((a, b) => {
     const updatedDiff = getTimestamp(b.updatedAt) - getTimestamp(a.updatedAt);
     if (updatedDiff !== 0) return updatedDiff;
@@ -157,6 +163,7 @@ const ACTIVITY_MESSAGES: Record<ActivityAction, (entry: ActivityLogEntry) => str
 
 function ItineraryEmptyState() {
   const router = useRouter();
+
   return (
     <PageCard>
       <EmptyState
@@ -168,8 +175,10 @@ function ItineraryEmptyState() {
             여행을 시작해볼까요?
           </>
         }
-        actionLabel="여행 목록 보기"
-        onAction={() => router.push("/itinerary/trips")}
+        primaryAction={{
+          label: "여행 목록 보기",
+          onClick: () => router.push("/itinerary/trips"),
+        }}
       />
     </PageCard>
   );
@@ -178,7 +187,7 @@ function ItineraryEmptyState() {
 function RouteLoadingFallback() {
   return (
     <PageCard>
-      <LoadingState />
+      <LoadingState variant="inline" />
     </PageCard>
   );
 }
@@ -229,15 +238,14 @@ function ItineraryPageContent() {
     enabled: !!itineraryId,
   });
 
-  if (isListLoading || isDetailLoading) {
-    return (
-      <PageCard>
-        <LoadingState message="일정을 불러오는 중이에요" />
-      </PageCard>
-    );
-  }
+  const isLoading = isListLoading || isDetailLoading;
+
   if (!itineraries || itineraries.length === 0 || !itineraryId || !detail) {
-    return <ItineraryEmptyState />;
+    return (
+      <LoadingBoundary isLoading={isLoading} message="일정을 불러오는 중이에요">
+        <ItineraryEmptyState />
+      </LoadingBoundary>
+    );
   }
 
   // 시작/종료 시간, 숙소 전부 백엔드(Itinerary 엔티티)에 저장된 값을 그대로 쓴다.
@@ -255,16 +263,18 @@ function ItineraryPageContent() {
   const { days, dates, dayIds } = mapItineraryDetailToDays(detail, tripTimeBounds);
 
   return (
-    <ItineraryMain
-      key={itineraryId}
-      itineraryId={itineraryId}
-      groupId={detail.groupId}
-      tripTitle={detail.title ?? selectedItinerary?.title}
-      initialDays={days}
-      initialDates={dates}
-      dayIds={dayIds}
-      tripTimeBounds={tripTimeBounds}
-    />
+    <LoadingBoundary isLoading={isLoading} message="일정을 불러오는 중이에요">
+      <ItineraryMain
+        key={itineraryId}
+        itineraryId={itineraryId}
+        groupId={detail.groupId}
+        tripTitle={detail.title ?? selectedItinerary?.title}
+        initialDays={days}
+        initialDates={dates}
+        dayIds={dayIds}
+        tripTimeBounds={tripTimeBounds}
+      />
+    </LoadingBoundary>
   );
 }
 
@@ -680,7 +690,7 @@ function ItineraryMain({
       time: existingTime,
       placeName: place.name,
       imageUrl: place.imageUrl,
-      category: place.category,
+      category: place.collectionCategory,
       status: place.status === "completed" ? "completed" : "verify",
     });
     logActivity("replace", place.name);
@@ -720,7 +730,7 @@ function ItineraryMain({
       ),
       placeName: place.name,
       imageUrl: place.imageUrl,
-      category: place.category,
+      category: place.collectionCategory,
       status: place.status === "completed" ? "completed" : "verify",
     };
     logActivity("add", place.name);

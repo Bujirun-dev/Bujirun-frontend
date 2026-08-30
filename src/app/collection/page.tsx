@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { VendingMachine } from "@/features/collection/components/VendingMachine";
 import { Shelf } from "@/features/collection/components/Shelf";
 import { useQuery } from "@tanstack/react-query";
+import { ErrorState } from "@/components";
 import { getMyCollection, keys as collectionKeys } from "@/shared/api/domains/collection";
 import {
   CategoryTabs,
@@ -29,7 +30,11 @@ export default function CollectionPage() {
     router.push(`/collection/place/${spotId}?category=${encodeURIComponent(selectedCategory)}`);
   };
 
-  const { data: collection } = useQuery({
+  const {
+    data: collection,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: collectionKeys.my(),
     queryFn: getMyCollection,
   });
@@ -47,7 +52,7 @@ export default function CollectionPage() {
       if (!spot.name) return;
 
       const image = new window.Image();
-      image.src = `/collection/${spot.name}.png`;
+      image.src = `/collection/${spot.name}.webp`;
     });
   }, [spots]);
 
@@ -56,6 +61,23 @@ export default function CollectionPage() {
 
     return spot.collectionCategory === selectedCategory;
   });
+
+  if (isError) {
+    return (
+      <div className="absolute inset-0 z-10 bg-main-white">
+        <ErrorState
+          code={500}
+          title="도감을 불러오지 못했어요"
+          description="잠시 후 다시 시도해주세요."
+          primaryAction={{
+            label: "다시 시도하기",
+            onClick: () => refetch(),
+          }}
+          className="h-full"
+        />
+      </div>
+    );
+  }
 
   return (
     <section className="pb-[24px]">

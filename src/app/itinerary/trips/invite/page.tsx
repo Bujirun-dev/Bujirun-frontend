@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ParticipantAvatarGrid, ShareInviteModal } from "@/features/itinerary/components";
 import { groupApi, userApi } from "@/shared/api/domains";
-import { initKakaoShare } from "@/shared/utils/kakaoShare";
 import { LoadingState, Toast } from "@/components";
 
 function PageLoadingFallback() {
@@ -38,6 +37,8 @@ function TripInviteContent() {
   const endTime = searchParams.get("endTime") ?? "";
   const accommodation = searchParams.get("accommodation") ?? "";
   const accommodationAddress = searchParams.get("accommodationAddress") ?? "";
+  const accommodationLat = searchParams.get("accommodationLat") ?? "";
+  const accommodationLng = searchParams.get("accommodationLng") ?? "";
   const role = searchParams.get("role") === "guest" ? "guest" : "host";
   const [showShareModal, setShowShareModal] = useState(false);
   const [showExitWarning, setShowExitWarning] = useState(role === "host");
@@ -55,10 +56,6 @@ function TripInviteContent() {
     queryFn: userApi.getMyProfile,
   });
 
-  useEffect(() => {
-    initKakaoShare();
-  }, []);
-
   const goToPersonality = () => {
     const nextParams = new URLSearchParams({
       role,
@@ -72,6 +69,8 @@ function TripInviteContent() {
       endTime,
       ...(accommodation ? { accommodation } : {}),
       ...(accommodationAddress ? { accommodationAddress } : {}),
+      ...(accommodationLat ? { accommodationLat } : {}),
+      ...(accommodationLng ? { accommodationLng } : {}),
     });
     router.push(`/itinerary/trips/personality?${nextParams.toString()}`);
   };
@@ -152,8 +151,8 @@ function TripInviteContent() {
       <ShareInviteModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
-        title={`${nickname}님이 ‘${tripName}’에 초대했어요 🌊`}
-        description={`벌써 ${joinedCount}명이 모였어요! 지금 바로 함께해요 🙌`}
+        title={`${nickname}님이 '${tripName}'에 초대했어요 🌊`}
+        description="친구가 부산 여행에 초대했어요! 함께 일정을 만들어봐요!🤩"
         imageUrl={shareImageUrl}
         inviteUrl={inviteUrl}
       />
@@ -163,6 +162,7 @@ function TripInviteContent() {
         onHide={() => setShowExitWarning(false)}
         message="중간에 나가면 일정이 초기화될 수 있어요"
         variant="warning"
+        duration={5000}
       />
     </div>
   );

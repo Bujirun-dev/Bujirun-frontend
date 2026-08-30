@@ -60,8 +60,8 @@ export function ShareInviteModal({
 
   const handleCopyLink = () => void copyInviteUrl();
 
-  const handleKakaoShare = () => {
-    const shared = shareInviteLink({ title, description, imageUrl, inviteUrl });
+  const handleKakaoShare = async () => {
+    const shared = await shareInviteLink({ title, description, imageUrl, inviteUrl });
     if (shared) {
       onClose();
       return;
@@ -77,7 +77,7 @@ export function ShareInviteModal({
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={handleKakaoShare}
+              onClick={() => void handleKakaoShare()}
               className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-system-glassborder bg-main-white px-3 py-2 active:opacity-70"
             >
               <Image

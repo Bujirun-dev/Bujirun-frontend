@@ -1,108 +1,268 @@
 "use client";
 
-import Image, { type StaticImageData } from "next/image";
+import Image from "next/image";
 import { motion } from "framer-motion";
-import emptyCharacter from "@/assets/character/empty.png";
 import { Button } from "./Button";
 import { cn } from "@/shared/utils";
+import emptyCharacter from "@/assets/character/state/empty.png";
+import emptyPaws from "@/assets/character/state/empty-paws.png";
+import emptyBundle from "@/assets/character/state/empty-bundle.png";
 
-type EmptyStateSize = "sm" | "lg";
-
-interface EmptyStateProps {
-  image?: StaticImageData;
-  imageAlt?: string;
-  title: string;
-  description?: React.ReactNode;
-  actionLabel?: string;
-  onAction?: () => void;
-  // 홈 카드처럼 좁은 영역에 넣을 땐 "sm"으로 이미지/여백을 줄인다. 기본은 "lg".
-  size?: EmptyStateSize;
-  className?: string;
-  // size 프리셋의 이미지 px을 개별 화면에서 미세 조정하고 싶을 때만 사용.
-  imageSize?: number;
-  // 기본 버튼 스타일(sm 기준 w-auto px-6)을 개별 화면에서 덮어쓰고 싶을 때만 사용.
-  actionClassName?: string;
+interface EmptyStateAction {
+  label: string;
+  onClick: () => void;
 }
 
-const SIZE_STYLES: Record<EmptyStateSize, { image: number; glow: string; padding: string }> = {
-  lg: { image: 210, glow: "size-[160px]", padding: "px-5 py-10" },
-  sm: { image: 124, glow: "size-[95px]", padding: "px-4 py-6" },
-};
+type EmptyStateVariant = "default" | "compact";
 
-// 목록/데이터가 하나도 없을 때 쓰는 공통 컴포넌트. 화면마다 title/description/
-// actionLabel만 바꿔서 재사용한다 (image 기본값은 여행 캐릭터).
+interface EmptyStateProps {
+  title: string;
+  description?: React.ReactNode;
+  primaryAction?: EmptyStateAction;
+  secondaryAction?: EmptyStateAction;
+  variant?: EmptyStateVariant;
+  className?: string;
+}
+
 export function EmptyState({
-  image = emptyCharacter,
-  imageAlt = "",
   title,
   description,
-  actionLabel,
-  onAction,
-  size = "lg",
+  primaryAction,
+  secondaryAction,
+  variant = "default",
   className,
-  imageSize,
-  actionClassName,
 }: EmptyStateProps) {
-  const { image: presetImageSize, glow, padding } = SIZE_STYLES[size];
-  const resolvedImageSize = imageSize ?? presetImageSize;
-  // width만 지정하고 height는 원본 비율대로 계산한다 — 정사각형으로 강제하면
-  // (travel.png는 1800x2124라 정사각형이 아님) 이미지가 찌그러지고 Next.js
-  // Image 컴포넌트의 width/height 비율 불일치 경고도 뜬다.
-  const resolvedImageHeight = Math.round((resolvedImageSize * image.height) / image.width);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
       className={cn(
-        "flex flex-1 flex-col items-center justify-center gap-3 text-center",
-        padding,
+        variant === "default"
+          ? "pointer-events-none absolute inset-0 flex h-full w-full flex-col items-center justify-center overflow-hidden px-5 py-10 text-center"
+          : "pointer-events-none relative flex w-full flex-col items-center justify-center px-5 py-8 text-center",
         className,
       )}
     >
-      <div className="relative flex items-center justify-center">
-        <div className={cn("absolute rounded-full bg-sub-lightblue/50 blur-2xl", glow)} />
-        <motion.div
-          animate={{ y: [0, -6, 0] }}
-          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <Image
-            src={image}
-            alt={imageAlt}
-            width={resolvedImageSize}
-            height={resolvedImageHeight}
-            className="relative"
-          />
-        </motion.div>
-      </div>
       <div
-        className={cn("flex flex-col items-center", size === "sm" ? "mt-1 gap-1.5" : "mt-1 gap-3")}
+        className={cn(
+          "relative z-10 flex w-full flex-col items-center gap-3",
+          variant === "default" && "mt-0",
+        )}
       >
-        <p
-          className={cn(
-            "font-ssurround font-bold text-text-heading",
-            size === "sm" ? "text-md" : "text-lg",
+        {variant === "default" && (
+          <div className="relative flex h-[200px] w-45 items-end justify-center">
+            {/* 캐릭터 뒤 블러 */}
+            <div className="absolute size-[160px] rounded-full bg-main-blue/30 blur-3xl" />
+
+            {/* 캐릭터 */}
+            <div className="absolute bottom-3 z-20 h-[180px] w-full overflow-hidden">
+              {" "}
+              <motion.div
+                className="absolute inset-x-0 bottom-0 flex justify-center"
+                initial={{ y: 180 }}
+                animate={{
+                  y: [180, 110, 110, 180, 180, 20, 20, 180, 180],
+                }}
+                transition={{
+                  duration: 15,
+                  times: [0, 0.08, 0.12, 0.2, 0.25, 0.38, 0.7, 0.77, 1],
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                <div className="relative w-[105px]">
+                  <Image
+                    src={emptyCharacter}
+                    alt="캐릭터"
+                    width={105}
+                    priority
+                    className="block h-auto w-full"
+                  />
+                  {/* 왼쪽 눈동자 */}
+                  <motion.span
+                    className="absolute z-30 left-[37%] top-[48%] w-[5px] h-[7px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-system-black"
+                    animate={{
+                      x: [0, 0, -2.5, 2.5, -2.5, 2.5, 0, 0],
+                    }}
+                    transition={{
+                      duration: 15,
+                      times: [0, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 1],
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
+                  {/* 오른쪽 눈동자 */}
+                  <motion.span
+                    className="absolute z-30 right-[33%] top-[50%] w-[5px] h-[7px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-system-black"
+                    animate={{
+                      x: [0, 0, -2.5, 2.5, -2.5, 2.5, 0, 0],
+                    }}
+                    transition={{
+                      duration: 15,
+                      times: [0, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 1],
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
+                </div>
+              </motion.div>
+            </div>
+
+            {/* 보따리 */}
+            <div className="pointer-events-none absolute -right-10 bottom-4 z-0 h-30 w-[140px] overflow-hidden">
+              <motion.div
+                className="absolute -bottom-[18px] left-[60px] w-20"
+                initial={{
+                  x: -58,
+                  y: 38,
+                  opacity: 0,
+                  scale: 0.8,
+                  rotate: -10,
+                }}
+                animate={{
+                  x: [-58, -58, -25, 0, 0, 0, -12, -35, -58, -58],
+                  y: [38, 38, -50, -28, -28, -28, -45, -20, 38, 38],
+                  scale: [0.8, 0.8, 1, 1.3, 1.3, 1.3, 1.1, 0.8, 0.7, 0.7],
+                  opacity: [0.5, 1, 1, 1, 1, 1, 1, 1, 1, 0.5],
+                  rotate: [-10, -10, 18, 0, 0, 0, -8, -16, -10, -10],
+                }}
+                transition={{
+                  duration: 15,
+                  times: [0, 0.18, 0.23, 0.25, 0.72, 0.76, 0.8, 0.84, 0.9, 1],
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                <Image
+                  src={emptyBundle}
+                  alt="빈 상태 캐릭터 보따리"
+                  width={35}
+                  className="block h-auto w-full"
+                />
+              </motion.div>
+            </div>
+
+            {/* 홀 */}
+            <div className="relative z-10 h-[28px] w-[150px] rounded-[50%] bg-text-primary/30 shadow-[inset_0_8px_12px_rgba(0,0,0,0.1),inset_0_-3px_5px_rgba(255,255,255,0.14)]">
+              <div className="absolute inset-x-[10px] top-[5px] h-[14px] rounded-[50%] bg-text-primary/50 blur-[1px]" />
+              <div className="absolute inset-x-[18px] bottom-[2px] h-[6px] rounded-[50%] bg-main-whitebg" />
+            </div>
+
+            {/* 손 */}
+            <motion.div
+              className="pointer-events-none absolute -bottom-4 z-30 w-[80px]"
+              animate={{
+                opacity: [0, 0, 0, 1, 1, 0, 0],
+              }}
+              transition={{
+                duration: 15,
+                times: [0, 0.2, 0.29, 0.3, 0.75, 0.76, 1],
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            >
+              <Image
+                src={emptyPaws}
+                alt="빈 상태 캐릭터 손"
+                width={80}
+                className="block h-auto w-full"
+              />
+            </motion.div>
+
+            {/* 멘트 */}
+            <motion.p
+              className="absolute bottom-20 z-30 font-ssurround text-sm font-bold tracking-[0.08em] text-text-heading"
+              animate={{
+                opacity: [0, 1, 1, 0, 0],
+              }}
+              transition={{
+                duration: 15,
+                times: [0, 0.08, 0.18, 0.19, 1],
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            >
+              HMM...
+            </motion.p>
+
+            <motion.p
+              className="absolute bottom-30 z-30 font-ssurround text-sm font-bold tracking-[0.08em] text-text-heading"
+              animate={{
+                opacity: [0, 0, 1, 1, 0, 0],
+              }}
+              transition={{
+                duration: 15,
+                times: [0, 0.39, 0.391, 0.73, 0.74, 1],
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            >
+              ALL MINE!
+            </motion.p>
+
+            <motion.p
+              className="absolute bottom-20 z-30 font-ssurround text-sm font-bold tracking-[0.08em] text-text-heading"
+              animate={{
+                opacity: [0, 0, 1, 1, 0],
+              }}
+              transition={{
+                duration: 15,
+                times: [0, 0.76, 0.77, 0.99, 1],
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            >
+              NOTHING...
+            </motion.p>
+          </div>
+        )}
+
+        {/* 문구 */}
+        <div className={cn("flex flex-col items-center gap-3", variant === "default" && "mt-6")}>
+          <p
+            className={cn(
+              "font-ssurround font-bold text-text-heading",
+              variant === "default" ? "text-lg" : "text-md",
+            )}
+          >
+            {title}
+          </p>
+
+          {description && (
+            <p
+              className={cn(
+                "leading-relaxed font-medium text-sub-deepgray",
+                variant === "default" ? "text-md" : "text-sm",
+              )}
+            >
+              {description}
+            </p>
           )}
-        >
-          {title}
-        </p>
-        {description && <p className="text-sm leading-relaxed text-sub-gray">{description}</p>}
+        </div>
+
+        {/* 버튼 */}
+        {(primaryAction || secondaryAction) && (
+          <div
+            className={cn(
+              "pointer-events-auto flex w-full gap-2",
+              variant === "default" ? "mt-4" : "",
+            )}
+          >
+            {secondaryAction && (
+              <Button variant="secondary" onClick={secondaryAction.onClick}>
+                {secondaryAction.label}
+              </Button>
+            )}
+
+            {primaryAction && (
+              <Button variant="primary" onClick={primaryAction.onClick}>
+                {primaryAction.label}
+              </Button>
+            )}
+          </div>
+        )}
       </div>
-      {actionLabel && onAction && (
-        <Button
-          variant="primary"
-          onClick={onAction}
-          className={cn(
-            size === "sm" ? "mt-2" : "mt-3",
-            // actionClassName이 있으면 너비는 그쪽에 맡긴다(cn이 tailwind-merge가 아니라
-            // 단순 문자열 합치기라, 기본 w-auto와 같이 있으면 override를 보장 못 함).
-            actionClassName ?? (size === "sm" ? "w-auto px-6" : undefined),
-          )}
-        >
-          {actionLabel}
-        </Button>
-      )}
     </motion.div>
   );
 }

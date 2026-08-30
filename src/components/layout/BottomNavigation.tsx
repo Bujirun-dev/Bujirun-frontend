@@ -62,8 +62,8 @@ export function BottomNavigation() {
   if (pathname === "/login" || pathname === "/signup") return null;
 
   return (
-    <nav className="z-30 w-full shrink-0 bg-main-white backdrop-blur pb-[env(safe-area-inset-bottom)]">
-      <div className="grid h-[64px] grid-cols-4 p-2">
+    <nav className="z-30 w-full shrink-0 bg-main-white backdrop-blur">
+      <div className="grid h-[72px] grid-cols-4 p-2">
         {navigationItems.map((item) => {
           const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 

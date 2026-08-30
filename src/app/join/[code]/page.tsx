@@ -12,11 +12,7 @@ import { LoadingState } from "@/components";
 type JoinStatus = "unauthenticated" | "joining" | "success" | "error";
 
 function PageLoadingFallback() {
-  return (
-    <div className="flex h-full flex-col">
-      <LoadingState />
-    </div>
-  );
+  return <LoadingState />;
 }
 
 export default function JoinGroupPage({ params }: { params: Promise<{ code: string }> }) {

@@ -169,7 +169,7 @@ export function VendingMachine({
                               onClick={() => spot.spotId && onSpotClick?.(spot.spotId)}
                             >
                               <Image
-                                src={`/collection/${spot.name}.png`}
+                                src={`/collection/${spot.name}.webp`}
                                 alt={spot.name}
                                 width={56}
                                 height={56}

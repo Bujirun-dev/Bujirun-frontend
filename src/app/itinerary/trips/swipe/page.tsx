@@ -7,16 +7,13 @@ import { useQuery } from "@tanstack/react-query";
 import pawIcon from "@/assets/icons/itinerary/paw-print.png";
 import { collectionApi, swipeApi } from "@/shared/api/domains";
 import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
-import { LoadingState } from "@/components";
+import { EmptyState, LoadingBoundary, LoadingState } from "@/components";
 
 const SWIPE_THRESHOLD = 80;
+const SWIPE_ANIMATION_MS = 300;
 
 function PageLoadingFallback() {
-  return (
-    <div className="flex h-full flex-col">
-      <LoadingState />
-    </div>
-  );
+  return <LoadingState />;
 }
 
 export default function TripSwipePage() {
@@ -40,6 +37,8 @@ function TripSwipeContent() {
   const endTime = searchParams.get("endTime") ?? "";
   const accommodation = searchParams.get("accommodation") ?? "";
   const accommodationAddress = searchParams.get("accommodationAddress") ?? "";
+  const accommodationLat = searchParams.get("accommodationLat") ?? "";
+  const accommodationLng = searchParams.get("accommodationLng") ?? "";
   const forwardParams = new URLSearchParams({
     count,
     days,
@@ -51,12 +50,20 @@ function TripSwipeContent() {
     endTime,
     ...(accommodation ? { accommodation } : {}),
     ...(accommodationAddress ? { accommodationAddress } : {}),
+    ...(accommodationLat ? { accommodationLat } : {}),
+    ...(accommodationLng ? { accommodationLng } : {}),
   }).toString();
 
-  const { data: spotsData } = useQuery({
+  const {
+    data: spotsData,
+    isLoading,
+    refetch,
+    isFetching,
+  } = useQuery({
     queryKey: collectionApi.keys.swipeDeck(),
     queryFn: () => collectionApi.getSwipeDeck(),
   });
+
   const places = useMemo(
     () =>
       (spotsData ?? []).map((spot) => ({
@@ -71,24 +78,31 @@ function TripSwipeContent() {
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState<"left" | "right" | null>(null);
+  const [selectedReaction, setSelectedReaction] = useState<"like" | "dislike" | null>(null);
   const startXRef = useRef(0);
+  const isAnimatingRef = useRef(false);
   const swipesRef = useRef<{ contentId: string; liked: boolean }[]>([]);
   const total = places.length;
   const place = places[currentIndex];
-  // 다음 카드 이미지를 미리 받아둔다 — 안 그러면 스와이프하는 순간에야 fetch가 시작돼서,
+  // 다음 1~2장을 미리 받아둔다 — 안 그러면 스와이프하는 순간에야 fetch가 시작돼서,
   // 느린 네트워크/기기에서 새 카드로 넘어간 뒤에도 한동안 직전 사진이 그대로 보이는(이름은
   // 바뀌었는데 사진만 안 바뀌어서 "이미지가 중복된다"로 보이는) 현상이 있었다.
-  const nextPlace = places[currentIndex + 1];
+  // next/image가 실제로 쓰는 최적화 URL(/_next/image?...)과 동일한 요청을 미리 보내야
+  // 브라우저 캐시가 재사용된다 — 원본 URL로 raw <img> 프리로드하면 캐시 키가 달라서 무효했다.
+  const preloadPlaces = places.slice(currentIndex + 1, currentIndex + 3);
   const progress = total > 0 ? (currentIndex + 1) / total : 0;
 
   const handleSwipe = (direction: "left" | "right") => {
     // 렉/빠른 연속 제스처로 같은 카드가 애니메이션 도중 다시 스와이프되면(onDragEnd가 재진입),
     // currentIndex가 아직 안 바뀐 상태라 같은 스팟이 swipesRef에 중복으로 쌓이고 결과 제출 시
     // 같은 spot이 두 번 좋아요/싫어요로 잡히는 문제가 있었다 — 애니메이션 중엔 무시.
-    if (isAnimatingOut) return;
+    if (isAnimatingRef.current) return;
     if (!place) return;
-    swipesRef.current.push({ contentId: place.id, liked: direction === "right" });
+    isAnimatingRef.current = true;
+    const liked = direction === "right";
+    swipesRef.current.push({ contentId: place.id, liked });
 
+    setSelectedReaction(liked ? "like" : "dislike");
     setIsAnimatingOut(direction);
     setTimeout(() => {
       const nextIndex = currentIndex + 1;
@@ -103,7 +117,9 @@ function TripSwipeContent() {
       setCurrentIndex(nextIndex);
       setDragX(0);
       setIsAnimatingOut(null);
-    }, 250);
+      setSelectedReaction(null);
+      isAnimatingRef.current = false;
+    }, SWIPE_ANIMATION_MS);
   };
 
   const onDragStart = (clientX: number) => {
@@ -130,7 +146,7 @@ function TripSwipeContent() {
   const cardStyle = isAnimatingOut
     ? {
         transform: `translateX(${isAnimatingOut === "right" ? 400 : -400}px) rotate(${isAnimatingOut === "right" ? 20 : -20}deg)`,
-        transition: "transform 0.25s ease-out",
+        transition: `transform ${SWIPE_ANIMATION_MS}ms ease-out, opacity ${SWIPE_ANIMATION_MS}ms ease-out`,
         opacity: 0,
       }
     : {
@@ -140,8 +156,22 @@ function TripSwipeContent() {
 
   if (!place) {
     return (
-      <div className="flex h-full flex-col">
-        <LoadingState message="관광지를 불러오는 중이에요" />
+      <div className="absolute inset-0 z-10 -translate-y-10 bg-main-white">
+        <LoadingBoundary isLoading={isLoading} message="관광지를 불러오는 중이에요">
+          <EmptyState
+            title="추천할 관광지를 찾지 못했어요"
+            description="잠시 후 다시 시도하거나 이전 단계로 돌아가보세요."
+            secondaryAction={{
+              label: "뒤로가기",
+              onClick: () => router.back(),
+            }}
+            primaryAction={{
+              label: isFetching ? "불러오는 중..." : "다시 시도",
+              onClick: () => void refetch(),
+            }}
+            className="h-full"
+          />
+        </LoadingBoundary>
       </div>
     );
   }
@@ -192,44 +222,79 @@ function TripSwipeContent() {
             src={place.image}
             alt={place.name}
             fill
-            sizes="390px"
+            sizes="(max-width: 390px) calc(100vw - 48px), 342px"
             className="object-cover pointer-events-none"
             draggable={false}
             priority
           />
+          {isAnimatingOut && (
+            <div
+              className={`pointer-events-none absolute inset-0 ${
+                isAnimatingOut === "right" ? "bg-main-blue/25" : "bg-text-heading/30"
+              }`}
+              aria-hidden
+            />
+          )}
           <p className="absolute bottom-4 left-4 right-4 font-ssurround font-bold text-lg text-white drop-shadow">
             {place.name}
           </p>
         </div>
 
-        {/* 별로에요 힌트 - 고정, 왼쪽 드래그 시 강조 / 오른쪽 드래그 시 흐려짐 */}
-        <div
-          className="pointer-events-none absolute left-0 top-1/2 z-20 flex size-[26px] items-center justify-center rounded-[10px] bg-white/80 transition-opacity duration-150"
+        {selectedReaction && (
+          <div
+            className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center"
+            aria-hidden
+          >
+            <div className="flex size-[88px] animate-[bounce_300ms_ease-out_1] items-center justify-center rounded-[24px] border border-white/70 bg-white/90 text-5xl shadow-lg backdrop-blur-sm">
+              {selectedReaction === "like" ? "❣️" : "☹️"}
+            </div>
+          </div>
+        )}
+
+        {/* 별로에요 버튼 - 왼쪽 드래그 시 강조 / 오른쪽 드래그 시 흐려짐 */}
+        <button
+          type="button"
+          aria-label="별로예요"
+          disabled={isAnimatingOut !== null}
+          onClick={() => handleSwipe("left")}
+          className="absolute left-0 top-1/2 z-20 flex size-[32px] items-center justify-center rounded-[10px] bg-white/85 transition-all duration-150 active:scale-90 disabled:pointer-events-none"
           style={{
             opacity: Math.max(0.3, 0.8 - likeOpacity * 0.5) + nopeOpacity * 0.2,
             transform: "translate(-50%, -50%)",
           }}
         >
           <span className="text-lg leading-none">☹️</span>
-        </div>
+        </button>
 
-        {/* 좋아요 힌트 - 고정, 오른쪽 드래그 시 강조 / 왼쪽 드래그 시 흐려짐 */}
-        <div
-          className="pointer-events-none absolute right-0 top-1/2 z-20 flex size-[26px] items-center justify-center rounded-[10px] bg-white/80 transition-opacity duration-150"
+        {/* 좋아요 버튼 - 오른쪽 드래그 시 강조 / 왼쪽 드래그 시 흐려짐 */}
+        <button
+          type="button"
+          aria-label="좋아요"
+          disabled={isAnimatingOut !== null}
+          onClick={() => handleSwipe("right")}
+          className="absolute right-0 top-1/2 z-20 flex size-[32px] items-center justify-center rounded-[10px] bg-white/85 transition-all duration-150 active:scale-90 disabled:pointer-events-none"
           style={{
             opacity: Math.max(0.3, 0.8 - nopeOpacity * 0.5) + likeOpacity * 0.2,
             transform: "translate(50%, -50%)",
           }}
         >
           <span className="text-lg leading-none">❣️</span>
-        </div>
+        </button>
 
-        {/* 다음 카드 이미지 프리로드용(화면엔 안 보임) — 미리 fetch만 시작해두기 위함 */}
-        {nextPlace ? (
-          // next/image 최적화 파이프라인 없이 브라우저 캐시에 원본을 그대로 미리 받아두려는 용도라 일반 img를 씀
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={nextPlace.image} alt="" width={1} height={1} className="hidden" aria-hidden />
-        ) : null}
+        {/* 다음 카드 이미지 프리로드용(화면엔 안 보임) — 실제 카드와 동일한 sizes로 next/image
+            최적화 URL을 미리 요청해서, 카드가 넘어갈 때 브라우저 캐시를 그대로 히트하게 한다. */}
+        {preloadPlaces.slice(0, 1).map((p) => (
+          <div key={p.id} className="absolute h-px w-px overflow-hidden opacity-0" aria-hidden>
+            <Image
+              src={p.image}
+              alt=""
+              fill
+              sizes="(max-width: 390px) calc(100vw - 48px), 342px"
+              loading="eager"
+              fetchPriority="low"
+            />
+          </div>
+        ))}
       </div>
     </div>
   );

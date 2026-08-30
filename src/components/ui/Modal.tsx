@@ -26,6 +26,7 @@ interface ModalProps {
   footer?: React.ReactNode;
   hideActions?: boolean;
   hideCloseButton?: boolean;
+  closeButtonClassName?: string;
 }
 
 export function Modal({
@@ -48,6 +49,7 @@ export function Modal({
   footer,
   hideActions = false,
   hideCloseButton = false,
+  closeButtonClassName,
 }: ModalProps) {
   useEffect(() => {
     if (!isOpen) return;
@@ -91,6 +93,7 @@ export function Modal({
             className={cn(
               "absolute right-5 top-5 flex h-5 w-5 cursor-pointer items-center justify-center active:opacity-70",
               confirmVariant === "warning" ? "text-sub-coral" : "text-main-blue",
+              closeButtonClassName,
             )}
             onClick={onClose}
           >

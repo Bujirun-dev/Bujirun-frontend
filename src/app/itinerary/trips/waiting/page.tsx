@@ -8,11 +8,7 @@ import { LoadingState } from "@/components";
 import { swipeApi } from "@/shared/api/domains";
 
 function PageLoadingFallback() {
-  return (
-    <div className="flex h-full flex-col">
-      <LoadingState />
-    </div>
-  );
+  return <LoadingState />;
 }
 
 export default function TripWaitingPage() {
@@ -31,6 +27,8 @@ function TripWaitingContent() {
   const groupId = searchParams.get("groupId") ?? "";
   const accommodation = searchParams.get("accommodation") ?? "";
   const accommodationAddress = searchParams.get("accommodationAddress") ?? "";
+  const accommodationLat = searchParams.get("accommodationLat") ?? "";
+  const accommodationLng = searchParams.get("accommodationLng") ?? "";
   const forwardParams = new URLSearchParams({
     count: String(totalSlots),
     days,
@@ -42,6 +40,8 @@ function TripWaitingContent() {
     endTime: searchParams.get("endTime") ?? "",
     ...(accommodation ? { accommodation } : {}),
     ...(accommodationAddress ? { accommodationAddress } : {}),
+    ...(accommodationLat ? { accommodationLat } : {}),
+    ...(accommodationLng ? { accommodationLng } : {}),
   }).toString();
 
   const { data: swipeStatus } = useQuery({

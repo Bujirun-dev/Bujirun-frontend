@@ -301,7 +301,9 @@ export function ItineraryTimeline({
             >
               <PlusIcon width={16} height={16} className="text-main-white" aria-hidden />
             </button>
-            {date && <span className="text-xs font-semibold text-sub-gray">{date}</span>}
+            {!isEmpty && date && (
+              <span className="text-xs font-semibold text-sub-gray">{date}</span>
+            )}
           </div>
 
           {isAddingNew && (
@@ -315,12 +317,13 @@ export function ItineraryTimeline({
 
         {isEmpty && !isAddingNew && (
           <EmptyState
-            size="sm"
-            imageSize={120}
+            className="-translate-y-5"
             title="아직 이 날 일정이 없어요"
-            actionLabel="+ 일정 추가"
-            actionClassName="w-auto px-4"
-            onAction={openAddNew}
+            description="가고 싶은 관광지를 추가해 일정을 채워보세요!"
+            primaryAction={{
+              label: "관광지 추가하기",
+              onClick: openAddNew,
+            }}
           />
         )}
 

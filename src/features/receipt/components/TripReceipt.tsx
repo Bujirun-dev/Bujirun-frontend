@@ -97,7 +97,7 @@ export function TripReceipt({ receipt }: TripReceiptProps) {
               <div className="my-2 flex items-center gap-4 font-bold">
                 <span className="text-text-receipt-sub text-lg">DAY {day.day}</span>
                 <span className="text-sub-gray">
-                  {day.date} ({day.weekday})
+                  {day.date.split(".").slice(1).join(".")}({day.weekday})
                 </span>
               </div>
 
@@ -106,27 +106,33 @@ export function TripReceipt({ receipt }: TripReceiptProps) {
                   <li
                     key={place.id}
                     className={cn(
-                      "grid grid-cols-[48px_86px_minmax(0,1fr)] items-center gap-3 py-2",
+                      "grid grid-cols-[48px_86px_minmax(0,1fr)] items-center gap-3",
+                      place.image ? "py-2" : "py-0.5",
                       placeIndex !== day.places.length - 1 && "border-b border-sub-lightgray",
                     )}
                   >
                     <time className="text-center text-text-receipt-sub">{place.time}</time>
 
-                    <div className="relative h-12 w-22 overflow-hidden rounded-md">
-                      <Image
-                        src={place.image}
-                        alt={`${place.name} 사진`}
-                        fill
-                        sizes="88px"
-                        loading="eager"
-                        className="object-cover"
-                      />
-                    </div>
+                    {place.image ? (
+                      <div className="relative h-12 w-22 overflow-hidden rounded-md">
+                        <Image
+                          src={place.image}
+                          alt={`${place.name} 사진`}
+                          fill
+                          sizes="88px"
+                          loading="eager"
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div />
+                    )}
 
                     <div className="min-w-0 space-y-1.5">
                       <p className="truncate font-bold">{place.name}</p>
                       <p className="text-xs font-bold">
-                        <span aria-hidden="true">{place.categoryIcon}</span> {place.category}
+                        <span aria-hidden="true">{place.categoryIcon}</span>{" "}
+                        {place.collectionCategory}
                       </p>
                     </div>
                   </li>

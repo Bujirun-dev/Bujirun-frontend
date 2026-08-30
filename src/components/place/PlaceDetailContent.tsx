@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import type { StaticImageData } from "next/image";
 import bookmarkOffIcon from "@/assets/icons/itinerary/bookmark-off.png";
 import bookmarkOnIcon from "@/assets/icons/itinerary/bookmark-on.png";
+import { BOOKMARK_TOAST_MESSAGE } from "@/shared/constants/bookmark";
 import callIcon from "@/assets/icons/itinerary/call.png";
 import clockIcon from "@/assets/icons/itinerary/clock-blue.png";
 import feeIcon from "@/assets/icons/itinerary/fee.png";
@@ -110,11 +111,11 @@ export function PlaceDetailContent({
     try {
       await onBookmark?.();
       setBookmarkToast({
-        message: willAddBookmark ? "북마크에 추가했어요" : "북마크에서 삭제했어요",
+        message: willAddBookmark ? BOOKMARK_TOAST_MESSAGE.added : BOOKMARK_TOAST_MESSAGE.removed,
         variant: "success",
       });
     } catch {
-      setBookmarkToast({ message: "북마크 변경에 실패했어요", variant: "error" });
+      setBookmarkToast({ message: BOOKMARK_TOAST_MESSAGE.error, variant: "error" });
     }
   };
 
