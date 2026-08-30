@@ -57,6 +57,4 @@ export function AuthProvider({ children }: AuthProviderProps) {
       {children}
     </LoadingBoundary>
   );
-
-  return <>{children}</>;
 }

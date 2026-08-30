@@ -5,17 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Check, X, XCircle } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/shared/utils";
+import { useDebouncedValue } from "@/shared/hooks";
 import { userApi } from "@/shared/api/domains";
 import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
-
-function useDebouncedValue<T>(value: T, delayMs: number): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = window.setTimeout(() => setDebounced(value), delayMs);
-    return () => window.clearTimeout(timer);
-  }, [value, delayMs]);
-  return debounced;
-}
 
 export interface NicknameInlineEditRef {
   closeEdit: () => void;

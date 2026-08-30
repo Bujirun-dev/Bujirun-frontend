@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -30,22 +31,26 @@ export function PlaceSection() {
     staleTime: SPOT_LIST_STALE_TIME_MS,
   });
 
-  const recommendedPlaces = [...spots]
-    .filter(
-      (spot) =>
-        Boolean(spot.spotId && spot.name && spot.thumbnailUrl) &&
-        ((spot.isCollection && !spot.collected) || (!spot.isCollection && !spot.visited)),
-    )
-    .sort((a, b) => {
-      const getPriority = (spot: (typeof spots)[number]) => {
-        if (spot.isCollection && !spot.collected) return 0;
-        if (!spot.isCollection && !spot.visited) return 1;
-        return 2;
-      };
+  const recommendedPlaces = useMemo(
+    () =>
+      [...spots]
+        .filter(
+          (spot) =>
+            Boolean(spot.spotId && spot.name && spot.thumbnailUrl) &&
+            ((spot.isCollection && !spot.collected) || (!spot.isCollection && !spot.visited)),
+        )
+        .sort((a, b) => {
+          const getPriority = (spot: (typeof spots)[number]) => {
+            if (spot.isCollection && !spot.collected) return 0;
+            if (!spot.isCollection && !spot.visited) return 1;
+            return 2;
+          };
 
-      return getPriority(a) - getPriority(b);
-    })
-    .slice(0, 6);
+          return getPriority(a) - getPriority(b);
+        })
+        .slice(0, 6),
+    [spots],
+  );
 
   if (isLoading) {
     return <div className="h-[90px]" />;
