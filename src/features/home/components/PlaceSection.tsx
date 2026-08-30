@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { keys, searchSpots, SPOT_LIST_STALE_TIME_MS } from "@/shared/api/domains/spot";
-import { CategoryChip } from "@/components";
+import { CategoryChip, HomePlaceRowSkeleton } from "@/components";
 import type { Category } from "@/components";
 
 function toCategory(value?: string): Category {
@@ -53,7 +53,7 @@ export function PlaceSection() {
   );
 
   if (isLoading) {
-    return <div className="h-[90px]" />;
+    return <HomePlaceRowSkeleton />;
   }
 
   if (isError) {
