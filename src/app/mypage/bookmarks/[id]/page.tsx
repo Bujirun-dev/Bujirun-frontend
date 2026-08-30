@@ -59,9 +59,7 @@ export default function BookmarkDetailPage({
     onSuccess: () => {
       // 토스트 메시지 표시
       setToastVariant("success");
-      setToastMessage(
-        isBookmarked ? BOOKMARK_TOAST_MESSAGE.removed : BOOKMARK_TOAST_MESSAGE.added,
-      );
+      setToastMessage(isBookmarked ? BOOKMARK_TOAST_MESSAGE.removed : BOOKMARK_TOAST_MESSAGE.added);
       setToastVisible(true);
       setIsBookmarked((prev) => !prev);
       queryClient.invalidateQueries({ queryKey: bookmarkApi.keys.list() });

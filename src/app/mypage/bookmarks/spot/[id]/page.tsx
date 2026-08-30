@@ -22,9 +22,7 @@ export default function BookmarkSpotDetailPage({ params }: { params: Promise<{ i
       await toggleBookmark();
 
       setToastVariant("success");
-      setToastMessage(
-        isBookmarked ? BOOKMARK_TOAST_MESSAGE.removed : BOOKMARK_TOAST_MESSAGE.added,
-      );
+      setToastMessage(isBookmarked ? BOOKMARK_TOAST_MESSAGE.removed : BOOKMARK_TOAST_MESSAGE.added);
       setToastVisible(true);
     } catch {
       setToastVariant("error");

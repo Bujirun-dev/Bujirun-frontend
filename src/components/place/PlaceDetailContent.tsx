@@ -111,9 +111,7 @@ export function PlaceDetailContent({
     try {
       await onBookmark?.();
       setBookmarkToast({
-        message: willAddBookmark
-          ? BOOKMARK_TOAST_MESSAGE.added
-          : BOOKMARK_TOAST_MESSAGE.removed,
+        message: willAddBookmark ? BOOKMARK_TOAST_MESSAGE.added : BOOKMARK_TOAST_MESSAGE.removed,
         variant: "success",
       });
     } catch {
