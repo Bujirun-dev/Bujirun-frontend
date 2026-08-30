@@ -82,11 +82,31 @@ export default function TripsPage() {
   );
 
   const handleEdit = useCallback(
-    (id: string) => {
+    async (id: string) => {
       const trip = trips.find((t) => t.id === id);
-      if (trip) setModal({ type: "edit", trip });
+      if (!trip) return;
+
+      try {
+        // 목록 응답의 시간 필드가 비어 있는 구버전/캐시 응답에서도 생성 당시 시간이
+        // 00:00으로 덮이지 않도록, 수정 직전에 상세 API 값을 기준으로 모달을 연다.
+        const detail = await queryClient.fetchQuery({
+          queryKey: itineraryApi.keys.detail(id),
+          queryFn: () => itineraryApi.getItinerary(id),
+        });
+        setModal({
+          type: "edit",
+          trip: {
+            ...trip,
+            name: detail.title ?? trip.name,
+            startDate: toTripDate(detail.startAt, detail.startTime),
+            endDate: toTripDate(detail.endAt, detail.endTime),
+          },
+        });
+      } catch {
+        setErrorMessage("여행 정보를 불러오지 못했어요. 다시 시도해주세요.");
+      }
     },
-    [trips],
+    [queryClient, trips],
   );
 
   const handleDelete = useCallback(
@@ -115,7 +135,9 @@ export default function TripsPage() {
       // 서버 값으로 다시 맞춰준다.
       queryClient.setQueryData<typeof summaries>(itineraryApi.keys.lists(), (prev) =>
         prev?.map((summary) =>
-          summary.id === updated.id ? { ...summary, title: updated.name, startAt, endAt } : summary,
+          summary.id === updated.id
+            ? { ...summary, title: updated.name, startAt, startTime, endAt, endTime }
+            : summary,
         ),
       );
 
