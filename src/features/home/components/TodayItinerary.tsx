@@ -167,11 +167,16 @@ export function TodayItinerary() {
     const reviewTarget = completedItineraries.find((itinerary) => {
       const log = logExists.find((item) => item.itineraryId === itinerary.id);
 
-      // 로그가 없어도 사용자가 이 일정에 대한 영수증 팝업을 이미 취소한 적 있으면
-      // 다시 자동으로 띄우지 않는다 — 그렇지 않으면 취소 → 홈 재진입 → 같은 팝업이
-      // 다시 뜨는 무한루프가 됨(아직 수동으로 영수증 발행을 다시 시작할 진입로가 없어서,
-      // 이 자동 리다이렉트가 사실상 유일한 진입로였음).
-      return !log?.hasLog && !isReviewSkipped(itinerary.id);
+      // 백엔드가 2026-08-30부터 종료된 일정의 로그를 자동 생성해서(영수증 발행 여부와 무관),
+      // hasLog는 일정 종료 후 이 API를 한 번만 호출해도 계속 true가 된다 — "아직 영수증을
+      // 발행 안 했다"를 판단하려면 hasLog가 아니라 receiptCompleted(mood까지 채워 실제로
+      // 발행을 마쳤는지)를 봐야 한다.
+      //
+      // 사용자가 이 일정에 대한 영수증 팝업을 이미 취소한 적 있으면 다시 자동으로 띄우지
+      // 않는다 — 그렇지 않으면 취소 → 홈 재진입 → 같은 팝업이 다시 뜨는 무한루프가 됨
+      // (아직 수동으로 영수증 발행을 다시 시작할 진입로가 없어서, 이 자동 리다이렉트가
+      // 사실상 유일한 진입로였음).
+      return !log?.receiptCompleted && !isReviewSkipped(itinerary.id);
     });
 
     if (!reviewTarget) return;

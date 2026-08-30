@@ -2107,6 +2107,8 @@ export interface components {
             hasLog?: boolean;
             /** Format: uuid */
             logId?: string;
+            promptDismissed?: boolean;
+            receiptCompleted?: boolean;
         };
         ApiResponseListItinerarySummaryResponse: {
             success?: boolean;

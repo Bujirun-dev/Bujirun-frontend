@@ -72,27 +72,33 @@ export default function HomeReceiptPage() {
     }
 
     try {
-      // 영수증 발행 버튼을 누르는 시점에 로그 생성
-      const createdLog = await travelLogApi.createLog({
-        itineraryId,
-        isPublic: true,
-      });
+      // 종료된 일정이면 백엔드가 이 화면 진입 전(홈의 자동 리다이렉트 판단 시점)에 이미
+      // 로그를 자동 생성해뒀다(2026-08-30~, 영수증 발행 여부와 무관하게 생성됨) — 그 로그를
+      // 찾아 mood/theme만 채운다. 혹시 못 찾으면(자동 생성 대상이 아니었던 경우 등) 그때
+      // 새로 만든다. itineraryId만으로는 로그를 직접 조회할 수 없어 exists 배치 조회를 씀.
+      const [existing] = await travelLogApi.checkLogExists([itineraryId]);
+      const logId =
+        existing?.logId ??
+        (
+          await travelLogApi.createLog({
+            itineraryId,
+            isPublic: true,
+          })
+        ).id;
 
-      const createdLogId = createdLog.id;
-
-      if (!createdLogId) {
-        throw new Error("생성된 로그 ID가 없습니다.");
+      if (!logId) {
+        throw new Error("로그 ID를 확인할 수 없습니다.");
       }
 
-      // 생성된 로그에 리뷰 정보 저장
-      await travelLogApi.updateLog(createdLogId, {
+      // 로그에 리뷰 정보 저장
+      await travelLogApi.updateLog(logId, {
         isPublic: true,
         mood: MOOD_VALUE[mood],
         theme,
       });
 
       // mood, theme가 반영된 최신 로그 조회
-      const latestTravelLog = await travelLogApi.getLog(createdLogId);
+      const latestTravelLog = await travelLogApi.getLog(logId);
 
       const receipt = convertTripLogToReceipt(
         latestTravelLog,
