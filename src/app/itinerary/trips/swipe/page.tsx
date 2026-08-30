@@ -10,6 +10,7 @@ import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 import { EmptyState, LoadingBoundary, LoadingState } from "@/components";
 
 const SWIPE_THRESHOLD = 80;
+const SWIPE_ANIMATION_MS = 300;
 
 function PageLoadingFallback() {
   return <LoadingState />;
@@ -77,7 +78,9 @@ function TripSwipeContent() {
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState<"left" | "right" | null>(null);
+  const [selectedReaction, setSelectedReaction] = useState<"like" | "dislike" | null>(null);
   const startXRef = useRef(0);
+  const isAnimatingRef = useRef(false);
   const swipesRef = useRef<{ contentId: string; liked: boolean }[]>([]);
   const total = places.length;
   const place = places[currentIndex];
@@ -93,10 +96,13 @@ function TripSwipeContent() {
     // 렉/빠른 연속 제스처로 같은 카드가 애니메이션 도중 다시 스와이프되면(onDragEnd가 재진입),
     // currentIndex가 아직 안 바뀐 상태라 같은 스팟이 swipesRef에 중복으로 쌓이고 결과 제출 시
     // 같은 spot이 두 번 좋아요/싫어요로 잡히는 문제가 있었다 — 애니메이션 중엔 무시.
-    if (isAnimatingOut) return;
+    if (isAnimatingRef.current) return;
     if (!place) return;
-    swipesRef.current.push({ contentId: place.id, liked: direction === "right" });
+    isAnimatingRef.current = true;
+    const liked = direction === "right";
+    swipesRef.current.push({ contentId: place.id, liked });
 
+    setSelectedReaction(liked ? "like" : "dislike");
     setIsAnimatingOut(direction);
     setTimeout(() => {
       const nextIndex = currentIndex + 1;
@@ -111,7 +117,9 @@ function TripSwipeContent() {
       setCurrentIndex(nextIndex);
       setDragX(0);
       setIsAnimatingOut(null);
-    }, 250);
+      setSelectedReaction(null);
+      isAnimatingRef.current = false;
+    }, SWIPE_ANIMATION_MS);
   };
 
   const onDragStart = (clientX: number) => {
@@ -138,7 +146,7 @@ function TripSwipeContent() {
   const cardStyle = isAnimatingOut
     ? {
         transform: `translateX(${isAnimatingOut === "right" ? 400 : -400}px) rotate(${isAnimatingOut === "right" ? 20 : -20}deg)`,
-        transition: "transform 0.25s ease-out",
+        transition: `transform ${SWIPE_ANIMATION_MS}ms ease-out, opacity ${SWIPE_ANIMATION_MS}ms ease-out`,
         opacity: 0,
       }
     : {
@@ -219,32 +227,59 @@ function TripSwipeContent() {
             draggable={false}
             priority
           />
+          {isAnimatingOut && (
+            <div
+              className={`pointer-events-none absolute inset-0 ${
+                isAnimatingOut === "right" ? "bg-main-blue/25" : "bg-text-heading/30"
+              }`}
+              aria-hidden
+            />
+          )}
           <p className="absolute bottom-4 left-4 right-4 font-ssurround font-bold text-lg text-white drop-shadow">
             {place.name}
           </p>
         </div>
 
-        {/* 별로에요 힌트 - 고정, 왼쪽 드래그 시 강조 / 오른쪽 드래그 시 흐려짐 */}
-        <div
-          className="pointer-events-none absolute left-0 top-1/2 z-20 flex size-[26px] items-center justify-center rounded-[10px] bg-white/80 transition-opacity duration-150"
+        {selectedReaction && (
+          <div
+            className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center"
+            aria-hidden
+          >
+            <div className="flex size-[88px] animate-[bounce_300ms_ease-out_1] items-center justify-center rounded-[24px] border border-white/70 bg-white/90 text-5xl shadow-lg backdrop-blur-sm">
+              {selectedReaction === "like" ? "❣️" : "☹️"}
+            </div>
+          </div>
+        )}
+
+        {/* 별로에요 버튼 - 왼쪽 드래그 시 강조 / 오른쪽 드래그 시 흐려짐 */}
+        <button
+          type="button"
+          aria-label="별로예요"
+          disabled={isAnimatingOut !== null}
+          onClick={() => handleSwipe("left")}
+          className="absolute left-0 top-1/2 z-20 flex size-[32px] items-center justify-center rounded-[10px] bg-white/85 transition-all duration-150 active:scale-90 disabled:pointer-events-none"
           style={{
             opacity: Math.max(0.3, 0.8 - likeOpacity * 0.5) + nopeOpacity * 0.2,
             transform: "translate(-50%, -50%)",
           }}
         >
           <span className="text-lg leading-none">☹️</span>
-        </div>
+        </button>
 
-        {/* 좋아요 힌트 - 고정, 오른쪽 드래그 시 강조 / 왼쪽 드래그 시 흐려짐 */}
-        <div
-          className="pointer-events-none absolute right-0 top-1/2 z-20 flex size-[26px] items-center justify-center rounded-[10px] bg-white/80 transition-opacity duration-150"
+        {/* 좋아요 버튼 - 오른쪽 드래그 시 강조 / 왼쪽 드래그 시 흐려짐 */}
+        <button
+          type="button"
+          aria-label="좋아요"
+          disabled={isAnimatingOut !== null}
+          onClick={() => handleSwipe("right")}
+          className="absolute right-0 top-1/2 z-20 flex size-[32px] items-center justify-center rounded-[10px] bg-white/85 transition-all duration-150 active:scale-90 disabled:pointer-events-none"
           style={{
             opacity: Math.max(0.3, 0.8 - nopeOpacity * 0.5) + likeOpacity * 0.2,
             transform: "translate(50%, -50%)",
           }}
         >
           <span className="text-lg leading-none">❣️</span>
-        </div>
+        </button>
 
         {/* 다음 카드 이미지 프리로드용(화면엔 안 보임) — 실제 카드와 동일한 sizes로 next/image
             최적화 URL을 미리 요청해서, 카드가 넘어갈 때 브라우저 캐시를 그대로 히트하게 한다. */}

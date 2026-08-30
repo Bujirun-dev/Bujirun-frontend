@@ -199,7 +199,8 @@ export function ItineraryModals({
           characterImageUrl={characterImg.src}
           onClose={onClose}
           onVerify={onConfirmVerify}
-          onLater={onVerifyContinue ?? onClose}
+          onContinue={onVerifyContinue}
+          onLater={onClose}
         />
       )}
     </>

@@ -33,6 +33,20 @@ function toApiTime(tripDate: string): string {
   return tripDate.split(" ")[1] ?? "00:00";
 }
 
+// 종료일이 어제 이전인 일정만 목록에서 숨긴다. 데이터는 삭제하지 않으며,
+// 오늘 종료되는 일정은 하루가 끝날 때까지 계속 보여준다.
+function isPastTrip(endAt?: string): boolean {
+  if (!endAt) return false;
+
+  const [year, month, day] = endAt.split("-").map(Number);
+  if (!year || !month || !day) return false;
+
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const tripEndDate = new Date(year, month - 1, day);
+  return tripEndDate < todayStart;
+}
+
 export default function TripsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -46,13 +60,15 @@ export default function TripsPage() {
     queryFn: itineraryApi.getItineraries,
   });
 
-  const trips: Trip[] = (summaries ?? []).map((summary) => ({
-    id: summary.id ?? "",
-    name: summary.title ?? "제목 없음",
-    startDate: toTripDate(summary.startAt, summary.startTime),
-    endDate: toTripDate(summary.endAt, summary.endTime),
-    groupId: summary.groupId,
-  }));
+  const trips: Trip[] = (summaries ?? [])
+    .filter((summary) => !isPastTrip(summary.endAt))
+    .map((summary) => ({
+      id: summary.id ?? "",
+      name: summary.title ?? "제목 없음",
+      startDate: toTripDate(summary.startAt, summary.startTime),
+      endDate: toTripDate(summary.endAt, summary.endTime),
+      groupId: summary.groupId,
+    }));
 
   const invalidateTrips = () => {
     queryClient.invalidateQueries({ queryKey: itineraryApi.keys.all });

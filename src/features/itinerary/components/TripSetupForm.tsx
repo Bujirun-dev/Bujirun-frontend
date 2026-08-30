@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import CalendarIcon from "@/assets/icons/itinerary/calendar.svg?svgr";
 import ClockIcon from "@/assets/icons/itinerary/clock.svg?svgr";
 import FriendsIcon from "@/assets/icons/itinerary/friends.svg?svgr";
@@ -18,12 +19,14 @@ import {
 } from "./TripDateTimePicker";
 import { AccommodationSearchField } from "./AccommodationSearchField";
 import type { AccommodationPlace } from "./AccommodationSearchField";
-import { cn } from "@/shared/utils";
+import { cn, getErrorMessage } from "@/shared/utils";
 import { groupApi } from "@/shared/api/domains";
 
 function getDefaultDates() {
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10, 0);
+  const start = new Date(now);
+  start.setSeconds(0, 0);
+  start.setMinutes(Math.ceil(start.getMinutes() / 10) * 10);
   const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 17, 0);
   return { start: formatTripDateTime(start), end: formatTripDateTime(end) };
 }
@@ -39,6 +42,10 @@ export function TripSetupForm() {
   const [accommodation, setAccommodation] = useState<AccommodationPlace | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const { data: myGroups, isLoading: isGroupsLoading } = useQuery({
+    queryKey: groupApi.keys.mine(),
+    queryFn: groupApi.getMyGroups,
+  });
 
   // 출발일이 도착일보다 뒤로 밀리면 도착일도 함께 당겨온다 — 이때 출발일과 정확히
   // 같은 값으로 맞추면 0박 여행이 되어버려서, 최소 1박(다음날)으로 보정한다.
@@ -59,7 +66,12 @@ export function TripSetupForm() {
   };
 
   const nameLength = tripName.length;
-  const isNameValid = nameLength >= 2 && nameLength <= 15;
+  const normalizedTripName = tripName.trim().toLocaleLowerCase("ko-KR");
+  const isDuplicateName = Boolean(
+    normalizedTripName &&
+    myGroups?.some((group) => group.name?.trim().toLocaleLowerCase("ko-KR") === normalizedTripName),
+  );
+  const isNameValid = nameLength >= 2 && nameLength <= 15 && !isDuplicateName;
   const hasName = nameLength > 0;
 
   const getMaxEndDate = () => {
@@ -78,7 +90,10 @@ export function TripSetupForm() {
   };
 
   const handleInvite = async () => {
-    if (!isNameValid || isCreating) return;
+    if (!isNameValid || isCreating || isGroupsLoading) {
+      if (isDuplicateName) setToastMessage("이미 사용 중인 여행명이에요.");
+      return;
+    }
     setIsCreating(true);
     try {
       const group = await groupApi.createGroup({ name: tripName });
@@ -106,13 +121,15 @@ export function TripSetupForm() {
           : {}),
       });
       router.push(`/itinerary/trips/invite?${params.toString()}`);
+    } catch (error) {
+      setToastMessage(getErrorMessage(error, "여행을 만들지 못했어요. 다시 시도해주세요."));
     } finally {
       setIsCreating(false);
     }
   };
 
   return (
-    <div className="-mx-6 flex flex-col gap-5 rounded-tl-[40px] rounded-tr-[40px] bg-white px-8 pt-10 pb-6">
+    <div className="-mx-6 -mt-8 flex flex-col gap-5 rounded-tl-[40px] rounded-tr-[40px] bg-white px-8 pt-10 pb-6">
       {/* 여행명 */}
       <section>
         <div className="flex items-center gap-1.5 mb-[10px]">
@@ -151,9 +168,12 @@ export function TripSetupForm() {
           )}
         </div>
         {hasName && (
-          <p className="mt-[6px] h-[17px] pr-[8px] text-right font-paperlogy text-xs font-semibold text-sub-gray">
-            {nameLength}/15
-          </p>
+          <div className="mt-[6px] flex h-[17px] items-center justify-between px-[8px] font-paperlogy text-xs font-semibold">
+            <p className="text-sub-coral">
+              {isDuplicateName ? "이미 사용 중인 여행명이에요." : ""}
+            </p>
+            <p className="text-sub-gray">{nameLength}/15</p>
+          </div>
         )}
       </section>
 
@@ -221,7 +241,7 @@ export function TripSetupForm() {
       <button
         type="button"
         onClick={handleInvite}
-        disabled={!isNameValid || isCreating}
+        disabled={!isNameValid || isCreating || isGroupsLoading}
         className={cn(
           "h-[40px] w-full rounded-[10px] font-ssurround font-bold text-sm transition-colors",
           isNameValid

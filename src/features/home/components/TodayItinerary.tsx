@@ -183,10 +183,10 @@ export function TodayItinerary() {
 
   if (isError || !hasSchedule || !day || plans.length === 0) {
     return (
-      <LoadingBoundary isLoading={isLoading} message="오늘의 일정을 불러오는 중이에요">
+      <LoadingBoundary isLoading={isLoading} message="다가오는 일정을 불러오는 중이에요">
         <div>
           <div className="flex items-end gap-3">
-            <h2 className="font-ssurround text-lg text-text-heading">오늘의 일정</h2>
+            <h2 className="font-ssurround text-lg text-text-heading">다가오는 일정</h2>
           </div>
 
           <Card variant="glass-sm" className="relative mt-4 min-h-[140px]">
@@ -206,10 +206,10 @@ export function TodayItinerary() {
   }
 
   return (
-    <LoadingBoundary isLoading={isLoading} message="오늘의 일정을 불러오는 중이에요">
+    <LoadingBoundary isLoading={isLoading} message="다가오는 일정을 불러오는 중이에요">
       <div>
         <div className="flex items-end gap-3">
-          <h2 className="font-ssurround text-lg text-text-heading">오늘의 일정</h2>
+          <h2 className="font-ssurround text-lg text-text-heading">다가오는 일정</h2>
           <p className="font-paperlogy text-sm font-semibold text-sub-darkgray">
             {formatDate(date ?? "")}
           </p>

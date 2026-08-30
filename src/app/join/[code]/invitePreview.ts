@@ -42,12 +42,12 @@ export function getInviteCopy(preview: InvitePreview | null) {
   if (!preview) {
     return {
       title: "부지런 여행 일정에 초대받았어요 🌊",
-      description: "친구들과 함께 부산 여행 일정을 만들어보세요.",
+      description: "친구가 부산 여행에 초대했어요! 함께 일정을 만들어봐요!🤩",
     };
   }
 
   return {
-    title: `${preview.inviterNickname}님이 ‘${preview.groupName}’에 초대했어요 🌊`,
-    description: `벌써 ${preview.memberCount}명이 모였어요! 지금 바로 함께해요 🙌`,
+    title: `${preview.inviterNickname}님이 '${preview.groupName}'에 초대했어요 🌊`,
+    description: "친구가 부산 여행에 초대했어요! 함께 일정을 만들어봐요!🤩",
   };
 }

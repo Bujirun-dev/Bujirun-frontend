@@ -13,8 +13,8 @@ export function AppHeader() {
   if (HIDDEN_HEADER_PATHS.includes(pathname)) return null;
 
   return (
-    <header className="sticky top-0 z-30 pt-[env(safe-area-inset-top)]">
-      <div className="mx-auto flex h-[56px] w-full max-w-[390px] items-center justify-center px-4">
+    <header className="sticky top-0 z-30">
+      <div className="mx-auto flex h-[64px] w-full max-w-[390px] items-center justify-center px-4">
         <Link href="/" className="font-giants text-3xl tracking-[-0.02em] text-text-heading">
           BUJIRUN
         </Link>

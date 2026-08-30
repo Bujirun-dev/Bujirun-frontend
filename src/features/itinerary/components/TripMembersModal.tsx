@@ -13,6 +13,25 @@ interface TripMembersModalProps {
   onClose: () => void;
 }
 
+function resolveProfileImage(profileImageUrl: string | undefined, fallbackIndex: number) {
+  const value = profileImageUrl?.trim();
+  const presetId = value ? Number(value) : NaN;
+  const presetImage = Number.isInteger(presetId)
+    ? PROFILE_IMAGES.find((image) => image.id === presetId)
+    : undefined;
+
+  if (presetImage) return { src: presetImage.src, isPreset: true };
+
+  if (value && /^(https?:\/\/|\/)/.test(value)) {
+    return { src: value, isPreset: false };
+  }
+
+  return {
+    src: PROFILE_IMAGES[fallbackIndex % PROFILE_IMAGES.length].src,
+    isPreset: true,
+  };
+}
+
 export function TripMembersModal({ isOpen, groupId, onClose }: TripMembersModalProps) {
   const { data: members, isLoading } = useQuery({
     queryKey: groupApi.keys.members(groupId),
@@ -30,32 +49,27 @@ export function TripMembersModal({ isOpen, groupId, onClose }: TripMembersModalP
                 {row.map((i) => {
                   const member = members[i];
 
-                  const profileImageUrl = member.profileImageUrl?.trim();
-
-                  const profileImageSrc =
-                    profileImageUrl &&
-                    (profileImageUrl.startsWith("http://") ||
-                      profileImageUrl.startsWith("https://") ||
-                      profileImageUrl.startsWith("/"))
-                      ? profileImageUrl
-                      : PROFILE_IMAGES[i % PROFILE_IMAGES.length].src;
+                  const profileImage = resolveProfileImage(member.profileImageUrl, i);
 
                   return (
                     <div
                       key={member.userId}
                       className="flex w-[64px] flex-col items-center gap-1.5"
                     >
-                      <div className="flex size-[64px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-sub-lightblue">
-                        <div className="relative size-[75px] shrink-0">
-                          <Image
-                            src={profileImageSrc}
-                            alt=""
-                            fill
-                            sizes="75px"
-                            className="object-cover"
-                            aria-hidden
-                          />
-                        </div>
+                      <div className="relative size-[64px] shrink-0 overflow-hidden rounded-full bg-sub-lightblue">
+                        <Image
+                          src={profileImage.src}
+                          alt=""
+                          fill
+                          sizes="64px"
+                          unoptimized={!profileImage.isPreset}
+                          className={
+                            profileImage.isPreset
+                              ? "object-cover scale-[1.27] origin-[center_10%]"
+                              : "object-cover"
+                          }
+                          aria-hidden
+                        />
                       </div>
 
                       <span className="flex max-w-full items-baseline justify-center gap-0.5 truncate text-sm font-semibold text-text-primary">
