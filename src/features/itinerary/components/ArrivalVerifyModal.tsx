@@ -33,6 +33,7 @@ interface ArrivalVerifyModalProps {
   isOpen: boolean;
   onClose: () => void;
   placeName: string;
+  placeImageUrl?: string;
   userAvatarUrl?: string;
   characterImageUrl?: string;
   onVerify: () => void;
@@ -46,6 +47,7 @@ export function ArrivalVerifyModal({
   isOpen,
   onClose,
   placeName,
+  placeImageUrl,
   userAvatarUrl,
   characterImageUrl,
   onVerify,
@@ -230,7 +232,7 @@ export function ArrivalVerifyModal({
       case "gps-success":
         return <GpsSuccessStage placeName={placeName} />;
       case "camera-permission":
-        return <CameraPermissionStage placeName={placeName} />;
+        return <CameraPermissionStage placeName={placeName} placeImageUrl={placeImageUrl} />;
       case "camera-capture":
         return (
           <CameraCaptureStage placeName={placeName} setStep={setStep} onCapture={handleCapture} />
