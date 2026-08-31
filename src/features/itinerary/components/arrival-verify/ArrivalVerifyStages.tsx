@@ -287,8 +287,8 @@ export function CameraCaptureStage({
     const sourceWidth = guideRect.width * scaleX;
     const sourceHeight = guideRect.height * scaleY;
 
-    canvas.width = Math.round(sourceWidth);
-    canvas.height = Math.round(sourceHeight);
+    canvas.width = Math.round(sourceHeight);
+    canvas.height = Math.round(sourceWidth);
 
     const context = canvas.getContext("2d");
 
@@ -296,6 +296,9 @@ export function CameraCaptureStage({
       setCameraError(true);
       return;
     }
+
+    context.translate(canvas.width, 0);
+    context.rotate(Math.PI / 2);
 
     context.drawImage(
       video,
@@ -305,8 +308,8 @@ export function CameraCaptureStage({
       sourceHeight,
       0,
       0,
-      canvas.width,
-      canvas.height,
+      sourceWidth,
+      sourceHeight,
     );
 
     canvas.toBlob(
