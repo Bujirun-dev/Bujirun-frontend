@@ -1,7 +1,7 @@
 import { cn } from "@/shared/utils";
 import type { TransportType } from "@/features/home/components/TransportIcons";
 import { useState } from "react";
-import { useLiveBusArrivalText } from "@/shared/hooks/useLiveBusArrivalText";
+import { useLiveArrivalText } from "@/shared/hooks/useLiveArrivalText";
 
 export interface TransportLegItemData {
   type: TransportType;
@@ -32,7 +32,7 @@ export function TransportLegItem({ leg, metaText, className }: TransportLegItemP
   );
 
   const [isRotating, setIsRotating] = useState(false);
-  const { text: arrivalText, refetch } = useLiveBusArrivalText(leg);
+  const { text: arrivalText, refetch } = useLiveArrivalText(leg);
 
   const handleArrivalClick = () => {
     if (isRotating) return;
