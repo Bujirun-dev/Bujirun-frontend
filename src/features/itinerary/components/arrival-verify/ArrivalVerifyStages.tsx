@@ -28,6 +28,7 @@ export type VerifyStep =
 
 type CommonProps = {
   placeName: string;
+  placeImageUrl?: string;
   setStep: (step: VerifyStep) => void;
   characterImageUrl?: string | StaticImageData;
   capturedImageUrl?: string;
@@ -162,7 +163,10 @@ export function GpsSuccessStage({ placeName }: Pick<CommonProps, "placeName">) {
   );
 }
 
-export function CameraPermissionStage({ placeName }: Pick<CommonProps, "placeName">) {
+export function CameraPermissionStage({
+  placeName,
+  placeImageUrl,
+}: Pick<CommonProps, "placeName" | "placeImageUrl">) {
   return (
     <>
       <h2 className="mb-5 whitespace-pre-line text-center text-lg font-ssurround font-bold text-text-heading">
@@ -172,7 +176,14 @@ export function CameraPermissionStage({ placeName }: Pick<CommonProps, "placeNam
         <Notice>* 사진을 촬영해서 기록을 남겨봐요!</Notice>
       </div>
       <div className="relative h-[162px] w-full overflow-hidden rounded-[10px]">
-        <Image src={samplePlaceImage} alt={placeName} fill sizes="390px" className="object-cover" />
+        <Image
+          src={placeImageUrl ?? samplePlaceImage}
+          alt={placeName}
+          fill
+          sizes="390px"
+          unoptimized={Boolean(placeImageUrl)}
+          className="object-cover"
+        />
       </div>
     </>
   );
@@ -185,6 +196,7 @@ export function CameraCaptureStage({
 }: Pick<CommonProps, "placeName" | "setStep" | "onCapture">) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const captureGuideRef = useRef<HTMLDivElement>(null);
   const [cameraError, setCameraError] = useState(false);
 
   useEffect(() => {
@@ -239,14 +251,44 @@ export function CameraCaptureStage({
   const handleCapture = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
+    const captureGuide = captureGuideRef.current;
 
-    if (!video || !canvas || video.videoWidth === 0 || video.videoHeight === 0) {
+    if (!video || !canvas || !captureGuide || video.videoWidth === 0 || video.videoHeight === 0) {
       setCameraError(true);
       return;
     }
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    const videoRect = video.getBoundingClientRect();
+    const guideRect = captureGuide.getBoundingClientRect();
+
+    const videoAspectRatio = video.videoWidth / video.videoHeight;
+    const displayAspectRatio = videoRect.width / videoRect.height;
+
+    let renderedWidth = videoRect.width;
+    let renderedHeight = videoRect.height;
+    let cropOffsetX = 0;
+    let cropOffsetY = 0;
+
+    if (videoAspectRatio > displayAspectRatio) {
+      renderedHeight = videoRect.height;
+      renderedWidth = renderedHeight * videoAspectRatio;
+      cropOffsetX = (renderedWidth - videoRect.width) / 2;
+    } else {
+      renderedWidth = videoRect.width;
+      renderedHeight = renderedWidth / videoAspectRatio;
+      cropOffsetY = (renderedHeight - videoRect.height) / 2;
+    }
+
+    const scaleX = video.videoWidth / renderedWidth;
+    const scaleY = video.videoHeight / renderedHeight;
+
+    const sourceX = (guideRect.left - videoRect.left + cropOffsetX) * scaleX;
+    const sourceY = (guideRect.top - videoRect.top + cropOffsetY) * scaleY;
+    const sourceWidth = guideRect.width * scaleX;
+    const sourceHeight = guideRect.height * scaleY;
+
+    canvas.width = Math.round(sourceWidth);
+    canvas.height = Math.round(sourceHeight);
 
     const context = canvas.getContext("2d");
 
@@ -255,7 +297,17 @@ export function CameraCaptureStage({
       return;
     }
 
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    context.drawImage(
+      video,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    );
 
     canvas.toBlob(
       (blob) => {
@@ -279,38 +331,44 @@ export function CameraCaptureStage({
   };
 
   return (
-    <>
-      <div className="relative mb-6 h-[310px] w-full overflow-hidden rounded-[10px] bg-text-heading">
-        {cameraError ? (
-          <div className="flex h-full items-center justify-center px-5 text-center font-paperlogy text-sm text-main-white">
-            카메라를 불러오지 못했어요. 카메라 권한을 확인해주세요.
-          </div>
-        ) : (
-          <video
-            ref={videoRef}
-            aria-label={`${placeName} 촬영 화면`}
-            autoPlay
-            playsInline
-            muted
-            className="h-full w-full object-cover"
-          />
-        )}
-
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl bg-main-white/60 px-3 py-2 text-2xs font-medium text-main-white [writing-mode:vertical-rl]">
-          관광지가 잘 보이도록 촬영해주세요!
+    <main className="fixed left-1/2 top-0 z-[9999] h-[844px] w-full max-w-[390px] -translate-x-1/2 overflow-hidden bg-text-heading">
+      {cameraError ? (
+        <div className="flex h-full items-center justify-center px-5 text-center text-sm text-main-white">
+          카메라를 불러오지 못했어요. 카메라 권한을 확인해주세요.
         </div>
-
-        <button
-          type="button"
-          aria-label="촬영"
-          className="absolute bottom-5 left-1/2 size-[54px] -translate-x-1/2 rounded-full border-4 border-main-white bg-main-white/70 disabled:cursor-not-allowed disabled:opacity-50"
-          onClick={handleCapture}
-          disabled={cameraError}
+      ) : (
+        <video
+          ref={videoRef}
+          aria-label={`${placeName} 촬영 화면`}
+          autoPlay
+          playsInline
+          muted
+          className="h-full w-full object-cover"
         />
+      )}
+
+      <div
+        ref={captureGuideRef}
+        className="pointer-events-none absolute left-1/2 top-1/2 z-10 aspect-[9/16] h-[60%] max-h-[560px] -translate-x-1/2 -translate-y-1/2 rounded-xl border-2 border-main-white shadow-[0_0_0_9999px_rgb(0_0_0/0.8)]"
+        aria-hidden="true"
+      />
+
+      <div className="absolute -right-12 top-1/2 z-10 origin-center -translate-y-1/2 rotate-90 whitespace-nowrap text-sm text-main-white">
+        관광지를 영역 안에 맞춰주세요!
       </div>
 
+      <button
+        type="button"
+        aria-label="촬영"
+        className="absolute bottom-[calc(env(safe-area-inset-bottom)+30px)] left-1/2 z-10 flex size-[58px] -translate-x-1/2 items-center justify-center rounded-full border-2 border-main-white disabled:cursor-not-allowed disabled:opacity-50"
+        onClick={handleCapture}
+        disabled={cameraError}
+      >
+        <span className="size-[48px] rounded-full bg-main-white" />
+      </button>
+
       <canvas ref={canvasRef} className="hidden" />
-    </>
+    </main>
   );
 }
 
