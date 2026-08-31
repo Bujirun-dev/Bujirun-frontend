@@ -5,16 +5,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/shared/utils";
-import {
-  Card,
-  CategoryChip,
-  Modal,
-  SpeechBubble,
-  Toast,
-  LoadingState,
-  ErrorState,
-} from "@/components";
-import type { Category } from "@/components";
+import { Card, Modal, SpeechBubble, Toast, LoadingState, ErrorState } from "@/components";
 import VoteIcon from "@/assets/icons/itinerary/vote-yea.svg?svgr";
 import checkIconWhite from "@/assets/icons/itinerary/check_white.png";
 import infoIcon from "@/assets/icons/itinerary/info.png";
@@ -22,12 +13,13 @@ import freepassBlueIcon from "@/assets/icons/itinerary/freepass-blue.png";
 import flagImg from "@/assets/place/flag.png";
 import houseImg from "@/assets/place/house.png";
 import busanStationImg from "@/assets/place/busan-station.png";
-import { itineraryApi } from "@/shared/api/domains";
+import { groupApi, itineraryApi } from "@/shared/api/domains";
 import { useItineraryGenerationLockStore } from "@/shared/stores";
 import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
 import type { components } from "@/shared/api/schema";
+import { RecommendationReasonCard } from "@/features/itinerary/components/RecommendationReasonCard";
 
 const PLAN_LABELS: Record<string, string> = {
   A: "취향 집중형",
@@ -79,30 +71,6 @@ function mapPlanOption(planId: string, plan?: PlanOption): Plan {
       })),
     })),
   };
-}
-
-// 백엔드 카테고리 문자열을 CategoryChip이 쓰는 4종 카테고리로 정규화 (PlaceSection.tsx와 동일 규칙)
-function toCategory(value?: string): Category {
-  if (!value) return "experience";
-  if (value.includes("자연")) return "nature";
-  if (value.includes("바다")) return "sea";
-  if (value.includes("문화")) return "culture";
-  return "experience";
-}
-
-// 플랜에 포함된 장소들의 카테고리를 등장 빈도 순으로 최대 3개까지 뽑는다.
-function topCategories(plan: Plan, max = 3): Category[] {
-  const counts = new Map<Category, number>();
-  for (const day of plan.days) {
-    for (const place of day.places) {
-      const category = toCategory(place.category);
-      counts.set(category, (counts.get(category) ?? 0) + 1);
-    }
-  }
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .map(([category]) => category)
-    .slice(0, max);
 }
 
 // 백엔드 문구 끝의 마침표/물결 등을 정리하고 항상 "!"로 끝맺는다.
@@ -187,6 +155,12 @@ function TripResultContent() {
   const accommodationLat = searchParams.get("accommodationLat") ?? "";
   const accommodationLng = searchParams.get("accommodationLng") ?? "";
   const isHost = useIsGroupHost(groupId);
+
+  const { data: members = [] } = useQuery({
+    queryKey: groupApi.keys.members(groupId),
+    queryFn: () => groupApi.getGroupMembers(groupId),
+    enabled: !!groupId,
+  });
 
   // 스와이프 완료 직후 방장/참여자가 거의 동시에 이 페이지에 진입하면 각자의
   // generateGroupItinerary 요청이 경합해서 방장과 다른 결과가 나오는 경우가 있다.
@@ -288,7 +262,6 @@ function TripResultContent() {
   const reasonText = formatReasonText(
     currentPlan.summaryReason || "친구들 취향을 분석해서 추천한 일정이에요",
   );
-  const reasonCategories = topCategories(currentPlan);
 
   const getVoteCount = (plan: Plan) => plan.voteCount + (votedPlan === plan.id ? 1 : 0);
 
@@ -394,24 +367,11 @@ function TripResultContent() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* 추천 이유 카드 (C안은 자유 편집형이라 추천 이유 대신 안내 문구) */}
-      <div className="shrink-0 pb-[20px]">
-        <Card variant="glass-sm">
-          <p className="flex items-center gap-1 font-ssurround font-bold text-md text-sub-deepblue">
-            {isFreeEditPlan ? "부지런이 알려드려요" : "부지런이 추천해요"}
-            <Image src={freepassBlueIcon} alt="" width={14} height={14} aria-hidden />
-          </p>
-          <p className="mt-1 line-clamp-2 min-h-[38px] font-paperlogy text-sm text-text-primary leading-snug">
-            {isFreeEditPlan ? "C안은 직접 일정을 채워가는 자유 편집형 일정이에요!" : reasonText}
-          </p>
-          <div className="mt-2 flex min-h-[26px] flex-wrap gap-1.5">
-            {!isFreeEditPlan &&
-              reasonCategories.map((category) => (
-                <CategoryChip key={category} category={category} size="md" />
-              ))}
-          </div>
-        </Card>
-      </div>
+      <RecommendationReasonCard
+        reasonText={reasonText}
+        members={members}
+        isFreeEditPlan={isFreeEditPlan}
+      />
 
       {/* 투표 섹션 - PageCard 스타일 */}
       <div className="-mx-6 flex flex-1 flex-col overflow-hidden rounded-tl-[40px] rounded-tr-[40px] bg-white">
