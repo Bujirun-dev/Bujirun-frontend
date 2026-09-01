@@ -4,12 +4,13 @@ import { Suspense, use, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { groupApi } from "@/shared/api/domains";
+import { reissueAccessToken } from "@/shared/api";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import { savePendingInvite } from "@/shared/utils/pendingInvite";
 import { KakaoLoginButton } from "@/components/ui/KakaoLoginButton";
 import { LoadingState } from "@/components";
 
-type JoinStatus = "unauthenticated" | "joining" | "success" | "error";
+type JoinStatus = "checking" | "unauthenticated" | "joining" | "success" | "error";
 
 function PageLoadingFallback() {
   return <LoadingState />;
@@ -31,9 +32,7 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
   const days = searchParams.get("days") ?? undefined;
   const startDate = searchParams.get("startDate") ?? undefined;
   const endDate = searchParams.get("endDate") ?? undefined;
-  const [status, setStatus] = useState<JoinStatus>(() =>
-    useAuthStore.getState().accessToken ? "joining" : "unauthenticated",
-  );
+  const [status, setStatus] = useState<JoinStatus>("checking");
   const [groupName, setGroupName] = useState("");
 
   // 로그인 전 초대 미리보기(그룹명/초대자/멤버수) — 백엔드 미배포 시 조용히 실패해도 무방하므로
@@ -47,37 +46,54 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
   });
 
   useEffect(() => {
-    if (!useAuthStore.getState().accessToken) {
-      savePendingInvite({ code, count, days, startDate, endDate });
-      return;
-    }
-
     let cancelled = false;
+    let timer: number | undefined;
 
-    groupApi
-      .joinGroup({ inviteCode: code })
-      .then((group) => {
-        if (cancelled) return;
-        setGroupName(group.name ?? "여행");
-        setStatus("success");
-        const inviteParams = new URLSearchParams({ groupId: group.id ?? "", role: "guest" });
-        inviteParams.set("inviteCode", group.inviteCode ?? code);
-        if (count) inviteParams.set("count", count);
-        if (days) inviteParams.set("days", days);
-        if (group.name) inviteParams.set("name", group.name);
-        if (startDate) inviteParams.set("startDate", startDate);
-        if (endDate) inviteParams.set("endDate", endDate);
-        const timer = window.setTimeout(() => {
-          router.replace(`/itinerary/trips/invite?${inviteParams.toString()}`);
-        }, 1200);
-        return () => window.clearTimeout(timer);
-      })
-      .catch(() => {
-        if (!cancelled) setStatus("error");
-      });
+    // accessToken은 메모리에만 있어서(useAuthStore) 새로고침이나 하드 네비게이션 후엔 항상 비어 있다.
+    // /join은 AuthProvider의 public 경로라 자동 reissue도 타지 않으므로, 여기서 직접
+    // refresh_token 쿠키로 재발급을 시도해야 "이미 로그인한 사람"이 로그인 화면을 다시 보지 않는다.
+    // (이게 없으면 카카오 로그인 → 콜백이 /join으로 하드 이동 → 토큰 유실 → 다시 로그인 요구, 무한 반복)
+    const ensureAuthenticated = async () => {
+      if (useAuthStore.getState().accessToken) return true;
+      return Boolean(await reissueAccessToken());
+    };
+
+    ensureAuthenticated().then((isAuthenticated) => {
+      if (cancelled) return;
+
+      if (!isAuthenticated) {
+        savePendingInvite({ code, count, days, startDate, endDate });
+        setStatus("unauthenticated");
+        return;
+      }
+
+      setStatus("joining");
+
+      groupApi
+        .joinGroup({ inviteCode: code })
+        .then((group) => {
+          if (cancelled) return;
+          setGroupName(group.name ?? "여행");
+          setStatus("success");
+          const inviteParams = new URLSearchParams({ groupId: group.id ?? "", role: "guest" });
+          inviteParams.set("inviteCode", group.inviteCode ?? code);
+          if (count) inviteParams.set("count", count);
+          if (days) inviteParams.set("days", days);
+          if (group.name) inviteParams.set("name", group.name);
+          if (startDate) inviteParams.set("startDate", startDate);
+          if (endDate) inviteParams.set("endDate", endDate);
+          timer = window.setTimeout(() => {
+            router.replace(`/itinerary/trips/invite?${inviteParams.toString()}`);
+          }, 1200);
+        })
+        .catch(() => {
+          if (!cancelled) setStatus("error");
+        });
+    });
 
     return () => {
       cancelled = true;
+      if (timer !== undefined) window.clearTimeout(timer);
     };
   }, [code, count, days, startDate, endDate, router]);
 
@@ -94,8 +110,6 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
                 <>
                   {invitePreview.inviterNickname}님이 ‘{invitePreview.groupName}’에 초대했어요 ✈️
                   <br />
-                  {typeof invitePreview.memberCount === "number" &&
-                    `${invitePreview.memberCount}명이 함께하고 있어요 · `}
                   로그인하고 참여해보세요
                 </>
               ) : (
@@ -111,7 +125,7 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
             </div>
           </>
         )}
-        {status === "joining" && (
+        {(status === "checking" || status === "joining") && (
           <p
             className="font-paperlogy font-medium text-xl text-text-heading text-center"
             style={{ lineHeight: "23px" }}
