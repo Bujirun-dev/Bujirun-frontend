@@ -174,6 +174,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/logs/receipt-prompt/{itineraryId}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 영수증 발행 팝업 '다시 묻지 않음' (담당: 윤제승)
+         * @description 완료된 일정의 영수증 발행(여행 기록 작성) 유도 팝업에서 '다시 묻지 않음'을 선택했을 때 호출합니다.
+         *     이후 GET /api/logs/exists 응답에서 해당 일정의 promptDismissed가 true가 되어 프론트가 팝업을 띄우지 않습니다.
+         *     일정 소유자 또는 그룹원만 호출할 수 있고, 같은 일정에 여러 번 호출해도 안전합니다(idempotent).
+         */
+        post: operations["dismissReceiptPrompt"];
+        /**
+         * 영수증 발행 팝업 '다시 묻지 않음' 해제 (담당: 윤제승)
+         * @description '다시 묻지 않음'을 취소해 다시 영수증 발행 팝업을 받도록 되돌립니다. 기록이 없으면 아무 일도 하지 않습니다.
+         */
+        delete: operations["restoreReceiptPrompt"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/itineraries": {
         parameters: {
             query?: never;
@@ -775,6 +801,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/transit/arrival/subway": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 지하철 도착정보 조회
+         * @description 역 코드와 방향(상행/하행)으로 다음 지하철까지 남은 시간(분)을 조회합니다. ODsay 배차 시각표 기준 추정치이며 실시간 위치 추적 결과가 아닙니다. 프론트엔드 폴링용 API입니다.
+         */
+        get: operations["getSubwayArrival"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/transit/arrival/bus": {
         parameters: {
             query?: never;
@@ -926,6 +972,15 @@ export interface paths {
          * 일정별 여행 기록 존재 여부 확인 (담당: 윤제승)
          * @description 주어진 itineraryId 목록에 대해 로그인한 사용자가 이미 여행 기록(영수증)을 작성했는지 배치로 확인합니다.
          *     아직 기록이 없는 일정(예: 다음 날 일정)을 찾아 영수증 발행 화면을 노출하는 용도로 사용합니다.
+         *
+         *     이미 종료된(endAt이 오늘 이전) 일정 중 로그가 없는 것은 이 호출 시점에 기본값(비공개, mood/theme 없음)으로
+         *     자동 생성됩니다 — 사용자가 영수증 발행 팝업에서 실제로 "발행"을 누르지 않아도 방문 인증 사진 등
+         *     데이터가 유실되지 않도록 하기 위함(2026-08-30 결정). 그 결과 hasLog는 이후 계속 true가 되며,
+         *     프론트는 반환된 logId로 PATCH /api/logs/{id}를 호출해 mood/theme/공개여부만 채우면 됩니다
+         *     (이미 자동 생성됐기 때문에 POST /api/logs는 다시 호출할 수 없습니다).
+         *
+         *     영수증 팝업을 다시 띄울지는 hasLog가 아니라 receiptCompleted(mood까지 채워 실제로 발행을
+         *     마쳤는지)로 판단해야 합니다 — hasLog는 자동 생성 직후부터 항상 true이기 때문입니다.
          */
         get: operations["checkLogExists"];
         put?: never;
@@ -1585,6 +1640,8 @@ export interface components {
             endStationName?: string;
             lineName?: string;
             /** Format: int32 */
+            stationId?: number;
+            /** Format: int32 */
             wayCode?: number;
             upcomingDepartures?: components["schemas"]["SubwayDeparture"][];
             /** Format: int32 */
@@ -2107,6 +2164,8 @@ export interface components {
             hasLog?: boolean;
             /** Format: uuid */
             logId?: string;
+            promptDismissed?: boolean;
+            receiptCompleted?: boolean;
         };
         ApiResponseListItinerarySummaryResponse: {
             success?: boolean;
@@ -2424,6 +2483,46 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["ApiResponseItineraryDetailResponse"];
                 };
+            };
+        };
+    };
+    dismissReceiptPrompt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itineraryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    restoreReceiptPrompt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itineraryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -3297,6 +3396,29 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseNicknameAvailabilityResponse"];
+                };
+            };
+        };
+    };
+    getSubwayArrival: {
+        parameters: {
+            query: {
+                stationId: number;
+                wayCode: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseInteger"];
                 };
             };
         };

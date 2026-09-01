@@ -1,6 +1,6 @@
 // Tailwind는 `bg-${color}`처럼 런타임에 조립한 클래스명은 스캔하지 못한다(빌드 시 정적
 // 문자열만 인식) — 색상별 완성된 클래스명을 리터럴로 나열해두고 그대로 반환한다.
-const PARTICIPANT_COLOR_CLASSES = [
+export const PARTICIPANT_COLOR_CLASSES = [
   "bg-sub-deepblue",
   "bg-sub-lightblue",
   "bg-sub-pink",

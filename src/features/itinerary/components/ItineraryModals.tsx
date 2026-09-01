@@ -214,6 +214,7 @@ export function ItineraryModals({
           spotId={activeStop.spotId}
           itineraryId={itineraryId}
           placeName={activeStop.placeName}
+          placeImageUrl={activeStop.imageUrl}
           characterImageUrl={characterImg.src}
           onClose={onClose}
           onVerify={onConfirmVerify}

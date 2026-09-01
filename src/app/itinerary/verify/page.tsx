@@ -12,6 +12,7 @@ export default function VerifyPage() {
   const spotId = searchParams.get("spotId");
   const itineraryId = searchParams.get("itineraryId");
   const placeName = searchParams.get("placeName") ?? "관광지";
+  const placeImageUrl = searchParams.get("placeImageUrl") ?? undefined;
 
   if (!spotId || !itineraryId) {
     return null;
@@ -27,6 +28,7 @@ export default function VerifyPage() {
         isOpen
         onClose={() => router.back()}
         placeName={placeName}
+        placeImageUrl={placeImageUrl}
         characterImageUrl={characterImg.src}
         onVerify={() => router.back()}
         onLater={() => router.back()}
