@@ -2,9 +2,17 @@ import type { ItineraryStop, RouteOption } from "../components";
 import { getCategoryFromKo } from "@/shared/constants/category";
 import { resolveDayDate } from "@/shared/utils/resolveDayDate";
 import type { components } from "@/shared/api/schema";
+import placeImage1 from "@/assets/place/place1.png";
+import placeImage2 from "@/assets/place/place2.png";
+import placeImage3 from "@/assets/place/place3.png";
+import placeImage4 from "@/assets/place/place4.png";
+import placeImage5 from "@/assets/place/place5.png";
+import placeImage6 from "@/assets/place/place6.png";
+import placeImage7 from "@/assets/place/place7.png";
 
 type ItineraryDetailResponse = components["schemas"]["ItineraryDetailResponse"];
 type TravelLogDetailResponse = components["schemas"]["TravelLogDetailResponse"];
+type ItineraryItemResponse = components["schemas"]["ItineraryItemResponse"];
 export type SpotSearchResponse = components["schemas"]["SpotSearchResponse"];
 
 // 하루 일정에 추가할 수 있는 관광지 최대 개수. 백엔드 ItineraryService.MAX_ITEMS_PER_DAY와
@@ -28,10 +36,30 @@ export function nextTempStopId(): string {
 // 해결은 아니고, 나중에 이 관광지들 사진을 실제로 확보하면(TourAPI엔 없음, 수동 큐레이션
 // 필요 — swipe_image_url 업로드했던 방식 참고) thumbnailUrl을 채워서 이 폴백 자체를 안 타게
 // 하는 게 맞다.
-export const FALLBACK_IMAGE = "https://picsum.photos/seed/busan/300/200";
+const FALLBACK_IMAGES = [
+  placeImage1,
+  placeImage2,
+  placeImage3,
+  placeImage4,
+  placeImage5,
+  placeImage6,
+  placeImage7,
+];
+
+// 예전엔 picsum.photos(외부 랜덤 이미지)를 썼는데, 외부 서비스가 느리거나 죽으면
+// 대체 이미지마저 안 뜬다 — 관광공사 썸네일(tong.visitkorea.or.kr)이 503을 뱉는
+// 상황에서 폴백까지 외부에 의존할 이유가 없어서 로컬 에셋으로 바꿨다.
+// seed(보통 spotId)로 고르기 때문에 같은 관광지는 항상 같은 사진이 나가고 깜빡이지 않는다.
 export function getFallbackImage(seed?: string): string {
-  return `https://picsum.photos/seed/${encodeURIComponent(seed || "busan")}/300/200`;
+  const key = seed || "busan";
+  let hash = 0;
+  for (let i = 0; i < key.length; i += 1) {
+    hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+  }
+  return FALLBACK_IMAGES[hash % FALLBACK_IMAGES.length].src;
 }
+
+export const FALLBACK_IMAGE = getFallbackImage();
 
 type TransportType = "버스" | "지하철" | "도보" | "택시";
 
@@ -105,6 +133,19 @@ export function normalizeTime(raw: string | undefined, fallback = "00:00"): stri
   const m = Number(minute);
   if (!Number.isFinite(h) || !Number.isFinite(m)) return fallback;
   return minutesToTime(roundToNearest10(h * 60 + m));
+}
+
+// 백엔드 LocalTime은 "09:20:00"처럼 초까지, 혹은 "9:20"처럼 0패딩 없이 내려올 수 있다.
+// 화면 표시와 문자열 비교("09:20" < "10:00")가 둘 다 이 형식에 의존하므로,
+// 여행 시작/종료 시간처럼 그대로 노출되는 값은 반드시 "HH:mm"으로 맞춰서 쓴다.
+// (normalizeTime과 달리 10분 단위 반올림은 하지 않는다 — 경계값은 그대로 지켜야 한다.)
+export function toHourMinute(raw: string | undefined): string | undefined {
+  if (!raw) return raw;
+  const [hour, minute] = raw.split(":");
+  const h = Number(hour);
+  const m = Number(minute);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return raw;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 export function timeToMinutes(time: string): number {
@@ -293,52 +334,112 @@ interface TripTimeBoundsLike {
 
 // 백엔드에서 아직 도착시간이 안 정해진(null) 항목에 아침/오후/저녁 순으로 대략적인
 // 시간을 미리 배정한다. 첫날은 여행 시작 시간, 마지막날은 종료 시간을 벗어나지 않게 한다.
-const DEFAULT_DAY_SLOTS = [
-  { time: "10:00", hour: 10 },
-  { time: "14:00", hour: 14 },
-  { time: "18:00", hour: 18 },
-];
+// arrivalTime이 없는 항목에 기본 시간을 배정한다.
+// 예전엔 [10:00, 14:00, 18:00] 슬롯을 itemIdx % slots.length로 돌려썼는데, 여행 종료
+// 시간 때문에 슬롯이 걸러지면 3번째 항목이 다시 첫 슬롯(10:00)으로 돌아가서 앞 항목보다
+// 이른 시간이 찍혔다(마지막 날 14:00 다음에 10:00이 오던 버그). 이제는 그날의
+// 가능 시간대를 [시작, 종료]로 잡고 항목 수만큼 균등 배분해서 항상 오름차순이 되게 한다.
+const DEFAULT_DAY_START_MIN = 10 * 60;
+const DEFAULT_DAY_END_MIN = 18 * 60;
+const DEFAULT_STOP_GAP_MIN = 4 * 60;
+// 기본 시간대를 못 쓰는 날(늦게 시작/일찍 끝나는 날)에 쓰는 최소 간격.
+const SQUEEZE_GAP_MIN = 60;
+const LAST_MINUTE_OF_DAY = 23 * 60 + 50;
 
-function getDefaultItemTime(
+export function getDefaultItemTime(
   dayIdx: number,
   totalDays: number,
   itemIdx: number,
   itemCount: number,
   bounds?: TripTimeBoundsLike | null,
 ): string {
-  let slots = DEFAULT_DAY_SLOTS;
-  if (dayIdx === 0 && bounds?.startTime) {
-    const startHour = Number(bounds.startTime.split(":")[0]);
-    if (Number.isFinite(startHour)) {
-      if (startHour >= 18) slots = slots.filter((s) => s.hour >= 18);
-      else if (startHour >= 12) slots = slots.filter((s) => s.hour >= 12);
-    }
-  }
-  if (dayIdx === totalDays - 1 && bounds?.endTime) {
-    const endHour = Number(bounds.endTime.split(":")[0]);
-    if (Number.isFinite(endHour)) {
-      if (endHour < 12) slots = slots.filter((s) => s.hour < 12);
-      else if (endHour < 18) slots = slots.filter((s) => s.hour < 18);
-    }
-  }
-  if (slots.length === 0) slots = DEFAULT_DAY_SLOTS;
-  const time = slots[itemIdx % slots.length]?.time ?? "10:00";
+  const hasStart = dayIdx === 0 && !!bounds?.startTime;
+  const hasEnd = dayIdx === totalDays - 1 && !!bounds?.endTime;
+  const startMin = hasStart ? timeToMinutes(toHourMinute(bounds!.startTime)!) : undefined;
+  const endMin = hasEnd ? timeToMinutes(toHourMinute(bounds!.endTime)!) : undefined;
 
-  // 위 버킷 필터는 대략적인 시간대만 걸러내서, 여행 전체의 첫/마지막 일정은 여전히
-  // 정확한 시작/종료 시간보다 이르거나 늦게 배정될 수 있다 — 그 두 항목만 정확한
-  // 경계값으로 강제 보정한다(validateStopTime과 동일하게 경계값 자체는 허용).
-  if (dayIdx === 0 && itemIdx === 0 && bounds?.startTime && time < bounds.startTime) {
-    return bounds.startTime;
+  let lower = startMin === undefined ? DEFAULT_DAY_START_MIN : Math.max(DEFAULT_DAY_START_MIN, startMin);
+  let upper = endMin === undefined ? DEFAULT_DAY_END_MIN : Math.min(DEFAULT_DAY_END_MIN, endMin);
+
+  // 기본 시간대(10~18시)가 여행 시작/종료 시간과 안 맞아 창이 뒤집히는 경우
+  // (예: 19:20에 시작하는 여행). 한 시간으로 몰아넣지 말고 경계를 기준으로 펼친다.
+  if (upper < lower) {
+    const squeeze = SQUEEZE_GAP_MIN * Math.max(0, itemCount - 1);
+    if (endMin !== undefined) {
+      // 종료 시간은 넘길 수 없으니 종료 시간에서 거꾸로 펼친다.
+      upper = endMin;
+      lower = Math.max(startMin ?? 0, upper - squeeze);
+    } else {
+      // 시작 시간 이후여야 하니 시작 시간부터 뒤로 펼친다.
+      lower = startMin!;
+      upper = Math.min(LAST_MINUTE_OF_DAY, lower + squeeze);
+    }
+    if (upper < lower) upper = lower;
   }
-  if (
-    dayIdx === totalDays - 1 &&
-    itemIdx === itemCount - 1 &&
-    bounds?.endTime &&
-    time > bounds.endTime
-  ) {
-    return bounds.endTime;
+
+  if (itemCount <= 1 || upper === lower) return minutesToTime(lower);
+
+  // 기본 간격은 4시간이되, 남은 시간이 모자라면 균등 분배해서 경계를 넘지 않게 한다.
+  const gap = Math.min(DEFAULT_STOP_GAP_MIN, (upper - lower) / (itemCount - 1));
+  return minutesToTime(roundToNearest10(lower + gap * itemIdx));
+}
+
+// 관광지 기본 체류시간과, 이동시간을 모르는 구간에 쓰는 기본 이동시간.
+const DEFAULT_STAY_MIN = 90;
+const DEFAULT_TRAVEL_MIN = 30;
+
+// 하루치 방문 시각을 정한다.
+//
+// 저장된 arrivalTime이 (1) 전부 있고 (2) 오름차순이고 (3) 여행 시작/종료 시간 안에
+// 있으면 그대로 쓴다 — AI가 잡아준 시간을 건드릴 이유가 없다.
+//
+// 하나라도 어긋나면 그날 시작 시각부터 [체류시간 + 다음 장소까지 이동시간]을 더해가며
+// 순차적으로 다시 계산한다. 관광지 구성은 그대로 두고 시간만 다시 매긴다.
+//   09:00 / 11:00 / 13:00  →(시작 18:00)→  18:00 / 20:00 / 22:00
+// 예전엔 항목마다 따로 clamp해서 시작 시간을 늦추면 그날 전부가 같은 시각으로 뭉개졌고
+// (18:00 / 18:00 / 18:00), 그 값이 실시간편집 flush를 타고 DB에까지 저장됐다.
+function resolveDayTimes(
+  items: ItineraryItemResponse[],
+  dayIdx: number,
+  totalDays: number,
+  bounds?: TripTimeBoundsLike | null,
+): number[] {
+  if (items.length === 0) return [];
+
+  const startMin =
+    dayIdx === 0 && bounds?.startTime ? timeToMinutes(toHourMinute(bounds.startTime)!) : undefined;
+  const endMin =
+    dayIdx === totalDays - 1 && bounds?.endTime
+      ? timeToMinutes(toHourMinute(bounds.endTime)!)
+      : undefined;
+
+  const stored = items.map((item) =>
+    item.arrivalTime ? timeToMinutes(normalizeTime(item.arrivalTime)) : undefined,
+  );
+  const isUsable =
+    stored.every((minute) => minute !== undefined) &&
+    stored.every((minute, idx) => idx === 0 || minute! > stored[idx - 1]!) &&
+    (startMin === undefined || stored[0]! >= startMin) &&
+    (endMin === undefined || stored[stored.length - 1]! <= endMin);
+  if (isUsable) return stored as number[];
+
+  // items[idx].travelTimeMin은 "이전 장소 → 이 장소" 이동시간이다(다음 구간 표시에
+  // nextItem.travelTimeMin을 쓰는 것과 같은 기준).
+  const times: number[] = [];
+  let cursor = startMin ?? DEFAULT_DAY_START_MIN;
+  items.forEach((item, idx) => {
+    if (idx > 0) {
+      cursor = roundToNearest10(cursor + DEFAULT_STAY_MIN + (item.travelTimeMin ?? DEFAULT_TRAVEL_MIN));
+    }
+    times.push(Math.min(LAST_MINUTE_OF_DAY, cursor));
+  });
+
+  // 마지막 날은 종료 시간을 넘길 수 없다 — 간격은 유지한 채 하루를 통째로 앞당긴다.
+  if (endMin !== undefined) {
+    const over = times[times.length - 1] - endMin;
+    if (over > 0) return times.map((minute) => Math.max(0, minute - over));
   }
-  return time;
+  return times;
 }
 
 // GET /api/itineraries/{id} 응답을 타임라인 UI가 쓰는 BaseStop[][] 구조로 변환한다.
@@ -358,6 +459,9 @@ export function mapItineraryDetailToDays(
 
   const days = sortedDays.map((day, dayIdx) => {
     const items = [...(day.items ?? [])].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+
+    // 시각은 항목마다 따로 맞추지 않고 하루치를 한 번에 정한다(resolveDayTimes 주석 참고).
+    const dayMinutes = resolveDayTimes(items, dayIdx, totalDays, timeBounds);
 
     return items.map((item, idx): BaseStop => {
       const nextItem = items[idx + 1];
@@ -396,16 +500,7 @@ export function mapItineraryDetailToDays(
       return {
         id: item.id ?? `${day.id}-${idx}`,
         spotId: item.spot?.id,
-        time: item.arrivalTime
-          ? minutesToTime(
-              clampToTripBounds(
-                timeToMinutes(normalizeTime(item.arrivalTime)),
-                dayIdx,
-                totalDays,
-                timeBounds,
-              ),
-            )
-          : getDefaultItemTime(dayIdx, totalDays, idx, items.length, timeBounds),
+        time: minutesToTime(dayMinutes[idx]),
         placeName,
         imageUrl: item.spot?.thumbnailUrl || getFallbackImage(item.spot?.id),
         category: getCategoryFromKo(item.spot?.category ?? "", placeName),
