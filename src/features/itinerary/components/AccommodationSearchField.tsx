@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import CloseIcon from "@/assets/icons/mypage/close.svg?svgr";
 import HotelIcon from "@/assets/icons/itinerary/hotel.svg?svgr";
-import { Modal, SearchBar, EmptyState, LoadingBoundary } from "@/components";
+import { Modal, SearchBar, EmptyState, ErrorState, LoadingBoundary } from "@/components";
+import { cn } from "@/shared/utils";
 import { useDebouncedValue } from "@/shared/hooks";
 import type { KakaoPlaceResult } from "@/shared/types/kakao-map";
 
@@ -46,6 +47,15 @@ function loadKakaoMaps(): Promise<boolean> {
   });
 }
 
+// 카카오 로컬 카테고리 그룹 코드 — 숙박(AD5).
+// 숙소 입력란이므로 호텔·모텔·게스트하우스 등 숙박시설만 검색되게 한다
+// (전체 검색이면 식당·카페·관광지까지 다 나와서 고르기 어렵다).
+// 이미 저장돼 있는 값은 검색과 무관하게 그대로 표시된다.
+const ACCOMMODATION_CATEGORY_CODE = "AD5";
+
+// 목록이 길면 고르기가 오히려 어려워서 짧게 끊는다.
+const MAX_RESULTS = 8;
+
 export function AccommodationSearchField({
   value,
   onChange,
@@ -55,6 +65,8 @@ export function AccommodationSearchField({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<KakaoPlaceResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  // 카카오 지도 SDK 로드 실패나 검색 API 오류 — 결과 없음(ZERO_RESULT)과는 구분한다.
+  const [hasSearchError, setHasSearchError] = useState(false);
   const [pendingOutsideBusanPlace, setPendingOutsideBusanPlace] = useState<KakaoPlaceResult | null>(
     null,
   );
@@ -71,19 +83,31 @@ export function AccommodationSearchField({
     }
     let cancelled = false;
     setIsSearching(true);
+    setHasSearchError(false);
     loadKakaoMaps().then((loaded) => {
       if (cancelled) return;
       if (!loaded || !window.kakao?.maps) {
         setIsSearching(false);
+        setHasSearchError(true);
         return;
       }
       const places = new window.kakao.maps.services.Places();
-      places.keywordSearch(keyword, (res, status) => {
-        if (cancelled) return;
-        setIsSearching(false);
-        setResults(status === window.kakao!.maps.services.Status.OK ? res : []);
-      });
+      places.keywordSearch(
+        keyword,
+        (res, status) => {
+          if (cancelled) return;
+          const services = window.kakao!.maps.services;
+          setIsSearching(false);
+          // ZERO_RESULT는 "결과 없음"이라 에러가 아니다 — 그 외만 에러로 본다.
+          setHasSearchError(
+            status !== services.Status.OK && status !== services.Status.ZERO_RESULT,
+          );
+          setResults(status === services.Status.OK ? res.slice(0, MAX_RESULTS) : []);
+        },
+        { category_group_code: ACCOMMODATION_CATEGORY_CODE, size: MAX_RESULTS },
+      );
     });
+
     return () => {
       cancelled = true;
     };
@@ -188,7 +212,13 @@ export function AccommodationSearchField({
             className="!w-full"
             iconSize={11}
           />
-          <div className="h-[276px] w-full overflow-y-auto">
+          {/* 열자마자 큰 빈 상자가 보이지 않도록, 검색어가 있을 때만 결과 영역을 펼친다. */}
+          <div
+            className={cn(
+              "w-full overflow-y-auto transition-[height] duration-200 ease-out",
+              query.trim() ? "h-[276px]" : "h-0",
+            )}
+          >
             <LoadingBoundary
               isLoading={isSearching}
               message="검색하는 중이에요..."
@@ -196,7 +226,14 @@ export function AccommodationSearchField({
               delay={200}
               minDuration={500}
             >
-              {!query.trim() ? null : results.length === 0 ? (
+              {!query.trim() ? null : hasSearchError ? (
+                <ErrorState
+                  variant="compact"
+                  code={503}
+                  title="검색을 불러오지 못했어요."
+                  description="잠시 후 다시 시도해주세요!"
+                />
+              ) : results.length === 0 ? (
                 <EmptyState
                   variant="compact"
                   title="검색 결과가 없어요."

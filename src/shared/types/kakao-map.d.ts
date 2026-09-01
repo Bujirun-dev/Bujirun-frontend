@@ -71,11 +71,23 @@ export interface KakaoPlaceResult {
   y: string;
   address_name: string;
   road_address_name?: string;
+  // 카테고리 그룹 코드는 비어 있을 수 있다(관광지 상당수가 그렇다) — 그럴 땐
+  // category_name("여행 > 관광,명소 > 케이블카" 형태)으로 판단한다.
+  category_group_code?: string;
+  category_name?: string;
+}
+
+export interface KakaoKeywordSearchOptions {
+  // 카카오 로컬 카테고리 그룹 코드. 예: AD5(숙박), AT4(관광명소).
+  category_group_code?: string;
+  size?: number;
+  page?: number;
 }
 
 interface KakaoPlaces {
   keywordSearch: (
     keyword: string,
     callback: (result: KakaoPlaceResult[], status: string) => void,
+    options?: KakaoKeywordSearchOptions,
   ) => void;
 }
