@@ -202,6 +202,8 @@ function legsFromTransitDetail(
       to: string;
       arsId?: string;
       routeNo?: string;
+      stationId?: number;
+      wayCode?: number;
     }[]
   | undefined {
   const segments = (transitDetail?.segments ?? []).filter(
@@ -220,6 +222,10 @@ function legsFromTransitDetail(
     // 버스 실시간 도착정보 폴링용. 버스 구간에만 값이 있고 지하철 등은 빈 문자열일 수 있음
     arsId: s.startArsId,
     routeNo: s.routeNo,
+    // 지하철 도착정보 폴링용(GET /api/transit/arrival/subway). 지하철 구간에만 값이 있고,
+    // 역코드를 못 찾은 경우(stationId=0)엔 상수 스캔에서 걸러지도록 undefined로 비워둔다.
+    stationId: s.subwaySchedule?.stationId || undefined,
+    wayCode: s.subwaySchedule?.wayCode,
   }));
 }
 

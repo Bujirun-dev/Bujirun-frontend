@@ -5,7 +5,7 @@ import subwayIcon from "@/assets/icons/itinerary/subway.svg?url";
 import walkIcon from "@/assets/icons/itinerary/walk.svg?url";
 import taxiIcon from "@/assets/icons/itinerary/taxi.svg?url";
 import { cn } from "@/shared/utils";
-import { useLiveBusArrivalText } from "@/shared/hooks/useLiveBusArrivalText";
+import { useLiveArrivalText } from "@/shared/hooks/useLiveArrivalText";
 
 type TransportType = "버스" | "지하철" | "도보" | "택시";
 
@@ -17,6 +17,9 @@ export interface TransportLeg {
   // 버스 실시간 도착정보(GET /api/transit/arrival/bus) 폴링용 — 둘 다 있을 때만 실시간 조회
   arsId?: string;
   routeNo?: string;
+  // 지하철 도착정보(GET /api/transit/arrival/subway) 폴링용 — 둘 다 있을 때만 조회
+  stationId?: number;
+  wayCode?: number;
 }
 
 interface TransportCardProps {
@@ -48,12 +51,12 @@ const TRANSPORT_COLORS: Record<TransportType, string> = {
 const ARRIVAL_VISIBLE_TYPES = ["버스", "지하철"] as const;
 
 // leg 하나(아이콘 + 노선명/구간 + 실시간 도착 배지)를 그린다. 단일 leg 카드와 다구간
-// 카드가 레이아웃만 다르고 내용은 동일해서 공통 컴포넌트로 뺐다 — arsId가 있는 버스
-// leg는 useLiveBusArrivalText로 30초마다 폴링해 배지에 남은 시간을 보여준다.
+// 카드가 레이아웃만 다르고 내용은 동일해서 공통 컴포넌트로 뺐다 — arsId가 있는 버스,
+// stationId가 있는 지하철 leg는 useLiveArrivalText로 30초마다 폴링해 배지에 남은 시간을 보여준다.
 function TransportLegRow({ leg, metaText }: { leg: TransportLeg; metaText?: string }) {
   const legIcon = TRANSPORT_ICONS[leg.type];
   const [isRotating, setIsRotating] = useState(false);
-  const { text: arrivalText, refetch } = useLiveBusArrivalText(leg);
+  const { text: arrivalText, refetch } = useLiveArrivalText(leg);
   const showArrival =
     !!arrivalText &&
     ARRIVAL_VISIBLE_TYPES.includes(leg.type as (typeof ARRIVAL_VISIBLE_TYPES)[number]);
