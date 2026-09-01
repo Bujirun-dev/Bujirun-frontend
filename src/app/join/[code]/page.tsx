@@ -3,10 +3,11 @@
 import { Suspense, use, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { groupApi } from "@/shared/api/domains";
+import { groupApi, itineraryApi } from "@/shared/api/domains";
 import { reissueAccessToken } from "@/shared/api";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import { savePendingInvite } from "@/shared/utils/pendingInvite";
+import { formatTripPeriod } from "@/shared/utils";
 import { KakaoLoginButton } from "@/components/ui/KakaoLoginButton";
 import { LoadingState } from "@/components";
 
@@ -32,6 +33,11 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
   const days = searchParams.get("days") ?? undefined;
   const startDate = searchParams.get("startDate") ?? undefined;
   const endDate = searchParams.get("endDate") ?? undefined;
+  // 여행 시작/종료 시각이 없으면 초대받은 멤버의 결과(투표) 화면이 기본값을 쓰게 되어
+  // 방장 화면과 시간이 어긋난다 — 초대 링크에 실려온 값을 끝까지 넘겨준다.
+  const startTime = searchParams.get("startTime") ?? undefined;
+  const endTime = searchParams.get("endTime") ?? undefined;
+  const tripPeriod = formatTripPeriod(startDate, endDate, days);
   const [status, setStatus] = useState<JoinStatus>("checking");
   const [groupName, setGroupName] = useState("");
 
@@ -62,7 +68,7 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
       if (cancelled) return;
 
       if (!isAuthenticated) {
-        savePendingInvite({ code, count, days, startDate, endDate });
+        savePendingInvite({ code, count, days, startDate, endDate, startTime, endTime });
         setStatus("unauthenticated");
         return;
       }
@@ -71,10 +77,26 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
 
       groupApi
         .joinGroup({ inviteCode: code })
-        .then((group) => {
+        .then(async (group) => {
           if (cancelled) return;
           setGroupName(group.name ?? "여행");
           setStatus("success");
+
+          // 이미 일정이 만들어진 그룹이면 인원 모으기 → 성향 → 스와이프 → 투표를 다시
+          // 태울 이유가 없다(완성된 일정의 초대 코드로 들어와도 투표 화면이 뜨던 버그).
+          // 일정 목록은 그룹 멤버에게도 내려오므로 groupId로 찾아 바로 그 일정을 연다.
+          const existingItinerary = await itineraryApi
+            .getItineraries()
+            .then((list) => list.find((itinerary) => itinerary.groupId === group.id))
+            .catch(() => undefined);
+          if (cancelled) return;
+          if (existingItinerary?.id) {
+            timer = window.setTimeout(() => {
+              router.replace(`/itinerary?tripId=${existingItinerary.id}`);
+            }, 1200);
+            return;
+          }
+
           const inviteParams = new URLSearchParams({ groupId: group.id ?? "", role: "guest" });
           inviteParams.set("inviteCode", group.inviteCode ?? code);
           if (count) inviteParams.set("count", count);
@@ -82,6 +104,8 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
           if (group.name) inviteParams.set("name", group.name);
           if (startDate) inviteParams.set("startDate", startDate);
           if (endDate) inviteParams.set("endDate", endDate);
+          if (startTime) inviteParams.set("startTime", startTime);
+          if (endTime) inviteParams.set("endTime", endTime);
           timer = window.setTimeout(() => {
             router.replace(`/itinerary/trips/invite?${inviteParams.toString()}`);
           }, 1200);
@@ -95,30 +119,27 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
       cancelled = true;
       if (timer !== undefined) window.clearTimeout(timer);
     };
-  }, [code, count, days, startDate, endDate, router]);
+  }, [code, count, days, startDate, endDate, startTime, endTime, router]);
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pb-16">
       <div className="w-full rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-6 py-[40px] backdrop-blur-[15px] flex flex-col items-center">
         {status === "unauthenticated" && (
           <>
-            <p
-              className="font-paperlogy font-medium text-xl text-text-heading text-center"
-              style={{ lineHeight: "23px" }}
-            >
-              {invitePreview?.groupName && invitePreview?.inviterNickname ? (
-                <>
-                  {invitePreview.inviterNickname}님이 ‘{invitePreview.groupName}’에 초대했어요 ✈️
-                  <br />
-                  로그인하고 참여해보세요
-                </>
-              ) : (
-                <>
-                  여행 초대를 받았어요! ✈️
-                  <br />
-                  로그인하고 참여해보세요
-                </>
-              )}
+            {/* 그룹명/닉네임 길이에 따라 줄바꿈 위치가 달라져서 강제 개행(<br />) 대신
+                break-keep으로 단어 중간이 끊기지 않게만 하고 자연스럽게 흐르도록 둔다. */}
+            <p className="font-paperlogy font-medium text-xl text-text-heading text-center leading-[1.45] break-keep text-balance">
+              {invitePreview?.groupName && invitePreview?.inviterNickname
+                ? `${invitePreview.inviterNickname}님이 ‘${invitePreview.groupName}’에 초대했어요 ✈️`
+                : "여행 초대를 받았어요! ✈️"}
+            </p>
+            {tripPeriod && (
+              <p className="mt-[10px] font-paperlogy font-bold text-sm text-sub-deepblue text-center leading-[1.45] break-keep">
+                {tripPeriod}
+              </p>
+            )}
+            <p className="mt-[10px] font-paperlogy font-medium text-md text-text-heading text-center leading-[1.45] break-keep text-balance">
+              로그인하고 참여해보세요
             </p>
             <div className="mt-[27px] w-full">
               <KakaoLoginButton />
@@ -127,7 +148,7 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
         )}
         {(status === "checking" || status === "joining") && (
           <p
-            className="font-paperlogy font-medium text-xl text-text-heading text-center"
+            className="font-paperlogy font-medium text-xl text-text-heading text-center break-keep"
             style={{ lineHeight: "23px" }}
           >
             초대 코드를 확인하고 있어요...
@@ -135,7 +156,7 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
         )}
         {status === "success" && (
           <p
-            className="font-paperlogy font-medium text-xl text-text-heading text-center"
+            className="font-paperlogy font-medium text-xl text-text-heading text-center break-keep"
             style={{ lineHeight: "23px" }}
           >
             {groupName}에 참여했어요! 🎉
@@ -146,7 +167,7 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
         {status === "error" && (
           <>
             <p
-              className="font-paperlogy font-medium text-xl text-text-heading text-center"
+              className="font-paperlogy font-medium text-xl text-text-heading text-center break-keep"
               style={{ lineHeight: "23px" }}
             >
               유효하지 않은 초대 링크예요.

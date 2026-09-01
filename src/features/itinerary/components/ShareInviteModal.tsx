@@ -104,8 +104,8 @@ export function ShareInviteModal({
           </div>
 
           <Card variant="glass-sm" className="flex flex-col gap-1 rounded-xl px-4 py-3 text-left">
-            <p className="font-semibold text-sm text-text-heading">{title}</p>
-            <p className="text-xs text-sub-gray line-clamp-2">{description}</p>
+            <p className="font-semibold text-sm text-text-heading break-keep">{title}</p>
+            <p className="text-xs text-sub-gray line-clamp-2 break-keep whitespace-pre-line">{description}</p>
             <p className="text-xs font-medium text-main-blue">{getShortUrl(inviteUrl)}</p>
           </Card>
         </div>

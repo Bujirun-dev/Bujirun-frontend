@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ParticipantAvatarGrid, ShareInviteModal } from "@/features/itinerary/components";
 import { groupApi, userApi } from "@/shared/api/domains";
 import { LoadingState, Toast } from "@/components";
+import { formatTripPeriod } from "@/shared/utils";
 
 function PageLoadingFallback() {
   return (
@@ -94,6 +95,12 @@ function TripInviteContent() {
   ]);
 
   const nickname = myProfile?.nickname ?? "친구";
+  // 공유 문구에도 여행 기간을 넣어준다 — 초대받는 사람이 링크를 열기 전에
+  // 언제 가는 여행인지 알 수 있어야 한다.
+  const tripPeriod = formatTripPeriod(startDate, endDate, days);
+  const shareDescription = tripPeriod
+    ? `${tripPeriod}\n함께 일정을 만들어봐요!🤩`
+    : "친구가 부산 여행에 초대했어요! 함께 일정을 만들어봐요!🤩";
   const inviteUrl =
     typeof window === "undefined"
       ? ""
@@ -102,6 +109,9 @@ function TripInviteContent() {
           days,
           startDate,
           endDate,
+          // 시작/종료 시각까지 넘겨야 초대받은 멤버의 결과(투표) 화면 시간이 방장과 같아진다.
+          startTime,
+          endTime,
         }).toString()}`;
   const shareImageUrl =
     typeof window === "undefined"
@@ -152,7 +162,7 @@ function TripInviteContent() {
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
         title={`${nickname}님이 '${tripName}'에 초대했어요 🌊`}
-        description="친구가 부산 여행에 초대했어요! 함께 일정을 만들어봐요!🤩"
+        description={shareDescription}
         imageUrl={shareImageUrl}
         inviteUrl={inviteUrl}
       />
