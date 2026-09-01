@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/shared/utils";
 import { Card, Modal, SpeechBubble, Toast, LoadingState, ErrorState } from "@/components";
 import VoteIcon from "@/assets/icons/itinerary/vote-yea.svg?svgr";
@@ -15,7 +15,7 @@ import houseImg from "@/assets/place/house.png";
 import busanStationImg from "@/assets/place/busan-station.png";
 import { groupApi, itineraryApi } from "@/shared/api/domains";
 import { useItineraryGenerationLockStore } from "@/shared/stores";
-import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
+import { getDefaultItemTime, getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
 import type { components } from "@/shared/api/schema";
@@ -80,32 +80,6 @@ function formatReasonText(text: string): string {
 
 // 하루 최대 3곳(아침/오후/저녁) 기준 슬롯. 첫날은 실제 시작 시간, 마지막날은 실제 종료
 // 시간에 맞춰 갈 수 없는 시간대를 걸러낸다 (예: 오후 출발이면 첫날은 오후/저녁 2곳만).
-const DAY_SLOTS = [
-  { label: "아침", time: "10:00", hour: 10 },
-  { label: "오후", time: "14:00", hour: 14 },
-  { label: "저녁", time: "18:00", hour: 18 },
-] as const;
-
-function parseHour(time: string, fallback: number): number {
-  const hour = Number(time.split(":")[0]);
-  return Number.isFinite(hour) ? hour : fallback;
-}
-
-function getDaySlots(dayIndex: number, totalDays: number, startTime: string, endTime: string) {
-  let slots: readonly (typeof DAY_SLOTS)[number][] = DAY_SLOTS;
-  if (dayIndex === 0) {
-    const startHour = parseHour(startTime, 10);
-    if (startHour >= 18) slots = slots.filter((s) => s.hour >= 18);
-    else if (startHour >= 12) slots = slots.filter((s) => s.hour >= 12);
-  }
-  if (dayIndex === totalDays - 1) {
-    const endHour = parseHour(endTime, 18);
-    if (endHour < 12) slots = slots.filter((s) => s.hour < 12);
-    else if (endHour < 18) slots = slots.filter((s) => s.hour < 18);
-  }
-  return slots;
-}
-
 type FreepassModalStep = "guide" | "confirm" | null;
 
 function ResultPlaceNode({ place }: { place: Place }) {
@@ -193,16 +167,25 @@ function TripResultContent() {
   >("default");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const unlockGeneration = useItineraryGenerationLockStore((state) => state.unlock);
+  const queryClient = useQueryClient();
+
+  // 확정 직후엔 일정 목록 캐시(staleTime 60초)에 새 일정이 아직 없다. 그대로 /itinerary로
+  // 보내면 목록에서 못 찾고 "직전에 보던 일정"으로 폴백해서 예전 일정이 열린다.
+  // 그래서 목록을 무효화하고, 방금 만들어진 일정 id를 tripId로 직접 지정해서 이동한다.
+  const goToNewItinerary = (itineraryId?: string) => {
+    queryClient.invalidateQueries({ queryKey: itineraryApi.keys.lists() });
+    unlockGeneration();
+    router.push(itineraryId ? `/itinerary?tripId=${itineraryId}` : "/itinerary");
+  };
 
   // 다른 참여자가 투표한 결과를 A/B/C 탭에 반영하기 위해 투표 현황을 폴링한다.
   // 다른 클라이언트가 먼저 프리패스 등으로 이미 확정해버린 경우, 더 투표할 필요가
   // 없으므로 일정 화면으로 보낸다.
   const { voteStatus } = useVoteSessionPolling(sessionId, {
-    onConfirmed: () => {
-      unlockGeneration();
+    onConfirmed: (_sessionId, itineraryId) => {
       setToastVariant("success");
       setToastMessage("이미 일정이 확정됐어요. 일정 화면으로 이동할게요.");
-      window.setTimeout(() => router.push("/itinerary"), 1500);
+      window.setTimeout(() => goToNewItinerary(itineraryId), 1500);
     },
     onError: () => {
       setToastVariant("error");
@@ -237,16 +220,19 @@ function TripResultContent() {
     return {
       ...plan,
       voteCount: voteCounts[plan.id] ?? 0,
-      days: slicedDays.map((day, idx) => {
-        const slots = getDaySlots(idx, slicedDays.length, startTime, endTime);
-        return {
-          ...day,
-          places: day.places.slice(0, slots.length).map((place, i) => ({
-            ...place,
-            time: slots[i]?.time,
-          })),
-        };
-      }),
+      // 예전엔 [아침/오후/저녁] 슬롯 개수만큼 places를 잘라서(slice) 보여줬는데, 여행
+      // 종료 시간 때문에 슬롯이 걸러지면 API가 3곳을 줘도 마지막 날만 2곳으로 보였다.
+      // 이제는 자르지 않고, 일정 탭과 같은 규칙으로 그날 시간대에 균등 배분한다.
+      days: slicedDays.map((day, idx) => ({
+        ...day,
+        places: day.places.map((place, i) => ({
+          ...place,
+          time: getDefaultItemTime(idx, slicedDays.length, i, day.places.length, {
+            startTime,
+            endTime,
+          }),
+        })),
+      })),
     };
   });
 
@@ -300,7 +286,7 @@ function TripResultContent() {
       // finalize 요청에 숙소/시간까지 함께 실어서 원자적으로 저장한다 — 세션이
       // "confirmed"로 바뀌는 시점과 숙소 저장 시점 사이에 참여자가 일정 화면으로
       // 넘어가버려 숙소 정보가 비어 보이던 race condition을 없애기 위함.
-      await itineraryApi.finalizeItinerary(sessionId, {
+      const newItineraryId = await itineraryApi.finalizeItinerary(sessionId, {
         freePass: true,
         selectedPlan: activePlan,
         title: tripName,
@@ -324,10 +310,7 @@ function TripResultContent() {
       });
       setToastVariant("success");
       setToastMessage(`방장이 ${activePlan}안을 선택했어요! 🎉`);
-      window.setTimeout(() => {
-        unlockGeneration();
-        router.push("/itinerary");
-      }, 1800);
+      window.setTimeout(() => goToNewItinerary(newItineraryId), 1800);
     } catch {
       setToastVariant("error");
       setToastMessage("일정을 확정하지 못했어요. 다시 시도해주세요.");

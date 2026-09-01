@@ -2,6 +2,7 @@
 
 import { Fragment, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Modal, Toast, Button, LoadingState } from "@/components";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { itineraryApi } from "@/shared/api/domains";
@@ -64,16 +65,23 @@ function VoteWaitingContent() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
   const unlockGeneration = useItineraryGenerationLockStore((state) => state.unlock);
+  const queryClient = useQueryClient();
+
+  // 확정 직후엔 일정 목록 캐시(staleTime 60초)에 새 일정이 아직 없다. 그대로 /itinerary로
+  // 보내면 목록에서 못 찾고 "직전에 보던 일정"으로 폴백해서 예전 일정이 열린다.
+  // 그래서 목록을 무효화하고, 방금 만들어진 일정 id를 tripId로 직접 지정해서 이동한다.
+  const goToNewItinerary = (itineraryId?: string) => {
+    queryClient.invalidateQueries({ queryKey: itineraryApi.keys.lists() });
+    unlockGeneration();
+    router.push(itineraryId ? `/itinerary?tripId=${itineraryId}` : "/itinerary");
+  };
 
   // 방장이 finalize를 호출하면 status가 "confirmed"로 바뀐다. 이는 클라이언트가
   // voteCounts로 계산한 winnerPlan/동률 로직과 별개로 백엔드가 실제로 확정했음을
   // 보장하는 신호라서, 동률이라 방장 선택을 기다리던 참여자를 포함해 전원을
   // 확실하게 일정 화면으로 보낸다.
   const { voteStatus } = useVoteSessionPolling(sessionId, {
-    onConfirmed: () => {
-      unlockGeneration();
-      router.push("/itinerary");
-    },
+    onConfirmed: (_sessionId, itineraryId) => goToNewItinerary(itineraryId),
     onError: () => {
       setToastVariant("error");
       setToastMessage("투표 현황을 불러오지 못했어요.");
@@ -90,11 +98,12 @@ function VoteWaitingContent() {
     try {
       // 확정은 리더 전용 API라 방장 클라이언트만 실제로 호출하고,
       // 참여자는 방장이 확정할 때까지 기다렸다가 같은 화면 흐름으로 넘어간다.
+      let newItineraryId: string | undefined;
       if (isHost) {
         // finalize 요청에 숙소/시간까지 함께 실어서 원자적으로 저장한다 — 세션이
         // "confirmed"로 바뀌는 시점과 숙소 저장 시점 사이에 참여자가 일정 화면으로
         // 넘어가버려 숙소 정보가 비어 보이던 race condition을 없애기 위함.
-        await itineraryApi.finalizeItinerary(sessionId, {
+        newItineraryId = await itineraryApi.finalizeItinerary(sessionId, {
           freePass: false,
           selectedPlan: planType,
           title: tripName,
@@ -117,8 +126,7 @@ function VoteWaitingContent() {
             : {}),
         });
       }
-      unlockGeneration();
-      router.push("/itinerary");
+      goToNewItinerary(newItineraryId);
     } catch {
       setToastVariant("error");
       setToastMessage("일정을 확정하지 못했어요. 다시 시도해주세요.");
