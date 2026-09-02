@@ -125,6 +125,7 @@ export function TodayItinerary() {
   const [selectedVerifySpot, setSelectedVerifySpot] = useState<{
     spotId: string;
     placeName: string;
+    itineraryItemId?: string;
   } | null>(null);
   const [selectedOptionIdByRoute, setSelectedOptionIdByRoute] = useState<Record<string, string>>(
     {},
@@ -136,10 +137,11 @@ export function TodayItinerary() {
 
   const closeTransportModal = () => setSelectedTransportGroup(null);
 
-  const openVerifyModal = (spotId: string, placeName: string) => {
+  const openVerifyModal = (spotId: string, placeName: string, itineraryItemId?: string) => {
     setSelectedVerifySpot({
       spotId,
       placeName,
+      itineraryItemId,
     });
   };
 
@@ -284,7 +286,7 @@ export function TodayItinerary() {
                     className="mt-[7px] shrink-0"
                     onClick={() => {
                       if (!spotId || !plan.id) return;
-                      openVerifyModal(spotId, placeName);
+                      openVerifyModal(spotId, placeName, plan.id);
                     }}
                   >
                     <StatusBadge status="verify" className="px-2.5 py-1.5 text-sm" />
@@ -314,6 +316,7 @@ export function TodayItinerary() {
           <ArrivalVerifyModal
             spotId={selectedVerifySpot.spotId}
             itineraryId={itinerary.id}
+            itineraryItemId={selectedVerifySpot.itineraryItemId}
             isOpen
             placeName={selectedVerifySpot.placeName}
             onClose={closeVerifyModal}
