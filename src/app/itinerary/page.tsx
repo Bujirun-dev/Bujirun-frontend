@@ -460,6 +460,9 @@ function ItineraryMain({
     });
     logActivity("import", "");
     flushNow();
+    // 이 로그가 일정에 담긴 횟수(카운트 배지·인기순 정렬 기준)를 올린다. 실패해도 불러오기
+    // 자체엔 지장 없으므로 조용히 삼킨다.
+    travelLogApi.recordLogImport(importedLogId).catch(() => {});
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentDay(0);
     const toastTimer = window.setTimeout(() => {
