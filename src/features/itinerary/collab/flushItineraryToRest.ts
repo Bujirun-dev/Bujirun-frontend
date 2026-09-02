@@ -4,6 +4,8 @@ import type { BaseStop } from "@/features/itinerary/utils/scheduleUtils";
 type DaySnapshotEntry = { spotId?: string; time: string; orderIndex: number };
 export type DaySnapshot = Map<string, DaySnapshotEntry>;
 
+export type AddedItem = Awaited<ReturnType<typeof itineraryApi.addItem>>;
+
 export function snapshotFromStops(stops: BaseStop[]): DaySnapshot {
   const snapshot: DaySnapshot = new Map();
   stops.forEach((stop, index) =>
@@ -22,12 +24,20 @@ export function snapshotFromStops(stops: BaseStop[]): DaySnapshot {
 // day에 order_index가 중복 저장되는 사고가 실제 프로덕션에서 발생했다(2026-08-12 확인).
 // 대신 시간 등 필드만 항목별로 PATCH하고, 순서는 day의 최종 전체 순서를 reorderItems 한 번의
 // 원자적 요청으로 반영한다.
+//
+// upsert는 항목을 앞에서부터 "순차로" 처리한다 — 새 항목 추가(addItem)를 병렬로 쏘면
+// 백엔드가 "직전 스팟"을 저장 순서(먼저 커밋된 항목)로 잡아버려서, 실시간 편집으로 여러
+// 곳을 빠르게 추가할 때 앞 항목의 교통수단 구간이 엉뚱하게 계산되고 배너가 안 뜨는
+// 문제가 있었다. 순차로 처리하면 각 새 항목의 직전 스팟이 이미 저장돼 있어 구간이 맞다.
 export async function flushDayToRest(
   itineraryId: string,
   dayId: string,
   currentStops: BaseStop[],
   snapshot: DaySnapshot,
   onIdResolved: (tempId: string, realId: string) => void,
+  // 새 항목이 저장되면서 백엔드가 계산해준 (직전 스팟 → 새 항목) 구간 정보를 넘긴다.
+  // 호출부가 직전 스팟의 교통수단 배너를 바로 채우는 데 쓴다.
+  onLegComputed?: (prevStopId: string, addedItem: AddedItem) => void,
 ): Promise<void> {
   const currentIds = new Set(currentStops.map((stop) => stop.id));
   const idsToDelete = [...snapshot.keys()].filter((id) => !currentIds.has(id));
@@ -50,9 +60,11 @@ export async function flushDayToRest(
   // 항목과 order_index가 충돌한다(실제로 로컬 브라우저 테스트에서 재현 확인, 2026-08-13).
   let hasStructuralChange = idsToDelete.length > 0;
 
-  const upserts = currentStops.map(async (stop, index) => {
+  for (let index = 0; index < currentStops.length; index += 1) {
+    const stop = currentStops[index];
+
     if (stop.id.startsWith("temp-")) {
-      if (!stop.spotId) return;
+      if (!stop.spotId) continue;
       try {
         const newItem = await itineraryApi.addItem(itineraryId, dayId, {
           spotId: stop.spotId,
@@ -64,16 +76,18 @@ export async function flushDayToRest(
           resolvedIds[index] = newItem.id;
           snapshot.set(newItem.id, { spotId: stop.spotId, time: stop.time, orderIndex: index });
           hasStructuralChange = true;
+          const prevStopId = index > 0 ? resolvedIds[index - 1] : null;
+          if (prevStopId) onLegComputed?.(prevStopId, newItem);
         }
       } catch {
         // 다음 flush 시점에 temp- id 그대로 재시도됨
       }
-      return;
+      continue;
     }
 
     resolvedIds[index] = stop.id;
     const prev = snapshot.get(stop.id);
-    if (prev && prev.time === stop.time) return;
+    if (prev && prev.time === stop.time) continue;
 
     try {
       await itineraryApi.updateItem(itineraryId, dayId, stop.id, { arrivalTime: stop.time });
@@ -85,9 +99,7 @@ export async function flushDayToRest(
     } catch {
       // 다음 flush 시점에 재시도됨
     }
-  });
-
-  await Promise.allSettled(upserts);
+  }
 
   const orderedRealIds = resolvedIds.filter((id): id is string => id !== null);
   if (orderedRealIds.length === 0) return;
