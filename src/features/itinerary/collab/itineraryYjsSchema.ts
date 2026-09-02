@@ -386,6 +386,34 @@ export function updateStopTransport(
   });
 }
 
+// 새로 추가된 항목의 백엔드 계산 교통정보(직전 스팟 → 새 항목 구간)를 그 직전 스톱의
+// 배너로 바로 채운다. 실시간 편집으로 관광지를 추가하면 다음 리마운트 전까지는 REST
+// 재조회/reconcile이 안 돌아서 배너가 안 뜨던 문제 대응.
+// 사용자가 직접 고른 값(같은 다음-스팟 기준)은 덮어쓰지 않되, 그 사이 다른 스팟이 끼어들어
+// 낡아버린 값(toStopId 불일치)은 새로 계산된 값으로 교체한다.
+export function applyComputedTransport(
+  doc: Y.Doc,
+  prevStopId: string,
+  nextStopId: string,
+  transport: NonNullable<BaseStop["transport"]>,
+): void {
+  doc.transact(() => {
+    getDaysArray(doc)
+      .toArray()
+      .forEach((dayMap) => {
+        const items = dayMap.get("items") as Y.Array<Y.Map<unknown>> | undefined;
+        if (!items) return;
+        const idx = findItemIndex(items, prevStopId);
+        if (idx === -1) return;
+        const map = items.get(idx);
+        const existing = map.get("transport") as BaseStop["transport"] | undefined;
+        if (existing && existing.toStopId === nextStopId) return;
+        map.set("transport", transport);
+        map.set("recommendedTransport", transport);
+      });
+  });
+}
+
 export function pushOptimizedOrder(doc: Y.Doc, dayIdx: number, stops: BaseStop[]): void {
   replaceItemsArray(doc, dayIdx, () => stops);
 }
