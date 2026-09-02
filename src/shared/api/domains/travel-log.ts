@@ -43,6 +43,18 @@ export function checkLogExists(itineraryIds: string[]) {
     .then((res) => unwrap(res));
 }
 
+export function dismissReceiptPrompt(itineraryId: string) {
+  return apiClient.post<OpResponse<"dismissReceiptPrompt">>(
+    `/api/logs/receipt-prompt/${itineraryId}/dismiss`,
+  );
+}
+
+export function restoreReceiptPrompt(itineraryId: string) {
+  return apiClient.delete<OpResponse<"restoreReceiptPrompt">>(
+    `/api/logs/receipt-prompt/${itineraryId}/dismiss`,
+  );
+}
+
 export function getPublicLogs(query?: OpQuery<"getPublicLogs">) {
   return apiClient
     .get<OpResponse<"getPublicLogs">>("/api/logs/public", { params: query })
