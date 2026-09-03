@@ -249,11 +249,12 @@ function ItineraryPageContent() {
   }
 
   // 시작/종료 시간, 숙소 전부 백엔드(Itinerary 엔티티)에 저장된 값을 그대로 쓴다.
+  // 백엔드가 "HH:MM:SS"로 내려주므로 분까지만(HH:MM) 잘라서 쓴다.
   const tripTimeBounds =
     detail.startTime && detail.endTime
       ? {
-          startTime: detail.startTime,
-          endTime: detail.endTime,
+          startTime: detail.startTime.slice(0, 5),
+          endTime: detail.endTime.slice(0, 5),
           accommodationName: detail.accommodationName,
           accommodationAddress: detail.accommodationAddress,
           accommodationLat: detail.accommodationLat,
@@ -459,6 +460,9 @@ function ItineraryMain({
     });
     logActivity("import", "");
     flushNow();
+    // 이 로그가 일정에 담긴 횟수(카운트 배지·인기순 정렬 기준)를 올린다. 실패해도 불러오기
+    // 자체엔 지장 없으므로 조용히 삼킨다.
+    travelLogApi.recordLogImport(importedLogId).catch(() => {});
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentDay(0);
     const toastTimer = window.setTimeout(() => {

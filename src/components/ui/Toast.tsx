@@ -75,7 +75,7 @@ export function Toast({
     <div className="absolute bottom-23 left-1/2 z-50 -translate-x-1/2">
       <div
         className={cn(
-          "flex h-[30px] min-w-[220px] w-fit max-w-[340px] items-center justify-center gap-1.5 rounded-lg px-4",
+          "flex h-[30px] min-w-[220px] w-fit max-w-none items-center justify-center gap-1.5 rounded-lg px-4",
           {
             success:
               "bg-toastbg-success border border-toast-success text-toast-success shadow-[2px_4px_4px_color-mix(in_srgb,var(--color-toast-success)_10%,transparent)]",
@@ -92,7 +92,14 @@ export function Toast({
         )}
       >
         {icon ?? TOAST_ICONS[variant]}
-        <span className="whitespace-nowrap text-sm font-medium">{message}</span>
+        <span
+          className={cn(
+            "whitespace-nowrap font-medium",
+            message.length > 20 ? "text-xs" : "text-sm",
+          )}
+        >
+          {message}
+        </span>
       </div>
     </div>
   );

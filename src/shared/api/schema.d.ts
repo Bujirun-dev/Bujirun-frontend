@@ -2131,6 +2131,8 @@ export interface components {
         TravelLogSummaryResponse: {
             /** Format: uuid */
             id?: string;
+            /** Format: uuid */
+            itineraryId?: string;
             title?: string;
             thumbnailPhotoUrl?: string;
             isPublic?: boolean;
