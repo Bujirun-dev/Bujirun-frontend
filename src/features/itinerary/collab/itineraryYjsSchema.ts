@@ -359,7 +359,14 @@ export function shiftFollowingStopTimes(
       return { ...stop, time: minutesToTime(newMinutes) };
     });
 
-    return next.sort((a, b) => a.time.localeCompare(b.time));
+    // 여기서 시간순으로 재정렬하면 안 된다 — 배열 순서(next)는 "방문 순서" 그 자체라
+    // toStopId 기반 transport(rebuildTransport)와 이후 로직 전체가 이 순서를 전제로
+    // 한다. 시간만 밀렸을 뿐인데(예: 중간에 timeIsManual 스팟이 있어 그 뒤는 안 밀리고
+    // 앞쪽만 밀린 경우) 시간순 정렬을 하면 방문 순서 자체가 뒤바뀌어서, 바뀐 위치마다
+    // toStopId가 실제 다음 스팟과 안 맞게 되고 그 구간의 transport가 연쇄로 비워지는
+    // 버그가 있었다(2026-09-03). 방문 순서는 사용자가 명시적으로 재배치할 때만
+    // (드래그 재정렬/최적화) 바뀌어야 한다.
+    return next;
   });
 
   return result;
