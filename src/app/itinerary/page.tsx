@@ -669,7 +669,9 @@ function ItineraryMain({
             } as BaseStop,
           };
         })
-        .filter((p): p is { optimized: (typeof optimizedSorted)[number]; stop: BaseStop } => p !== null);
+        .filter(
+          (p): p is { optimized: (typeof optimizedSorted)[number]; stop: BaseStop } => p !== null,
+        );
 
       // transport는 항상 "다음 스팟까지의 구간" 정보라, 각 스팟의 transport는 자신이 아니라
       // 바로 다음 스팟의 optimized 데이터(도착 항목이 이동수단을 들고 있는 컨벤션)로 만든다.
