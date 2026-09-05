@@ -148,8 +148,8 @@ function TripResultContent() {
   const tripName = searchParams.get("name") ?? "여행";
   const startDate = searchParams.get("startDate") ?? "";
   const endDate = searchParams.get("endDate") ?? "";
-  const startTime = searchParams.get("startTime") || "10:00";
-  const endTime = searchParams.get("endTime") || "17:00";
+  const requestedStartTime = searchParams.get("startTime") || "10:00";
+  const requestedEndTime = searchParams.get("endTime") || "17:00";
   const accommodation = searchParams.get("accommodation") ?? "";
   const accommodationAddress = searchParams.get("accommodationAddress") ?? "";
   const accommodationLat = searchParams.get("accommodationLat") ?? "";
@@ -182,9 +182,19 @@ function TripResultContent() {
   } = useQuery({
     queryKey: itineraryApi.keys.groupGenerate(groupId, startDate, endDate),
     queryFn: () =>
-      itineraryApi.generateGroupItinerary(groupId, { startDate, endDate, startTime, endTime }),
+      itineraryApi.generateGroupItinerary(groupId, {
+        startDate,
+        endDate,
+        startTime: requestedStartTime,
+        endTime: requestedEndTime,
+      }),
     enabled: hasReloaded && !!groupId && !!startDate && !!endDate,
   });
+
+  // 그룹당 한 번만 생성되는 값이므로, 실제로 AI 생성에 쓰인 이 값이 항상 화면 표시의
+  // 기준이다. 응답이 아직 없을 때(로딩 중)만 요청 시 보낸 값으로 잠깐 대체한다.
+  const startTime = generated?.startTime ?? requestedStartTime;
+  const endTime = generated?.endTime ?? requestedEndTime;
 
   const generatingMessage = useGeneratingMessage(isGenerating);
   const sessionId = generated?.voteSessionId ?? "";
