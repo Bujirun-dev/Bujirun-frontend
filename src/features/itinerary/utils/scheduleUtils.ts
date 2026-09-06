@@ -75,6 +75,38 @@ export type BaseStop = Omit<
 // 비어 REST addItem(=DB 저장) 자체가 안 되는 문제가 있어 제거함.
 // isBookmarked(북마크 여부)만 로그 응답에 없는 정보라 여기선 알 수 없음 — 일정에 저장된
 // 뒤 실제 일정 상세를 다시 불러오면(mapItineraryDetailToDays) 정확한 값으로 채워진다.
+// 로그 항목의 방문 시각은 "믿을 수 있을 때만" 그대로 쓴다.
+//
+// 확정(finalize)으로 만들어진 일정은 백엔드가 arrivalTime을 아예 채우지 않아 비어 있고
+// (ItineraryVoteService), 그 일정으로 만든 로그도 시간이 빈 채 내려온다. 예전 버그로
+// 하루 전체가 00:00으로 뭉개진 일정에서 만들어진 로그도 있다.
+//
+// 이걸 항목마다 따로 기본값으로 채우면 그 날 전체가 같은 시각이 되는데, 백엔드는 같은 날
+// 같은 시각을 400으로 막기 때문에(ItineraryService.validateArrivalTimeAvailable) 저장 시
+// 첫 항목만 통과하고 나머지는 조용히 사라진다. 그래서 하루치를 한 번에 정한다 —
+// 저장된 시각이 (1) 전부 있고 (2) 오름차순이면 그대로 쓰고, 하나라도 어긋나면 그 날을
+// 통째로 다시 매긴다(mapItineraryDetailToDays의 resolveDayTimes와 같은 규칙).
+function resolveImportedLogTimes(arrivalTimes: (string | undefined)[]): number[] {
+  const stored = arrivalTimes.map((raw) => {
+    if (!raw) return undefined;
+    const minutes = timeToMinutes(normalizeTime(raw));
+    // 00:00은 실제 자정이 아니라 "시간 없음"이 잘못 저장된 값으로 본다(boundMinutes와 같은 기준).
+    return minutes === 0 ? undefined : minutes;
+  });
+
+  const isUsable =
+    stored.every((minute) => minute !== undefined) &&
+    stored.every((minute, idx) => idx === 0 || minute! > stored[idx - 1]!);
+  if (isUsable) return stored as number[];
+
+  return arrivalTimes.map((_, idx) =>
+    Math.min(
+      LAST_MINUTE_OF_DAY,
+      IMPORTED_LOG_DAY_START_MIN + idx * (DEFAULT_STAY_MIN + DEFAULT_TRAVEL_MIN),
+    ),
+  );
+}
+
 export function buildDaysFromTravelLogDetail(log: TravelLogDetailResponse): {
   days: BaseStop[][];
   dates: string[];
@@ -86,6 +118,8 @@ export function buildDaysFromTravelLogDetail(log: TravelLogDetailResponse): {
     // toStopId(다음 스팟 id)를 rebuildTransport()가 참조하려면 순서대로 미리 확정돼있어야
     // 해서, map 안에서 그때그때 nextTempStopId()를 부르는 대신 배열로 먼저 뽑아둔다.
     const ids = items.map(() => nextTempStopId());
+    // 시각은 항목마다 따로 채우지 않고 하루치를 한 번에 정한다(resolveImportedLogTimes 주석 참고).
+    const dayMinutes = resolveImportedLogTimes(items.map((item) => item.arrivalTime));
 
     return items.map((item, idx): BaseStop => {
       const placeName = item.spotName ?? "장소 미정";
@@ -95,7 +129,7 @@ export function buildDaysFromTravelLogDetail(log: TravelLogDetailResponse): {
       return {
         id: ids[idx],
         spotId: item.spotId,
-        time: normalizeTime(item.arrivalTime, "10:00"),
+        time: minutesToTime(dayMinutes[idx]),
         placeName,
         imageUrl: item.spotThumbnailUrl || representativePhoto || getFallbackImage(item.spotId),
         category: getCategoryFromKo(item.spotCategory ?? "", placeName),
@@ -392,6 +426,8 @@ export function getDefaultItemTime(
 }
 
 // 관광지 기본 체류시간과, 이동시간을 모르는 구간에 쓰는 기본 이동시간.
+// 로그를 불러올 때 시간을 다시 매기는 기준 시각 — 일정 탭의 하루 기본 시작(10:00)과 맞춘다.
+const IMPORTED_LOG_DAY_START_MIN = 10 * 60;
 const DEFAULT_STAY_MIN = 90;
 const DEFAULT_TRAVEL_MIN = 30;
 

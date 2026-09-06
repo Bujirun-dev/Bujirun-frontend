@@ -38,7 +38,13 @@ export async function flushDayToRest(
   // 새 항목이 저장되면서 백엔드가 계산해준 (직전 스팟 → 새 항목) 구간 정보를 넘긴다.
   // 호출부가 직전 스팟의 교통수단 배너를 바로 채우는 데 쓴다.
   onLegComputed?: (prevStopId: string, addedItem: AddedItem) => void,
+  // 이번 flush에서 저장에 실패한 게 하나라도 있으면 (한 번만) 알린다. 실패는 다음
+  // flush에서 재시도되지만, 그 사이 사용자가 새로고침하면 화면에는 있는데 DB엔 없는
+  // 항목이 그대로 사라진다 — 예전엔 전부 조용히 삼켜서 사용자가 알 방법이 없었다.
+  // (같은 날 같은 시각을 백엔드가 400으로 막는 게 실제로 이 경로를 자주 탄다.)
+  onSaveFailed?: () => void,
 ): Promise<void> {
+  let hasFailure = false;
   const currentIds = new Set(currentStops.map((stop) => stop.id));
   const idsToDelete = [...snapshot.keys()].filter((id) => !currentIds.has(id));
 
@@ -46,7 +52,9 @@ export async function flushDayToRest(
     itineraryApi
       .deleteItem(itineraryId, dayId, id)
       .then(() => snapshot.delete(id))
-      .catch(() => {}),
+      .catch(() => {
+        hasFailure = true;
+      }),
   );
   await Promise.allSettled(deletions);
 
@@ -81,6 +89,7 @@ export async function flushDayToRest(
         }
       } catch {
         // 다음 flush 시점에 temp- id 그대로 재시도됨
+        hasFailure = true;
       }
       continue;
     }
@@ -98,11 +107,15 @@ export async function flushDayToRest(
       });
     } catch {
       // 다음 flush 시점에 재시도됨
+      hasFailure = true;
     }
   }
 
   const orderedRealIds = resolvedIds.filter((id): id is string => id !== null);
-  if (orderedRealIds.length === 0) return;
+  if (orderedRealIds.length === 0) {
+    if (hasFailure) onSaveFailed?.();
+    return;
+  }
 
   const prevOrder = [...snapshot.entries()]
     .filter(([id]) => orderedRealIds.includes(id))
@@ -112,7 +125,10 @@ export async function flushDayToRest(
     orderedRealIds.length !== prevOrder.length ||
     orderedRealIds.some((id, i) => id !== prevOrder[i]);
 
-  if (!orderChanged && !hasStructuralChange) return;
+  if (!orderChanged && !hasStructuralChange) {
+    if (hasFailure) onSaveFailed?.();
+    return;
+  }
 
   try {
     await itineraryApi.reorderItems(itineraryId, dayId, orderedRealIds);
@@ -122,5 +138,8 @@ export async function flushDayToRest(
     });
   } catch {
     // 다음 flush 시점에 재시도됨
+    hasFailure = true;
   }
+
+  if (hasFailure) onSaveFailed?.();
 }
