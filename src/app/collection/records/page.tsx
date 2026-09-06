@@ -12,12 +12,22 @@ import { convertTripLogToReceipt } from "@/features/receipt/utils/convertTripLog
 import { PROFILE_IMAGES } from "@/components/profile/profileImages";
 import { RecordDeleteModal } from "@/features/collection/components/RecordDeleteModal";
 import { TripReceiptModal } from "@/features/receipt/components/TripReceiptModal";
-import type { ReceiptData } from "@/features/receipt/types/receipt";
+import type { ReceiptData, ReviewPromptSubmitData } from "@/features/receipt/types/receipt";
 import bookIcon from "@/assets/icons/collection/book.png";
 import { Card, CategoryChip, PageCard, Toast, EmptyState, LoadingBoundary } from "@/components";
 import type { Category } from "@/components/ui/CategoryChip";
 import { TripRecordItem } from "@/features/collection/components/TripRecordItem";
 import { getCategoryFromKo } from "@/shared/constants/category";
+import { ReceiptPromptModal } from "@/features/collection/components/ReceiptPromptModal";
+import { ReviewPromptModal } from "@/features/home/components/ReviewPromptModal";
+
+const MOOD_VALUE_MAP: Record<ReviewPromptSubmitData["mood"], number> = {
+  "🥰": 1,
+  "😆": 2,
+  "😌": 3,
+  "🫠": 4,
+  "😡": 5,
+};
 
 export default function CollectionRecordsPage() {
   const router = useRouter();
@@ -79,15 +89,30 @@ export default function CollectionRecordsPage() {
       myLogs.map((log, index) => ({
         id: index + 1,
         logId: log.id ?? "",
+        itineraryId: log.itineraryId ?? "",
         title: log.title ?? "여행 기록",
         period: log.startDate ?? "",
       })),
     [myLogs],
   );
 
+  const itineraryIds = useMemo(
+    () => records.map((record) => record.itineraryId).filter(Boolean),
+    [records],
+  );
+
+  const { data: logStatuses = [] } = useQuery({
+    queryKey: ["travel-logs", "exists", itineraryIds],
+    queryFn: () => travelLogApi.checkLogExists(itineraryIds),
+    enabled: itineraryIds.length > 0,
+  });
+
   const [selectedDeleteTripId, setSelectedDeleteTripId] = useState<number | null>(null);
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
+  const [selectedPromptTripId, setSelectedPromptTripId] = useState<number | null>(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+  const [isReceiptPromptOpen, setIsReceiptPromptOpen] = useState(false);
+  const [isReviewPromptOpen, setIsReviewPromptOpen] = useState(false);
 
   const openDeleteModal = useCallback((tripId: number) => {
     setSelectedDeleteTripId(tripId);
@@ -102,12 +127,55 @@ export default function CollectionRecordsPage() {
     setIsReceiptOpen(true);
   }, []);
 
+  const closeReceiptPromptModal = useCallback(() => {
+    setIsReceiptPromptOpen(false);
+    setSelectedPromptTripId(null);
+  }, []);
+
+  const closeReviewPromptModal = useCallback(() => {
+    setIsReviewPromptOpen(false);
+    setSelectedPromptTripId(null);
+  }, []);
+
+  const openReviewPromptModal = useCallback(() => {
+    setIsReceiptPromptOpen(false);
+    setIsReviewPromptOpen(true);
+  }, []);
+
+  const handleRecordClick = useCallback(
+    (tripId: number) => {
+      const record = records.find((item) => item.id === tripId);
+
+      if (!record) return;
+
+      const status = logStatuses.find((item) => item.itineraryId === record.itineraryId);
+
+      if (!status) return;
+
+      if (status.receiptCompleted) {
+        openReceiptModal(tripId);
+        return;
+      }
+
+      if (status.promptDismissed) {
+        router.push(`/collection/records/log/${record.logId}`);
+        return;
+      }
+
+      setSelectedPromptTripId(tripId);
+      setIsReceiptPromptOpen(true);
+    },
+    [logStatuses, openReceiptModal, records, router],
+  );
+
   const closeReceiptModal = useCallback(() => {
     setIsReceiptOpen(false);
     setSelectedTripId(null);
   }, []);
 
   const selectedDeleteTrip = records.find((record) => record.id === selectedDeleteTripId) ?? null;
+
+  const selectedPromptTrip = records.find((record) => record.id === selectedPromptTripId) ?? null;
 
   const selectedLogId = records.find((record) => record.id === selectedTripId)?.logId ?? "";
 
@@ -142,6 +210,65 @@ export default function CollectionRecordsPage() {
     selectedTravelLog && me?.id && me?.nickname
       ? convertTripLogToReceipt(selectedTravelLog, me.id, me.nickname, profileImage)
       : undefined;
+
+  const handleSkipReceipt = async (dontAskAgain: boolean) => {
+    if (!selectedPromptTrip) return;
+
+    try {
+      if (dontAskAgain) {
+        await travelLogApi.dismissReceiptPrompt(selectedPromptTrip.itineraryId);
+
+        await queryClient.invalidateQueries({
+          queryKey: ["travel-logs", "exists"],
+        });
+      }
+
+      closeReceiptPromptModal();
+
+      router.push(`/collection/records/log/${selectedPromptTrip.logId}`);
+    } catch (error) {
+      console.error("영수증 발행 팝업 설정 실패: ", error);
+
+      setToast({
+        message: "설정을 저장하지 못했어요.",
+        variant: "error",
+      });
+    }
+  };
+
+  const handleReviewConfirm = async (data: ReviewPromptSubmitData) => {
+    if (!selectedPromptTrip?.logId) return;
+
+    try {
+      await travelLogApi.updateLog(selectedPromptTrip.logId, {
+        mood: MOOD_VALUE_MAP[data.mood],
+        theme: data.theme,
+      });
+
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: travelLogApi.keys.mine(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: travelLogApi.keys.detail(selectedPromptTrip.logId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["travel-logs", "exists"],
+        }),
+      ]);
+
+      setIsReviewPromptOpen(false);
+      setIsReceiptOpen(true);
+      setSelectedPromptTripId(null);
+    } catch (error) {
+      console.error("여행 리뷰 저장 실패: ", error);
+
+      setToast({
+        message: "여행 리뷰 저장에 실패했어요.",
+        variant: "error",
+      });
+    }
+  };
 
   const handleDelete = async () => {
     if (selectedDeleteTripId === null) return;
@@ -278,7 +405,7 @@ export default function CollectionRecordsPage() {
                     title={record.title}
                     period={record.period}
                     onDelete={openDeleteModal}
-                    onTitleClick={openReceiptModal}
+                    onTitleClick={handleRecordClick}
                   />
                 ))}
             </LoadingBoundary>
@@ -340,6 +467,26 @@ export default function CollectionRecordsPage() {
         period={selectedDeleteTrip?.period ?? ""}
         onClose={closeDeleteModal}
         onConfirm={handleDelete}
+      />
+
+      <ReceiptPromptModal
+        isOpen={isReceiptPromptOpen && selectedPromptTrip !== null}
+        tripName={selectedPromptTrip?.title ?? ""}
+        onClose={closeReceiptPromptModal}
+        onSkip={handleSkipReceipt}
+        onConfirm={() => {
+          if (!selectedPromptTrip) return;
+
+          setSelectedTripId(selectedPromptTrip.id);
+          openReviewPromptModal();
+        }}
+      />
+
+      <ReviewPromptModal
+        isOpen={isReviewPromptOpen && selectedPromptTrip !== null}
+        tripTitle={selectedPromptTrip?.title ?? ""}
+        onClose={closeReviewPromptModal}
+        onConfirm={handleReviewConfirm}
       />
 
       <TripReceiptModal

@@ -265,6 +265,7 @@ function ItineraryPageContent() {
   }
 
   // 시작/종료 시간, 숙소 전부 백엔드(Itinerary 엔티티)에 저장된 값을 그대로 쓴다.
+  // 백엔드가 "HH:MM:SS"로 내려주므로 분까지만(HH:MM) 잘라서 쓴다.
   const tripTimeBounds =
     detail.startTime && detail.endTime
       ? {
@@ -478,6 +479,9 @@ function ItineraryMain({
     });
     logActivity("import", "");
     flushNow();
+    // 이 로그가 일정에 담긴 횟수(카운트 배지·인기순 정렬 기준)를 올린다. 실패해도 불러오기
+    // 자체엔 지장 없으므로 조용히 삼킨다.
+    travelLogApi.recordLogImport(importedLogId).catch(() => {});
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentDay(0);
     const toastTimer = window.setTimeout(() => {
@@ -658,27 +662,50 @@ function ItineraryMain({
       // 이름이 겹치는 스팟이 있어도 같은 stop을 두 번 재사용해 id가 중복되지 않도록,
       // 매칭된 stop은 remaining에서 바로 제거한다.
       const remaining = [...(stopsPerDay[currentDay] ?? [])];
-      const reordered = (result.data?.spots ?? [])
+      const optimizedSorted = (result.data?.spots ?? [])
         .slice()
-        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      // optimized(travelMode/routeType/routeNo/역명/transitDetail)를 stop과 짝지어 들고
+      // 있다가 transport를 만들 때 쓴다 — order/arrivalTime만 반영하면 최적화로 이동수단이
+      // 바뀌어도 교통수단 배너가 최적화 전 값 그대로 남는다.
+      const pairs = optimizedSorted
         .map((optimized) => {
           const matchIdx = remaining.findIndex((s) => s.placeName === optimized.name);
           const existing = matchIdx >= 0 ? remaining.splice(matchIdx, 1)[0] : remaining.shift();
-          return existing
-            ? {
-                ...existing,
-                time: minutesToTime(
-                  clampToTripBounds(
-                    timeToMinutes(normalizeTime(optimized.arrivalTime, existing.time)),
-                    currentDay,
-                    dayIdsSliced.length,
-                    tripTimeBounds,
-                  ),
+          if (!existing) return null;
+          return {
+            optimized,
+            stop: {
+              ...existing,
+              time: minutesToTime(
+                clampToTripBounds(
+                  timeToMinutes(normalizeTime(optimized.arrivalTime, existing.time)),
+                  currentDay,
+                  dayIdsSliced.length,
+                  tripTimeBounds,
                 ),
-              }
-            : null;
+              ),
+            } as BaseStop,
+          };
         })
-        .filter((s): s is BaseStop => s !== null);
+        .filter(
+          (p): p is { optimized: (typeof optimizedSorted)[number]; stop: BaseStop } => p !== null,
+        );
+
+      // transport는 항상 "다음 스팟까지의 구간" 정보라, 각 스팟의 transport는 자신이 아니라
+      // 바로 다음 스팟의 optimized 데이터(도착 항목이 이동수단을 들고 있는 컨벤션)로 만든다.
+      const reordered = pairs.map(({ stop }, idx) => {
+        const nextPair = pairs[idx + 1];
+        if (!nextPair) return { ...stop, transport: undefined };
+        const transport = buildTransportFromItem(
+          nextPair.optimized,
+          stop.placeName,
+          nextPair.stop.placeName,
+          nextPair.stop.id,
+          nextPair.optimized.travelTimeMin ?? 30,
+        );
+        return { ...stop, transport };
+      });
       pushYjsOptimizedOrder(currentDay, reordered);
       logActivity("optimize", "");
       showToast("일정이 최적화됐어요.");

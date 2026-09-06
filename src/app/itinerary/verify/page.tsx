@@ -11,6 +11,7 @@ export default function VerifyPage() {
 
   const spotId = searchParams.get("spotId");
   const itineraryId = searchParams.get("itineraryId");
+  const itineraryItemId = searchParams.get("itineraryItemId") ?? undefined;
   const placeName = searchParams.get("placeName") ?? "관광지";
   const placeImageUrl = searchParams.get("placeImageUrl") ?? undefined;
 
@@ -25,6 +26,7 @@ export default function VerifyPage() {
       <ArrivalVerifyModal
         spotId={spotId}
         itineraryId={itineraryId}
+        itineraryItemId={itineraryItemId}
         isOpen
         onClose={() => router.back()}
         placeName={placeName}
