@@ -199,7 +199,6 @@ function VoteWaitingContent() {
         </p>
 
         <ParticipantAvatarGrid total={totalSlots} activeCount={doneCount} className="mt-5" />
-
       </div>
 
       {/* 동률 모달 */}

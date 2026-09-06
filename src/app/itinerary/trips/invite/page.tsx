@@ -154,7 +154,6 @@ function TripInviteContent() {
         >
           친구 초대하기
         </button>
-
       </div>
 
       <ShareInviteModal
