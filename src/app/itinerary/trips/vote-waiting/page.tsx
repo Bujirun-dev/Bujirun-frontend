@@ -2,6 +2,7 @@
 
 import { Fragment, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Modal, Toast, Button, LoadingState } from "@/components";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { itineraryApi } from "@/shared/api/domains";
@@ -64,16 +65,31 @@ function VoteWaitingContent() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
   const unlockGeneration = useItineraryGenerationLockStore((state) => state.unlock);
+  const queryClient = useQueryClient();
+
+  // 확정 직후엔 일정 목록 캐시(staleTime 60초)에 새 일정이 아직 없다. 그대로 /itinerary로
+  // 보내면 목록에서 못 찾고 "직전에 보던 일정"으로 폴백해서 예전 일정이 열린다.
+  // 그래서 목록을 무효화하고, 방금 만들어진 일정 id를 tripId로 직접 지정해서 이동한다.
+  const goToNewItinerary = async (itineraryId?: string) => {
+    unlockGeneration();
+    try {
+      // 비활성 상태인 목록 캐시도 실제로 다시 받아온 뒤 이동해야, 일정 탭이 새 id를
+      // 아직 모르는 상태에서 기존 일정으로 폴백하지 않는다.
+      await queryClient.invalidateQueries({
+        queryKey: itineraryApi.keys.lists(),
+        refetchType: "all",
+      });
+    } finally {
+      router.push(itineraryId ? `/itinerary?tripId=${itineraryId}` : "/itinerary");
+    }
+  };
 
   // 방장이 finalize를 호출하면 status가 "confirmed"로 바뀐다. 이는 클라이언트가
   // voteCounts로 계산한 winnerPlan/동률 로직과 별개로 백엔드가 실제로 확정했음을
   // 보장하는 신호라서, 동률이라 방장 선택을 기다리던 참여자를 포함해 전원을
   // 확실하게 일정 화면으로 보낸다.
   const { voteStatus } = useVoteSessionPolling(sessionId, {
-    onConfirmed: () => {
-      unlockGeneration();
-      router.push("/itinerary");
-    },
+    onConfirmed: (_sessionId, itineraryId) => goToNewItinerary(itineraryId),
     onError: () => {
       setToastVariant("error");
       setToastMessage("투표 현황을 불러오지 못했어요.");
@@ -90,35 +106,36 @@ function VoteWaitingContent() {
     try {
       // 확정은 리더 전용 API라 방장 클라이언트만 실제로 호출하고,
       // 참여자는 방장이 확정할 때까지 기다렸다가 같은 화면 흐름으로 넘어간다.
-      if (isHost) {
-        // finalize 요청에 숙소/시간까지 함께 실어서 원자적으로 저장한다 — 세션이
-        // "confirmed"로 바뀌는 시점과 숙소 저장 시점 사이에 참여자가 일정 화면으로
-        // 넘어가버려 숙소 정보가 비어 보이던 race condition을 없애기 위함.
-        await itineraryApi.finalizeItinerary(sessionId, {
-          freePass: false,
-          selectedPlan: planType,
-          title: tripName,
-          startDate,
-          endDate,
-          startTime,
-          endTime,
-          accommodationName: accommodation,
-          accommodationAddress,
-          ...(accommodationLat ? { accommodationLat: Number(accommodationLat) } : {}),
-          ...(accommodationLng ? { accommodationLng: Number(accommodationLng) } : {}),
-          // C안(자유 편집형)은 AI가 만든 내용이 없어서, 빈 Day만 일수에 맞게 만들어달라고 명시해야 한다.
-          ...(planType === "C"
-            ? {
-                days: Array.from({ length: totalDays }, (_, i) => ({
-                  day: i + 1,
-                  spotContentIds: [],
-                })),
-              }
-            : {}),
-        });
-      }
-      unlockGeneration();
-      router.push("/itinerary");
+      // itineraryId 없이 먼저 이동하면 기존 일정이 선택되고 폴링도 중단된다.
+      // 참여자는 onConfirmed에서 새 id를 받을 때까지 이 화면에서 대기한다.
+      if (!isHost) return;
+
+      // finalize 요청에 숙소/시간까지 함께 실어서 원자적으로 저장한다 — 세션이
+      // "confirmed"로 바뀌는 시점과 숙소 저장 시점 사이에 참여자가 일정 화면으로
+      // 넘어가버려 숙소 정보가 비어 보이던 race condition을 없애기 위함.
+      const newItineraryId = await itineraryApi.finalizeItinerary(sessionId, {
+        freePass: false,
+        selectedPlan: planType,
+        title: tripName,
+        startDate,
+        endDate,
+        startTime,
+        endTime,
+        accommodationName: accommodation,
+        accommodationAddress,
+        ...(accommodationLat ? { accommodationLat: Number(accommodationLat) } : {}),
+        ...(accommodationLng ? { accommodationLng: Number(accommodationLng) } : {}),
+        // C안(자유 편집형)은 AI가 만든 내용이 없어서, 빈 Day만 일수에 맞게 만들어달라고 명시해야 한다.
+        ...(planType === "C"
+          ? {
+              days: Array.from({ length: totalDays }, (_, i) => ({
+                day: i + 1,
+                spotContentIds: [],
+              })),
+            }
+          : {}),
+      });
+      goToNewItinerary(newItineraryId);
     } catch {
       setToastVariant("error");
       setToastMessage("일정을 확정하지 못했어요. 다시 시도해주세요.");

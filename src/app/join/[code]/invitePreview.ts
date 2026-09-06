@@ -41,13 +41,13 @@ export const getInvitePreview = cache(async (code: string): Promise<InvitePrevie
 export function getInviteCopy(preview: InvitePreview | null) {
   if (!preview) {
     return {
-      title: "부지런 여행 일정에 초대받았어요 🌊",
-      description: "친구가 부산 여행에 초대했어요! 함께 일정을 만들어봐요!🤩",
+      title: "부지런 여행 초대장이 도착했어요 🌊",
+      description: "친구와 함께 부산 여행 일정을 만들어봐요 🤩",
     };
   }
 
   return {
-    title: `${preview.inviterNickname}님이 '${preview.groupName}'에 초대했어요 🌊`,
-    description: "친구가 부산 여행에 초대했어요! 함께 일정을 만들어봐요!🤩",
+    title: `${preview.inviterNickname}님이 ‘${preview.groupName}’에 초대했어요 🌊`,
+    description: "부지런에서 함께 부산 여행 일정을 만들어봐요 🤩",
   };
 }
