@@ -56,6 +56,11 @@ const ACCOMMODATION_CATEGORY_CODE = "AD5";
 // 목록이 길면 고르기가 오히려 어려워서 짧게 끊는다.
 const MAX_RESULTS = 8;
 
+// "해운대"를 치는 도중 "해"·"해운"으로 검색이 나가면 결과가 0건이라 빈 화면이 번쩍 뜬다.
+// 입력이 멎고 나서 검색하도록 넉넉히 기다리고, 한 글자로는 아예 검색하지 않는다.
+const SEARCH_DEBOUNCE_MS = 500;
+const MIN_QUERY_LENGTH = 2;
+
 export function AccommodationSearchField({
   value,
   onChange,
@@ -70,13 +75,13 @@ export function AccommodationSearchField({
   const [pendingOutsideBusanPlace, setPendingOutsideBusanPlace] = useState<KakaoPlaceResult | null>(
     null,
   );
-  const debouncedQuery = useDebouncedValue(query, 300);
+  const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
 
   useEffect(() => {
     // 모달이 닫혀 있을 땐 검색할 필요가 없다.
     if (!isOpen) return;
     const keyword = debouncedQuery.trim();
-    if (!keyword) {
+    if (keyword.length < MIN_QUERY_LENGTH) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setResults([]);
       return;
@@ -114,7 +119,9 @@ export function AccommodationSearchField({
   }, [debouncedQuery, isOpen]);
 
   // 검색은 끝났는데 결과가 하나도 없는 상태(에러나 로딩 중과는 구분).
-  const isEmptyResult = !!query.trim() && !isSearching && !hasSearchError && results.length === 0;
+  // 검색어가 아직 짧아서 검색을 안 보낸 동안에는 결과 영역 자체를 접어둔다.
+  const isSearchable = query.trim().length >= MIN_QUERY_LENGTH;
+  const isEmptyResult = isSearchable && !isSearching && !hasSearchError && results.length === 0;
 
   const handleOpen = () => {
     setQuery("");
@@ -221,7 +228,7 @@ export function AccommodationSearchField({
           <div
             className={cn(
               "relative w-full overflow-y-auto transition-[height] duration-200 ease-out",
-              !query.trim() ? "h-0" : isEmptyResult ? "h-[330px]" : "h-[276px]",
+              !isSearchable ? "h-0" : isEmptyResult ? "h-[330px]" : "h-[276px]",
             )}
           >
             <LoadingBoundary
@@ -231,7 +238,7 @@ export function AccommodationSearchField({
               delay={200}
               minDuration={500}
             >
-              {!query.trim() ? null : hasSearchError ? (
+              {!isSearchable ? null : hasSearchError ? (
                 <ErrorState
                   variant="compact"
                   code={503}
