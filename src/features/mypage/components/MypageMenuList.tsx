@@ -9,6 +9,7 @@ import { PrivacyPolicyModal } from "@/components/legal/PrivacyPolicyModal";
 import { LogoutModal } from "./LogoutModal";
 import { logout } from "@/shared/api/domains/auth";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
+import { clearPendingInvite } from "@/shared/utils/pendingInvite";
 
 export function MypageMenuList() {
   const router = useRouter();
@@ -28,6 +29,9 @@ export function MypageMenuList() {
     } finally {
       useAuthStore.getState().clear();
       queryClient.clear();
+      // 로그인 상태와 함께 초대 잔재도 비운다 — 안 지우면 다음 사람이 이 브라우저에서
+      // 그냥 로그인만 해도 이전 사용자의 초대 흐름으로 들어간다.
+      clearPendingInvite();
       setIsLogoutOpen(false);
       router.replace("/login");
     }
