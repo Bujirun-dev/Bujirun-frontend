@@ -160,6 +160,16 @@ export function minutesToTime(totalMinutes: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
+// 여행 시작/종료 시각이 자정(00:00)으로 저장돼 있으면 "설정 안 됨"으로 본다.
+// 실제로 자정에 시작하거나 끝나는 여행을 고르는 사람은 없고, 시간이 비어 있는 일정을
+// 여행 수정 모달에서 저장하면 이 값이 들어온다(모달이 빈 시간을 00:00으로 보여주고
+// 그대로 PATCH한다). 그걸 경계로 그대로 쓰면 마지막 날 항목이 전부 00:00으로 붙는다.
+export function boundMinutes(value: string | undefined): number | undefined {
+  const hourMinute = toHourMinute(value);
+  if (!hourMinute || hourMinute === "00:00") return undefined;
+  return timeToMinutes(hourMinute);
+}
+
 // 자동으로 계산되는 시간(AI 생성/최적화/새 항목 추가 등)이 여행 시작/종료 시간을
 // 절대 벗어나지 않도록 첫날은 시작 시간 이상, 마지막날은 종료 시간 이하로 강제한다.
 export function clampToTripBounds(
@@ -169,12 +179,10 @@ export function clampToTripBounds(
   bounds?: TripTimeBoundsLike | null,
 ): number {
   let clamped = totalMinutes;
-  if (dayIdx === 0 && bounds?.startTime) {
-    clamped = Math.max(clamped, timeToMinutes(bounds.startTime));
-  }
-  if (dayIdx === totalDays - 1 && bounds?.endTime) {
-    clamped = Math.min(clamped, timeToMinutes(bounds.endTime));
-  }
+  const startMin = dayIdx === 0 ? boundMinutes(bounds?.startTime) : undefined;
+  const endMin = dayIdx === totalDays - 1 ? boundMinutes(bounds?.endTime) : undefined;
+  if (startMin !== undefined) clamped = Math.max(clamped, startMin);
+  if (endMin !== undefined) clamped = Math.min(clamped, endMin);
   return clamped;
 }
 
@@ -353,12 +361,11 @@ export function getDefaultItemTime(
   itemCount: number,
   bounds?: TripTimeBoundsLike | null,
 ): string {
-  const hasStart = dayIdx === 0 && !!bounds?.startTime;
-  const hasEnd = dayIdx === totalDays - 1 && !!bounds?.endTime;
-  const startMin = hasStart ? timeToMinutes(toHourMinute(bounds!.startTime)!) : undefined;
-  const endMin = hasEnd ? timeToMinutes(toHourMinute(bounds!.endTime)!) : undefined;
+  const startMin = dayIdx === 0 ? boundMinutes(bounds?.startTime) : undefined;
+  const endMin = dayIdx === totalDays - 1 ? boundMinutes(bounds?.endTime) : undefined;
 
-  let lower = startMin === undefined ? DEFAULT_DAY_START_MIN : Math.max(DEFAULT_DAY_START_MIN, startMin);
+  let lower =
+    startMin === undefined ? DEFAULT_DAY_START_MIN : Math.max(DEFAULT_DAY_START_MIN, startMin);
   let upper = endMin === undefined ? DEFAULT_DAY_END_MIN : Math.min(DEFAULT_DAY_END_MIN, endMin);
 
   // 기본 시간대(10~18시)가 여행 시작/종료 시간과 안 맞아 창이 뒤집히는 경우
@@ -406,12 +413,8 @@ function resolveDayTimes(
 ): number[] {
   if (items.length === 0) return [];
 
-  const startMin =
-    dayIdx === 0 && bounds?.startTime ? timeToMinutes(toHourMinute(bounds.startTime)!) : undefined;
-  const endMin =
-    dayIdx === totalDays - 1 && bounds?.endTime
-      ? timeToMinutes(toHourMinute(bounds.endTime)!)
-      : undefined;
+  const startMin = dayIdx === 0 ? boundMinutes(bounds?.startTime) : undefined;
+  const endMin = dayIdx === totalDays - 1 ? boundMinutes(bounds?.endTime) : undefined;
 
   const stored = items.map((item) =>
     item.arrivalTime ? timeToMinutes(normalizeTime(item.arrivalTime)) : undefined,
@@ -429,7 +432,9 @@ function resolveDayTimes(
   let cursor = startMin ?? DEFAULT_DAY_START_MIN;
   items.forEach((item, idx) => {
     if (idx > 0) {
-      cursor = roundToNearest10(cursor + DEFAULT_STAY_MIN + (item.travelTimeMin ?? DEFAULT_TRAVEL_MIN));
+      cursor = roundToNearest10(
+        cursor + DEFAULT_STAY_MIN + (item.travelTimeMin ?? DEFAULT_TRAVEL_MIN),
+      );
     }
     times.push(Math.min(LAST_MINUTE_OF_DAY, cursor));
   });
