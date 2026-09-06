@@ -155,14 +155,6 @@ function TripInviteContent() {
           친구 초대하기
         </button>
 
-        {/* TEMP: 인원 다 안 모여도 뒷 화면 확인용 — 확인 끝나면 지울 것 */}
-        <button
-          type="button"
-          onClick={goToPersonality}
-          className="mt-3 font-paperlogy font-normal text-xs text-sub-gray underline decoration-solid underline-offset-2"
-        >
-          (테스트) 인원 상관없이 다음 화면으로
-        </button>
       </div>
 
       <ShareInviteModal

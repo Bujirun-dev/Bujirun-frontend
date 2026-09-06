@@ -200,15 +200,6 @@ function VoteWaitingContent() {
 
         <ParticipantAvatarGrid total={totalSlots} activeCount={doneCount} className="mt-5" />
 
-        {/* TEMP: 인원 다 안 모여도 확정 확인용 — 확인 끝나면 지울 것 */}
-        <button
-          type="button"
-          onClick={() => confirmPlan(winnerPlan ?? "A")}
-          disabled={isConfirming}
-          className="mt-3 font-paperlogy font-normal text-xs text-sub-gray underline decoration-solid underline-offset-2 disabled:opacity-50"
-        >
-          {isConfirming ? "확정 중..." : "(테스트) 인원 상관없이 확정하기"}
-        </button>
       </div>
 
       {/* 동률 모달 */}
