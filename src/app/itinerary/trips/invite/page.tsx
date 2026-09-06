@@ -99,8 +99,8 @@ function TripInviteContent() {
   // 언제 가는 여행인지 알 수 있어야 한다.
   const tripPeriod = formatTripPeriod(startDate, endDate, days);
   const shareDescription = tripPeriod
-    ? `${tripPeriod}\n함께 일정을 만들어봐요!🤩`
-    : "친구가 부산 여행에 초대했어요! 함께 일정을 만들어봐요!🤩";
+    ? `${tripPeriod}\n부지런에서 함께 일정을 만들어봐요 🤩`
+    : "부지런에서 함께 부산 여행 일정을 만들어봐요 🤩";
   const inviteUrl =
     typeof window === "undefined"
       ? ""
@@ -130,6 +130,13 @@ function TripInviteContent() {
           <br />
           일정을 짜러 갈 수 있어요 🥰
         </p>
+
+        {/* 여행 기간 — 초대로 들어온 팀원도 언제 가는 여행인지 바로 알 수 있게 */}
+        {tripPeriod && (
+          <p className="mt-[10px] font-paperlogy font-bold text-sm text-sub-deepblue text-center leading-[1.45] break-keep">
+            {tripPeriod}
+          </p>
+        )}
 
         {/* 참여 카운트 */}
         <p className="mt-[27px] font-paperlogy font-bold text-md text-sub-deepblue text-center">
@@ -161,7 +168,7 @@ function TripInviteContent() {
       <ShareInviteModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
-        title={`${nickname}님이 '${tripName}'에 초대했어요 🌊`}
+        title={`${nickname}님이 ‘${tripName}’에 초대했어요 🌊`}
         description={shareDescription}
         imageUrl={shareImageUrl}
         inviteUrl={inviteUrl}

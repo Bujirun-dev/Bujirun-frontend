@@ -121,6 +121,14 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
     };
   }, [code, count, days, startDate, endDate, startTime, endTime, router]);
 
+  // 언제 가는 여행인지는 로그인 전/참여 중/참여 완료 어느 화면에서든 보여야 해서
+  // 문구만 상태별로 바꾸고 기간 줄은 그대로 재사용한다. (구버전 링크는 날짜가 없어 렌더 안 됨)
+  const periodLine = tripPeriod ? (
+    <p className="mt-[10px] font-paperlogy font-bold text-sm text-sub-deepblue text-center leading-[1.45] break-keep">
+      {tripPeriod}
+    </p>
+  ) : null;
+
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pb-16">
       <div className="w-full rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-6 py-[40px] backdrop-blur-[15px] flex flex-col items-center">
@@ -130,16 +138,12 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
                 break-keep으로 단어 중간이 끊기지 않게만 하고 자연스럽게 흐르도록 둔다. */}
             <p className="font-paperlogy font-medium text-xl text-text-heading text-center leading-[1.45] break-keep text-balance">
               {invitePreview?.groupName && invitePreview?.inviterNickname
-                ? `${invitePreview.inviterNickname}님이 ‘${invitePreview.groupName}’에 초대했어요 ✈️`
-                : "여행 초대를 받았어요! ✈️"}
+                ? `${invitePreview.inviterNickname}님이 ‘${invitePreview.groupName}’에 초대했어요 🌊`
+                : "부지런 여행 초대장이 도착했어요 🌊"}
             </p>
-            {tripPeriod && (
-              <p className="mt-[10px] font-paperlogy font-bold text-sm text-sub-deepblue text-center leading-[1.45] break-keep">
-                {tripPeriod}
-              </p>
-            )}
+            {periodLine}
             <p className="mt-[10px] font-paperlogy font-medium text-md text-text-heading text-center leading-[1.45] break-keep text-balance">
-              로그인하고 참여해보세요
+              카카오로 로그인하면 바로 참여할 수 있어요
             </p>
             <div className="mt-[27px] w-full">
               <KakaoLoginButton />
@@ -147,22 +151,28 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
           </>
         )}
         {(status === "checking" || status === "joining") && (
-          <p
-            className="font-paperlogy font-medium text-xl text-text-heading text-center break-keep"
-            style={{ lineHeight: "23px" }}
-          >
-            초대 코드를 확인하고 있어요...
-          </p>
+          <>
+            <p
+              className="font-paperlogy font-medium text-xl text-text-heading text-center break-keep"
+              style={{ lineHeight: "23px" }}
+            >
+              초대 코드를 확인하고 있어요...
+            </p>
+            {periodLine}
+          </>
         )}
         {status === "success" && (
-          <p
-            className="font-paperlogy font-medium text-xl text-text-heading text-center break-keep"
-            style={{ lineHeight: "23px" }}
-          >
-            {groupName}에 참여했어요! 🎉
-            <br />
-            잠시 후 이동할게요
-          </p>
+          <>
+            <p
+              className="font-paperlogy font-medium text-xl text-text-heading text-center break-keep"
+              style={{ lineHeight: "23px" }}
+            >
+              ‘{groupName}’에 참여했어요 🎉
+              <br />
+              잠시 후 일정 화면으로 이동할게요
+            </p>
+            {periodLine}
+          </>
         )}
         {status === "error" && (
           <>
