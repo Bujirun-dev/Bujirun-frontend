@@ -350,6 +350,9 @@ function ItineraryMain({
     return null;
   };
 
+  const findStopAtTime = (dayIdx: number, time: string, excludedStopId?: string) =>
+    (stopsPerDay[dayIdx] ?? []).find((stop) => stop.id !== excludedStopId && stop.time === time);
+
   const [currentDay, setCurrentDay] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastVariant, setToastVariant] = useState<"default" | "error">("default");
@@ -566,6 +569,11 @@ function ItineraryMain({
       showToast(validationError, "error");
       return;
     }
+    const conflict = findStopAtTime(activeDayIdx, timeStr, activeStopId ?? undefined);
+    if (conflict) {
+      showToast(`${conflict.placeName}과(와) 같은 시간이에요. 다른 시간을 골라주세요.`, "error");
+      return;
+    }
     if (activeStopId) {
       logActivity("time", activeStop?.placeName ?? "장소");
       updateYjsStopTime(activeDayIdx, activeStopId, timeStr);
@@ -750,11 +758,9 @@ function ItineraryMain({
       return;
     }
     // 같은 날 같은 시간에 두 곳을 둘 수는 없다 — 순서가 뒤엉키고 이동수단 계산도 깨진다.
-    const conflict = (stopsPerDay[dayIdx] ?? []).find(
-      (stop) => stop.id !== stopId && stop.time === time,
-    );
+    const conflict = findStopAtTime(dayIdx, time, stopId);
     if (conflict) {
-      showToast(`${conflict.placeName}과(와) 시간이 겹쳐요. 다른 시간을 골라주세요.`, "error");
+      showToast(`${conflict.placeName}과(와) 같은 시간이에요. 다른 시간을 골라주세요.`, "error");
       return;
     }
     logActivity("time", stopsPerDay[dayIdx]?.find((s) => s.id === stopId)?.placeName ?? "장소");
@@ -773,15 +779,24 @@ function ItineraryMain({
       );
       return;
     }
+    const defaultTime = getDefaultStopTime(
+      stopsPerDay[dayIdx] ?? [],
+      dayIdx,
+      dayIdsSliced.length,
+      tripTimeBounds,
+    );
+    const conflict = findStopAtTime(dayIdx, defaultTime);
+    if (conflict) {
+      showToast(
+        `${conflict.placeName}과(와) 같은 시간이에요. 기존 일정의 시간을 먼저 변경해주세요.`,
+        "error",
+      );
+      return;
+    }
     const newStop: BaseStop = {
       id: `temp-${crypto.randomUUID()}`,
       spotId: place.id,
-      time: getDefaultStopTime(
-        stopsPerDay[dayIdx] ?? [],
-        dayIdx,
-        dayIdsSliced.length,
-        tripTimeBounds,
-      ),
+      time: defaultTime,
       placeName: place.name,
       imageUrl: place.imageUrl,
       category: place.collectionCategory,

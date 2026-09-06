@@ -2,6 +2,7 @@
 
 import { Suspense, use, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { groupApi, itineraryApi } from "@/shared/api/domains";
 import { reissueAccessToken } from "@/shared/api";
@@ -11,7 +12,7 @@ import { formatTripPeriod } from "@/shared/utils";
 import { KakaoLoginButton } from "@/components/ui/KakaoLoginButton";
 import { LoadingState } from "@/components";
 
-type JoinStatus = "checking" | "unauthenticated" | "joining" | "success" | "error";
+type JoinStatus = "checking" | "unauthenticated" | "joining" | "success" | "closed" | "error";
 
 function PageLoadingFallback() {
   return <LoadingState />;
@@ -43,17 +44,24 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
 
   // 로그인 전 초대 미리보기(그룹명/초대자/멤버수) — 백엔드 미배포 시 조용히 실패해도 무방하므로
   // 에러는 무시하고 없으면 기본 문구로 폴백한다.
-  const { data: invitePreview } = useQuery({
+  const { data: invitePreview, isPending: isInvitePreviewPending } = useQuery({
     queryKey: groupApi.keys.invitePreview(code),
     queryFn: () => groupApi.previewInvite(code),
-    enabled: status === "unauthenticated",
     retry: false,
     staleTime: 60_000,
   });
+  const displayedStatus: JoinStatus = invitePreview?.completed ? "closed" : status;
 
   useEffect(() => {
     let cancelled = false;
     let timer: number | undefined;
+
+    // 로그인/그룹 가입보다 먼저 공개 미리보기로 완료 여부를 확인한다.
+    // 이미 확정된 일정이면 비로그인 사용자도 가입·투표 흐름에 진입하지 않는다.
+    if (isInvitePreviewPending) return;
+    if (invitePreview?.completed) {
+      return;
+    }
 
     // accessToken은 메모리에만 있어서(useAuthStore) 새로고침이나 하드 네비게이션 후엔 항상 비어 있다.
     // /join은 AuthProvider의 public 경로라 자동 reissue도 타지 않으므로, 여기서 직접
@@ -110,8 +118,13 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
             router.replace(`/itinerary/trips/invite?${inviteParams.toString()}`);
           }, 1200);
         })
-        .catch(() => {
-          if (!cancelled) setStatus("error");
+        .catch((error) => {
+          if (cancelled) return;
+          if (axios.isAxiosError(error) && error.response?.status === 409) {
+            setStatus("closed");
+            return;
+          }
+          setStatus("error");
         });
     });
 
@@ -119,7 +132,18 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
       cancelled = true;
       if (timer !== undefined) window.clearTimeout(timer);
     };
-  }, [code, count, days, startDate, endDate, startTime, endTime, router]);
+  }, [
+    code,
+    count,
+    days,
+    startDate,
+    endDate,
+    startTime,
+    endTime,
+    router,
+    invitePreview,
+    isInvitePreviewPending,
+  ]);
 
   // 언제 가는 여행인지는 로그인 전/참여 중/참여 완료 어느 화면에서든 보여야 해서
   // 문구만 상태별로 바꾸고 기간 줄은 그대로 재사용한다. (구버전 링크는 날짜가 없어 렌더 안 됨)
@@ -132,7 +156,7 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pb-16">
       <div className="w-full rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-6 py-[40px] backdrop-blur-[15px] flex flex-col items-center">
-        {status === "unauthenticated" && (
+        {displayedStatus === "unauthenticated" && (
           <>
             {/* 그룹명/닉네임 길이에 따라 줄바꿈 위치가 달라져서 강제 개행(<br />) 대신
                 break-keep으로 단어 중간이 끊기지 않게만 하고 자연스럽게 흐르도록 둔다. */}
@@ -150,7 +174,7 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
             </div>
           </>
         )}
-        {(status === "checking" || status === "joining") && (
+        {(displayedStatus === "checking" || displayedStatus === "joining") && (
           <>
             <p
               className="font-paperlogy font-medium text-xl text-text-heading text-center break-keep"
@@ -161,7 +185,7 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
             {periodLine}
           </>
         )}
-        {status === "success" && (
+        {displayedStatus === "success" && (
           <>
             <p
               className="font-paperlogy font-medium text-xl text-text-heading text-center break-keep"
@@ -174,7 +198,24 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
             {periodLine}
           </>
         )}
-        {status === "error" && (
+        {displayedStatus === "closed" && (
+          <>
+            <p className="font-paperlogy font-medium text-xl text-text-heading text-center leading-[1.45] break-keep text-balance">
+              ‘{groupName || invitePreview?.groupName || "여행"}’은(는) 이미 완성된 일정이에요.
+              <br />
+              초대 및 투표 참여가 종료됐어요.
+            </p>
+            {periodLine}
+            <button
+              type="button"
+              onClick={() => router.replace("/")}
+              className="mt-[27px] font-paperlogy font-normal text-sm text-text-primary underline decoration-solid underline-offset-2"
+            >
+              홈으로 돌아가기
+            </button>
+          </>
+        )}
+        {displayedStatus === "error" && (
           <>
             <p
               className="font-paperlogy font-medium text-xl text-text-heading text-center break-keep"

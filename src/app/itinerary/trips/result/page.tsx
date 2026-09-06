@@ -182,10 +182,16 @@ function TripResultContent() {
   // 확정 직후엔 일정 목록 캐시(staleTime 60초)에 새 일정이 아직 없다. 그대로 /itinerary로
   // 보내면 목록에서 못 찾고 "직전에 보던 일정"으로 폴백해서 예전 일정이 열린다.
   // 그래서 목록을 무효화하고, 방금 만들어진 일정 id를 tripId로 직접 지정해서 이동한다.
-  const goToNewItinerary = (itineraryId?: string) => {
-    queryClient.invalidateQueries({ queryKey: itineraryApi.keys.lists() });
+  const goToNewItinerary = async (itineraryId?: string) => {
     unlockGeneration();
-    router.push(itineraryId ? `/itinerary?tripId=${itineraryId}` : "/itinerary");
+    try {
+      await queryClient.invalidateQueries({
+        queryKey: itineraryApi.keys.lists(),
+        refetchType: "all",
+      });
+    } finally {
+      router.push(itineraryId ? `/itinerary?tripId=${itineraryId}` : "/itinerary");
+    }
   };
 
   // 다른 참여자가 투표한 결과를 A/B/C 탭에 반영하기 위해 투표 현황을 폴링한다.

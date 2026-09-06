@@ -2220,6 +2220,9 @@ export interface components {
             inviterNickname?: string;
             /** Format: int64 */
             memberCount?: number;
+            completed?: boolean;
+            /** Format: uuid */
+            itineraryId?: string;
         };
         CollectionListResponse: {
             /** Format: uuid */
