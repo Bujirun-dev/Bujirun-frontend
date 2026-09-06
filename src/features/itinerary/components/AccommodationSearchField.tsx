@@ -113,6 +113,9 @@ export function AccommodationSearchField({
     };
   }, [debouncedQuery, isOpen]);
 
+  // 검색은 끝났는데 결과가 하나도 없는 상태(에러나 로딩 중과는 구분).
+  const isEmptyResult = !!query.trim() && !isSearching && !hasSearchError && results.length === 0;
+
   const handleOpen = () => {
     setQuery("");
     setResults([]);
@@ -213,10 +216,12 @@ export function AccommodationSearchField({
             iconSize={11}
           />
           {/* 열자마자 큰 빈 상자가 보이지 않도록, 검색어가 있을 때만 결과 영역을 펼친다. */}
+          {/* 빈 상태는 캐릭터가 들어가 결과 목록보다 세로로 길어서, 그때만 높이를 늘려
+              문구 마지막 줄이 잘리지 않게 한다. */}
           <div
             className={cn(
-              "w-full overflow-y-auto transition-[height] duration-200 ease-out",
-              query.trim() ? "h-[276px]" : "h-0",
+              "relative w-full overflow-y-auto transition-[height] duration-200 ease-out",
+              !query.trim() ? "h-0" : isEmptyResult ? "h-[330px]" : "h-[276px]",
             )}
           >
             <LoadingBoundary
@@ -235,9 +240,14 @@ export function AccommodationSearchField({
                 />
               ) : results.length === 0 ? (
                 <EmptyState
-                  variant="compact"
-                  title="검색 결과가 없어요."
-                  description="정확하게 입력했는지 확인해보세요!"
+                  title="검색 결과가 없어요"
+                  description={
+                    <>
+                      &quot;{debouncedQuery.trim()}&quot; 숙소를 찾지 못했어요.
+                      <br />
+                      숙소명이나 주소를 다시 확인해보세요!
+                    </>
+                  }
                 />
               ) : (
                 <ul className="flex flex-col gap-1">

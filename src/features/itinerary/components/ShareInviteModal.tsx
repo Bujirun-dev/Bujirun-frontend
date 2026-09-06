@@ -103,12 +103,16 @@ export function ShareInviteModal({
             </button>
           </div>
 
+          {/* 여행명·닉네임이 길면 제목이 두 줄, 기간이 붙은 설명이 세 줄까지 늘어난다.
+              줄 수를 넉넉히 잡고 leading을 맞춰야 마지막 줄이 잘리거나 붙어 보이지 않는다. */}
           <Card variant="glass-sm" className="flex flex-col gap-1 rounded-xl px-4 py-3 text-left">
-            <p className="font-semibold text-sm text-text-heading break-keep">{title}</p>
-            <p className="text-xs text-sub-gray line-clamp-2 break-keep whitespace-pre-line">
+            <p className="font-semibold text-sm text-text-heading leading-[1.45] break-keep line-clamp-2">
+              {title}
+            </p>
+            <p className="text-xs text-sub-gray leading-[1.5] break-keep whitespace-pre-line line-clamp-3">
               {description}
             </p>
-            <p className="text-xs font-medium text-main-blue">{getShortUrl(inviteUrl)}</p>
+            <p className="text-xs font-medium text-main-blue truncate">{getShortUrl(inviteUrl)}</p>
           </Card>
         </div>
       </Modal>
