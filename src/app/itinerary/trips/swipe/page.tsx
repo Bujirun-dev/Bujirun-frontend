@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import pawIcon from "@/assets/icons/itinerary/paw-print.png";
 import { collectionApi, swipeApi } from "@/shared/api/domains";
 import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
-import { EmptyState, LoadingBoundary, LoadingState } from "@/components";
+import { EmptyState, LoadingBoundary, LoadingState, Toast } from "@/components";
 
 const SWIPE_THRESHOLD = 80;
 const SWIPE_ANIMATION_MS = 300;
@@ -79,6 +79,8 @@ function TripSwipeContent() {
   const [isDragging, setIsDragging] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState<"left" | "right" | null>(null);
   const [selectedReaction, setSelectedReaction] = useState<"like" | "dislike" | null>(null);
+  const [isSubmittingFinal, setIsSubmittingFinal] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const startXRef = useRef(0);
   const isAnimatingRef = useRef(false);
   const swipesRef = useRef<{ contentId: string; liked: boolean }[]>([]);
@@ -104,14 +106,28 @@ function TripSwipeContent() {
 
     setSelectedReaction(liked ? "like" : "dislike");
     setIsAnimatingOut(direction);
-    setTimeout(() => {
+    setTimeout(async () => {
       const nextIndex = currentIndex + 1;
       if (nextIndex >= total) {
-        // 스와이프 결과 등록 — groupId를 함께 보내야 그룹 일정 자동생성의 취합 대상이 됨
-        swipeApi
-          .submitSwipes({ swipes: swipesRef.current, groupId: groupId || undefined })
-          .catch(() => {});
-        router.push(`/itinerary/trips/waiting?${forwardParams}`);
+        // 마지막 결과가 서버에 저장된 뒤에만 대기 화면으로 이동한다. 실패를 무시하고
+        // 먼저 이동하면 완료 인원이 올라가지 않아 그룹 전원이 대기 화면에 갇힐 수 있다.
+        setIsSubmittingFinal(true);
+        try {
+          await swipeApi.submitSwipes({
+            swipes: swipesRef.current,
+            groupId: groupId || undefined,
+          });
+          router.push(`/itinerary/trips/waiting?${forwardParams}`);
+        } catch {
+          // 마지막 선택을 되돌려 같은 카드를 다시 제출할 수 있게 한다.
+          swipesRef.current.pop();
+          setIsAnimatingOut(null);
+          setSelectedReaction(null);
+          isAnimatingRef.current = false;
+          setToastMessage("취향 분석 결과를 저장하지 못했어요. 마지막 카드를 다시 선택해주세요.");
+        } finally {
+          setIsSubmittingFinal(false);
+        }
         return;
       }
       setCurrentIndex(nextIndex);
@@ -251,6 +267,12 @@ function TripSwipeContent() {
           </div>
         )}
 
+        {isSubmittingFinal && (
+          <div className="absolute inset-0 z-40 flex items-center justify-center rounded-[30px] bg-white/90 backdrop-blur-sm">
+            <LoadingState variant="inline" message="취향 분석 결과를 저장하고 있어요" />
+          </div>
+        )}
+
         {/* 별로에요 버튼 - 왼쪽 드래그 시 강조 / 오른쪽 드래그 시 흐려짐 */}
         <button
           type="button"
@@ -296,6 +318,13 @@ function TripSwipeContent() {
           </div>
         ))}
       </div>
+
+      <Toast
+        isVisible={toastMessage !== null}
+        onHide={() => setToastMessage(null)}
+        message={toastMessage ?? ""}
+        variant="error"
+      />
     </div>
   );
 }

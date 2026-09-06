@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import * as Y from "yjs";
 import type { BaseStop } from "@/features/itinerary/utils/scheduleUtils";
+import { buildTransportFromItem } from "@/features/itinerary/utils/scheduleUtils";
 import { useItineraryYDoc } from "./useItineraryYDoc";
 import {
   addStop as yAddStop,
+  applyComputedTransport,
   deleteStop as yDeleteStop,
   logActivity as yLogActivity,
   observeActivityLog,
@@ -25,7 +27,12 @@ import {
   type ActivityLogEntry,
   type ShiftTimesResult,
 } from "./itineraryYjsSchema";
-import { flushDayToRest, snapshotFromStops, type DaySnapshot } from "./flushItineraryToRest";
+import {
+  flushDayToRest,
+  snapshotFromStops,
+  type AddedItem,
+  type DaySnapshot,
+} from "./flushItineraryToRest";
 import { pickAvailableParticipantColorClass } from "./participantColor";
 
 export interface CollaboratorInfo {
@@ -106,6 +113,27 @@ export function useCollaborativeItinerary(
     dayIdsRef.current = dayIds;
   });
 
+  // 새 항목이 저장되면서 백엔드가 계산해준 (직전 스팟 → 새 항목) 구간 정보를, 그 직전
+  // 스팟의 교통수단 배너로 바로 문서에 채운다 — 리마운트해서 REST를 다시 받아오기 전에도
+  // 배너가 보이도록. (실시간 편집으로 관광지를 추가할 때 배너가 안 뜨던 문제)
+  const applyLegTransport = (prevStopId: string, addedItem: AddedItem) => {
+    if (!addedItem.id) return;
+    const stops = readStopsFromYjs(doc).flat();
+    const prevStop = stops.find((stop) => stop.id === prevStopId);
+    const addedStop = stops.find((stop) => stop.id === addedItem.id);
+    if (!prevStop || !addedStop) return;
+
+    const transport = buildTransportFromItem(
+      addedItem,
+      prevStop.placeName,
+      addedStop.placeName,
+      addedItem.id,
+      addedItem.travelTimeMin ?? 30,
+    );
+    if (!transport) return;
+    applyComputedTransport(doc, prevStopId, addedItem.id, transport);
+  };
+
   // stopsPerDay(React state)가 아니라 doc에서 매번 직접 읽는다 — Yjs observer가
   // setStopsPerDay를 부른 직후에도 React가 아직 리렌더를 커밋하기 전이면 stopsPerDay는
   // 옛 값 그대로라서, "mutate 하자마자 바로 flush" 같은 흐름(예: 로그 불러오기 직후
@@ -116,8 +144,13 @@ export function useCollaborativeItinerary(
     dayIdsRef.current.forEach((dayId, dayIdx) => {
       if (!dayId) return;
       const snapshot = (snapshotsRef.current[dayIdx] ??= new Map());
-      flushDayToRest(itineraryId, dayId, currentStops[dayIdx] ?? [], snapshot, (tempId, realId) =>
-        resolveTempId(doc, dayIdx, tempId, realId),
+      flushDayToRest(
+        itineraryId,
+        dayId,
+        currentStops[dayIdx] ?? [],
+        snapshot,
+        (tempId, realId) => resolveTempId(doc, dayIdx, tempId, realId),
+        applyLegTransport,
       );
     });
   };

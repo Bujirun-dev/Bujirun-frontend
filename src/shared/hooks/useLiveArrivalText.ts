@@ -22,6 +22,10 @@ export function useLiveArrivalText(leg: LiveArrivalLeg) {
   const canPollBus = leg.type === "버스" && !!leg.arsId && !!leg.routeNo;
   const canPollSubway = leg.type === "지하철" && leg.stationId != null && leg.wayCode != null;
   const canPoll = canPollBus || canPollSubway;
+  // 마을버스처럼 ODsay가 애초에 arsId를 안 주는 구간도 있다(팀에서 파악된 데이터 한계,
+  // 버그 아님) — 이런 경우까지 포함해 버스/지하철 leg는 실시간 조회가 불가능해도
+  // 배지 자체를 숨기지 않고 "실시간 정보 없음"으로 보여준다.
+  const isArrivalType = leg.type === "버스" || leg.type === "지하철";
 
   const { data, isError, refetch } = useQuery({
     queryKey: canPollSubway
@@ -35,7 +39,9 @@ export function useLiveArrivalText(leg: LiveArrivalLeg) {
     refetchInterval: ARRIVAL_POLL_MS,
   });
 
-  if (!canPoll || isError) return { text: leg.arrivalText, refetch };
+  if (!canPoll || isError) {
+    return { text: leg.arrivalText ?? (isArrivalType ? "실시간 정보 없음" : undefined), refetch };
+  }
   if (data === undefined) return { text: "도착정보 조회 중...", refetch };
   if (data === null) return { text: "도착정보 없음", refetch };
   return { text: `${data}분 후 도착`, refetch };

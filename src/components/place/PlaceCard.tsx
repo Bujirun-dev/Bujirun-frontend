@@ -1,9 +1,13 @@
+"use client";
+
 import Image from "next/image";
+import { useState } from "react";
 import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
 import removeIcon from "@/assets/icons/itinerary/remove.svg?url";
 import bookmarkOnIcon from "@/assets/icons/mypage/bookmark-on.png";
 import bookmarkOffIcon from "@/assets/icons/mypage/bookmark-off.png";
 import { cn } from "@/shared/utils";
+import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 import { CategoryChip, StatusBadge } from "@/components";
 import type { Category } from "@/components";
 
@@ -36,6 +40,10 @@ export function PlaceCard({
   onVerify,
   className,
 }: PlaceCardProps) {
+  // 관광공사 썸네일(tong.visitkorea.or.kr)이 503을 내면 이미지가 깨진 채로 남는다.
+  // 한 번 실패하면 그 카드만 로컬 대체 이미지로 바꿔서 최소한 빈칸이 보이지 않게 한다.
+  const [hasImageError, setHasImageError] = useState(false);
+
   return (
     <div
       className={cn(
@@ -45,7 +53,14 @@ export function PlaceCard({
       onClick={onClick}
     >
       <div className="relative w-[108px] h-[80px] shrink-0 self-center ml-2 rounded-xl overflow-hidden">
-        <Image src={imageUrl} alt={name} fill sizes="108px" className="object-cover" />
+        <Image
+          src={hasImageError || !imageUrl ? getFallbackImage(name) : imageUrl}
+          alt={name}
+          fill
+          sizes="108px"
+          className="object-cover"
+          onError={() => setHasImageError(true)}
+        />
       </div>
 
       <div className="min-w-0 flex-1 flex flex-col justify-between px-2.5 py-2.5 overflow-hidden relative">

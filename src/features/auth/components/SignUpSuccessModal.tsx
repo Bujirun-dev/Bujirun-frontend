@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { consumePendingInvite } from "@/shared/utils/pendingInvite";
+import { buildPendingInviteQuery, consumePendingInvite } from "@/shared/utils/pendingInvite";
 import congsImg from "@/assets/character/congs.png";
 
 interface SignUpSuccessModalProps {
@@ -26,12 +26,7 @@ export function SignUpSuccessModal({ isOpen, onClose }: SignUpSuccessModalProps)
       router.push("/");
       return;
     }
-    const joinParams = new URLSearchParams();
-    if (pendingInvite.count) joinParams.set("count", pendingInvite.count);
-    if (pendingInvite.days) joinParams.set("days", pendingInvite.days);
-    if (pendingInvite.startDate) joinParams.set("startDate", pendingInvite.startDate);
-    if (pendingInvite.endDate) joinParams.set("endDate", pendingInvite.endDate);
-    const query = joinParams.toString();
+    const query = buildPendingInviteQuery(pendingInvite);
     router.push(`/join/${pendingInvite.code}${query ? `?${query}` : ""}`);
   };
 

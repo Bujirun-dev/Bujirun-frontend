@@ -213,6 +213,10 @@ export function ItineraryModals({
           isOpen
           spotId={activeStop.spotId}
           itineraryId={itineraryId}
+          // 아직 서버에 저장 안 된 임시 항목(temp-*)은 연결할 수 없으니 생략한다.
+          itineraryItemId={
+            activeStop.id && !activeStop.id.startsWith("temp-") ? activeStop.id : undefined
+          }
           placeName={activeStop.placeName}
           placeImageUrl={activeStop.imageUrl}
           characterImageUrl={characterImg.src}

@@ -4,7 +4,7 @@ import { useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { apiClient, unwrap } from "@/shared/api";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
-import { consumePendingInvite } from "@/shared/utils/pendingInvite";
+import { buildPendingInviteQuery, consumePendingInvite } from "@/shared/utils/pendingInvite";
 import type { OpResponse, OpQuery } from "@/shared/api/types";
 
 // useSearchParams 사용 시 Suspense로 감싸야 해서 컴포넌트 분리
@@ -60,12 +60,7 @@ function CallbackContent() {
         }
 
         // 초대 링크로 들어온 경우 그룹 참여 페이지로 이동
-        const joinParams = new URLSearchParams();
-        if (pendingInvite.count) joinParams.set("count", pendingInvite.count);
-        if (pendingInvite.days) joinParams.set("days", pendingInvite.days);
-        if (pendingInvite.startDate) joinParams.set("startDate", pendingInvite.startDate);
-        if (pendingInvite.endDate) joinParams.set("endDate", pendingInvite.endDate);
-        const query = joinParams.toString();
+        const query = buildPendingInviteQuery(pendingInvite);
         window.location.href = `/join/${pendingInvite.code}${query ? `?${query}` : ""}`;
       })
       .catch(() => {

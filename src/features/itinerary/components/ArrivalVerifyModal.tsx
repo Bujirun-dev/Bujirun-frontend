@@ -30,6 +30,10 @@ import {
 interface ArrivalVerifyModalProps {
   spotId: string;
   itineraryId: string;
+  // 이 인증이 어느 일정의 어느 방문 항목에 대한 것인지 서버에 연결하기 위한 값.
+  // 같은 관광지라도 일정마다 따로 인증해야 하므로, 넘겨야 다른 일정의 인증이 이 항목에
+  // "수집완료"로 새어들어오지 않는다. (아직 서버에 저장 안 된 임시 항목이면 생략)
+  itineraryItemId?: string;
   isOpen: boolean;
   onClose: () => void;
   placeName: string;
@@ -44,6 +48,7 @@ interface ArrivalVerifyModalProps {
 export function ArrivalVerifyModal({
   spotId,
   itineraryId,
+  itineraryItemId,
   isOpen,
   onClose,
   placeName,
@@ -89,6 +94,7 @@ export function ArrivalVerifyModal({
             tourSpotId: spotId,
             gpsLat: currentLat,
             gpsLng: currentLng,
+            ...(itineraryItemId ? { itineraryItemId } : {}),
           });
 
           if (response.verified && response.visitId) {

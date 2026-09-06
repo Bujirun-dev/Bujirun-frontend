@@ -4,7 +4,7 @@ import { useState } from "react";
 import { keys, searchSpots, SPOT_LIST_STALE_TIME_MS } from "@/shared/api/domains/spot";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RecommendedPlaceCard } from "@/features/home/components/RecommendedPlaceCard";
-import { EmptyState, PlaceCardListSkeleton } from "@/components";
+import { EmptyState, PlaceCardListSkeleton, Toast } from "@/components"; // 수정: Toast 추가
 import { bookmarkApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 
@@ -21,6 +21,15 @@ export function RecommendedPlaceList() {
     staleTime: SPOT_LIST_STALE_TIME_MS,
   });
 
+  // 수정: 북마크 토스트 상태 + 헬퍼 (추가/삭제 둘 다 success로 초록색 통일, 실패는 error)
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastVariant, setToastVariant] = useState<"success" | "error">("success");
+
+  const showToast = (message: string, variant: "success" | "error" = "success") => {
+    setToastVariant(variant);
+    setToastMessage(message);
+  };
+
   const { data: bookmarks = [] } = useQuery({
     queryKey: bookmarkApi.keys.list(),
     queryFn: bookmarkApi.getBookmarks,
@@ -35,20 +44,26 @@ export function RecommendedPlaceList() {
     onMutate: ({ spotId, isBookmarked }) => {
       setOptimisticBookmarks((current) => ({ ...current, [spotId]: !isBookmarked }));
     },
-    onError: (_error, { spotId }) => {
+    onError: (_error, { spotId, isBookmarked }) => {
+      // 수정: isBookmarked도 구조분해 추가
       setOptimisticBookmarks((current) => {
         const next = { ...current };
         delete next[spotId];
         return next;
       });
+      // 수정: 실패 토스트
+      showToast(isBookmarked ? "북마크 삭제에 실패했어요." : "북마크 추가에 실패했어요.", "error");
     },
-    onSuccess: async (_data, { spotId }) => {
+    onSuccess: async (_data, { spotId, isBookmarked }) => {
+      // 수정: isBookmarked도 구조분해 추가
       await queryClient.invalidateQueries({ queryKey: bookmarkApi.keys.list() });
       setOptimisticBookmarks((current) => {
         const next = { ...current };
         delete next[spotId];
         return next;
       });
+      // 수정: 성공 토스트
+      showToast(isBookmarked ? "북마크가 삭제되었어요." : "북마크에 추가되었어요.");
     },
   });
 
@@ -85,6 +100,13 @@ export function RecommendedPlaceList() {
           })}
         </div>
       )}
+      {/* 수정: 북마크 토스트 렌더링 */}
+      <Toast
+        isVisible={toastMessage !== null}
+        onHide={() => setToastMessage(null)}
+        message={toastMessage ?? ""}
+        variant={toastVariant}
+      />
     </>
   );
 }

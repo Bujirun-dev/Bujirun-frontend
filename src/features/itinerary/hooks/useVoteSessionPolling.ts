@@ -9,7 +9,9 @@ const VOTE_SESSION_POLLING_INTERVAL_MS = 2000;
 
 interface UseVoteSessionPollingOptions {
   // status가 "confirmed"로 바뀌는 시점에 한 번만 호출된다 (세션당 1회, 재폴링돼도 중복 호출 안 됨).
-  onConfirmed?: (sessionId: string) => void;
+  // itineraryId는 확정으로 새로 만들어진 일정의 id — 이걸 넘겨야 참여자도
+  // 목록 캐시와 무관하게 방금 만들어진 일정으로 바로 들어갈 수 있다.
+  onConfirmed?: (sessionId: string, itineraryId?: string) => void;
   // 폴링 중 에러(세션 만료/404 등)가 나서 폴링이 멈추는 시점에 한 번만 호출된다.
   onError?: (error: unknown, sessionId: string) => void;
 }
@@ -47,8 +49,8 @@ export function useVoteSessionPolling(sessionId: string, options?: UseVoteSessio
     if (!isConfirmed || !sessionId) return;
     if (notifiedSessionIdRef.current === sessionId) return;
     notifiedSessionIdRef.current = sessionId;
-    onConfirmed?.(sessionId);
-  }, [isConfirmed, sessionId, onConfirmed]);
+    onConfirmed?.(sessionId, voteStatus?.itineraryId);
+  }, [isConfirmed, sessionId, voteStatus?.itineraryId, onConfirmed]);
 
   const notifiedErrorSessionIdRef = useRef<string | null>(null);
   useEffect(() => {

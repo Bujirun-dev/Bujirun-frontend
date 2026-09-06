@@ -30,6 +30,11 @@ export function getMyLogs() {
   return apiClient.get<OpResponse<"getMyLogs">>("/api/logs/me").then((res) => unwrap(res));
 }
 
+// 로그를 편집 중인 내 일정에 "일정 담기"로 불러온 직후 호출해 담긴 횟수(카운트 배지)를 올린다.
+export function recordLogImport(id: string) {
+  return apiClient.post(`/api/logs/${id}/imports`);
+}
+
 export function checkLogExists(itineraryIds: string[]) {
   return apiClient
     .get<OpResponse<"checkLogExists">>("/api/logs/exists", {
@@ -41,6 +46,18 @@ export function checkLogExists(itineraryIds: string[]) {
       },
     })
     .then((res) => unwrap(res));
+}
+
+export function dismissReceiptPrompt(itineraryId: string) {
+  return apiClient.post<OpResponse<"dismissReceiptPrompt">>(
+    `/api/logs/receipt-prompt/${itineraryId}/dismiss`,
+  );
+}
+
+export function restoreReceiptPrompt(itineraryId: string) {
+  return apiClient.delete<OpResponse<"restoreReceiptPrompt">>(
+    `/api/logs/receipt-prompt/${itineraryId}/dismiss`,
+  );
 }
 
 export function getPublicLogs(query?: OpQuery<"getPublicLogs">) {

@@ -10,6 +10,7 @@ import { TripCard, TripEditModal, TripDeleteModal, TripDeleteToast } from "@/fea
 import type { Trip } from "@/features/itinerary";
 import { itineraryApi } from "@/shared/api/domains";
 import { getErrorMessage } from "@/shared/utils";
+import { toHourMinute } from "@/features/itinerary/utils/scheduleUtils";
 
 type ModalState = { type: "edit"; trip: Trip } | { type: "delete"; trip: Trip } | null;
 
@@ -17,11 +18,13 @@ type ModalState = { type: "edit"; trip: Trip } | { type: "delete"; trip: Trip } 
 // 실제 저장된 시간이 있는데 여기서 무시하고 00:00을 보여주면, 사용자가 이름/날짜만
 // 고치고 저장해도 진짜 시작/종료 시간이 조용히 자정으로 덮어써진다.
 function toTripDate(apiDate?: string, apiTime?: string): string {
+  // 백엔드가 "09:20:00"처럼 초까지 내려주기도 해서 "HH:mm"으로 맞춰서 쓴다.
+  const time = toHourMinute(apiTime) ?? "00:00";
   if (!apiDate) {
     const today = new Date();
-    return `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, "0")}.${String(today.getDate()).padStart(2, "0")} ${apiTime ?? "00:00"}`;
+    return `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, "0")}.${String(today.getDate()).padStart(2, "0")} ${time}`;
   }
-  return `${apiDate.replaceAll("-", ".")} ${apiTime ?? "00:00"}`;
+  return `${apiDate.replaceAll("-", ".")} ${time}`;
 }
 
 function toApiDate(tripDate: string): string {
@@ -124,19 +127,35 @@ export default function TripsPage() {
       const endAt = toApiDate(updated.endDate);
       const startTime = toApiTime(updated.startDate);
       const endTime = toApiTime(updated.endDate);
+      // 자정은 저장하지 않는다. 서버에 시간이 없는 일정은 모달이 00:00을 대신 보여주는데,
+      // 그 값을 그대로 저장하면 여행 종료 시각이 자정으로 박히고 마지막 날 일정이 전부
+      // 00:00으로 뭉개진다(scheduleUtils.boundMinutes 주석 참고). 실제로 자정에 시작하거나
+      // 끝나는 여행은 없으므로 00:00은 "시간 미지정"으로 보고 필드를 아예 보내지 않는다
+      // — 그래야 이미 저장돼 있던 시간도 덮이지 않는다.
+      const sendStartTime = startTime !== "00:00";
+      const sendEndTime = endTime !== "00:00";
+
       const previousStartTime = queryClient
         .getQueryData<typeof summaries>(itineraryApi.keys.lists())
         ?.find((summary) => summary.id === updated.id)?.startTime;
       // 시작 시간이 실제로 밀렸으면 백엔드가 이후 일정들의 방문 시각도 같은 만큼 밀어준다
       // (ItineraryService.update 참고) — 사용자가 그걸 모르고 넘어가지 않게 안내한다.
-      const timeShifted = Boolean(previousStartTime) && previousStartTime !== startTime;
+      const timeShifted =
+        sendStartTime && Boolean(previousStartTime) && previousStartTime !== startTime;
 
       // 네트워크 응답을 기다리지 않고 목록에 바로 반영 — 실패하면 finally의 invalidate가
       // 서버 값으로 다시 맞춰준다.
       queryClient.setQueryData<typeof summaries>(itineraryApi.keys.lists(), (prev) =>
         prev?.map((summary) =>
           summary.id === updated.id
-            ? { ...summary, title: updated.name, startAt, startTime, endAt, endTime }
+            ? {
+                ...summary,
+                title: updated.name,
+                startAt,
+                endAt,
+                ...(sendStartTime ? { startTime } : {}),
+                ...(sendEndTime ? { endTime } : {}),
+              }
             : summary,
         ),
       );
@@ -146,8 +165,8 @@ export default function TripsPage() {
           title: updated.name,
           startAt,
           endAt,
-          startTime,
-          endTime,
+          ...(sendStartTime ? { startTime } : {}),
+          ...(sendEndTime ? { endTime } : {}),
         });
         if (timeShifted) {
           setInfoMessage("시작 시간이 바뀌어서 이후 일정 시간도 함께 조정됐어요.");

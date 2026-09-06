@@ -1800,6 +1800,8 @@ export interface components {
             voteSessionId?: string;
             plans?: components["schemas"]["ItineraryGenerateResponse"];
             groupSummary?: components["schemas"]["GroupPreferenceSummary"];
+            startTime?: string;
+            endTime?: string;
         };
         GroupPreferenceSummary: {
             /** Format: int32 */
@@ -2131,6 +2133,8 @@ export interface components {
         TravelLogSummaryResponse: {
             /** Format: uuid */
             id?: string;
+            /** Format: uuid */
+            itineraryId?: string;
             title?: string;
             thumbnailPhotoUrl?: string;
             isPublic?: boolean;
@@ -2216,6 +2220,9 @@ export interface components {
             inviterNickname?: string;
             /** Format: int64 */
             memberCount?: number;
+            completed?: boolean;
+            /** Format: uuid */
+            itineraryId?: string;
         };
         CollectionListResponse: {
             /** Format: uuid */
