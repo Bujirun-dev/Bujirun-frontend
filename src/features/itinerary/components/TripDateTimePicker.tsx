@@ -160,10 +160,19 @@ export function TripDateTimePicker({
     setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + amount, 1));
   };
   const handleDateSelect = (day: number) => {
-    // 날짜를 새로 고르면 이전에 골라뒀던 시간을 그대로 들고 오지 않고 00:00으로
-    // 초기화한다 — 시간은 이 아래서 다시 명시적으로 골라야 하는 별도 단계이기 때문
-    // (이전 시간이 그대로 남아있으면 사용자가 실수로 안 바꾸고 넘어가기 쉽다).
-    applyDate(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day, 0, 0));
+    // 날짜만 옮겨도 이미 정해둔 시간은 그대로 이어받는다. 예전엔 00:00으로 초기화했는데
+    // (시간을 별도 단계로 다시 고르게 하려던 의도), 시간을 다시 안 고르고 저장하면 여행
+    // 시작/종료 시각이 자정으로 덮여 마지막 날 일정이 전부 00:00으로 뭉개졌다.
+    const current = parseTripDateTime(value);
+    applyDate(
+      new Date(
+        calendarMonth.getFullYear(),
+        calendarMonth.getMonth(),
+        day,
+        current.getHours(),
+        current.getMinutes(),
+      ),
+    );
     setShowTimeWheel(true);
   };
   const isDisabledDate = (day: number) =>
