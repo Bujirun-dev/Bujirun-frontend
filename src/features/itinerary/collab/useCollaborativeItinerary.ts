@@ -16,6 +16,7 @@ import {
   readActivityLog,
   readStopsFromYjs,
   reconcileTransportFromRest,
+  reconcileBrokenTimesFromRest,
   replaceStop as yReplaceStop,
   replaceStopsWithImportedLog as yReplaceStopsWithImportedLog,
   resolveTempId,
@@ -64,6 +65,9 @@ export function useCollaborativeItinerary(
   initialDays: BaseStop[][],
   currentUser?: CurrentUser,
   onRemoteActivity?: (entry: ActivityLogEntry) => void,
+  // DB 반영에 실패한 변경이 있을 때 알린다 — 화면(Yjs)에는 남아 있어서 사용자는 저장된
+  // 줄 알지만, 새로고침하면 사라진다. 조용히 삼키지 않고 화면에 알리기 위한 통로.
+  onSaveFailed?: () => void,
 ) {
   // 문서는 빈 채로 만든다. 시딩은 아래 useEffect에서, WS 동기화가 끝나 원격(Redis)에
   // 이미 있던 days가 doc에 먼저 반영된 뒤에 한다 — 그래야 seedYjsDays의 "로컬 문서가
@@ -97,6 +101,8 @@ export function useCollaborativeItinerary(
   // 시딩용 초기값은 마운트 시점 값 그대로 고정한다 — props가 그 사이 바뀌어도
   // 시딩 로직이 재실행되며 엉뚱한 값을 시딩하면 안 되기 때문.
   const initialDaysRef = useRef(initialDays);
+  // flushAll은 effect/이탈 콜백에서 불리므로 최신 콜백을 ref로 들고 읽는다.
+  const onSaveFailedRef = useRef(onSaveFailed);
   // 시딩(원격 상태 병합 포함)이 실제로 끝나기 전엔 doc이 빈 상태라, 이 시점에 flushAll이
   // 돌면 그 빈 상태를 REST에 그대로 PATCH해서 서버에 이미 있던 데이터를 지워버린다.
   // (React StrictMode가 개발 모드에서 연결 effect를 마운트 직후 한 번 cleanup했다가
@@ -111,6 +117,7 @@ export function useCollaborativeItinerary(
 
   useEffect(() => {
     dayIdsRef.current = dayIds;
+    onSaveFailedRef.current = onSaveFailed;
   });
 
   // 새 항목이 저장되면서 백엔드가 계산해준 (직전 스팟 → 새 항목) 구간 정보를, 그 직전
@@ -151,6 +158,7 @@ export function useCollaborativeItinerary(
         snapshot,
         (tempId, realId) => resolveTempId(doc, dayIdx, tempId, realId),
         applyLegTransport,
+        () => onSaveFailedRef.current?.(),
       );
     });
   };
@@ -179,6 +187,8 @@ export function useCollaborativeItinerary(
       // 이번 REST 응답 기준으로 채워 넣는다 (없으면 새로고침할 때마다 잠깐 떴다가
       // 사라지는 버그가 있었음 — Yjs 쪽 항목엔 이동수단이 비어있는 채로 굳어있어서).
       reconcileTransportFromRest(doc, dayIdsRef.current, initialDaysRef.current);
+      // 예전 버그로 하루 전체가 같은 시각(대개 00:00)으로 굳어버린 방을 REST 값으로 되돌린다.
+      reconcileBrokenTimesFromRest(doc, dayIdsRef.current, initialDaysRef.current);
       hasSeededRef.current = true;
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSeeded(true);
@@ -187,6 +197,7 @@ export function useCollaborativeItinerary(
     const timer = window.setTimeout(() => {
       seedYjsDays(doc, dayIdsRef.current, initialDaysRef.current);
       reconcileTransportFromRest(doc, dayIdsRef.current, initialDaysRef.current);
+      reconcileBrokenTimesFromRest(doc, dayIdsRef.current, initialDaysRef.current);
       hasSeededRef.current = true;
       setSeeded(true);
     }, SEED_FALLBACK_MS);

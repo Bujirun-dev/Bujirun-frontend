@@ -392,6 +392,13 @@ function ItineraryMain({
     setToastMessage(message);
   };
 
+  // 화면(Yjs)에는 반영됐는데 DB 저장이 실패한 변경이 있을 때. 조용히 넘어가면 사용자는
+  // 저장된 줄 알고 새로고침했다가 항목이 사라지는 걸 보게 된다. 다음 flush에서 자동으로
+  // 재시도되므로 사용자가 할 일은 없고, "아직 저장 안 됐다"는 사실만 알린다.
+  const handleSaveFailed = () => {
+    showToast("일부 변경을 아직 저장하지 못했어요. 다시 시도하는 중이에요.", "error");
+  };
+
   // 다른 참여자가 만든 변경(추가/삭제/시간변경/교체/최적화/로그 불러오기)을 알려준다.
   // "로그 불러오기"처럼 일정 전체가 바뀌는 큰 변경은 안내 팝업으로, 나머지는 토스트로.
   const handleRemoteActivity = (entry: ActivityLogEntry) => {
@@ -436,6 +443,7 @@ function ItineraryMain({
         }
       : undefined,
     handleRemoteActivity,
+    handleSaveFailed,
   );
   const [tripDates, setTripDates] = useState<string[]>(initialDates);
   // initialDates는 마운트 시점 값을 useState 시드로만 쓰기 때문에, 트립 목록 화면에서
