@@ -127,14 +127,13 @@ export default function TripsPage() {
       const endAt = toApiDate(updated.endDate);
       const startTime = toApiTime(updated.startDate);
       const endTime = toApiTime(updated.endDate);
-      // 서버에 시간이 아직 없는 일정은 모달이 00:00을 대신 보여준다. 사용자가 날짜만
-      // 고쳤는데 그 00:00을 그대로 저장해버리면 여행 종료 시각이 자정으로 박히고,
-      // 마지막 날 일정이 전부 00:00으로 뭉개진다 — 시간을 실제로 고른 경우에만 보낸다.
-      const detail = queryClient.getQueryData<
-        Awaited<ReturnType<typeof itineraryApi.getItinerary>>
-      >(itineraryApi.keys.detail(updated.id));
-      const sendStartTime = Boolean(detail?.startTime) || startTime !== "00:00";
-      const sendEndTime = Boolean(detail?.endTime) || endTime !== "00:00";
+      // 자정은 저장하지 않는다. 서버에 시간이 없는 일정은 모달이 00:00을 대신 보여주는데,
+      // 그 값을 그대로 저장하면 여행 종료 시각이 자정으로 박히고 마지막 날 일정이 전부
+      // 00:00으로 뭉개진다(scheduleUtils.boundMinutes 주석 참고). 실제로 자정에 시작하거나
+      // 끝나는 여행은 없으므로 00:00은 "시간 미지정"으로 보고 필드를 아예 보내지 않는다
+      // — 그래야 이미 저장돼 있던 시간도 덮이지 않는다.
+      const sendStartTime = startTime !== "00:00";
+      const sendEndTime = endTime !== "00:00";
 
       const previousStartTime = queryClient
         .getQueryData<typeof summaries>(itineraryApi.keys.lists())
