@@ -37,7 +37,7 @@ export default function LogsPage() {
   const allFiltered = (publicLogs ?? []).map((log) => ({
     id: log.id ?? "",
     imageUrl: log.thumbnailPhotoUrl || getFallbackImage(log.id),
-    placeName: log.title ?? "제목 없음",
+    placeName: log.firstSpotName ?? log.title ?? "제목 없음",
     extraCount: Math.max(0, (log.totalSpots ?? 1) - 1),
     author: log.authorNickname ?? "익명",
     duration: "",
