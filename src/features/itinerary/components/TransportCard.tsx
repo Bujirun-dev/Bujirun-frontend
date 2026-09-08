@@ -6,8 +6,7 @@ import walkIcon from "@/assets/icons/itinerary/walk.svg?url";
 import taxiIcon from "@/assets/icons/itinerary/taxi.svg?url";
 import { cn } from "@/shared/utils";
 import { useLiveArrivalText } from "@/shared/hooks/useLiveArrivalText";
-
-type TransportType = "버스" | "지하철" | "도보" | "택시";
+import type { TransportType } from "@/features/home/types/transport";
 
 export interface TransportLeg {
   type: TransportType;
