@@ -55,7 +55,7 @@ interface ItineraryModalsProps {
   onClose: () => void;
   onConfirmDelete: () => void;
   onConfirmTime: () => void;
-  onConfirmTransport: (option: RouteOption) => void;
+  onConfirmTransport: (option: RouteOption) => Promise<boolean>;
   onConfirmVerify: () => void;
   onVerifyContinue?: () => void;
   onTimeChange: (value: { hour: number; minute: number }) => void;
@@ -186,9 +186,10 @@ export function ItineraryModals({
           })),
         };
 
-        const handleChange = (option: TransportOption) => {
+        const handleChange = async (option: TransportOption) => {
           const original = routeOptions.find((routeOption) => routeOption.id === option.id);
-          if (original) onConfirmTransport(original);
+          if (!original) return false;
+          return onConfirmTransport(original);
         };
 
         return modal === "transport" && routeOptions.length > 0 ? (

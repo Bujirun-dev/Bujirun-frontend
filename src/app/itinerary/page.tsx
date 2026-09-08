@@ -584,17 +584,20 @@ function ItineraryMain({
   // 이동수단 변경은 프론트에서 소요시간/역명을 추정하지 않고, 백엔드가 ODsay로 실제
   // 재계산한 경로(진짜 역명·노선번호)를 받아와 반영한다 — 예전엔 로컬에서 "장소명역" 같은
   // 이름을 지어내서 실제로 존재하지 않는 역이 표시되는 문제가 있었다.
-  const confirmTransport = async (option: RouteOption) => {
+  // 모달을 언제 닫을지는 TransportDetailModal이 "확인" 처리 결과(반환값)를 보고 스스로
+  // 결정한다 — 여기서 closeModal()을 직접 부르면, 사용자가 확인을 누르기도 전에
+  // (목록에서 옵션만 골랐을 뿐인데) 비동기 응답이 오는 시점에 모달이 제멋대로 닫혀버린다.
+  // 성공 시 true, 실패/스킵 시 false를 반환해서 모달이 닫힐지 말지 결정하게 한다.
+  const confirmTransport = async (option: RouteOption): Promise<boolean> => {
     const dayId = dayIdsSliced[activeDayIdx];
     const dayStops = stopsPerDay[activeDayIdx] ?? [];
     const activeIdx = dayStops.findIndex((s) => s.id === activeStopId);
     const nextStop = dayStops[activeIdx + 1];
 
-    // transport는 항상 "다음 스팟까지의 구간" 정보라 nextStop 없이 존재할 수 없다 —
-    // 여기 안 걸리면 그냥 아무 것도 안 하고 닫는다.
+    // transport는 항상 "다음 스팟까지의 구간" 정보라 nextStop 없이 존재할 수 없다.
     if (!activeStopId || !activeStop?.transport || !dayId || !nextStop) {
-      closeModal();
-      return;
+      showToast("교통수단을 변경할 수 없어요.", "error");
+      return false;
     }
 
     let updatedItem;
@@ -608,9 +611,8 @@ function ItineraryMain({
         travelMode: toBackendTravelMode(option.id),
       });
     } catch {
-      closeModal();
       showToast("교통수단 변경에 실패했어요.", "error");
-      return;
+      return false;
     }
 
     const transport = buildTransportFromItem(
@@ -622,9 +624,8 @@ function ItineraryMain({
       option.cost,
     );
     if (!transport) {
-      closeModal();
       showToast("교통수단 변경에 실패했어요.", "error");
-      return;
+      return false;
     }
     updateYjsStopTransport(activeDayIdx, activeStopId, transport);
 
@@ -643,17 +644,15 @@ function ItineraryMain({
         "교통수단은 바뀌었지만, 여행 종료 시간을 넘어서 일부 일정은 자동으로 조정하지 못했어요.",
         "error",
       );
-      closeModal();
-      return;
+      return true;
     }
     if (result.shiftedCount > 0) {
       showToast("교통수단이 변경돼서 이후 일정 시간도 조정됐어요.");
-      closeModal();
-      return;
+      return true;
     }
 
-    closeModal();
     showToast("교통수단이 변경되었어요.");
+    return true;
   };
   const confirmVerify = () => {
     if (activeStopId) updateYjsStopStatus(activeDayIdx, activeStopId, "completed");
