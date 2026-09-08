@@ -1,4 +1,5 @@
 import type { ItineraryStop, RouteOption } from "../components";
+import type { TransportType } from "@/features/home/types/transport";
 import { getCategoryFromKo } from "@/shared/constants/category";
 import { resolveDayDate } from "@/shared/utils/resolveDayDate";
 import type { components } from "@/shared/api/schema";
@@ -60,8 +61,6 @@ export function getFallbackImage(seed?: string): string {
 }
 
 export const FALLBACK_IMAGE = getFallbackImage();
-
-type TransportType = "버스" | "지하철" | "도보" | "택시";
 
 export type BaseStop = Omit<
   ItineraryStop,
