@@ -166,26 +166,29 @@ export function TodayItinerary() {
     if (hasRedirectedToReviewRef.current) return;
     if (!logExists) return;
 
-    const reviewTarget = completedItineraries.find((itinerary) => {
-      const log = logExists.find((item) => item.itineraryId === itinerary.id);
+    // 자동 팝업은 "가장 최근에 끝난 일정" 하나만 대상으로 한다. 예전엔 완료된 일정 전체에서
+    // 조건에 맞는 걸 찾았는데(find), 영수증을 발행하지 않은 지난 여행이 여러 개 쌓여 있으면
+    // 취소 → 홈 복귀 → 그 다음 여행 팝업 → 취소 → ... 가 계속 이어져 사실상 빠져나갈 수 없었다.
+    // 팝업 제목이 "여행 기록"으로 고정이라 사용자 눈엔 같은 팝업이 무한히 다시 뜨는 것으로 보인다.
+    const [latestCompleted] = completedItineraries; // endAt 내림차순 정렬됨(useTodayItinerary)
+    if (!latestCompleted) return;
 
-      // 백엔드가 2026-08-30부터 종료된 일정의 로그를 자동 생성해서(영수증 발행 여부와 무관),
-      // hasLog는 일정 종료 후 이 API를 한 번만 호출해도 계속 true가 된다 — "아직 영수증을
-      // 발행 안 했다"를 판단하려면 hasLog가 아니라 receiptCompleted(mood까지 채워 실제로
-      // 발행을 마쳤는지)를 봐야 한다.
-      //
-      // 사용자가 이 일정에 대한 영수증 팝업을 이미 취소한 적 있으면 다시 자동으로 띄우지
-      // 않는다 — 그렇지 않으면 취소 → 홈 재진입 → 같은 팝업이 다시 뜨는 무한루프가 됨
-      // (아직 수동으로 영수증 발행을 다시 시작할 진입로가 없어서, 이 자동 리다이렉트가
-      // 사실상 유일한 진입로였음).
-      return !log?.receiptCompleted && !isReviewSkipped(itinerary.id);
-    });
+    const log = logExists.find((item) => item.itineraryId === latestCompleted.id);
 
-    if (!reviewTarget) return;
+    // 백엔드가 2026-08-30부터 종료된 일정의 로그를 자동 생성해서(영수증 발행 여부와 무관),
+    // hasLog는 일정 종료 후 이 API를 한 번만 호출해도 계속 true가 된다 — "아직 영수증을
+    // 발행 안 했다"를 판단하려면 hasLog가 아니라 receiptCompleted(mood까지 채워 실제로
+    // 발행을 마쳤는지)를 봐야 한다.
+    if (log?.receiptCompleted) return;
+
+    // 이 일정의 팝업을 이미 취소한 적 있으면 다시 띄우지 않는다. promptDismissed는 서버에
+    // 저장된 값(기기를 바꾸거나 localStorage가 비워져도 유지되고), isReviewSkipped는 방금
+    // 취소한 직후처럼 아직 서버 응답을 다시 못 받은 시점을 메우는 로컬 캐시다.
+    if (log?.promptDismissed || isReviewSkipped(latestCompleted.id)) return;
 
     hasRedirectedToReviewRef.current = true;
 
-    router.replace(`/home/review?itineraryId=${reviewTarget.id}`);
+    router.replace(`/home/review?itineraryId=${latestCompleted.id}`);
   }, [completedItineraries, logExists, router]);
 
   if (isError || !hasSchedule || !day || plans.length === 0) {

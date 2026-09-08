@@ -49,13 +49,19 @@ export default function HomeReceiptPage() {
   // 갇힌다 — 닫기 버튼이 안 먹는 것처럼 보이는 원인이었음. closeReceiptModal과 동일하게
   // /home으로 되돌려보낸다.
   //
-  // 또한 취소해도 로그는 여전히 안 만들어져 있어서, skipReview 없이 그냥 홈으로만
-  // 보내면 TodayItinerary의 자동 리다이렉트가 다음 홈 진입 때 바로 이 팝업을 다시
-  // 띄워버려 사실상 못 빠져나가는 무한루프였다(로그 발행 외엔 이 팝업을 다시 열 수동
-  // 진입로가 아직 없음 — 추가되면 그쪽에서 다시 시도 가능). itineraryId를 스킵 목록에
-  // 남겨 같은 일정에 대해선 다시 자동으로 뜨지 않게 한다.
+  // 또한 취소해도 영수증(mood/theme)은 여전히 안 채워져 있어서, 취소한 걸 기록해두지 않으면
+  // TodayItinerary의 자동 리다이렉트가 다음 홈 진입 때 바로 이 팝업을 다시 띄워버려 못
+  // 빠져나가는 무한루프가 된다. 서버에 "다시 묻지 않음"으로 저장해(기기를 바꿔도 유지됨)
+  // 다시 뜨지 않게 하고, 요청이 실패하거나 아직 안 끝난 사이에도 즉시 막히도록 localStorage
+  // 기록(skipReview)도 함께 남긴다.
   const closeReviewModal = () => {
-    if (itineraryId) skipReview(itineraryId);
+    if (itineraryId) {
+      skipReview(itineraryId);
+      travelLogApi.dismissReceiptPrompt(itineraryId).catch((error) => {
+        // 실패해도 localStorage 기록으로 이 기기에선 다시 뜨지 않으므로 흐름을 막지 않는다.
+        console.error("영수증 팝업 '다시 묻지 않음' 저장 실패: ", error);
+      });
+    }
     setIsReviewModalOpen(false);
     router.push("/home");
   };
