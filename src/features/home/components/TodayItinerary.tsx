@@ -122,14 +122,16 @@ export function TodayItinerary() {
     enabled: !!accessToken && completedItineraryIds.length > 0,
   });
   const [selectedTransportGroup, setSelectedTransportGroup] = useState<TransportGroup | null>(null);
+
+  const [selectedOptionIdByRoute, setSelectedOptionIdByRoute] = useState<Record<string, string>>(
+    {},
+  );
   const [selectedVerifySpot, setSelectedVerifySpot] = useState<{
     spotId: string;
     placeName: string;
     itineraryItemId?: string;
+    placeImageUrl?: string;
   } | null>(null);
-  const [selectedOptionIdByRoute, setSelectedOptionIdByRoute] = useState<Record<string, string>>(
-    {},
-  );
 
   const openTransportModal = (transportGroup: TransportGroup) => {
     setSelectedTransportGroup(transportGroup);
@@ -137,11 +139,17 @@ export function TodayItinerary() {
 
   const closeTransportModal = () => setSelectedTransportGroup(null);
 
-  const openVerifyModal = (spotId: string, placeName: string, itineraryItemId?: string) => {
+  const openVerifyModal = (
+    spotId: string,
+    placeName: string,
+    itineraryItemId?: string,
+    placeImageUrl?: string,
+  ) => {
     setSelectedVerifySpot({
       spotId,
       placeName,
       itineraryItemId,
+      placeImageUrl,
     });
   };
 
@@ -228,6 +236,7 @@ export function TodayItinerary() {
           {plans.map((plan, index) => {
             const spotId = plan.spot?.id;
             const placeName = plan.spot?.name ?? "이름 없는 장소";
+            const placeImageUrl = plan.spot?.thumbnailUrl;
             const isVisited = plan.spot?.visited ?? false;
             const nextPlan = plans[index + 1];
             const nextPlaceName = nextPlan?.spot?.name;
@@ -249,7 +258,7 @@ export function TodayItinerary() {
               >
                 {index < plans.length - 1 && (
                   <span
-                    className="absolute left-[7.5px] top-[30px] bottom-[-15px] w-px bg-sub-gray"
+                    className="absolute left-[7.5px] top-7 bottom-[-2px] w-px bg-sub-gray"
                     aria-hidden="true"
                   />
                 )}
@@ -257,7 +266,7 @@ export function TodayItinerary() {
                   <span
                     className={
                       isVisited
-                        ? "size-4 shrink-0 rounded-full bg-main-blue"
+                        ? "size-4 shrink-0 rounded-full bg-sub-gray"
                         : "size-4 shrink-0 rounded-full bg-sub-pink"
                     }
                   />
@@ -289,7 +298,7 @@ export function TodayItinerary() {
                     className="mt-[7px] shrink-0"
                     onClick={() => {
                       if (!spotId || !plan.id) return;
-                      openVerifyModal(spotId, placeName, plan.id);
+                      openVerifyModal(spotId, placeName, plan.id, placeImageUrl);
                     }}
                   >
                     <StatusBadge status="verify" className="px-2.5 py-1.5 text-sm" />
@@ -322,6 +331,7 @@ export function TodayItinerary() {
             itineraryItemId={selectedVerifySpot.itineraryItemId}
             isOpen
             placeName={selectedVerifySpot.placeName}
+            placeImageUrl={selectedVerifySpot.placeImageUrl}
             onClose={closeVerifyModal}
             onVerify={closeVerifyModal}
             onLater={closeVerifyModal}
