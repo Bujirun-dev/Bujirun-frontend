@@ -9,6 +9,9 @@ export interface TransportStep {
   // 버스 실시간 도착정보(GET /api/transit/arrival/bus) 폴링용 — 둘 다 있을 때만 실시간 조회
   arsId?: string;
   routeNo?: string;
+  // 지하철 도착정보(GET /api/transit/arrival/subway) 폴링용 — 둘 다 있을 때만 조회
+  stationId?: number;
+  wayCode?: number;
 }
 
 export interface TransportOption {
