@@ -20,7 +20,7 @@ export function TransportOptionCard({
   selected = false,
   className,
 }: TransportOptionCardProps) {
-  const metaText = `${option.isRecommended ? "⭐ " : ""}${option.durationText} · ${option.costText}`;
+  const metaText = `${option.durationText} · ${option.costText}`;
 
   return (
     <div

@@ -283,7 +283,18 @@ function legsFromSubPaths(
   subPaths: components["schemas"]["SubPath"][] | undefined,
   fallbackFrom: string,
   fallbackTo: string,
-): { type: TransportType; routeName: string; from: string; to: string }[] | undefined {
+):
+  | {
+      type: TransportType;
+      routeName: string;
+      from: string;
+      to: string;
+      arsId?: string;
+      routeNo?: string;
+      stationId?: number;
+      wayCode?: number;
+    }[]
+  | undefined {
   const nonWalk = (subPaths ?? []).filter(
     (sp): sp is typeof sp & { type: TransportType } =>
       !!sp.type && sp.type !== "도보" && TRANSPORT_TYPES.includes(sp.type as TransportType),
@@ -295,6 +306,14 @@ function legsFromSubPaths(
     routeName: sp.routeNo || sp.type,
     from: sp.startName || fallbackFrom,
     to: sp.endName || fallbackTo,
+    // 버스 실시간 도착정보 폴링용. 버스 구간에만 값이 있고 지하철 등은 빈 문자열일 수 있음
+    arsId: sp.startArsId,
+    routeNo: sp.routeNo,
+    // 지하철 도착정보 폴링용. SubPath의 startId/wayCode가 TransitDetail의
+    // subwaySchedule.stationId/wayCode와 같은 값이다. 역코드를 못 찾은 경우(startId=0)엔
+    // legsFromTransitDetail과 동일하게 undefined로 비워둔다.
+    stationId: sp.startId || undefined,
+    wayCode: sp.wayCode,
   }));
 }
 

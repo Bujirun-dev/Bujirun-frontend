@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { transitApi } from "@/shared/api/domains";
 
@@ -27,7 +28,7 @@ export function useLiveArrivalText(leg: LiveArrivalLeg) {
   // 배지 자체를 숨기지 않고 "실시간 정보 없음"으로 보여준다.
   const isArrivalType = leg.type === "버스" || leg.type === "지하철";
 
-  const { data, isError, refetch } = useQuery({
+  const { data, isError, isFetching, refetch } = useQuery({
     queryKey: canPollSubway
       ? transitApi.keys.subwayArrival({ stationId: leg.stationId ?? 0, wayCode: leg.wayCode ?? 0 })
       : transitApi.keys.busArrival({ arsId: leg.arsId ?? "", routeNo: leg.routeNo ?? "" }),
@@ -39,10 +40,22 @@ export function useLiveArrivalText(leg: LiveArrivalLeg) {
     refetchInterval: ARRIVAL_POLL_MS,
   });
 
+  // refetch는 enabled: false를 무시하고 바로 요청을 보내기 때문에, 파라미터가 없는
+  // 구간(마을버스 등)에서 배지를 누르면 arsId=&routeNo= 같은 빈 요청이 나간다. 그래서
+  // 폴링이 불가능한 leg에서는 호출 자체를 막는다.
+  const refresh = useCallback(() => {
+    if (!canPoll) return;
+    refetch();
+  }, [canPoll, refetch]);
+
   if (!canPoll || isError) {
-    return { text: leg.arrivalText ?? (isArrivalType ? "실시간 정보 없음" : undefined), refetch };
+    return {
+      text: leg.arrivalText ?? (isArrivalType ? "실시간 정보 없음" : undefined),
+      refetch: refresh,
+      isFetching,
+    };
   }
-  if (data === undefined) return { text: "도착정보 조회 중...", refetch };
-  if (data === null) return { text: "도착정보 없음", refetch };
-  return { text: `${data}분 후 도착`, refetch };
+  if (data === undefined) return { text: "도착정보 조회 중...", refetch: refresh, isFetching };
+  if (data === null) return { text: "도착정보 없음", refetch: refresh, isFetching };
+  return { text: `${data}분 후 도착`, refetch: refresh, isFetching };
 }

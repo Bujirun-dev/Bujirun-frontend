@@ -182,6 +182,12 @@ export function ItineraryModals({
               routeName: leg.routeName,
               from: leg.from,
               to: leg.to,
+              // 실시간 도착정보 조회 파라미터 — 여기서 빠뜨리면 모달 안 배지가 파라미터
+              // 없이 조회를 시도해 "실시간 정보 없음"만 뜬다.
+              arsId: leg.arsId,
+              routeNo: leg.routeNo,
+              stationId: leg.stationId,
+              wayCode: leg.wayCode,
             })),
           })),
         };
