@@ -192,8 +192,8 @@ function ItineraryEmptyState() {
           </>
         }
         primaryAction={{
-          label: "여행 목록 보기",
-          onClick: () => router.push("/itinerary/trips"),
+          label: "여행 시작하기",
+          onClick: () => router.push("/itinerary/trips/new"),
         }}
       />
     </PageCard>
