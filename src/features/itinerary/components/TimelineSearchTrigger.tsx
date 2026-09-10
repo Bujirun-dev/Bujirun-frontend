@@ -43,7 +43,7 @@ export function TimelineSearchTrigger({
       >
         <span
           className={cn(
-            "size-3 rounded-full",
+            "size-3.5 rounded-full",
             isActive || isTimeActive ? "bg-sub-coral" : "bg-main-blue",
           )}
         />

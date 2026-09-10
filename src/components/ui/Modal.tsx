@@ -91,7 +91,7 @@ export function Modal({
             type="button"
             aria-label="닫기"
             className={cn(
-              "absolute right-5 top-5 flex h-5 w-5 cursor-pointer items-center justify-center active:opacity-70",
+              "absolute right-5 top-5 z-10 flex h-5 w-5 cursor-pointer items-center justify-center active:opacity-70",
               confirmVariant === "warning" ? "text-sub-coral" : "text-main-blue",
               closeButtonClassName,
             )}
@@ -99,7 +99,7 @@ export function Modal({
           >
             <svg
               viewBox="0 0 512.021 512.021"
-              className="h-4 w-4"
+              className="pointer-events-none h-4 w-4"
               fill="currentColor"
               aria-hidden="true"
             >

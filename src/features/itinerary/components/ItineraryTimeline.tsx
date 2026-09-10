@@ -276,19 +276,18 @@ export function ItineraryTimeline({
   const isEmpty = stops.length === 0;
 
   return (
-    <div className="relative min-h-full min-w-0 pb-16" onClick={handleRootClick}>
-      {/* 세로 타임라인 선 — 일정이 하나도 없을 땐 그릴 대상이 없으니 숨긴다 */}
+    <div
+      className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden"
+      onClick={handleRootClick}
+    >
+      {" "}
       {!isEmpty && (
         <div className="absolute top-0 bottom-0 left-[45px] w-[2px] rounded-full bg-sub-lightgray" />
       )}
-
-      <div
-        className={cn("flex flex-col gap-5", isEmpty && "h-full")}
-        style={{ paddingBottom: popupScrollSpace }}
-      >
-        {/* 상단: + 버튼 + 날짜 (검색 중이거나 빈 날엔 + 버튼만 숨김 — 빈 날은 아래 안내 카드의 버튼으로 대신함) */}
+      <div className="relative z-20 shrink-0 bg-system-whitebg py-1">
         <div className="relative flex items-center">
           <div className="w-10 shrink-0" />
+
           <div className="relative z-10 -ml-0.5 flex items-center gap-2.5">
             <button
               type="button"
@@ -299,10 +298,11 @@ export function ItineraryTimeline({
               onClick={openAddNew}
               aria-label="장소 추가"
             >
-              <PlusIcon width={16} height={16} className="text-main-white" aria-hidden />
+              <PlusIcon width={18} height={18} className="text-main-white" aria-hidden />
             </button>
+
             {!isEmpty && date && (
-              <span className="text-xs font-semibold text-sub-gray">{date}</span>
+              <span className="text-xs font-semibold text-sub-deepgray">{date}</span>
             )}
           </div>
 
@@ -314,7 +314,14 @@ export function ItineraryTimeline({
             />
           )}
         </div>
-
+      </div>
+      <div
+        className={cn(
+          "min-h-0 flex-1 overflow-y-auto pb-16 flex flex-col gap-5",
+          isEmpty && "h-full",
+        )}
+        style={{ paddingBottom: popupScrollSpace }}
+      >
         {isEmpty && !isAddingNew && (
           <EmptyState
             className="-translate-y-5"
@@ -327,8 +334,6 @@ export function ItineraryTimeline({
           />
         )}
 
-        {/* 관광지 검색창이 떠 있는 동안엔 상단바/타임라인 선은 그대로 두고
-            나머지 일정/교통수단 아이템들만 가린다. */}
         {!isAddingNew &&
           stops.map((stop) => {
             const isSearchActive = activeSearchStopId === stop.id;

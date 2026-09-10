@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/shared/utils";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { Modal, LoadingBoundary } from "@/components";
@@ -41,52 +42,54 @@ export function TripMembersModal({ isOpen, groupId, onClose }: TripMembersModalP
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="여행 멤버" hideActions childrenVariant="plain">
-      <LoadingBoundary isLoading={isLoading} message="멤버를 불러오는 중이에요">
-        <div className="flex w-full flex-col items-center gap-y-4">
-          {members &&
-            buildAvatarRows(members.length).map((row, rowIndex) => (
-              <div key={rowIndex} className="flex gap-x-4">
-                {row.map((i) => {
-                  const member = members[i];
+      <div className={cn("w-full", isLoading && "pt-10")}>
+        <LoadingBoundary isLoading={isLoading} variant="inline" message="멤버를 불러오는 중이에요">
+          <div className="flex w-full flex-col items-center gap-y-4">
+            {members &&
+              buildAvatarRows(members.length).map((row, rowIndex) => (
+                <div key={rowIndex} className="flex gap-x-4">
+                  {row.map((i) => {
+                    const member = members[i];
 
-                  const profileImage = resolveProfileImage(member.profileImageUrl, i);
+                    const profileImage = resolveProfileImage(member.profileImageUrl, i);
 
-                  return (
-                    <div
-                      key={member.userId}
-                      className="flex w-[64px] flex-col items-center gap-1.5"
-                    >
-                      <div className="relative size-[64px] shrink-0 overflow-hidden rounded-full bg-sub-lightblue">
-                        <Image
-                          src={profileImage.src}
-                          alt=""
-                          fill
-                          sizes="64px"
-                          unoptimized={!profileImage.isPreset}
-                          className={
-                            profileImage.isPreset
-                              ? "object-cover scale-[1.27] origin-[center_10%]"
-                              : "object-cover"
-                          }
-                          aria-hidden
-                        />
+                    return (
+                      <div
+                        key={member.userId}
+                        className="flex w-[64px] flex-col items-center gap-1.5"
+                      >
+                        <div className="relative size-[64px] shrink-0 overflow-hidden rounded-full bg-sub-lightblue">
+                          <Image
+                            src={profileImage.src}
+                            alt=""
+                            fill
+                            sizes="64px"
+                            unoptimized={!profileImage.isPreset}
+                            className={
+                              profileImage.isPreset
+                                ? "object-cover scale-[1.27] origin-[center_10%]"
+                                : "object-cover"
+                            }
+                            aria-hidden
+                          />
+                        </div>
+
+                        <span className="flex max-w-full items-baseline justify-center gap-0.5 truncate text-sm font-semibold text-text-primary">
+                          {member.isLeader && (
+                            <span aria-label="방장" className="text-xs leading-none">
+                              👑
+                            </span>
+                          )}
+                          <span className="truncate">{member.nickname ?? "친구"}</span>
+                        </span>
                       </div>
-
-                      <span className="flex max-w-full items-baseline justify-center gap-0.5 truncate text-sm font-semibold text-text-primary">
-                        {member.isLeader && (
-                          <span aria-label="방장" className="text-xs leading-none">
-                            👑
-                          </span>
-                        )}
-                        <span className="truncate">{member.nickname ?? "친구"}</span>
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-        </div>
-      </LoadingBoundary>
+                    );
+                  })}
+                </div>
+              ))}
+          </div>
+        </LoadingBoundary>
+      </div>
     </Modal>
   );
 }

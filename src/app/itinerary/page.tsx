@@ -834,9 +834,9 @@ function ItineraryMain({
           value={accommodation}
           onChange={handleAccommodationChange}
           renderTrigger={({ value: place, onOpen }) => (
-            <div className="mb-3 flex items-center gap-1.5 rounded-[14px] border border-main-blue bg-system-navbg px-4 py-2">
+            <div className="mb-3 flex items-center gap-2 rounded-[14px] border border-main-blue bg-system-navbg px-4 py-2">
               <HotelIcon width={14} height={14} className="shrink-0 fill-sub-gray" aria-hidden />
-              <span className="min-w-0 flex-1 truncate text-sm font-medium text-sub-darkgray">
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-sub-deepgray">
                 {place?.name ?? "숙소를 등록해보세요"}
               </span>
               <button
