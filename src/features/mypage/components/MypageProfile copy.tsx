@@ -15,6 +15,7 @@ import type { Category } from "@/components/ui/CategoryChip";
 import { userApi, travelLogApi, spotApi } from "@/shared/api/domains";
 import { SPOT_LIST_STALE_TIME_MS } from "@/shared/api/domains/spot";
 import { getCategoryFromKo } from "@/shared/constants/category";
+import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
 import { CollectionProgress } from "./CollectionProgress";
 
 const AVATAR_SIZE = 100;
@@ -146,36 +147,31 @@ export function MypageProfile() {
 
   return (
     <>
-      <Card variant="white" className="w-full py-8">
-        <div className="flex flex-col items-center gap-4">
+      <Card variant="white" className="w-full pt-[24px] pb-[30px]">
+        <div className="flex flex-col items-center gap-3">
           <div
             style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
             className="relative shrink-0 rounded-full"
           >
+            <div
+              style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
+              className="relative overflow-hidden rounded-full border-[1.5px] border-main-blue bg-system-navbg"
+            >
+              <Image
+                src={currentImage.src}
+                alt={`${nickname} 프로필 이미지`}
+                fill
+                sizes="100px"
+                className="object-cover scale-[1.27] origin-[center_10%]"
+              />
+            </div>
             <button
               type="button"
               aria-label="프로필 사진 변경"
               onClick={() => setIsProfileImageModalOpen(true)}
-              style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
-              className="group relative shrink-0 rounded-full active:scale-[0.98]"
+              className="absolute top-1 right-0 flex size-6 items-center justify-center rounded-xl border-2 border-main-blue bg-system-navbg transition-opacity active:opacity-60"
             >
-              {/* 흐르는 테두리 */}
-              <div
-                className="absolute inset-0 rounded-full 
-              bg-main-blue 
-              group-hover:bg-[conic-gradient(var(--color-main-blue),var(--color-sub-violet),var(--color-main-white),var(--color-main-blue),var(--color-sub-violet),var(--color-main-white),var(--color-main-blue))] 
-              group-hover:animate-spin-border"
-              />
-              {/* 프로필 이미지 */}
-              <div className="absolute inset-[2px] overflow-hidden rounded-full bg-system-navbg">
-                <Image
-                  src={currentImage.src}
-                  alt={`${nickname} 프로필 이미지`}
-                  fill
-                  sizes="100px"
-                  className="object-cover scale-[1.27] origin-[center_10%]"
-                />
-              </div>
+              <Image src={pencilIcon} alt="사진 변경" width={10} height={10} />
             </button>
           </div>
 
@@ -187,7 +183,7 @@ export function MypageProfile() {
             onValueChange={handleNicknameValueChange}
           />
 
-          <div className="w-full px-4 mt-2 mb-4">
+          <div className="w-full px-4 mb-2">
             <CollectionProgress collectedCount={collectedCount} totalCount={totalCollectionCount} />
           </div>
 

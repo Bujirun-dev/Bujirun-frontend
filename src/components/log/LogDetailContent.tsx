@@ -80,7 +80,7 @@ export function LogDetailContent({
         <span className="font-ssurround font-bold text-lg text-text-heading flex-1 truncate">
           {log.title}
         </span>
-        {headerRight}
+        {headerRight && <div className="pr-3">{headerRight}</div>}
       </div>
 
       {/* 요약 정보 카드 */}
@@ -113,12 +113,19 @@ export function LogDetailContent({
 
             {/* 타임라인 */}
             <div className="relative flex flex-col pb-1.5">
-              <div className="absolute top-[6px] bottom-[6px] left-[53px] w-[2px] bg-sub-lightgray rounded-full" />
               {daySchedule.stops.map((stop, idx) => (
                 <div
                   key={idx}
-                  className={cn("flex items-start", idx < daySchedule.stops.length - 1 && "pb-5")}
+                  className={cn(
+                    "relative flex items-start",
+
+                    idx < daySchedule.stops.length - 1 && "pb-5",
+                  )}
                 >
+                  {idx < daySchedule.stops.length - 1 && (
+                    <div className="absolute left-[53px] top-[6px] bottom-[-6px] w-[2px] rounded-full bg-sub-lightgray" />
+                  )}
+
                   {/* 시간 + 도트 */}
                   <div className="flex items-center shrink-0">
                     <div className="w-12 text-right pr-2.5">
@@ -126,6 +133,7 @@ export function LogDetailContent({
                         {formatArrivalTime(stop.time)}
                       </span>
                     </div>
+
                     <div className="w-3 h-3 rounded-full bg-main-blue shrink-0 relative z-10" />
                   </div>
 
@@ -146,7 +154,7 @@ export function LogDetailContent({
 
                     {/* 사진 */}
                     {stop.imageUrl && (
-                      <div className="relative w-[254px] h-[118px] rounded-lg overflow-hidden border-[0.3px] border-system-glassborder shrink-0">
+                      <div className="relative w-[254px] h-[118px] rounded-xl overflow-hidden border-[0.3px] border-system-glassborder shrink-0">
                         <Image
                           src={stop.imageUrl}
                           alt={stop.place}

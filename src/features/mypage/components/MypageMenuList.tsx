@@ -42,7 +42,6 @@ export function MypageMenuList() {
           label="약관 및 개인정보 활용"
           onClick={() => setIsPrivacyOpen(true)}
         />
-        <MenuItem icon={LogOut} label="로그아웃" onClick={() => setIsLogoutOpen(true)} />
       </div>
 
       <PrivacyPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
