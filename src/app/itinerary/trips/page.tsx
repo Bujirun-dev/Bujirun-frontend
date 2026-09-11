@@ -233,7 +233,7 @@ export default function TripsPage() {
         <span className="font-ssurround font-bold text-lg text-text-heading">여행 목록</span>
       </div>
 
-      <p className="pl-6 pb-2 text-xs text-sub-darkgray font-medium">
+      <p className="pl-4 pb-2 text-xs text-sub-darkgray font-medium">
         * 진행 중이거나 예정된 여행만 보여드려요.
       </p>
 

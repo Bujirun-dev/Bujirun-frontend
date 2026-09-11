@@ -277,22 +277,22 @@ export function ItineraryTimeline({
 
   return (
     <div
-      className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden"
+      className="relative flex h-full ml-0.5 min-h-0 min-w-0 flex-col overflow-hidden"
       onClick={handleRootClick}
     >
       {" "}
       {!isEmpty && (
-        <div className="absolute top-0 bottom-0 left-[45px] w-[2px] rounded-full bg-sub-lightgray" />
+        <div className="absolute top-2 bottom-0 left-[45px] w-[2px] rounded-full bg-sub-lightgray" />
       )}
       <div className="relative z-20 shrink-0 bg-system-whitebg py-1">
         <div className="relative flex items-center">
           <div className="w-10 shrink-0" />
 
-          <div className="relative z-10 -ml-0.5 flex items-center gap-2.5">
+          <div className="relative z-10 flex items-center gap-2.5">
             <button
               type="button"
               className={cn(
-                "flex size-[18px] shrink-0 items-center justify-center rounded-md bg-sub-coral active:opacity-70",
+                "flex size-[18px] shrink-0 -ml-0.5 items-center justify-center rounded-md bg-sub-coral active:opacity-70",
                 (activeSearchStopId || isAddingNew || isEmpty || isFull) && "invisible",
               )}
               onClick={openAddNew}

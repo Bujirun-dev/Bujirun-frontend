@@ -42,8 +42,14 @@ export function TripMembersModal({ isOpen, groupId, onClose }: TripMembersModalP
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="여행 멤버" hideActions childrenVariant="plain">
-      <div className={cn("w-full", isLoading && "pt-10")}>
-        <LoadingBoundary isLoading={isLoading} variant="inline" message="멤버를 불러오는 중이에요">
+      <div className="w-full">
+        {isLoading ? (
+          <div className="flex min-h-[180px] w-full items-center justify-center">
+            <LoadingBoundary isLoading variant="inline" message="멤버를 불러오는 중이에요">
+              <div />
+            </LoadingBoundary>
+          </div>
+        ) : (
           <div className="flex w-full flex-col items-center gap-y-4">
             {members &&
               buildAvatarRows(members.length).map((row, rowIndex) => (
@@ -88,7 +94,7 @@ export function TripMembersModal({ isOpen, groupId, onClose }: TripMembersModalP
                 </div>
               ))}
           </div>
-        </LoadingBoundary>
+        )}
       </div>
     </Modal>
   );

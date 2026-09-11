@@ -24,7 +24,7 @@ export function ItineraryHeader({
   return (
     <div className="flex items-center gap-2.5 pb-3.5">
       <DayBadge day={currentDay + 1} />
-      <div className="flex min-w-0 flex-1 items-center gap-1.5">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
         <span className="max-w-30 truncate text-lg font-bold text-sub-deepgray">{tripName}</span>
         <button
           type="button"
