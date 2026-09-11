@@ -314,7 +314,7 @@ export default function CollectionRecordsPage() {
 
           <div className="my-5 border-t border-dashed border-sub-gray" />
 
-          <div className="grid grid-cols-3 text-center">
+          <div className="-mx-3 grid grid-cols-3 text-center">
             <button
               type="button"
               onClick={() => setSummaryView("records")}
