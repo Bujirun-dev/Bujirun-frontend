@@ -39,7 +39,7 @@ export function TransportSummaryCard({
         ))}
       </div>
 
-      <span className="min-w-0 truncate text-sm font-medium text-sub-darkgray">{metaText}</span>
+      <span className="min-w-0 truncate text-sm font-medium text-sub-deepgray">{metaText}</span>
     </div>
   );
 }

@@ -121,12 +121,18 @@ export function TransportDetailModal({
           onKakaoMapClick={onKakaoMapClick}
         />
       ) : (
-        <TransportSelectContent
-          transportGroup={transportGroup}
-          selectedOptionId={selectedOption.id}
-          onSelect={handleSelect}
-          onKakaoMapClick={onKakaoMapClick}
-        />
+        <div className="flex w-full flex-col gap-2.5">
+          <TransportSelectContent
+            transportGroup={transportGroup}
+            selectedOptionId={selectedOption.id}
+            onSelect={handleSelect}
+            onKakaoMapClick={onKakaoMapClick}
+          />
+
+          <p className="text-xs text-sub-deepgray">
+            * 도보는 예상 소요시간이 60분 이내인 경우에만 표시됩니다.
+          </p>
+        </div>
       )}
     </Modal>
   );

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { travelLogApi } from "@/shared/api/domains";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { Card, StatusBadge, EmptyState, LoadingBoundary } from "@/components";
 import { useTodayItinerary } from "@/features/home/hooks/useTodayItinerary";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
@@ -13,6 +13,7 @@ import { ArrivalVerifyModal } from "@/features/itinerary/components/ArrivalVerif
 import { openKakaoMapRoute } from "@/features/itinerary/components/transportRoute";
 import { getSelectedTransportOption } from "@/features/home/data/sampleTransport";
 import { isReviewSkipped } from "@/shared/utils/skippedReviews";
+import { getTravelModeOptions } from "@/shared/api/domains/itinerary";
 import type {
   TransportGroup,
   TransportOption,
@@ -63,6 +64,13 @@ function resolveTransportType(leg?: TransitLegSource): TransportType | null {
   return null;
 }
 
+function resolveTravelModeOptionType(travelMode?: string, routeType?: string) {
+  if (routeType) return routeType;
+  if (travelMode === "taxi") return "택시";
+  if (travelMode === "walk") return "도보";
+  return null;
+}
+
 // 두 스팟 사이의 실제 이동 정보(백엔드가 ODsay로 계산해 저장한 값)로 TransportGroup을 만든다.
 // 도착 스팟(nextPlan) 쪽에 이전 스팟까지의 구간 정보가 저장되어 있다.
 // 저장된 값이 없으면 null을 반환해 "교통정보 없음"으로 표시하고, 가짜 역명을 보여주지 않는다.
@@ -105,6 +113,7 @@ export function TodayItinerary() {
   const router = useRouter();
   const accessToken = useAuthStore((state) => state.accessToken);
   const hasRedirectedToReviewRef = useRef(false);
+
   const {
     itinerary,
     completedItineraries,
@@ -115,7 +124,24 @@ export function TodayItinerary() {
     isLoading,
     isError,
   } = useTodayItinerary();
+
+  const transportOptionQueries = useQueries({
+    queries: plans.slice(1).map((plan) => ({
+      queryKey: ["travel-mode-options", itinerary?.id, day?.id, plan.id],
+      queryFn: () => {
+        if (!itinerary?.id || !day?.id || !plan.id) {
+          throw new Error("이동수단 조회에 필요한 일정 정보가 없습니다.");
+        }
+
+        return getTravelModeOptions(itinerary.id, day.id, plan.id);
+      },
+      enabled: !!itinerary?.id && !!day?.id && !!plan.id && !!plan.travelMode,
+      staleTime: 60_000,
+    })),
+  });
+
   const completedItineraryIds = completedItineraries.map((itinerary) => itinerary.id);
+
   const { data: logExists } = useQuery({
     queryKey: [...travelLogApi.keys.all, "exists", completedItineraryIds],
     queryFn: () => travelLogApi.checkLogExists(completedItineraryIds),
@@ -126,6 +152,7 @@ export function TodayItinerary() {
   const [selectedOptionIdByRoute, setSelectedOptionIdByRoute] = useState<Record<string, string>>(
     {},
   );
+
   const [selectedVerifySpot, setSelectedVerifySpot] = useState<{
     spotId: string;
     placeName: string;
@@ -133,8 +160,53 @@ export function TodayItinerary() {
     placeImageUrl?: string;
   } | null>(null);
 
-  const openTransportModal = (transportGroup: TransportGroup) => {
-    setSelectedTransportGroup(transportGroup);
+  const openTransportModal = async (
+    transportGroup: TransportGroup,
+    itemId?: string,
+    travelMode?: string,
+    routeType?: string,
+  ) => {
+    if (!itinerary?.id || !day?.id || !itemId || !travelMode) {
+      setSelectedTransportGroup(transportGroup);
+      return;
+    }
+
+    try {
+      const travelModeOptions = await getTravelModeOptions(itinerary.id, day.id, itemId);
+
+      const optionType = resolveTravelModeOptionType(travelMode, routeType);
+
+      const matchedOption = optionType
+        ? travelModeOptions.find((option) => option.type === optionType)
+        : undefined;
+
+      if (!matchedOption) {
+        setSelectedTransportGroup(transportGroup);
+        return;
+      }
+
+      const currentOption = transportGroup.options[0];
+
+      setSelectedTransportGroup({
+        ...transportGroup,
+        options: [
+          {
+            ...currentOption,
+            durationText:
+              matchedOption.totalTime != null
+                ? `${matchedOption.totalTime}분`
+                : currentOption.durationText,
+            costText:
+              matchedOption.totalFare != null
+                ? `${matchedOption.totalFare.toLocaleString()}원`
+                : currentOption.costText,
+          },
+        ],
+      });
+    } catch (error) {
+      console.error("이동수단 상세 조회 실패:", error);
+      setSelectedTransportGroup(transportGroup);
+    }
   };
 
   const closeTransportModal = () => setSelectedTransportGroup(null);
@@ -251,6 +323,29 @@ export function TodayItinerary() {
             const selectedOption = transportGroup
               ? getSelectedTransportOption(transportGroup, selectedOptionId)
               : null;
+            const transportOptionQuery = transportOptionQueries[index];
+
+            const optionType = nextPlan
+              ? resolveTravelModeOptionType(nextPlan.travelMode, nextPlan.routeType)
+              : null;
+
+            const matchedTransportOption = optionType
+              ? transportOptionQuery?.data?.find((option) => option.type === optionType)
+              : undefined;
+
+            const summaryOption = selectedOption
+              ? {
+                  ...selectedOption,
+                  durationText:
+                    matchedTransportOption?.totalTime != null
+                      ? `${matchedTransportOption.totalTime}분`
+                      : selectedOption.durationText,
+                  costText:
+                    matchedTransportOption?.totalFare != null
+                      ? `${matchedTransportOption.totalFare.toLocaleString()}원`
+                      : selectedOption.costText,
+                }
+              : null;
             return (
               <li
                 key={plan.id ?? `${placeName}-${index}`}
@@ -272,13 +367,20 @@ export function TodayItinerary() {
                   />
                   <div className="min-w-0 flex-1">
                     <p className="leading-4 text-md font-medium text-text-primary">{placeName}</p>
-                    {transportGroup && selectedOption ? (
+                    {transportGroup && summaryOption ? (
                       <button
                         type="button"
                         className="my-3 w-full text-left"
-                        onClick={() => openTransportModal(transportGroup)}
+                        onClick={() =>
+                          openTransportModal(
+                            transportGroup,
+                            nextPlan?.id,
+                            nextPlan?.travelMode,
+                            nextPlan?.routeType,
+                          )
+                        }
                       >
-                        <TransportSummaryCard {...selectedOption} />
+                        <TransportSummaryCard {...summaryOption} />
                       </button>
                     ) : (
                       nextPlaceName && (
