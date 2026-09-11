@@ -43,7 +43,7 @@ export function AccountFooter() {
 
   return (
     <>
-      <div className="flex items-center justify-center gap-3 text-md font-medium text-sub-deepgray">
+      <div className="flex items-center justify-center mb-1 gap-3 text-sm font-medium text-sub-deepgray">
         <button
           type="button"
           onClick={() => setIsLogoutOpen(true)}
@@ -52,7 +52,7 @@ export function AccountFooter() {
           로그아웃
         </button>
 
-        <span aria-hidden className="h-4 w-[1.5px] translate-y-[1px] bg-sub-deepgray" />
+        <span aria-hidden className="h-3 w-[1.5px] translate-y-[1px] bg-sub-deepgray" />
 
         <button
           type="button"
