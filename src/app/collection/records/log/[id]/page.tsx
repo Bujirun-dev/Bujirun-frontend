@@ -51,7 +51,7 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
   const apiDays = useMemo<LogDay[]>(
     () =>
       travelLog?.days?.map((day) => ({
-        day: (day.dayNumber ?? 0) + 1,
+        day: day.dayNumber ?? 1,
         date: day.date ?? "",
         stops:
           day.items?.map((item) => {

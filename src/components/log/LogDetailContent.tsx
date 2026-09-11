@@ -67,10 +67,14 @@ export function LogDetailContent({
   editableRepresentativePhoto = false,
   onSetRepresentativePhoto,
 }: LogDetailContentProps) {
+  const representativePlaceName =
+    log.days.flatMap((day) => day.stops).find((stop) => stop.representative)?.place ??
+    log.placeName;
+
   const summaryPlace =
     log.extraCount && log.extraCount > 0
-      ? `${log.placeName} 외 ${log.extraCount}곳`
-      : log.placeName;
+      ? `${representativePlaceName} 외 ${log.extraCount}곳`
+      : representativePlaceName;
 
   return (
     <>
@@ -91,9 +95,9 @@ export function LogDetailContent({
             {summaryPlace}
           </span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <span className="text-sm shrink-0">📅</span>
-          <span className="font-medium text-sm text-sub-darkgray tracking-[0.24px]">
+          <span className="font-medium text-sm text-sub-deepgray tracking-[0.24px]">
             {log.duration} · {log.date}
           </span>
         </div>
@@ -106,97 +110,102 @@ export function LogDetailContent({
             {/* Day 헤더 */}
             <div className="flex items-center gap-2 mb-3.5">
               <DayBadge day={daySchedule.day} />
-              <span className="font-ssurround font-bold text-xs text-sub-gray">
+              <span className="font-ssurround font-semibold text-md text-sub-darkgray">
                 {daySchedule.date}
               </span>
             </div>
 
             {/* 타임라인 */}
             <div className="relative flex flex-col pb-1.5">
-              {daySchedule.stops.map((stop, idx) => (
-                <div
-                  key={idx}
-                  className={cn(
-                    "relative flex items-start",
-
-                    idx < daySchedule.stops.length - 1 && "pb-5",
-                  )}
-                >
-                  {idx < daySchedule.stops.length - 1 && (
-                    <div className="absolute left-[53px] top-[6px] bottom-[-6px] w-[2px] rounded-full bg-sub-lightgray" />
-                  )}
-
-                  {/* 시간 + 도트 */}
-                  <div className="flex items-center shrink-0">
-                    <div className="w-12 text-right pr-2.5">
-                      <span className="font-medium text-sm text-sub-deepblue tracking-[0.6px]">
-                        {formatArrivalTime(stop.time)}
-                      </span>
-                    </div>
-
-                    <div className="w-3 h-3 rounded-full bg-main-blue shrink-0 relative z-10" />
-                  </div>
-
-                  {/* 내용 */}
-                  <div className="flex-1 flex flex-col gap-2.5 pl-2">
-                    {/* 장소명 */}
-                    <div className="flex items-center gap-1">
-                      <span className="text-md shrink-0">📍</span>
-                      <span
-                        className={cn(
-                          "font-medium text-md tracking-[0.42px]",
-                          stop.visited ? "text-text-primary" : "text-sub-gray",
-                        )}
-                      >
-                        {stop.place}
-                      </span>
-                    </div>
-
-                    {/* 사진 */}
-                    {stop.imageUrl && (
-                      <div className="relative w-[254px] h-[118px] rounded-xl overflow-hidden border-[0.3px] border-system-glassborder shrink-0">
-                        <Image
-                          src={stop.imageUrl}
-                          alt={stop.place}
-                          fill
-                          sizes="254px"
-                          className="object-cover"
-                        />
-
-                        {editableRepresentativePhoto && stop.visited && (
-                          <button
-                            type="button"
-                            onClick={
-                              stop.representative
-                                ? undefined
-                                : () => onSetRepresentativePhoto?.(dayIdx, idx)
-                            }
-                            disabled={stop.representative}
-                            aria-pressed={stop.representative}
-                            className={cn(
-                              "absolute right-2 top-2 rounded-lg px-2.5 py-1.5 text-xs font-medium",
-                              stop.representative
-                                ? "cursor-default bg-main-blue text-main-white"
-                                : "cursor-pointer bg-system-whitebg backdrop-blur-sm text-system-blackbg",
-                            )}
-                          >
-                            대표사진
-                          </button>
-                        )}
-                      </div>
+              {daySchedule.stops.length === 0 ? (
+                <div className="flex min-h-8 items-center ml-5">
+                  <span className="text-md text-text-primary">기록된 일정이 없어요.</span>
+                </div>
+              ) : (
+                daySchedule.stops.map((stop, idx) => (
+                  <div
+                    key={idx}
+                    className={cn(
+                      "relative flex items-start",
+                      idx < daySchedule.stops.length - 1 && "pb-5",
+                    )}
+                  >
+                    {idx < daySchedule.stops.length - 1 && (
+                      <div className="absolute left-[53px] top-[6px] bottom-[-6px] w-[2px] rounded-full bg-sub-lightgray" />
                     )}
 
-                    {/* 태그 — 4개 카테고리와 일치하는 태그만 해당 색, 나머지는 기본색 */}
-                    <StopTags
-                      tags={stop.tags}
-                      editable={editableTags}
-                      disabled={!stop.visited}
-                      onAddTag={(tag) => onAddTag?.(dayIdx, idx, tag)}
-                      onDeleteTag={(tagIdx) => onDeleteTag?.(dayIdx, idx, tagIdx)}
-                    />
+                    {/* 시간 + 도트 */}
+                    <div className="flex items-center shrink-0">
+                      <div className="w-12 text-right pr-2.5">
+                        <span className="font-medium text-sm text-sub-deepblue tracking-[0.6px]">
+                          {formatArrivalTime(stop.time)}
+                        </span>
+                      </div>
+
+                      <div className="w-3 h-3 rounded-full bg-main-blue shrink-0 relative z-10" />
+                    </div>
+
+                    {/* 내용 */}
+                    <div className="flex-1 flex flex-col gap-2.5 pl-2">
+                      {/* 장소명 */}
+                      <div className="flex items-center gap-1">
+                        <span className="text-md shrink-0">📍</span>
+                        <span
+                          className={cn(
+                            "font-medium text-md tracking-[0.42px]",
+                            stop.visited ? "text-text-primary" : "text-sub-gray",
+                          )}
+                        >
+                          {stop.place}
+                        </span>
+                      </div>
+
+                      {/* 사진 */}
+                      {stop.imageUrl && (
+                        <div className="relative w-[254px] h-[118px] rounded-xl overflow-hidden border-[0.3px] border-system-glassborder shrink-0">
+                          <Image
+                            src={stop.imageUrl}
+                            alt={stop.place}
+                            fill
+                            sizes="254px"
+                            className="object-cover"
+                          />
+
+                          {editableRepresentativePhoto && stop.visited && (
+                            <button
+                              type="button"
+                              onClick={
+                                stop.representative
+                                  ? undefined
+                                  : () => onSetRepresentativePhoto?.(dayIdx, idx)
+                              }
+                              disabled={stop.representative}
+                              aria-pressed={stop.representative}
+                              className={cn(
+                                "absolute right-2 top-2 rounded-lg px-2.5 py-1.5 text-xs font-medium",
+                                stop.representative
+                                  ? "cursor-default bg-main-blue text-main-white"
+                                  : "cursor-pointer bg-system-whitebg backdrop-blur-sm text-system-blackbg",
+                              )}
+                            >
+                              대표사진
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      {/* 태그 */}
+                      <StopTags
+                        tags={stop.tags}
+                        editable={editableTags}
+                        disabled={!stop.visited}
+                        onAddTag={(tag) => onAddTag?.(dayIdx, idx, tag)}
+                        onDeleteTag={(tagIdx) => onDeleteTag?.(dayIdx, idx, tagIdx)}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         ))}
@@ -348,6 +357,7 @@ export function toLogDetailData(log: TravelLogDetail): LogDetailData {
           item.photos?.find((p) => p.representative)?.photoUrl ??
           item.photos?.[0]?.photoUrl ??
           undefined,
+        representative: item.photos?.some((p) => p.representative) ?? false,
         tags: item.hashtags?.map((h) => `#${h.tag}`) ?? [],
         visited: item.visited ?? true,
       })),
