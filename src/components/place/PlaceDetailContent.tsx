@@ -212,12 +212,17 @@ export function PlaceDetailContent({
 
       {/* 위치 */}
       <section className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-lg")}>
             위치
           </h2>
           {mapUrl && (
-            <a href={mapUrl} target="_blank" rel="noreferrer" className="active:opacity-70">
+            <a
+              href={mapUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="active:opacity-70 bg-main-blue px-2.5 py-1 rounded-xl"
+            >
               <Image
                 src={kakaoMapIcon}
                 alt="카카오맵"
