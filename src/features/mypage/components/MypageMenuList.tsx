@@ -3,16 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bookmark, FileText } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
 import { MenuItem } from "./MenuItem";
 import { LegalMenuModal, PrivacyPolicyModal, ServiceTermsModal } from "@/components";
-import { LogoutModal } from "./LogoutModal";
-import { logout } from "@/shared/api/domains/auth";
-import { useAuthStore } from "@/shared/stores/useAuthStore";
 
 export function MypageMenuList() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [isLegalMenuOpen, setIsLegalMenuOpen] = useState(false);
   const [isServiceTermsOpen, setIsServiceTermsOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);

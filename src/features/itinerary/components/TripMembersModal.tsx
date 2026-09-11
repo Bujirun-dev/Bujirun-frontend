@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "@/shared/utils";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { Modal, LoadingBoundary } from "@/components";
