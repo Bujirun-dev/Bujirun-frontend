@@ -49,3 +49,5 @@ export {
 } from "./place/PlaceSkeletons";
 //개인정보
 export { PrivacyPolicyModal } from "./legal/PrivacyPolicyModal";
+export { LegalMenuModal } from "./legal/LegalMenuModal";
+export { ServiceTermsModal } from "./legal/ServiceTermsModal";

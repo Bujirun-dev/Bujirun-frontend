@@ -16,6 +16,7 @@ interface ModalProps {
   confirmText?: string;
   cancelText?: string;
   confirmVariant?: "primary" | "warning";
+  scrollBody?: boolean;
   onConfirm?: () => void;
   onCancel?: () => void;
   className?: string;
@@ -39,6 +40,7 @@ export function Modal({
   confirmText = "확인",
   cancelText = "취소",
   confirmVariant = "primary",
+  scrollBody = false,
   onConfirm,
   onCancel,
   className,
@@ -80,7 +82,8 @@ export function Modal({
     >
       <div
         className={cn(
-          "relative w-full max-w-[320px] max-h-[80dvh] overflow-y-auto overflow-x-hidden bg-white rounded-3xl px-7 py-7 flex flex-col items-center gap-5",
+          "relative w-full max-w-[320px] max-h-[80dvh] overflow-x-hidden bg-white rounded-3xl px-7 py-7 flex flex-col items-center gap-5",
+          scrollBody ? "overflow-hidden" : "overflow-y-auto",
           className,
         )}
         onClick={(e) => e.stopPropagation()}
@@ -157,7 +160,13 @@ export function Modal({
               {children}
             </Card>
           ) : (
-            <div className={cn("w-full flex flex-col items-center gap-6", childrenClassName)}>
+            <div
+              className={cn(
+                "w-full flex flex-col items-center gap-6",
+                scrollBody && "min-h-0 flex-1 overflow-y-auto",
+                childrenClassName,
+              )}
+            >
               {children}
             </div>
           ))}
