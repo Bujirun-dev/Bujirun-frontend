@@ -19,7 +19,7 @@ export function DayNavigator({ totalDays, currentDay, onDayChange }: DayNavigato
         ) : (
           <button
             key={i}
-            className="size-[9px] rounded-full bg-main-blue/30"
+            className="size-[9px] rounded-full bg-system-scroll"
             onClick={() => onDayChange(i)}
           />
         ),

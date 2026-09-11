@@ -24,7 +24,7 @@ export const TimelinePlaceDetailPopup = forwardRef<HTMLDivElement, TimelinePlace
 
     return (
       <div ref={ref} className="absolute left-[52px] right-0 top-0 z-20 pl-3">
-        <div className="flex h-[470px] w-full flex-col overflow-hidden rounded-3xl border-[0.5px] border-system-glassborder bg-main-white px-4 py-5 shadow-[2px_2px_10px_0px_var(--color-system-glassborder)]">
+        <div className="flex h-116 w-full flex-col overflow-hidden rounded-3xl border-[0.5px] border-system-glassborder bg-main-white px-4 py-5 shadow-[2px_2px_10px_0px_var(--color-system-glassborder)]">
           <button
             type="button"
             onClick={onClose}
@@ -40,18 +40,20 @@ export const TimelinePlaceDetailPopup = forwardRef<HTMLDivElement, TimelinePlace
               aria-hidden
             />
           </button>
-          <PlaceDetailContent
-            place={{ ...place, mapUrl: place.mapUrl ?? stop.mapUrl, isBookmarked }}
-            imageOverlay={
-              <div className="absolute right-2 top-2">
-                <StatusBadge status={stop.status === "completed" ? "collected" : "uncollected"} />
-              </div>
-            }
-            onBookmark={spotId ? toggleBookmark : undefined}
-            relatedLogs={spotId ? relatedLogs : undefined}
-            getRelatedLogHref={(logId) => `/itinerary/logs/${logId}`}
-            size="compact"
-          />
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+            <PlaceDetailContent
+              place={{ ...place, mapUrl: place.mapUrl ?? stop.mapUrl, isBookmarked }}
+              imageOverlay={
+                <div className="absolute right-2 top-2">
+                  <StatusBadge status={stop.status === "completed" ? "collected" : "uncollected"} />
+                </div>
+              }
+              onBookmark={spotId ? toggleBookmark : undefined}
+              relatedLogs={spotId ? relatedLogs : undefined}
+              getRelatedLogHref={(logId) => `/itinerary/logs/${logId}`}
+              size="compact"
+            />
+          </div>
         </div>
       </div>
     );
