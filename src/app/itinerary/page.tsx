@@ -2,7 +2,7 @@
 
 import { Suspense, useRef, useState, useEffect, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import HotelIcon from "@/assets/icons/itinerary/hotel.svg?svgr";
 import PencilIcon from "@/assets/icons/itinerary/pencil.svg?svgr";
 import { PageCard, Toast, EmptyState, LoadingBoundary, LoadingState } from "@/components";
@@ -331,6 +331,9 @@ function ItineraryPageContent() {
   );
 }
 
+// 상세 조회 응답 타입 — 스키마가 바뀌어도 따라가도록 API 함수 반환 타입에서 뽑는다.
+type ItineraryDetailData = Awaited<ReturnType<typeof itineraryApi.getItinerary>>;
+
 function ItineraryMain({
   itineraryId,
   groupId,
@@ -391,6 +394,7 @@ function ItineraryMain({
   const [toastVariant, setToastVariant] = useState<"default" | "error">("default");
   const [modal, setModal] = useState<ModalType | null>(null);
   const [peerUpdateMessage, setPeerUpdateMessage] = useState<string | undefined>(undefined);
+  const queryClient = useQueryClient();
   const [accommodation, setAccommodation] = useState<AccommodationPlace | null>(
     tripTimeBounds?.accommodationName
       ? {
@@ -406,7 +410,24 @@ function ItineraryMain({
   // ItineraryOptimizeRequest)엔 아직 반영 안 된다. 최적화 요청에 숙소 좌표를 출발/도착
   // 기준점으로 넘기려면 최적화 API에 좌표 필드 추가가 먼저 필요함.
   const handleAccommodationChange = (place: AccommodationPlace | null) => {
+    const previous = accommodation;
     setAccommodation(place);
+
+    // 화면의 숙소는 마운트 시점 상세 응답으로 초기화된다. 저장만 하고 상세 캐시를
+    // 그대로 두면, 다른 화면에 갔다가 staleTime(60초) 안에 돌아왔을 때 옛 응답으로
+    // 다시 초기화돼 방금 저장한 숙소가 사라진 것처럼 보였다.
+    queryClient.setQueryData<ItineraryDetailData>(itineraryApi.keys.detail(itineraryId), (prev) =>
+      prev
+        ? {
+            ...prev,
+            accommodationName: place?.name ?? undefined,
+            accommodationAddress: place?.address ?? undefined,
+            accommodationLat: place?.lat,
+            accommodationLng: place?.lng,
+          }
+        : prev,
+    );
+
     itineraryApi
       .updateItinerary(itineraryId, {
         // 빈 문자열 = "지우기"를 명시적으로 보내는 신호. 필드 자체를 안 보내면(undefined)
@@ -417,7 +438,16 @@ function ItineraryMain({
         accommodationLat: place?.lat,
         accommodationLng: place?.lng,
       })
-      .catch(() => showToast("숙소 정보를 저장하지 못했어요.", "error"));
+      .then(() => {
+        // 서버가 정규화한 값으로 최종 동기화.
+        queryClient.invalidateQueries({ queryKey: itineraryApi.keys.detail(itineraryId) });
+      })
+      .catch(() => {
+        // 저장이 실패했으면 화면도 되돌린다 — 안 되돌리면 저장된 것처럼 보인다.
+        setAccommodation(previous);
+        queryClient.invalidateQueries({ queryKey: itineraryApi.keys.detail(itineraryId) });
+        showToast("숙소 정보를 저장하지 못했어요.", "error");
+      });
   };
 
   const showToast = (message: string, variant: "default" | "error" = "default") => {
