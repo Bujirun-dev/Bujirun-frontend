@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image, { type StaticImageData } from "next/image";
 import { Card } from "@/components";
 
@@ -62,18 +62,145 @@ export function PermissionButton({
 }
 
 export function MapPreview() {
-  return (
-    <div className="relative h-[166px] w-full overflow-hidden rounded-[10px] bg-[#f4efe7]">
-      <div className="absolute left-[-20px] top-8 h-4 w-[360px] rotate-[-28deg] bg-main-white/90" />
-      <div className="absolute left-2 top-20 h-4 w-[330px] rotate-[-28deg] bg-main-white/90" />
-      <div className="absolute left-20 top-[-10px] h-[220px] w-4 rotate-[26deg] bg-main-white/90" />
-      <div className="absolute left-36 top-[-10px] h-[220px] w-4 rotate-[26deg] bg-main-white/90" />
-      <div className="absolute left-52 top-[-10px] h-[220px] w-4 rotate-[26deg] bg-main-white/90" />
-      <div className="absolute left-0 top-20 h-4 w-[360px] rotate-[32deg] bg-[#ffd976]" />
-      <div className="absolute left-12 top-0 h-[220px] w-4 rotate-[26deg] bg-[#b7d8ff]" />
-      <div className="absolute left-4 top-4 size-9 rounded-full bg-sub-green/70" />
-      <div className="absolute right-7 top-7 size-2 rounded-full bg-[#ffd976]" />
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl">📍</div>
-    </div>
-  );
+  const mapRef = useRef<HTMLDivElement>(null);
+
+  const [coords, setCoords] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      Promise.resolve().then(() => setError(true));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setCoords({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      () => {
+        setError(true);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      },
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!coords || !mapRef.current) return;
+
+    const appKey = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY;
+
+    if (!appKey) {
+      Promise.resolve().then(() => setError(true));
+      return;
+    }
+
+    type KakaoMaps = {
+      load: (callback: () => void) => void;
+      LatLng: new (latitude: number, longitude: number) => unknown;
+      Map: new (
+        container: HTMLElement,
+        options: {
+          center: unknown;
+          level: number;
+        },
+      ) => unknown;
+      Marker: new (options: { position: unknown }) => {
+        setMap: (map: unknown) => void;
+      };
+    };
+
+    const kakaoWindow = window as typeof window & {
+      kakao?: {
+        maps: KakaoMaps;
+      };
+    };
+
+    const renderMap = () => {
+      if (!mapRef.current || !kakaoWindow.kakao) return;
+
+      kakaoWindow.kakao.maps.load(() => {
+        if (!mapRef.current || !kakaoWindow.kakao) return;
+
+        const position = new kakaoWindow.kakao.maps.LatLng(coords.latitude, coords.longitude);
+
+        const map = new kakaoWindow.kakao.maps.Map(mapRef.current, {
+          center: position,
+          level: 3,
+        });
+
+        const marker = new kakaoWindow.kakao.maps.Marker({
+          position,
+        });
+
+        marker.setMap(map);
+      });
+    };
+
+    if (kakaoWindow.kakao) {
+      renderMap();
+      return;
+    }
+
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[data-kakao-map="true"]',
+    );
+
+    if (existingScript) {
+      existingScript.addEventListener("load", renderMap, {
+        once: true,
+      });
+
+      return () => {
+        existingScript.removeEventListener("load", renderMap);
+      };
+    }
+
+    const script = document.createElement("script");
+
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js` + `?appkey=${appKey}&autoload=false`;
+
+    script.async = true;
+    script.dataset.kakaoMap = "true";
+
+    script.addEventListener("load", renderMap, {
+      once: true,
+    });
+
+    script.addEventListener("error", () => setError(true), { once: true });
+
+    document.head.appendChild(script);
+
+    return () => {
+      script.removeEventListener("load", renderMap);
+    };
+  }, [coords]);
+
+  if (error) {
+    return (
+      <div className="flex h-[166px] w-full items-center justify-center overflow-hidden rounded-[10px] bg-system-searchbg">
+        <span className="text-sm text-sub-gray">현재 위치를 불러오지 못했어요.</span>
+      </div>
+    );
+  }
+
+  if (!coords) {
+    return (
+      <div className="flex h-[166px] w-full items-center justify-center overflow-hidden rounded-[10px] bg-system-searchbg">
+        <span className="text-sm text-sub-gray">현재 위치를 불러오는 중이에요.</span>
+      </div>
+    );
+  }
+
+  return <div ref={mapRef} className="h-[166px] w-full overflow-hidden rounded-[10px]" />;
 }

@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ParticipantAvatarGrid, ShareInviteModal } from "@/features/itinerary/components";
 import { groupApi, userApi } from "@/shared/api/domains";
 import { LoadingState, Toast } from "@/components";
+import { useItineraryFlowProgress } from "@/features/itinerary/hooks/useItineraryFlowProgress";
 import { formatTripPeriod } from "@/shared/utils";
 
 function PageLoadingFallback() {
@@ -41,6 +42,8 @@ function TripInviteContent() {
   const accommodationLat = searchParams.get("accommodationLat") ?? "";
   const accommodationLng = searchParams.get("accommodationLng") ?? "";
   const role = searchParams.get("role") === "guest" ? "guest" : "host";
+  useItineraryFlowProgress("invite", searchParams.toString(), groupId, { tripName });
+
   const [showShareModal, setShowShareModal] = useState(false);
   const [showExitWarning, setShowExitWarning] = useState(role === "host");
 
@@ -153,6 +156,14 @@ function TripInviteContent() {
           className="mt-[27px] font-paperlogy font-normal text-sm text-text-primary underline decoration-solid underline-offset-2"
         >
           친구 초대하기
+        </button>
+
+        <button
+          type="button"
+          onClick={goToPersonality}
+          className="mt-3 font-paperlogy font-normal text-xs text-sub-gray underline decoration-solid underline-offset-2"
+        >
+          (테스트) 인원 상관없이 다음 화면으로
         </button>
       </div>
 

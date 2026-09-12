@@ -33,6 +33,7 @@ import {
   snapshotFromStops,
   type AddedItem,
   type DaySnapshot,
+  type FlushFailure,
 } from "./flushItineraryToRest";
 import { pickAvailableParticipantColorClass } from "./participantColor";
 
@@ -57,6 +58,27 @@ interface CurrentUser {
 // 그냥 시딩해서 로컬 편집만이라도 항상 가능하게 한다.
 const SEED_FALLBACK_MS = 4000;
 
+// flush(REST 반영)가 실패했을 때 자동으로 다시 시도하는 횟수와 간격.
+// 예전엔 flush 실패를 전부 조용히 삼켰고, 재flush 트리거가 stopsPerDay 변화뿐이라
+// 사용자가 그 뒤에 아무것도 더 건드리지 않으면 영구히 재시도되지 않았다 — 화면은 12:00,
+// DB는 10:00인 상태로 갈려 있다가 새로고침하면 변경이 되돌아갔다.
+// 상한을 두는 이유: 재시도해도 절대 성공하지 않는 실패(값 자체가 거부되는 400 등)에
+// 대해서까지 계속 재시도하면 같은 요청으로 백엔드를 무한히 두드리게 된다.
+const MAX_FLUSH_RETRIES = 2;
+const FLUSH_RETRY_DELAY_MS = 1500;
+
+// flush가 끝까지 실패했을 때 호출부(일정 페이지)에 넘기는 정보. 사용자에게 "저장되지
+// 않았어요" 같은 안내를 띄우고, 필요하면 직접 재시도 버튼을 붙이는 데 쓴다.
+export interface FlushErrorInfo {
+  failures: FlushFailure[];
+  // 사용자에게 그대로 보여줄 수 있는 대표 문구(첫 실패 기준, 백엔드 message 우선).
+  message: string;
+  // 몇 번째 시도가 실패했는지(1 = 최초 시도).
+  attempt: number;
+  // 자동 재시도가 예약됐는지. false면 이번 실패가 이 flush 사이클의 최종 실패다.
+  willRetry: boolean;
+}
+
 // useItineraryYDoc(연결 생명주기)을 감싸 실제 화면이 쓰는 형태로 데이터를 노출한다:
 // Yjs 상태를 BaseStop[][]로 파생시키고, 초기 시딩·이탈시/합류시 DB 반영을 처리한다.
 export function useCollaborativeItinerary(
@@ -65,9 +87,15 @@ export function useCollaborativeItinerary(
   initialDays: BaseStop[][],
   currentUser?: CurrentUser,
   onRemoteActivity?: (entry: ActivityLogEntry) => void,
-  // DB 반영에 실패한 변경이 있을 때 알린다 — 화면(Yjs)에는 남아 있어서 사용자는 저장된
-  // 줄 알지만, 새로고침하면 사라진다. 조용히 삼키지 않고 화면에 알리기 위한 통로.
-  onSaveFailed?: () => void,
+  // REST 반영에 실패한 변경이 있을 때 알림용(선택). 없으면 예전처럼 조용히 재시도만 한다.
+  // 조용히 삼키면, 화면(Yjs)에는 남아 있어서 사용자는 저장된 줄 알지만 새로고침하면
+  // 사라진다 — 그 사실을 화면에 알리기 위한 통로다. 자동 재시도가 남았는지(willRetry)까지
+  // 함께 넘기므로, 호출부가 "재시도 중" 안내와 "최종 실패" 안내를 나눠 띄울 수 있다.
+  onFlushError?: (info: FlushErrorInfo) => void,
+  // 서버 반영이 끝난 뒤 호출된다. 호출부가 상세 캐시를 갱신하는 데 쓴다 — 저장은 됐는데
+  // 캐시에 옛 응답이 남아 있으면, 앱 안에서 이 화면에 다시 들어올 때 그 옛 응답으로 문서가
+  // 시딩돼 "바꾼 시간이 저장되지 않은 것처럼" 보였다(새로고침하면 캐시가 없어 정상).
+  onFlushed?: () => void,
 ) {
   // 문서는 빈 채로 만든다. 시딩은 아래 useEffect에서, WS 동기화가 끝나 원격(Redis)에
   // 이미 있던 days가 doc에 먼저 반영된 뒤에 한다 — 그래야 seedYjsDays의 "로컬 문서가
@@ -101,8 +129,6 @@ export function useCollaborativeItinerary(
   // 시딩용 초기값은 마운트 시점 값 그대로 고정한다 — props가 그 사이 바뀌어도
   // 시딩 로직이 재실행되며 엉뚱한 값을 시딩하면 안 되기 때문.
   const initialDaysRef = useRef(initialDays);
-  // flushAll은 effect/이탈 콜백에서 불리므로 최신 콜백을 ref로 들고 읽는다.
-  const onSaveFailedRef = useRef(onSaveFailed);
   // 시딩(원격 상태 병합 포함)이 실제로 끝나기 전엔 doc이 빈 상태라, 이 시점에 flushAll이
   // 돌면 그 빈 상태를 REST에 그대로 PATCH해서 서버에 이미 있던 데이터를 지워버린다.
   // (React StrictMode가 개발 모드에서 연결 effect를 마운트 직후 한 번 cleanup했다가
@@ -115,9 +141,22 @@ export function useCollaborativeItinerary(
   const hasSeededRef = useRef(false);
   const [seeded, setSeeded] = useState(false);
 
+  // 항상 최신 콜백을 참조하기 위한 ref (stale closure 방지 — flushAll은 effect/타이머/
+  // awareness 콜백에서 불리므로 마운트 시점 콜백에 고정되면 안 된다).
+  const onFlushErrorRef = useRef(onFlushError);
+  const onFlushedRef = useRef(onFlushed);
+  // 예약된 자동 재시도 타이머. 새 flush가 시작되면 취소한다(그 flush가 더 최신 상태를
+  // 보내므로 예전 재시도는 의미가 없다).
+  const retryTimerRef = useRef<number | null>(null);
+  // flush 겹침 방지(coalesce) 상태: 지금 돌고 있는 flush 체인과, 그 사이에 들어온
+  // "끝나면 한 번 더 돌려야 한다"는 예약 플래그. 자세한 이유는 runFlush 주석 참고.
+  const flushChainRef = useRef<Promise<void> | null>(null);
+  const flushAgainRef = useRef(false);
+
   useEffect(() => {
     dayIdsRef.current = dayIds;
-    onSaveFailedRef.current = onSaveFailed;
+    onFlushErrorRef.current = onFlushError;
+    onFlushedRef.current = onFlushed;
   });
 
   // 새 항목이 저장되면서 백엔드가 계산해준 (직전 스팟 → 새 항목) 구간 정보를, 그 직전
@@ -141,27 +180,149 @@ export function useCollaborativeItinerary(
     applyComputedTransport(doc, prevStopId, addedItem.id, transport);
   };
 
+  // flush 한 번(모든 day)을 실제로 수행하는 패스. 겹침 방지는 입구(runFlush)가 맡으므로
+  // 여기서는 "지금 문서 상태를 REST에 반영"만 한다 — 반드시 runFlush를 통해서 호출할 것.
+  //
   // stopsPerDay(React state)가 아니라 doc에서 매번 직접 읽는다 — Yjs observer가
   // setStopsPerDay를 부른 직후에도 React가 아직 리렌더를 커밋하기 전이면 stopsPerDay는
   // 옛 값 그대로라서, "mutate 하자마자 바로 flush" 같은 흐름(예: 로그 불러오기 직후
   // flushNow)에서 방금 반영한 변경이 아니라 그 이전 상태를 저장해버리는 문제가 있었다.
-  const flushAll = () => {
+  // (예약된 재실행도 이 함수를 다시 호출해 문서를 새로 읽으므로 항상 최신 상태를 보낸다.)
+  // attempt: 0이면 최초 시도, 1 이상은 자동 재시도. 실패한 항목은 flushDayToRest가
+  // snapshot을 갱신하지 않은 채로 남겨두므로, 다음 시도에서 자연히 다시 대상이 된다.
+  const flushPass = async (attempt: number) => {
     if (!hasSeededRef.current) return;
     const currentStops = readStopsFromYjs(doc);
-    dayIdsRef.current.forEach((dayId, dayIdx) => {
-      if (!dayId) return;
-      const snapshot = (snapshotsRef.current[dayIdx] ??= new Map());
-      flushDayToRest(
-        itineraryId,
-        dayId,
-        currentStops[dayIdx] ?? [],
-        snapshot,
-        (tempId, realId) => resolveTempId(doc, dayIdx, tempId, realId),
-        applyLegTransport,
-        () => onSaveFailedRef.current?.(),
-      );
+    const results = await Promise.all(
+      dayIdsRef.current.map((dayId, dayIdx) => {
+        if (!dayId) return Promise.resolve<FlushFailure[]>([]);
+        const snapshot = (snapshotsRef.current[dayIdx] ??= new Map());
+        return flushDayToRest(
+          itineraryId,
+          dayId,
+          currentStops[dayIdx] ?? [],
+          snapshot,
+          (tempId, realId) => resolveTempId(doc, dayIdx, tempId, realId),
+          applyLegTransport,
+          // flushDayToRest는 내부에서 실패를 전부 잡아 배열로 돌려주지만, 예상 못한
+          // 예외로 Promise.all 전체가 깨져 다른 day의 결과까지 잃지 않도록 막아둔다.
+        ).catch((error: unknown) => [
+          {
+            kind: "update" as const,
+            dayId,
+            message: "일정을 저장하지 못했어요. 잠시 후 다시 시도해요.",
+            error,
+          },
+        ]);
+      }),
+    );
+
+    const failures = results.flat();
+    // 실패가 없다면 이번 패스에서 보낸 변경은 모두 서버에 반영됐다. 상세 캐시를 갱신할
+    // 기회를 호출부에 준다(변경이 없었던 패스도 갱신해도 무해하다 — 서버 값과 같다).
+    if (failures.length === 0) {
+      onFlushedRef.current?.();
+      return;
+    }
+
+    const willRetry = attempt < MAX_FLUSH_RETRIES;
+    onFlushErrorRef.current?.({
+      failures,
+      message: failures[0].message,
+      attempt: attempt + 1,
+      willRetry,
     });
+    if (!willRetry) return;
+
+    // 짧은 지연 후 한 번 더(최대 MAX_FLUSH_RETRIES회) — 중복 시각 400처럼 "다른 항목이
+    // 먼저 반영되면 풀리는" 실패가 대부분이라 대개 이 재시도에서 성공한다.
+    if (retryTimerRef.current !== null) window.clearTimeout(retryTimerRef.current);
+    retryTimerRef.current = window.setTimeout(
+      () => {
+        retryTimerRef.current = null;
+        void runFlush(attempt + 1);
+      },
+      FLUSH_RETRY_DELAY_MS * (attempt + 1),
+    );
   };
+
+  // flush 입구. 이미 돌고 있는 flush가 있으면 새로 시작하지 않고 "끝난 뒤 한 번 더"만
+  // 예약하고(coalesce), 돌고 있는 체인을 그대로 돌려준다 — 그래야 이탈 시 완료를 기다리는
+  // 호출부(useItineraryYDoc)가 예약된 재실행까지 함께 기다린다.
+  //
+  // 왜 필요한가: flushDayToRest는 id가 "temp-"로 시작하는 항목을 addItem POST로 만들고,
+  // 응답으로 받은 real id를 resolveTempId로 문서에 써야 비로소 "추가 완료"가 된다. 그
+  // 응답이 오기 전에 두 번째 flush가 같은 temp- id를 다시 보면 같은 장소를 한 번 더
+  // POST해서 DB에 항목이 2개 생기고, 이어지는 reorderItems엔 중복 id가 실려 순서 저장이
+  // 400으로 죽는다. 트리거가 여러 개라(2초 디바운스 / 새 인원 합류 / useItineraryYDoc의
+  // pagehide·visibilitychange 이탈 저장) 탭을 숨기는 정도의 평범한 조작으로도 겹친다.
+  // 이탈 이벤트 쪽 최소 간격 가드는 이탈 이벤트끼리의 중복만 막아서 이 경합과는 무관하다.
+  //
+  // "진행 중이면 그냥 스킵"으로 막으면 안 된다 — 겹친 호출이 들고 온 더 최신 편집이 영구히
+  // 저장되지 않을 수 있어(다음 트리거가 없으면 그대로 끝), 중복 생성을 막는 대신 데이터
+  // 손실을 만든다. 그래서 스킵이 아니라 "끝난 뒤 한 번 더"로 미룬다.
+  //
+  // 예약된 재실행은 attempt 0(최초 시도)으로 돈다: 그 사이 들어온 새 편집이라 실패 재시도
+  // 예산을 새로 주는 게 맞다. 재실행은 "진행 중에 들어온 호출"이 있을 때만 일어나므로
+  // (루프 안에서 스스로 플래그를 세우는 경로는 없다) 이 루프가 저절로 계속 돌지는 않는다.
+  const runFlush = (attempt: number): Promise<void> => {
+    if (flushChainRef.current) {
+      flushAgainRef.current = true;
+      return flushChainRef.current;
+    }
+
+    const chain = (async () => {
+      try {
+        let nextAttempt = attempt;
+        for (;;) {
+          await flushPass(nextAttempt);
+          if (!flushAgainRef.current) return;
+          flushAgainRef.current = false;
+          // 예약된 재실행이 더 최신 상태를 보내므로, 직전 패스가 걸어둔 재시도 타이머는
+          // 취소한다(flushAll과 같은 이유 — 그 타이머는 이미 낡은 시도다).
+          if (retryTimerRef.current !== null) {
+            window.clearTimeout(retryTimerRef.current);
+            retryTimerRef.current = null;
+          }
+          nextAttempt = 0;
+        }
+      } finally {
+        flushChainRef.current = null;
+      }
+    })();
+    flushChainRef.current = chain;
+    return chain;
+  };
+
+  const flushAll = () => {
+    // 새 flush가 더 최신 상태를 보내므로, 예약돼 있던 재시도는 취소하고 재시도 횟수도
+    // 처음부터 다시 센다(사용자의 새 편집엔 새 재시도 기회를 준다).
+    if (retryTimerRef.current !== null) {
+      window.clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+    // Promise를 돌려줘야 이탈 시점(useItineraryYDoc의 지연 destroy)이 "저장 완료"를
+    // 실제로 기다릴 수 있다. 예전엔 void로 버려서, 언마운트 직후 연결이 끊기고 응답으로
+    // 받은 새 항목 id가 이미 파괴된 문서에만 반영됐다.
+    return runFlush(0);
+  };
+
+  // 언마운트 후에 재시도가 깨어나 요청을 쏘지 않도록 타이머를 정리한다(이탈 시점엔
+  // onBeforeDisconnect=flushAll이 이미 최종 상태를 보낸다).
+  //
+  // 반면 coalesce 예약 플래그(flushAgainRef)는 여기서 비우지 않는다 — 그 플래그는 "아직
+  // REST에 못 보낸 최신 편집이 있다"는 뜻이고, 이탈 직전의 마지막 flushAll도 진행 중인
+  // 체인에 바로 이 플래그로 합류하기 때문에, 여기서 비우면 마지막 편집을 버리게 된다.
+  // 정리하지 않아도 새지 않는다: 두 ref는 이 컴포넌트 인스턴스 전용이고, 진행 중인 체인이
+  // 끝나면 flushChainRef는 스스로 null로 돌아간다(runFlush의 finally).
+  useEffect(() => {
+    return () => {
+      if (retryTimerRef.current !== null) {
+        window.clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // 편집하고 몇 초 지나면 자동으로 DB에 반영한다("저장 버튼 없음" 전제). 이탈 시/합류 시
   // 트리거만으로는, 페이지를 나가지 않고 계속 머무는 사용자의 편집이(특히 아직 실시간
@@ -173,7 +334,11 @@ export function useCollaborativeItinerary(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stopsPerDay]);
 
-  const { status, synced, getProvider } = useItineraryYDoc(itineraryId, doc, flushAll);
+  const { status, synced, getProvider, connectionState, isCollabUnavailable } = useItineraryYDoc(
+    itineraryId,
+    doc,
+    flushAll,
+  );
 
   // WS 동기화가 끝난 뒤에만 시딩한다 — synced=true가 되는 시점엔 원격(Redis)에 이미
   // 있던 days가 doc에 먼저 반영된 후라, seedYjsDays의 "로컬 문서 비어있으면 시딩" 가드가
@@ -355,6 +520,10 @@ export function useCollaborativeItinerary(
   return {
     stopsPerDay: stopsPerDayWithStatus,
     status,
+    // 실시간 연결 상태(끊김 / 협업 서버 설정 누락)를 그대로 통과시켜 노출만 해둔 값이다 —
+    // 아직 이 값을 쓰는 화면이 없다. 화면 안내 연결은 후속 작업(useItineraryYDoc 주석 참고).
+    connectionState,
+    isCollabUnavailable,
     seeded,
     collaboratorsByStop,
     setFocusedStop,

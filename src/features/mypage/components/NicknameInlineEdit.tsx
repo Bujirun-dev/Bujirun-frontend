@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useImperativeHandle, forwardRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, X, XCircle } from "lucide-react";
+import { Check, CheckCircle, X, XCircle } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/shared/utils";
 import { useDebouncedValue } from "@/shared/hooks";
@@ -88,15 +88,13 @@ export const NicknameInlineEdit = forwardRef<NicknameInlineEditRef, NicknameInli
     return (
       <div className="inline-flex flex-col items-center gap-1">
         {!isEditing ? (
-          <div className="flex items-center gap-1.5">
-            <span className="text-lg font-bold text-text-heading leading-none py-0.5">
-              {nickname}
-            </span>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-semibold text-text-heading leading-none">{nickname}</span>
             <button
               type="button"
               aria-label="닉네임 편집"
               onClick={openEdit}
-              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-system-navbg transition-opacity active:opacity-60"
+              className="flex size-5 shrink-0 items-center justify-center rounded-lg bg-system-scroll transition-opacity active:opacity-60"
             >
               <Image src={pencilIcon} alt="닉네임 편집" width={10} height={10} />
             </button>
@@ -104,7 +102,7 @@ export const NicknameInlineEdit = forwardRef<NicknameInlineEditRef, NicknameInli
         ) : (
           <div
             className={cn(
-              "flex items-center gap-1.5 border-b",
+              "flex items-center gap-1 border-b",
               showDuplicate ? "border-sub-coral" : "border-main-blue",
             )}
           >
@@ -115,7 +113,7 @@ export const NicknameInlineEdit = forwardRef<NicknameInlineEditRef, NicknameInli
               placeholder="6자 이내로 입력해주세요"
               onChange={handleChange}
               onKeyDown={handleKeyDown}
-              className="w-[140px] bg-transparent text-left text-lg font-bold text-text-heading leading-none py-0.5 outline-none placeholder:text-xs placeholder:font-normal placeholder:text-sub-gray"
+              className="w-[140px] bg-transparent text-left text-md font-medium text-text-heading leading-none py-0.5 outline-none placeholder:text-xs placeholder:font-normal placeholder:text-sub-gray"
             />
             <button
               type="button"
@@ -123,27 +121,54 @@ export const NicknameInlineEdit = forwardRef<NicknameInlineEditRef, NicknameInli
               onClick={handleConfirm}
               disabled={!isValid}
               className={cn(
-                "flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-opacity",
-                isValid ? "bg-main-blue active:opacity-70" : "bg-sub-lightgray",
+                "group flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors active:opacity-70",
+                isValid
+                  ? "border-sub-deepblue bg-transparent hover:bg-main-blue"
+                  : "border-transparent bg-system-navbg",
               )}
             >
-              <Check size={11} className="text-white" />
+              <Check
+                size={10}
+                className={cn(
+                  "transition-colors",
+                  isValid ? "text-sub-deepblue group-hover:text-main-white" : "text-sub-gray",
+                )}
+              />
             </button>
+
             <button
               type="button"
               aria-label="닉네임 편집 취소"
               onClick={closeEdit}
-              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-system-navbg active:opacity-60"
+              className="group flex size-4 shrink-0 items-center justify-center rounded-full border border-sub-coral bg-transparent transition-colors hover:bg-sub-coral active:opacity-70"
             >
-              <X size={11} className="text-sub-gray" />
+              <X
+                size={10}
+                className="text-sub-coral transition-colors group-hover:text-main-white"
+              />
             </button>
           </div>
         )}
 
-        <div className={cn("flex items-center gap-1", !showDuplicate && "invisible")}>
-          <XCircle size={12} className="text-sub-coral shrink-0" />
-          <span className="text-2xs font-semibold text-sub-coral">이미 사용중인 닉네임이에요.</span>
-        </div>
+        {isEditing && (showDuplicate || isValid) && (
+          <div className="mt-0.5 flex items-center gap-1">
+            {showDuplicate ? (
+              <>
+                <XCircle size={12} className="shrink-0 text-sub-coral" />
+                <span className="text-2xs font-semibold text-sub-coral">
+                  이미 사용중인 닉네임이에요.
+                </span>
+              </>
+            ) : (
+              <>
+                <CheckCircle size={12} className="shrink-0 text-main-blue" />
+                <span className="text-2xs font-semibold text-main-blue">
+                  사용 가능한 닉네임이에요.
+                </span>
+              </>
+            )}
+          </div>
+        )}
       </div>
     );
   },

@@ -2136,6 +2136,7 @@ export interface components {
             /** Format: uuid */
             itineraryId?: string;
             title?: string;
+            firstSpotName?: string;
             thumbnailPhotoUrl?: string;
             isPublic?: boolean;
             /** Format: date */

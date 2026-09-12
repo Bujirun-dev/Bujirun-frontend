@@ -35,7 +35,7 @@ export function TransportDetail({
       <div className="mb-1 flex min-w-0 items-center justify-between gap-3">
         <button
           type="button"
-          className="rounded-lg bg-main-blue px-2 py-1 active:opacity-80"
+          className="rounded-lg bg-main-blue px-2.5 py-1 active:opacity-80"
           onClick={onKakaoMapClick}
         >
           <Image src={kakaoMapLogo} alt="카카오맵" width={60} />

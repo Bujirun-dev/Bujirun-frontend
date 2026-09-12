@@ -28,8 +28,8 @@ function toLogCardProps(log: TravelLogSummary) {
   return {
     // 썸네일 없으면 플레이스홀더 이미지로 대체
     imageUrl: log.thumbnailPhotoUrl || "/images/placeholder.png",
-    // 사용자가 입력한 로그 타이틀 사용
-    placeName: log.title ?? "",
+    // 대표 관광지 이름(첫 방문지) 사용 — 로그 제목(title)이 아님
+    placeName: log.firstSpotName ?? log.title ?? "",
     extraCount,
     author: log.authorNickname ?? "",
     duration: "",

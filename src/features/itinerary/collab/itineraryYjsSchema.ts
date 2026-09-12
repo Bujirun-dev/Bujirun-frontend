@@ -10,7 +10,10 @@ import {
 const DAYS_KEY = "days";
 const META_KEY = "meta";
 const ACTIVITY_LOG_KEY = "activityLog";
-const MAX_ACTIVITY_LOG = 50;
+// 활동 로그 상한 / 상한 초과 시 한 번에 잘라내는 개수. 왜 이런 형태인지는 logActivity 주석 참고
+// (관찰자가 "배열 길이 증가"로 신규를 판별하므로, 길이를 한 값에 고정하면 알림이 영구 정지한다).
+const ACTIVITY_LOG_HARD_LIMIT = 2000;
+const ACTIVITY_LOG_TRIM_CHUNK = 500;
 
 export type ActivityAction = "add" | "delete" | "time" | "replace" | "optimize" | "import";
 
@@ -66,10 +69,12 @@ function toDayMap(dayId: string, stops: BaseStop[]): Y.Map<unknown> {
   return dayMap;
 }
 
+function getDayItems(dayMap: Y.Map<unknown> | undefined): Y.Array<Y.Map<unknown>> | null {
+  return (dayMap?.get("items") as Y.Array<Y.Map<unknown>> | undefined) ?? null;
+}
+
 function getItemsArray(doc: Y.Doc, dayIdx: number): Y.Array<Y.Map<unknown>> | null {
-  const dayMap = getDaysArray(doc).get(dayIdx) as Y.Map<unknown> | undefined;
-  if (!dayMap) return null;
-  return dayMap.get("items") as Y.Array<Y.Map<unknown>>;
+  return getDayItems(getDaysArray(doc).get(dayIdx) as Y.Map<unknown> | undefined);
 }
 
 function findItemIndex(items: Y.Array<Y.Map<unknown>>, itemId: string): number {
@@ -105,6 +110,16 @@ function longestCommonSubsequenceIds(a: string[], b: string[]): Set<string> {
   return result;
 }
 
+// Y.Map에 이미 들어있는 값과 같은 값인지 비교한다(transport처럼 객체인 필드까지). 같은 값을
+// 다시 set해도 Yjs는 업데이트를 쌓기 때문에(문서 크기↑, 동시 편집과 부딪힐 표면↑), 실제로
+// 달라진 필드만 쓰기 위해 쓴다.
+function isSameFieldValue(current: unknown, next: unknown): boolean {
+  if (current === next) return true;
+  if (current === null || next === null) return false;
+  if (typeof current !== "object" || typeof next !== "object") return false;
+  return JSON.stringify(current) === JSON.stringify(next);
+}
+
 // map의 필드를 stop 기준으로 다시 채운다(stop에 없는 키는 지움) — Y.Map 인스턴스는 그대로
 // 유지한 채 필드만 갱신하므로, 같은 항목의 다른 필드를 동시에 건드리는 변경과 안전하게 병합된다.
 function applyStopFields(map: Y.Map<unknown>, stop: BaseStop): void {
@@ -115,21 +130,36 @@ function applyStopFields(map: Y.Map<unknown>, stop: BaseStop): void {
   Array.from(map.keys()).forEach((key) => {
     if (!nextKeys.has(key) && !LOCAL_ONLY_FIELDS.has(key)) map.delete(key);
   });
-  nextEntries.forEach(([key, value]) => map.set(key, value));
+  nextEntries.forEach(([key, value]) => {
+    if (!isSameFieldValue(map.get(key), value)) map.set(key, value);
+  });
 }
 
-// 순서를 바꾸는 연산(시간순 재정렬 등) 전용. mutate가 돌려주는 "목표 배열"을 현재 배열과 id
-// 기준 LCS로 비교해서, 실제로 위치가 바뀐 항목만 새 Y.Map으로 만들어 delete+insert하고
-// 나머지는 건드리지 않는다(내용만 바뀐 항목은 Y.Map 인스턴스를 유지한 채 필드만 patch).
+// 순서가 바뀌는 연산(최적화/로그 불러오기 같은 "명시적 재배치") 전용. mutate가 돌려주는
+// "목표 배열"을 현재 배열과 id 기준 LCS로 비교해서, 실제로 위치가 바뀐 항목만 새 Y.Map으로
+// 만들어 delete+insert하고 나머지는 건드리지 않는다(내용만 바뀐 항목은 Y.Map 인스턴스를
+// 유지한 채 필드만 patch).
 //
-// Yjs는 한 번 문서에 통합된 shared type(Y.Map)을 삭제 후 재삽입할 수 없어서(실제로 에러 발생
-// 확인함), 위치가 바뀌는 항목 자체는 새 인스턴스로 다시 만들 수밖에 없다. 하지만 "위치가 안
-// 바뀐 나머지 항목"까지 전부 다시 만들 필요는 없다 — 예전엔 배열 전체를 delete(0,len)+
-// push(전체)로 다시 써서, 두 피어가 동시에(서로의 변경을 아직 모른 채) 같은 day에서 이
-// 함수를 호출하면 각자 계산한 "배열 전체"가 서로 모르는 별개의 삽입으로 병합되어 항목이
-// 통째로 중복되는 버그가 있었다(재현 확인 후 이 방식으로 교체). 지금은 실제로 이동하는
-// 항목의 개수만큼만 delete/insert가 일어나므로, 동시에 다른 항목을 건드리는 변경(추가/삭제/
-// 필드수정)과 충돌 범위가 훨씬 좁아진다.
+// Yjs는 한 번 문서에 통합된 shared type(Y.Map)을 삭제 후 재삽입할 수 없고(실제로 에러 발생
+// 확인함) Y.Array엔 move 연산도 없어서(yjs 13.6에 없음을 확인함), 위치가 바뀌는 항목 자체는 새
+// 인스턴스로 다시 만들 수밖에 없다. 하지만 "위치가 안 바뀐 나머지 항목"까지 전부 다시 만들
+// 필요는 없다 — 예전엔 배열 전체를 delete(0,len)+push(전체)로 다시 써서, 두 피어가 동시에
+// (서로의 변경을 아직 모른 채) 같은 day에서 이 함수를 호출하면 각자 계산한 "배열 전체"가 서로
+// 모르는 별개의 삽입으로 병합되어 항목이 통째로 중복되는 버그가 있었다(재현 확인 후 이 방식으로
+// 교체). 지금은 실제로 이동하는 항목의 개수만큼만 delete/insert가 일어난다.
+//
+// 그래도 "두 피어가 같은 항목을 각자 옮기는" 경우엔 delete는 하나로 합쳐지고(멱등) insert는 서로
+// 모르는 별개의 삽입으로 병합돼(비멱등) 같은 id의 Y.Map이 2개 남을 수 있다. Yjs에 move가 없는 한
+// 이 방식으로는 완전히 못 막으므로, 중복이 생기면 dedupeItemsById가 변경을 받는 시점에 정리한다.
+// 이 함수를 거치는 경로는 시각 변경(updateStopTime — 시간순 재정렬) / 시간 밀기
+// (shiftFollowingStopTimes — 순서 유지) / 최적화 / 로그 불러오기 전부이고, 그중 시각 변경이 가장
+// 흔한 동시 편집 경로라 중복이 실제로 터진 곳도 거기였다.
+//
+// 대안으로 "항목을 옮기지 않고 배열 슬롯의 내용만 목표 순서대로 덮어쓰는" 방식도 구현해봤지만
+// 절대 쓰면 안 된다: 필드별 LWW 병합이 슬롯마다 다른 피어 쪽으로 갈릴 수 있어서, 두 피어가 각자
+// 다른 항목의 시각을 동시에 고치기만 해도 두 슬롯이 같은 id가 되며 한 항목이 통째로 사라졌고,
+// "한쪽이 삭제 + 다른 쪽이 재정렬"에선 지운 항목이 되살아나고 엉뚱한 항목이 사라졌다
+// (2026-09-12, 실제 yjs로 재현 확인함).
 function replaceItemsArray(
   doc: Y.Doc,
   dayIdx: number,
@@ -216,26 +246,95 @@ export function seedYjsDays(doc: Y.Doc, dayIds: string[], days: BaseStop[][]): v
 // 완전히 새 일정(아무도 연 적 없는 room)에 두 명 이상이 정확히 동시에 처음 접속하면, 서로의
 // 존재를 모른 채 둘 다 "문서가 비어있다"고 판단해 seedYjsDays를 각자 실행해서 day 전체가
 // 통째로 중복될 수 있다(재현 확인함) — Yjs엔 "동시 생성" 자체를 막는 락이 없어서 이건 근본적
-// 으로 못 막는다. 대신 병합된 뒤에 dayId 기준으로 중복을 찾아 지운다: 병합 후 배열의 순서는
-// 모든 피어에서 동일하므로(Y.Array의 CRDT 전체 순서 보장), 각자 독립적으로 "처음 나온
-// dayId만 남기고 이후 중복은 지운다"를 계산해도 모든 피어가 정확히 같은 결론을 내려서
-// 안전하게 수렴한다(삭제 연산 자체도 멱등이라 여러 피어가 동시에 같은 중복을 지워도 안전).
+// 으로 못 막는다. 대신 병합된 뒤에 dayId 기준으로 중복을 정리한다.
+//
+// "남길 쪽"은 항상 "배열에서 가장 앞에 있는 사본"이다. 내용(항목 수 등)으로 고르지 않는 이유:
+// 아직 상대의 업데이트를 다 못 받은 피어끼리는 같은 사본의 항목 수를 다르게 볼 수 있어서,
+// A는 "1번째가 더 알차다"며 2번째를, B는 "2번째가 더 알차다"며 1번째를 지우는 일이 벌어진다
+// (삭제는 병합되므로 결과는 day가 통째로 소멸 = 진짜 데이터 손실). 반면 Y.Array의 순서는 모든
+// 피어에서 동일하게 수렴하고, "내가 보는 것 중 가장 앞"을 남기는 규칙은 전역적으로 가장 앞인
+// 사본을 누구도 지우지 않으므로 최소 하나는 반드시 살아남는다.
+//
+// 그래서 "빈 사본이 알찬 사본을 이기는" 문제는 고르는 기준이 아니라 흡수(merge)로 해결한다:
+// 중복 사본의 항목 중 남길 사본에 없는 id만 남길 사본의 뒤에 복사해 붙인 뒤 중복 사본을
+// 지운다. 그러면 남는 쪽이 내 로컬 폴백 시딩본이어도 다른 참여자가 그 사이 추가한 항목이
+// 사라지지 않는다(둘 다 같은 REST 응답으로 시딩된 통상적인 경우엔 id가 같아 흡수할 게 없고,
+// 결과도 예전과 동일하다). 같은 id의 필드 편집은 남는 쪽 값이 이긴다 — 항목이 없어지는 것보다
+// 가볍고, 순서 정보 없이 병합하려면 여기서 판단 불가능한 우선순위가 필요해서 시도하지 않는다.
+// 흡수한 항목은 맨 뒤에 붙으므로 방문 순서가 어색해질 수 있지만(사용자가 다시 옮길 수 있다)
+// 내용이 사라지는 것보다 낫다고 판단했다. 통합된 Y.Map은 옮길 수 없어 내용을 복사한다.
 function dedupeDaysById(doc: Y.Doc): void {
   const daysArray = getDaysArray(doc);
-  const seenIds = new Set<string>();
-  const duplicateIndexes: number[] = [];
+  const keepIdxByDayId = new Map<string, number>();
+  const duplicates: { keepIdx: number; dupIdx: number }[] = [];
   daysArray.toArray().forEach((dayMap, idx) => {
     const dayId = dayMap.get("dayId") as string;
-    if (seenIds.has(dayId)) duplicateIndexes.push(idx);
-    else seenIds.add(dayId);
+    const keepIdx = keepIdxByDayId.get(dayId);
+    if (keepIdx === undefined) keepIdxByDayId.set(dayId, idx);
+    else duplicates.push({ keepIdx, dupIdx: idx });
   });
-  if (duplicateIndexes.length === 0) return;
+  if (duplicates.length === 0) return;
+
   doc.transact(() => {
-    // 뒤에서부터 지워야 앞쪽 인덱스가 안 꼬인다.
-    duplicateIndexes
-      .slice()
-      .reverse()
+    // 1) 먼저 흡수 (daysArray 자체는 건드리지 않으므로 위 인덱스가 그대로 유효하다)
+    duplicates.forEach(({ keepIdx, dupIdx }) => {
+      const keepItems = getDayItems(daysArray.get(keepIdx) as Y.Map<unknown> | undefined);
+      const dupItems = getDayItems(daysArray.get(dupIdx) as Y.Map<unknown> | undefined);
+      if (!keepItems || !dupItems) return;
+      const keptIds = new Set(keepItems.toArray().map((map) => map.get("id") as string));
+      const absorbed = dupItems
+        .toArray()
+        .filter((map) => !keptIds.has(map.get("id") as string))
+        .map((map) => toItemMap(fromItemMap(map)));
+      if (absorbed.length > 0) keepItems.push(absorbed);
+    });
+
+    // 2) 중복 사본 제거 — 뒤에서부터 지워야 앞쪽 인덱스가 안 꼬인다.
+    duplicates
+      .map(({ dupIdx }) => dupIdx)
+      .sort((a, b) => b - a)
       .forEach((idx) => daysArray.delete(idx, 1));
+  });
+}
+
+// 같은 id의 항목이 한 day에 2개 이상 있으면 가장 앞의 하나만 남기고 나머지를 지운다.
+// 두 군데를 막는다: (1) 동시 편집으로 새로 생기는 중복 — 배열 순서를 바꾸는 경로(시각 변경의
+// 시간순 재정렬, 최적화, 로그 불러오기)는 replaceItemsArray의 delete+insert를 거치는데, 삭제는
+// 멱등이지만 삽입은 아니라서 두 사람이 거의 동시에 실행하면 같은 id가 두 벌로 병합될 수 있다
+// (가장 흔한 건 시각 변경). (2) 그렇게 이미 중복이 박혀버린 채 Redis에 남아 있는 문서 — 열었을 때
+// 화면에 같은 장소가 2개 뜨고 flush의 reorderItems가 400을 맞아 순서 저장이 계속 죽어있는 상태를
+// 복구한다.
+// 남길 기준을 "가장 앞"으로 잡은 이유는 dedupeDaysById와 같다: 내용으로 고르면 피어마다
+// 판단이 갈려 양쪽 사본이 다 지워질 수 있고, 위치 기준은 전역적으로 가장 앞인 사본이 절대
+// 지워지지 않아 최소 하나가 반드시 남는다(중복 사본들의 내용은 원래 같은 항목에서 갈라져
+// 나온 것이라 어느 쪽을 남겨도 차이가 거의 없다).
+function dedupeItemsById(doc: Y.Doc): void {
+  const removals: { items: Y.Array<Y.Map<unknown>>; indexes: number[] }[] = [];
+  getDaysArray(doc)
+    .toArray()
+    .forEach((dayMap) => {
+      const items = getDayItems(dayMap);
+      if (!items) return;
+      const seenIds = new Set<string>();
+      const duplicateIndexes: number[] = [];
+      items.toArray().forEach((map, idx) => {
+        const id = map.get("id") as string | undefined;
+        if (id === undefined) return;
+        if (seenIds.has(id)) duplicateIndexes.push(idx);
+        else seenIds.add(id);
+      });
+      if (duplicateIndexes.length > 0) removals.push({ items, indexes: duplicateIndexes });
+    });
+  if (removals.length === 0) return;
+
+  doc.transact(() => {
+    removals.forEach(({ items, indexes }) => {
+      // 뒤에서부터 지워야 앞쪽 인덱스가 안 꼬인다.
+      indexes
+        .slice()
+        .reverse()
+        .forEach((idx) => items.delete(idx, 1));
+    });
   });
 }
 
@@ -307,14 +406,16 @@ export function reconcileBrokenTimesFromRest(
   });
 }
 
-// "days" 키를 이 모듈 밖으로 새어나가지 않게 감싼 observe 헬퍼. 매 변화마다 dayId 중복부터
-// 정리한 뒤(동시 최초시딩 경합 대비, dedupeDaysById 주석 참고) 콜백을 부른다 — 정리할 게
-// 있었다면 그 삭제 트랜잭션이 이 observer를 한 번 더 재귀 호출하지만, 두 번째 패스는 지울 게
-// 없어 바로 종료되므로 무한루프로 이어지지 않는다.
+// "days" 키를 이 모듈 밖으로 새어나가지 않게 감싼 observe 헬퍼. 매 변화마다 dayId 중복과
+// 항목 id 중복부터 정리한 뒤(동시 최초시딩 경합 / 예전 버전이 남긴 중복 대비, dedupeDaysById·
+// dedupeItemsById 주석 참고) 콜백을 부른다 — 정리할 게 있었다면 그 트랜잭션이 이 observer를
+// 한 번 더 재귀 호출하지만, 두 번째 패스는 정리할 게 없어 바로 종료되므로 무한루프로 이어지지
+// 않는다(dayId 정리에서 흡수된 항목이 중복 id를 만들면 그 두 번째 패스가 정리해 준다).
 export function observeYjsDays(doc: Y.Doc, callback: () => void): () => void {
   const daysArray = getDaysArray(doc);
   const handler = () => {
     dedupeDaysById(doc);
+    dedupeItemsById(doc);
     callback();
   };
   daysArray.observeDeep(handler);
@@ -348,6 +449,31 @@ export function deleteStop(doc: Y.Doc, dayIdx: number, itemId: string): void {
   });
 }
 
+// 해당 항목의 시각을 고치고, 그날 목록을 시간순으로 다시 정렬한다 — 정렬이 원래 동작이고
+// 의도된 동작이다(2026-09-12에 원래 동작으로 복원). 타임라인이 시간축 UI라 목록 순서와 시각이
+// 어긋나 보이면 안 되고, 이 배열 순서가 그대로 DB 방문 순서(flush → reorderItems의 order_index)가
+// 되기 때문이다.
+//
+// 정렬은 반드시 "쓰는 시점"에 해야 한다. 읽는 쪽에서만 시간순으로 보여주는 방법은 쓸 수 없다 —
+// readStopsFromYjs의 결과는 화면뿐 아니라 flush(→ order_index)와 rebuildTransport("배열상 다음
+// 항목까지의 구간"이라는 전제)로 그대로 흘러가서, 읽을 때만 정렬하면 화면과 저장되는 방문 순서가
+// 갈리고 뒤바뀐 위치마다 toStopId가 실제 다음 스팟과 안 맞아 구간 이동수단이 연쇄로 비워진다.
+//
+// 이 경로는 replaceItemsArray를 거치므로 위치가 실제로 바뀐 항목은 delete+insert된다. 삭제는
+// 멱등이지만 삽입은 아니라서, 두 사람이 "같은 항목의 시각"을 거의 동시에 고치면 같은 id의 Y.Map이
+// 두 벌로 병합될 수 있다(화면에 같은 장소 2개 = React key 중복 + flush의 reorderItems에 중복 id가
+// 실려 400). 그 중복은 dedupeItemsById가 변경을 받는 시점에 정리한다 — 정렬을 없애는 방향이 아니다.
+//
+// 시도했다가 되돌린 두 방향(다시 꺼내지 말 것):
+//  - 정렬을 걷어내고 제자리에서 필드만 고치기: 같은 id가 갈라지는 문제는 사라지지만, 시각과 방문
+//    순서가 어긋난 채로 저장돼(12:00 항목이 10:00 항목보다 위에 남는다) 타임라인이 뒤죽박죽으로
+//    보이고 그 순서가 그대로 DB에 반영된다.
+//  - "배열 슬롯은 그대로 두고 내용만 목표 순서대로 덮어쓰기": 필드별 LWW 병합의 승자가 슬롯마다
+//    갈려서, 두 피어가 각자 다른 항목의 시각을 고치기만 해도 두 슬롯이 같은 id가 되며 한 항목이
+//    통째로 사라졌다(replaceItemsArray 주석의 2026-09-12 시뮬레이션 결과 참고).
+//
+// 반대로 shiftFollowingStopTimes(교통수단 변경에 따른 시간 밀기)는 정렬하지 않는다 — 거기선 일부
+// 항목만 밀리기 때문에 정렬하면 사용자가 정해둔 방문 순서 자체가 뒤바뀐다(그 함수 주석 참고).
 export function updateStopTime(doc: Y.Doc, dayIdx: number, itemId: string, time: string): void {
   replaceItemsArray(doc, dayIdx, (stops) =>
     stops
@@ -483,6 +609,20 @@ function getActivityLogArray(doc: Y.Doc): Y.Array<ActivityLogEntry> {
 // "누가 뭘 했는지" 기록 — 데이터 mutation 함수와 분리해서 호출부(페이지)가 액션 종류를
 // 직접 고르게 한다(같은 pushOptimizedOrder 호출도 AI 최적화/로그 불러오기처럼 문맥에 따라
 // 다른 액션으로 기록해야 해서, mutation 함수 안에 액션을 못 박아두지 않는다).
+//
+// 이 배열은 기본적으로 append-only로 둔다. 관찰자(useCollaborativeItinerary)가 "신규 항목"을
+// 배열 길이 증가(entries.slice(lastSeenLen))로 판별하기 때문에, 예전처럼 push할 때마다 앞부분을
+// 잘라 길이를 50에 고정해 버리면 길이가 더 이상 늘지 않아 신규가 항상 빈 배열이 된다 — 활동이
+// 50건을 넘긴(=오래 쓴) 방에서 "○○님이 …" 토스트와 로그 불러오기 안내가 조용히 영구 정지하던
+// 원인이 이것이었다.
+//
+// 그래도 무한히 쌓이면 Redis 문서가 계속 커지므로 상한은 둔다. 단 "상한에 닿을 때마다 1개 자르기"
+// (= 길이 고정)가 아니라 "상한을 넘으면 한 번에 CHUNK개 자르기"로 한다: 자른 직후엔 배열이
+// 관찰자의 기준 길이보다 짧아져 알림이 잠시 멈추지만, 다시 CHUNK개가 쌓여 기준 길이를 넘어서면
+// 자동으로 되살아난다. 즉 "영구 정지"가 "아주 드문 일시 정지"로 바뀐다(한 일정 방에서 활동
+// 2000건은 현실적으로 거의 도달하지 않는 수치라 실제로는 트림 자체가 거의 일어나지 않는다).
+// 완전한 해결은 관찰자가 길이 대신 항목 id/at 기준으로 신규를 판별하는 것이지만, 그 파일은
+// 이번 작업 범위가 아니라 손대지 않았다.
 export function logActivity(
   doc: Y.Doc,
   actorName: string,
@@ -492,7 +632,7 @@ export function logActivity(
   doc.transact(() => {
     const log = getActivityLogArray(doc);
     log.push([{ id: crypto.randomUUID(), actorName, action, placeName, at: Date.now() }]);
-    if (log.length > MAX_ACTIVITY_LOG) log.delete(0, log.length - MAX_ACTIVITY_LOG);
+    if (log.length > ACTIVITY_LOG_HARD_LIMIT) log.delete(0, ACTIVITY_LOG_TRIM_CHUNK);
   });
 }
 

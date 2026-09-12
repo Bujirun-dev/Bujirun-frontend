@@ -167,6 +167,16 @@
   animation: fade-in 0.25s ease-out;
 }
 
+@keyframes spin-border {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@utility animate-spin-border {
+  animation: spin-border 1.8s linear infinite;
+}
+
 *,
 *::before,
 *::after {

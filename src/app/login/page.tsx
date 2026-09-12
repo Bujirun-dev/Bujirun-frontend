@@ -4,10 +4,17 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { KakaoLoginButton } from "@/components/ui/KakaoLoginButton";
 import characterImg from "@/assets/character/primary.png";
-import { StaircaseGlassCard, PrivacyPolicyModal } from "@/components";
+import {
+  StaircaseGlassCard,
+  LegalMenuModal,
+  PrivacyPolicyModal,
+  ServiceTermsModal,
+} from "@/components";
 import { clearPendingInvite } from "@/shared/utils/pendingInvite";
 
 export default function LoginPage() {
+  const [isLegalMenuOpen, setIsLegalMenuOpen] = useState(false);
+  const [isServiceTermsOpen, setIsServiceTermsOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   // 이 화면을 거쳐 로그인하는 건 초대 참여가 아니라 "그냥 로그인"이다. 예전에 초대 링크를
@@ -45,7 +52,7 @@ export default function LoginPage() {
             * 로그인하면{" "}
             <button
               type="button"
-              onClick={() => setIsPrivacyOpen(true)}
+              onClick={() => setIsLegalMenuOpen(true)}
               className="underline underline-offset-2 text-sub-deepblue active:opacity-70"
             >
               서비스 이용약관 및 개인정보 처리방침
@@ -56,8 +63,14 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
-
-      <PrivacyPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
+      <LegalMenuModal
+        isOpen={isLegalMenuOpen}
+        onClose={() => setIsLegalMenuOpen(false)}
+        onOpenServiceTerms={() => setIsServiceTermsOpen(true)}
+        onOpenPrivacyPolicy={() => setIsPrivacyOpen(true)}
+      />
+      <ServiceTermsModal isOpen={isServiceTermsOpen} onClose={() => setIsServiceTermsOpen(false)} />
+      <PrivacyPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />{" "}
     </main>
   );
 }

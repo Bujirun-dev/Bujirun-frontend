@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { travelLogApi } from "@/shared/api/domains";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { Card, StatusBadge, EmptyState, LoadingBoundary } from "@/components";
 import { useTodayItinerary } from "@/features/home/hooks/useTodayItinerary";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
@@ -13,6 +13,7 @@ import { ArrivalVerifyModal } from "@/features/itinerary/components/ArrivalVerif
 import { openKakaoMapRoute } from "@/features/itinerary/components/transportRoute";
 import { getSelectedTransportOption } from "@/features/home/data/sampleTransport";
 import { isReviewSkipped } from "@/shared/utils/skippedReviews";
+import { getTravelModeOptions } from "@/shared/api/domains/itinerary";
 import type {
   TransportGroup,
   TransportOption,
@@ -63,6 +64,13 @@ function resolveTransportType(leg?: TransitLegSource): TransportType | null {
   return null;
 }
 
+function resolveTravelModeOptionType(travelMode?: string, routeType?: string) {
+  if (routeType) return routeType;
+  if (travelMode === "taxi") return "택시";
+  if (travelMode === "walk") return "도보";
+  return null;
+}
+
 // 두 스팟 사이의 실제 이동 정보(백엔드가 ODsay로 계산해 저장한 값)로 TransportGroup을 만든다.
 // 도착 스팟(nextPlan) 쪽에 이전 스팟까지의 구간 정보가 저장되어 있다.
 // 저장된 값이 없으면 null을 반환해 "교통정보 없음"으로 표시하고, 가짜 역명을 보여주지 않는다.
@@ -105,6 +113,7 @@ export function TodayItinerary() {
   const router = useRouter();
   const accessToken = useAuthStore((state) => state.accessToken);
   const hasRedirectedToReviewRef = useRef(false);
+
   const {
     itinerary,
     completedItineraries,
@@ -115,33 +124,104 @@ export function TodayItinerary() {
     isLoading,
     isError,
   } = useTodayItinerary();
+
+  const transportOptionQueries = useQueries({
+    queries: plans.slice(1).map((plan) => ({
+      queryKey: ["travel-mode-options", itinerary?.id, day?.id, plan.id],
+      queryFn: () => {
+        if (!itinerary?.id || !day?.id || !plan.id) {
+          throw new Error("이동수단 조회에 필요한 일정 정보가 없습니다.");
+        }
+
+        return getTravelModeOptions(itinerary.id, day.id, plan.id);
+      },
+      enabled: !!itinerary?.id && !!day?.id && !!plan.id && !!plan.travelMode,
+      staleTime: 60_000,
+    })),
+  });
+
   const completedItineraryIds = completedItineraries.map((itinerary) => itinerary.id);
+
   const { data: logExists } = useQuery({
     queryKey: [...travelLogApi.keys.all, "exists", completedItineraryIds],
     queryFn: () => travelLogApi.checkLogExists(completedItineraryIds),
     enabled: !!accessToken && completedItineraryIds.length > 0,
   });
   const [selectedTransportGroup, setSelectedTransportGroup] = useState<TransportGroup | null>(null);
-  const [selectedVerifySpot, setSelectedVerifySpot] = useState<{
-    spotId: string;
-    placeName: string;
-    itineraryItemId?: string;
-  } | null>(null);
+
   const [selectedOptionIdByRoute, setSelectedOptionIdByRoute] = useState<Record<string, string>>(
     {},
   );
 
-  const openTransportModal = (transportGroup: TransportGroup) => {
-    setSelectedTransportGroup(transportGroup);
+  const [selectedVerifySpot, setSelectedVerifySpot] = useState<{
+    spotId: string;
+    placeName: string;
+    itineraryItemId?: string;
+    placeImageUrl?: string;
+  } | null>(null);
+
+  const openTransportModal = async (
+    transportGroup: TransportGroup,
+    itemId?: string,
+    travelMode?: string,
+    routeType?: string,
+  ) => {
+    if (!itinerary?.id || !day?.id || !itemId || !travelMode) {
+      setSelectedTransportGroup(transportGroup);
+      return;
+    }
+
+    try {
+      const travelModeOptions = await getTravelModeOptions(itinerary.id, day.id, itemId);
+
+      const optionType = resolveTravelModeOptionType(travelMode, routeType);
+
+      const matchedOption = optionType
+        ? travelModeOptions.find((option) => option.type === optionType)
+        : undefined;
+
+      if (!matchedOption) {
+        setSelectedTransportGroup(transportGroup);
+        return;
+      }
+
+      const currentOption = transportGroup.options[0];
+
+      setSelectedTransportGroup({
+        ...transportGroup,
+        options: [
+          {
+            ...currentOption,
+            durationText:
+              matchedOption.totalTime != null
+                ? `${matchedOption.totalTime}분`
+                : currentOption.durationText,
+            costText:
+              matchedOption.totalFare != null
+                ? `${matchedOption.totalFare.toLocaleString()}원`
+                : currentOption.costText,
+          },
+        ],
+      });
+    } catch (error) {
+      console.error("이동수단 상세 조회 실패:", error);
+      setSelectedTransportGroup(transportGroup);
+    }
   };
 
   const closeTransportModal = () => setSelectedTransportGroup(null);
 
-  const openVerifyModal = (spotId: string, placeName: string, itineraryItemId?: string) => {
+  const openVerifyModal = (
+    spotId: string,
+    placeName: string,
+    itineraryItemId?: string,
+    placeImageUrl?: string,
+  ) => {
     setSelectedVerifySpot({
       spotId,
       placeName,
       itineraryItemId,
+      placeImageUrl,
     });
   };
 
@@ -166,26 +246,29 @@ export function TodayItinerary() {
     if (hasRedirectedToReviewRef.current) return;
     if (!logExists) return;
 
-    const reviewTarget = completedItineraries.find((itinerary) => {
-      const log = logExists.find((item) => item.itineraryId === itinerary.id);
+    // 자동 팝업은 "가장 최근에 끝난 일정" 하나만 대상으로 한다. 예전엔 완료된 일정 전체에서
+    // 조건에 맞는 걸 찾았는데(find), 영수증을 발행하지 않은 지난 여행이 여러 개 쌓여 있으면
+    // 취소 → 홈 복귀 → 그 다음 여행 팝업 → 취소 → ... 가 계속 이어져 사실상 빠져나갈 수 없었다.
+    // 팝업 제목이 "여행 기록"으로 고정이라 사용자 눈엔 같은 팝업이 무한히 다시 뜨는 것으로 보인다.
+    const [latestCompleted] = completedItineraries; // endAt 내림차순 정렬됨(useTodayItinerary)
+    if (!latestCompleted) return;
 
-      // 백엔드가 2026-08-30부터 종료된 일정의 로그를 자동 생성해서(영수증 발행 여부와 무관),
-      // hasLog는 일정 종료 후 이 API를 한 번만 호출해도 계속 true가 된다 — "아직 영수증을
-      // 발행 안 했다"를 판단하려면 hasLog가 아니라 receiptCompleted(mood까지 채워 실제로
-      // 발행을 마쳤는지)를 봐야 한다.
-      //
-      // 사용자가 이 일정에 대한 영수증 팝업을 이미 취소한 적 있으면 다시 자동으로 띄우지
-      // 않는다 — 그렇지 않으면 취소 → 홈 재진입 → 같은 팝업이 다시 뜨는 무한루프가 됨
-      // (아직 수동으로 영수증 발행을 다시 시작할 진입로가 없어서, 이 자동 리다이렉트가
-      // 사실상 유일한 진입로였음).
-      return !log?.receiptCompleted && !isReviewSkipped(itinerary.id);
-    });
+    const log = logExists.find((item) => item.itineraryId === latestCompleted.id);
 
-    if (!reviewTarget) return;
+    // 백엔드가 2026-08-30부터 종료된 일정의 로그를 자동 생성해서(영수증 발행 여부와 무관),
+    // hasLog는 일정 종료 후 이 API를 한 번만 호출해도 계속 true가 된다 — "아직 영수증을
+    // 발행 안 했다"를 판단하려면 hasLog가 아니라 receiptCompleted(mood까지 채워 실제로
+    // 발행을 마쳤는지)를 봐야 한다.
+    if (log?.receiptCompleted) return;
+
+    // 이 일정의 팝업을 이미 취소한 적 있으면 다시 띄우지 않는다. promptDismissed는 서버에
+    // 저장된 값(기기를 바꾸거나 localStorage가 비워져도 유지되고), isReviewSkipped는 방금
+    // 취소한 직후처럼 아직 서버 응답을 다시 못 받은 시점을 메우는 로컬 캐시다.
+    if (log?.promptDismissed || isReviewSkipped(latestCompleted.id)) return;
 
     hasRedirectedToReviewRef.current = true;
 
-    router.replace(`/home/review?itineraryId=${reviewTarget.id}`);
+    router.replace(`/home/review?itineraryId=${latestCompleted.id}`);
   }, [completedItineraries, logExists, router]);
 
   if (isError || !hasSchedule || !day || plans.length === 0) {
@@ -225,6 +308,7 @@ export function TodayItinerary() {
           {plans.map((plan, index) => {
             const spotId = plan.spot?.id;
             const placeName = plan.spot?.name ?? "이름 없는 장소";
+            const placeImageUrl = plan.spot?.thumbnailUrl;
             const isVisited = plan.spot?.visited ?? false;
             const nextPlan = plans[index + 1];
             const nextPlaceName = nextPlan?.spot?.name;
@@ -239,6 +323,29 @@ export function TodayItinerary() {
             const selectedOption = transportGroup
               ? getSelectedTransportOption(transportGroup, selectedOptionId)
               : null;
+            const transportOptionQuery = transportOptionQueries[index];
+
+            const optionType = nextPlan
+              ? resolveTravelModeOptionType(nextPlan.travelMode, nextPlan.routeType)
+              : null;
+
+            const matchedTransportOption = optionType
+              ? transportOptionQuery?.data?.find((option) => option.type === optionType)
+              : undefined;
+
+            const summaryOption = selectedOption
+              ? {
+                  ...selectedOption,
+                  durationText:
+                    matchedTransportOption?.totalTime != null
+                      ? `${matchedTransportOption.totalTime}분`
+                      : selectedOption.durationText,
+                  costText:
+                    matchedTransportOption?.totalFare != null
+                      ? `${matchedTransportOption.totalFare.toLocaleString()}원`
+                      : selectedOption.costText,
+                }
+              : null;
             return (
               <li
                 key={plan.id ?? `${placeName}-${index}`}
@@ -246,7 +353,7 @@ export function TodayItinerary() {
               >
                 {index < plans.length - 1 && (
                   <span
-                    className="absolute left-[7.5px] top-[30px] bottom-[-15px] w-px bg-sub-gray"
+                    className="absolute left-[7.5px] top-7 bottom-[-2px] w-px bg-sub-gray"
                     aria-hidden="true"
                   />
                 )}
@@ -254,19 +361,26 @@ export function TodayItinerary() {
                   <span
                     className={
                       isVisited
-                        ? "size-4 shrink-0 rounded-full bg-main-blue"
+                        ? "size-4 shrink-0 rounded-full bg-sub-gray"
                         : "size-4 shrink-0 rounded-full bg-sub-pink"
                     }
                   />
                   <div className="min-w-0 flex-1">
                     <p className="leading-4 text-md font-medium text-text-primary">{placeName}</p>
-                    {transportGroup && selectedOption ? (
+                    {transportGroup && summaryOption ? (
                       <button
                         type="button"
                         className="my-3 w-full text-left"
-                        onClick={() => openTransportModal(transportGroup)}
+                        onClick={() =>
+                          openTransportModal(
+                            transportGroup,
+                            nextPlan?.id,
+                            nextPlan?.travelMode,
+                            nextPlan?.routeType,
+                          )
+                        }
                       >
-                        <TransportSummaryCard {...selectedOption} />
+                        <TransportSummaryCard {...summaryOption} />
                       </button>
                     ) : (
                       nextPlaceName && (
@@ -286,7 +400,7 @@ export function TodayItinerary() {
                     className="mt-[7px] shrink-0"
                     onClick={() => {
                       if (!spotId || !plan.id) return;
-                      openVerifyModal(spotId, placeName, plan.id);
+                      openVerifyModal(spotId, placeName, plan.id, placeImageUrl);
                     }}
                   >
                     <StatusBadge status="verify" className="px-2.5 py-1.5 text-sm" />
@@ -319,6 +433,7 @@ export function TodayItinerary() {
             itineraryItemId={selectedVerifySpot.itineraryItemId}
             isOpen
             placeName={selectedVerifySpot.placeName}
+            placeImageUrl={selectedVerifySpot.placeImageUrl}
             onClose={closeVerifyModal}
             onVerify={closeVerifyModal}
             onLater={closeVerifyModal}

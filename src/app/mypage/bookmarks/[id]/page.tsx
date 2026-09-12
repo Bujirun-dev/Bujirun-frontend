@@ -4,6 +4,7 @@ import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageCard, Toast, LoadingBoundary } from "@/components";
+import { getKakaoMapUrl } from "@/shared/utils";
 import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
 import { travelLogApi, spotApi, bookmarkApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
@@ -89,6 +90,7 @@ export default function BookmarkDetailPage({
               category: toCategory(spot?.category, spot?.name),
               description: spot?.overview ?? "",
               address: spot?.address ?? "",
+              mapUrl: getKakaoMapUrl(spot?.name, spot?.lat, spot?.lng),
               isBookmarked,
               infoItems: [
                 ...(spot?.operatingHours

@@ -18,7 +18,7 @@ export function TimelineSearchTrigger({
       <button
         type="button"
         data-time-btn
-        className="flex w-10 shrink-0 justify-end pr-[5px]"
+        className="flex w-10 shrink-0 justify-end pr-[2px]"
         onClick={onTimeClick}
       >
         {isTimeActive ? (

@@ -14,7 +14,8 @@ import flagImg from "@/assets/place/flag.png";
 import houseImg from "@/assets/place/house.png";
 import busanStationImg from "@/assets/place/busan-station.png";
 import { groupApi, itineraryApi } from "@/shared/api/domains";
-import { useItineraryGenerationLockStore } from "@/shared/stores";
+import { useItineraryGenerationLockStore, useItineraryFlowStore } from "@/shared/stores";
+import { useItineraryFlowProgress } from "@/features/itinerary/hooks/useItineraryFlowProgress";
 import {
   getDefaultItemTime,
   getFallbackImage,
@@ -89,11 +90,11 @@ type FreepassModalStep = "guide" | "confirm" | null;
 function ResultPlaceNode({ place }: { place: Place }) {
   return (
     <div className="relative flex min-w-0 flex-col items-center">
-      <p className="absolute left-1/2 -top-[27px] max-w-[78px] -translate-x-1/2 truncate whitespace-nowrap text-center font-paperlogy text-xs font-normal text-text-heading">
+      <p className="absolute left-1/2 -top-[30px] max-w-[78px] -translate-x-1/2 truncate whitespace-nowrap text-center font-paperlogy text-xs font-normal text-text-heading">
         {place.name}
       </p>
-      <span className="absolute left-1/2 -top-[13px] z-10 size-[11px] -translate-x-1/2 rounded-full border-[1.5px] border-main-blue bg-main-white" />
-      <div className="relative h-[38px] w-[57px] overflow-hidden rounded-[8px] border border-main-blue bg-system-navbg">
+      <span className="absolute left-1/2 -top-[13px] z-10 size-3 -translate-x-1/2 rounded-full border-[1.5px] border-main-blue bg-main-white" />
+      <div className="relative mt-[3px] h-[38px] w-[57px] overflow-hidden rounded-[8px] border border-main-blue bg-system-navbg">
         <Image src={place.image} alt={place.name} fill sizes="57px" className="object-cover" />
       </div>
     </div>
@@ -134,10 +135,13 @@ function TripResultContent() {
   const accommodationLng = searchParams.get("accommodationLng") ?? "";
   const isHost = useIsGroupHost(groupId);
 
+  // 초대 화면이 3초 폴링으로 받아둔 값이 캐시에 남아 있어서, 그 뒤 들어온 멤버가
+  // 이 화면에서 빠져 보일 수 있다. 마운트 시 한 번은 최신으로 맞춘다.
   const { data: members = [] } = useQuery({
     queryKey: groupApi.keys.members(groupId),
     queryFn: () => groupApi.getGroupMembers(groupId),
     enabled: !!groupId,
+    refetchOnMount: "always",
   });
 
   // 스와이프 완료 직후 방장/참여자가 거의 동시에 이 페이지에 진입하면 각자의
@@ -177,6 +181,9 @@ function TripResultContent() {
   const startTime = toHourMinute(generated?.startTime) || requestedStartTime;
   const endTime = toHourMinute(generated?.endTime) || requestedEndTime;
 
+  const displayStartTime = startTime.slice(0, 5);
+  const displayEndTime = endTime.slice(0, 5);
+
   const generatingMessage = useGeneratingMessage(isGenerating);
   const sessionId = generated?.voteSessionId ?? "";
   const [toastVariant, setToastVariant] = useState<
@@ -184,6 +191,7 @@ function TripResultContent() {
   >("default");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const unlockGeneration = useItineraryGenerationLockStore((state) => state.unlock);
+  const clearFlow = useItineraryFlowStore((state) => state.clearFlow);
   const queryClient = useQueryClient();
 
   // 확정 직후엔 일정 목록 캐시(staleTime 60초)에 새 일정이 아직 없다. 그대로 /itinerary로
@@ -191,11 +199,21 @@ function TripResultContent() {
   // 그래서 목록을 무효화하고, 방금 만들어진 일정 id를 tripId로 직접 지정해서 이동한다.
   const goToNewItinerary = async (itineraryId?: string) => {
     unlockGeneration();
+    // 확정까지 끝났으면 더 이어할 게 없다 — "이어하기" 안내가 남지 않게 지운다.
+    clearFlow();
     try {
       await queryClient.invalidateQueries({
         queryKey: itineraryApi.keys.lists(),
         refetchType: "all",
       });
+      // 상세도 미리 받아둔다 — 일정 화면은 마운트 시점 데이터로 Yjs를 시딩하기 때문에,
+      // 상세가 아직 없는 채로 열리면 빈 상태가 굳어서 새로고침 전까지 제대로 안 보인다.
+      if (itineraryId) {
+        await queryClient.prefetchQuery({
+          queryKey: itineraryApi.keys.detail(itineraryId),
+          queryFn: () => itineraryApi.getItinerary(itineraryId),
+        });
+      }
     } finally {
       router.push(itineraryId ? `/itinerary?tripId=${itineraryId}` : "/itinerary");
     }
@@ -206,7 +224,7 @@ function TripResultContent() {
   // 없으므로 일정 화면으로 보낸다.
   const { voteStatus } = useVoteSessionPolling(sessionId, {
     onConfirmed: (_sessionId, itineraryId) => {
-      setToastVariant("success");
+      setToastVariant("itinerary");
       setToastMessage("이미 일정이 확정됐어요. 일정 화면으로 이동할게요.");
       window.setTimeout(() => goToNewItinerary(itineraryId), 1500);
     },
@@ -232,6 +250,9 @@ function TripResultContent() {
     ...(accommodationLat ? { accommodationLat } : {}),
     ...(accommodationLng ? { accommodationLng } : {}),
   }).toString();
+
+  // 생성/투표 중에 튕겨도 같은 투표 세션으로 돌아올 수 있게 진행 상황을 남긴다.
+  useItineraryFlowProgress("result", forwardParams, groupId, { sessionId, tripName });
 
   // days 수에 맞게 각 플랜 day 슬라이스 + 하루 최대 3곳(아침/오후/저녁) 슬롯에 맞춰 시간 배정
   const plans: Plan[] = [
@@ -396,7 +417,7 @@ function TripResultContent() {
             {showInfo && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowInfo(false)} />
-                <div className="absolute left-[60px] top-[calc(100%+8px)] z-20 rounded-[20px] border border-system-navbg bg-gradient-to-b from-system-glassfrom to-system-glassto px-[15px] py-[10px] backdrop-blur-[15px] shadow-sm">
+                <div className="absolute left-[60px] top-[calc(100%+8px)] z-20 rounded-[20px] border border-system-navbg bg-gradient-to-b from-system-glassfrom to-system-glassto px-[15px] py-[10px] backdrop-blur-[20px] shadow-xs">
                   <div className="flex flex-col gap-[10px] font-paperlogy text-2xs text-text-primary leading-snug whitespace-nowrap">
                     <p className="font-semibold">
                       😇 AI가 친구들의 취향을 분석해 3가지 일정을 추천해요.
@@ -415,7 +436,7 @@ function TripResultContent() {
                     <p className="font-medium">
                       ✨ 방장은 투표 결과와 관계없이 원하는 일정을 선택할 수 있어요.
                     </p>
-                    <p className="text-3xs font-semibold text-sub-coral">
+                    <p className="font-bold text-sub-coral">
                       ‼️ 프리패스 사용 시 참가자들의 투표 결과는 반영되지 않아요 ‼️
                     </p>
                   </div>
@@ -498,19 +519,21 @@ function TripResultContent() {
                   </div>
                   <SpeechBubble variant="white" tailDirection="left">
                     <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">
-                      {startTime} 여행 시작!
+                      {displayStartTime} 여행 시작!
                     </span>
                   </SpeechBubble>
                 </div>
 
                 {/* 각 Day */}
-                <div className="mt-[12px] flex flex-col gap-[52px]">
+                <div className="mt-5 flex flex-col gap-16">
                   {currentPlan.days.map((day) => (
                     <div key={day.day}>
                       <div className="relative flex items-center gap-[2px]">
                         <div className="relative z-10 h-[25px] w-[35px] shrink-0">
                           <span className="absolute left-[9.5px] top-1/2 z-0 h-[29px] w-[25px] -translate-y-1/2 rounded-full bg-main-white" />
+
                           <div className="absolute left-[5.5px] top-1/2 z-10 h-[33px] w-[33px] -translate-y-1/2 rounded-full bg-sub-pink/30 blur-md" />
+
                           <Image
                             src={flagImg}
                             alt=""
@@ -520,11 +543,13 @@ function TripResultContent() {
                             className="absolute left-[9.5px] top-0 z-20"
                           />
                         </div>
-                        <span className="whitespace-nowrap font-paperlogy text-[10px] font-medium text-sub-deepblue">
+
+                        <span className="whitespace-nowrap text-sm font-semibold text-sub-deepblue">
                           {day.label}
                         </span>
-                        <div className="relative ml-[3px] h-[1.5px] w-[235px] rounded-full bg-main-blue">
-                          <div className="absolute left-0 right-0 top-[7.5px] flex items-start justify-around">
+
+                        <div className="relative ml-1 h-[1.5px] w-[235px] rounded-full bg-main-blue">
+                          <div className="absolute left-0 right-0 top-[7.5px] flex items-start justify-around gap-1">
                             {day.places.map((place) => (
                               <ResultPlaceNode key={place.id} place={place} />
                             ))}
@@ -550,7 +575,7 @@ function TripResultContent() {
                   </div>
                   <SpeechBubble variant="white" tailDirection="left">
                     <span className="font-paperlogy text-xs font-medium leading-none text-sub-deepblue">
-                      {endTime} 여행 끝!
+                      {displayEndTime} 여행 끝!
                     </span>
                   </SpeechBubble>
                 </div>
@@ -579,7 +604,7 @@ function TripResultContent() {
             {isConfirming ? (
               <span>일정 확정 중...</span>
             ) : isFreepassMode ? (
-              <span>✦ {activePlan} 일정으로 선택</span>
+              <span>{activePlan} 일정으로 선택하기</span>
             ) : (
               <>
                 <Image

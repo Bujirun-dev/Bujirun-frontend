@@ -4,8 +4,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import AngleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?svgr";
-import { PageCard, FilterChips, EmptyState, LoadingBoundary, LoadingState } from "@/components";
-import { LogCard } from "@/features/itinerary";
+import { PageCard, FilterChips, EmptyState } from "@/components";
+import { LogCard, LogListSkeleton } from "@/features/itinerary";
 import { travelLogApi } from "@/shared/api/domains";
 import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 
@@ -37,7 +37,7 @@ export default function LogsPage() {
   const allFiltered = (publicLogs ?? []).map((log) => ({
     id: log.id ?? "",
     imageUrl: log.thumbnailPhotoUrl || getFallbackImage(log.id),
-    placeName: log.title ?? "제목 없음",
+    placeName: log.firstSpotName ?? log.title ?? "제목 없음",
     extraCount: Math.max(0, (log.totalSpots ?? 1) - 1),
     author: log.authorNickname ?? "익명",
     duration: "",
@@ -117,8 +117,12 @@ export default function LogsPage() {
         </button>
       </div>
 
-      {/* 로그 목록 */}
-      <LoadingBoundary isLoading={isFetchingLogs} message="로그를 불러오는 중이에요">
+      {/* 로그 목록 — 첫 로딩은 카드 모양 스켈레톤으로 자리를 잡아둔다. */}
+      {isFetchingLogs ? (
+        <div className="flex-1 overflow-hidden pb-6">
+          <LogListSkeleton />
+        </div>
+      ) : (
         <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-7">
           {visibleLogs.length === 0 ? (
             <div className="flex flex-1 -translate-y-20 items-center justify-center">
@@ -146,15 +150,12 @@ export default function LogsPage() {
 
               <div ref={sentinelRef} className="h-1 shrink-0" />
 
-              {isLoading && (
-                <div className="relative h-[72px] w-full shrink-0">
-                  <LoadingState variant="inline" message="로그를 더 불러오는 중이에요..." />
-                </div>
-              )}
+              {/* 더 불러오는 중 — 다음에 올 카드 자리를 미리 잡아둬서 스크롤이 튀지 않게 한다. */}
+              {isLoading && <LogListSkeleton count={1} />}
             </>
           )}
         </div>
-      </LoadingBoundary>
+      )}
     </PageCard>
   );
 }

@@ -4,6 +4,7 @@ import { use } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageCard, ErrorState, LoadingBoundary } from "@/components";
+import { getKakaoMapUrl } from "@/shared/utils";
 import type { Category } from "@/components";
 import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
 import { bookmarkApi, spotApi, travelLogApi } from "@/shared/api/domains";
@@ -122,6 +123,7 @@ export default function RecommendedPlaceDetailPage({
               category: toCategory(spot.collectionCategory, spot.name),
               description: spot.overview ?? "",
               address: spot.address ?? "",
+              mapUrl: getKakaoMapUrl(spot.name, spot.lat, spot.lng),
               isBookmarked,
               infoItems: [
                 ...(spot.operatingHours

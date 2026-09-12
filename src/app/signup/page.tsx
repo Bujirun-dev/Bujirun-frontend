@@ -8,7 +8,7 @@ import { TextInput } from "@/components/ui/TextInput";
 import { Card } from "@/components/ui/Card";
 import { ProfileImageSelector } from "@/components/profile/ProfileImageSelector";
 import { SignUpSuccessModal } from "@/features/auth/components/SignUpSuccessModal";
-import { PrivacyPolicyModal } from "@/components";
+import { LegalMenuModal, PrivacyPolicyModal, ServiceTermsModal } from "@/components";
 import { PROFILE_IMAGES } from "@/components/profile/profileImages";
 import { apiClient, unwrap } from "@/shared/api";
 import type { OpBody, OpResponse } from "@/shared/api/types";
@@ -21,6 +21,9 @@ export default function SignUpPage() {
   const [selectedProfile, setSelectedProfile] = useState<number | null>(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isDuplicate, setIsDuplicate] = useState(false);
+
+  const [isLegalMenuOpen, setIsLegalMenuOpen] = useState(false);
+  const [isServiceTermsOpen, setIsServiceTermsOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   const trimmedNickname = nickname.trim();
@@ -127,7 +130,7 @@ export default function SignUpPage() {
             가입 완료 시{" "}
             <button
               type="button"
-              onClick={() => setIsPrivacyOpen(true)}
+              onClick={() => setIsLegalMenuOpen(true)}
               className="underline underline-offset-2 text-sub-deepblue font-medium active:opacity-70"
             >
               이용약관 및 개인정보처리방침
@@ -145,13 +148,18 @@ export default function SignUpPage() {
           </Button>
         </div>
       </Card>
-
       <SignUpSuccessModal
         isOpen={isSuccessModalOpen}
         onClose={() => setIsSuccessModalOpen(false)}
       />
-
-      <PrivacyPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
+      <LegalMenuModal
+        isOpen={isLegalMenuOpen}
+        onClose={() => setIsLegalMenuOpen(false)}
+        onOpenServiceTerms={() => setIsServiceTermsOpen(true)}
+        onOpenPrivacyPolicy={() => setIsPrivacyOpen(true)}
+      />
+      <ServiceTermsModal isOpen={isServiceTermsOpen} onClose={() => setIsServiceTermsOpen(false)} />
+      <PrivacyPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />{" "}
     </>
   );
 }

@@ -205,7 +205,7 @@ export function PlaceSearchPanel({
         <button
           type="button"
           onClick={onClose}
-          className="mb-3 flex items-center justify-center self-start -translate-y-0.5"
+          className="mb-3 flex items-center justify-center self-end -translate-y-0.5"
           aria-label="관광지 검색 닫기"
         >
           <CloseIcon width={18} height={18} className="text-sub-darkgray" aria-hidden />
@@ -220,6 +220,9 @@ export function PlaceSearchPanel({
             setSearchValue(v);
             if (v) setCategoryFilter("all");
           }}
+          // x를 누르면 검색어만 지우는 게 아니라 검색 때문에 바뀐 필터까지 되돌려서
+          // "검색하기 전" 상태로 돌아가게 한다.
+          onClear={() => setCategoryFilter("all")}
           placeholder="관광지 검색"
           className="!h-[30px] !w-full !rounded-lg !bg-system-searchbg !py-0"
           inputClassName="!!text-xs !font-normal !text-sub-gray placeholder:!text-sub-gray"

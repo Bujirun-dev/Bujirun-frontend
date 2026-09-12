@@ -181,12 +181,8 @@ export function AccommodationSearchField({
           className="flex w-full items-start gap-2 rounded-[10px] border border-main-blue py-[10px] pl-[15px] pr-3 text-left"
         >
           <div className="min-w-0 flex-1">
-            <p className="truncate font-paperlogy font-semibold text-xs text-text-heading">
-              {value.name}
-            </p>
-            <p className="truncate font-paperlogy font-medium text-2xs text-sub-gray">
-              {value.address}
-            </p>
+            <p className="truncate font-semibold text-xs text-text-heading">{value.name}</p>
+            <p className="truncate font-medium text-2xs text-sub-gray">{value.address}</p>
           </div>
           <button
             type="button"
