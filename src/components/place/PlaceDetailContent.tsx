@@ -372,8 +372,10 @@ export function PlaceDetailContent({
         {toast}
         <div
           className={cn(
+            // 헤더 높이는 뒤로가기 버튼(28px)에 맞춘다 — 44px 박스 중앙 정렬이라
+            // 북마크 목록 등 다른 화면의 뒤로가기보다 8px쯤 내려가 보였다.
             "absolute inset-x-0 top-0 z-20 flex shrink-0 items-center gap-3 bg-main-white",
-            compact ? "h-9" : "h-11",
+            compact ? "h-9" : "h-8",
           )}
         >
           <BackButton className="bg-transparent" onClick={onBack} />

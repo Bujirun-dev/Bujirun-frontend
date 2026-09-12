@@ -5,9 +5,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import plusSmallIcon from "@/assets/icons/itinerary/plus-small.svg?url";
-import { PageCard, Toast, EmptyState, LoadingBoundary, BackButton } from "@/components";
+import { PageCard, Toast, EmptyState, BackButton } from "@/components";
 import { TripCard, TripEditModal, TripDeleteModal, TripDeleteToast } from "@/features/itinerary";
-import { ItineraryFlowResumeBanner } from "@/features/itinerary/components";
+import { ItineraryFlowResumeBanner, TripListSkeleton } from "@/features/itinerary/components";
 import type { Trip } from "@/features/itinerary";
 import { itineraryApi } from "@/shared/api/domains";
 import { getErrorMessage } from "@/shared/utils";
@@ -244,20 +244,29 @@ export default function TripsPage() {
         <span className="font-ssurround font-bold text-lg text-text-heading">여행 목록</span>
       </div>
 
-      <p className="pl-4 pb-2 text-xs text-sub-darkgray font-medium">
-        * 진행 중이거나 예정된 여행만 보여드려요.
-      </p>
+      {/* 목록이 비었을 땐 숨긴다 — 보여줄 여행이 없는데 "이런 여행만 보여드려요"는
+          안내가 아니라 잡음이다. */}
+      {(isLoading || trips.length > 0) && (
+        <p className="pl-4 pb-2 text-xs text-sub-darkgray font-medium">
+          * 진행 중이거나 예정된 여행만 보여드려요.
+        </p>
+      )}
 
       {/* 생성 중에 튕겼던 사람이 다시 들어올 입구 */}
       <ItineraryFlowResumeBanner />
 
-      {/* 여행 목록 */}
-      <LoadingBoundary isLoading={isLoading} message="여행 목록을 불러오는 중이에요">
+      {/* 여행 목록 — 목록 화면은 캐릭터 로딩보다 실제 카드 모양 스켈레톤이 덜 튄다.
+          (로딩이 끝나도 레이아웃이 그대로라 "깜빡임"이 안 생긴다) */}
+      {isLoading ? (
+        <div className="flex-1 overflow-hidden pb-6">
+          <TripListSkeleton />
+        </div>
+      ) : (
         <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-3.5">
           {trips.length === 0 ? (
             <EmptyState
               title="아직 여행이 없어요"
-              description="오른쪽 위 (+) 버튼으로 새 여행을 만들거나, 먼저 둘러봐도 좋아요"
+              description="오른쪽 위 (+)로 새 여행을 만들어보세요"
               secondaryAction={{
                 label: "로그 둘러보기",
                 onClick: () => router.push("/itinerary/logs"),
@@ -279,7 +288,7 @@ export default function TripsPage() {
             ))
           )}
         </div>
-      </LoadingBoundary>
+      )}
 
       {/* 수정 모달 */}
       {modal?.type === "edit" && (

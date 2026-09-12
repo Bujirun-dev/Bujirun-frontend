@@ -5,6 +5,7 @@ import type { Category, PlaceDetailData } from "@/components";
 import { bookmarkApi, spotApi, travelLogApi } from "@/shared/api/domains";
 import { getCategoryFromKo } from "@/shared/constants/category";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
+import { getKakaoMapUrl } from "@/shared/utils";
 import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 
 interface UseSpotDetailFallback {
@@ -77,10 +78,7 @@ export function useSpotDetail(spotId: string | undefined, fallback: UseSpotDetai
     category: fallback.category ?? getCategoryFromKo(spot?.collectionCategory ?? ""),
     description: spot?.overview || fallback.description || "",
     address: spot?.address || fallback.address || "",
-    mapUrl:
-      spot && name
-        ? `https://map.kakao.com/link/map/${encodeURIComponent(name)},${spot.lat ?? ""},${spot.lng ?? ""}`
-        : undefined,
+    mapUrl: getKakaoMapUrl(name, spot?.lat, spot?.lng),
     isBookmarked,
     infoItems: [
       { type: "clock", label: "운영", value: spot?.operatingHours || "운영 정보가 없습니다." },
