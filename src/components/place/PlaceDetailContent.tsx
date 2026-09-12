@@ -20,6 +20,16 @@ import { cn } from "@/shared/utils";
 type InfoIconType = "clock" | "fee" | "parking" | "call";
 type PlaceDetailSize = "default" | "compact";
 
+// sticky 헤더의 "덮는 높이"를 한 곳에서만 정한다 — 헤더 배경 높이(heightClass), 스크롤 영역
+// 상단 패딩(paddingClass), 이름 줄을 관찰하는 IntersectionObserver의 rootMargin(height)이
+// 전부 같은 값이어야 한다. 예전엔 헤더는 h-8(32px)인데 패딩만 pt-11(44px)로 남아 있어서, 그
+// 12px 구간으로 이미지·텍스트가 헤더 밑(배경이 없는 부분)에 비쳐 보였다.
+// 높이는 뒤로가기 버튼(28px) 기준이라 버튼 위치는 북마크 목록 등 다른 화면과 동일하게 유지된다.
+const STICKY_HEADER = {
+  default: { height: 32, heightClass: "h-8", paddingClass: "pt-8" },
+  compact: { height: 36, heightClass: "h-9", paddingClass: "pt-9" },
+} as const;
+
 const INFO_ICONS: Record<InfoIconType, StaticImageData> = {
   clock: clockIcon,
   fee: feeIcon,
@@ -100,7 +110,8 @@ export function PlaceDetailContent({
     message: string;
     variant: "success" | "error";
   } | null>(null);
-  const headerHeight = compact ? 36 : 44;
+  const stickyHeader = STICKY_HEADER[compact ? "compact" : "default"];
+  const headerHeight = stickyHeader.height;
   const formattedDescription = formatDescription(description?.trim() || "등록된 내용이 없습니다.");
   const canExpandDescription = formattedDescription.length > 80;
   const hideBookmarkToast = useCallback(() => setBookmarkToast(null), []);
@@ -372,10 +383,8 @@ export function PlaceDetailContent({
         {toast}
         <div
           className={cn(
-            // 헤더 높이는 뒤로가기 버튼(28px)에 맞춘다 — 44px 박스 중앙 정렬이라
-            // 북마크 목록 등 다른 화면의 뒤로가기보다 8px쯤 내려가 보였다.
             "absolute inset-x-0 top-0 z-20 flex shrink-0 items-center gap-3 bg-main-white",
-            compact ? "h-9" : "h-8",
+            stickyHeader.heightClass,
           )}
         >
           <BackButton className="bg-transparent" onClick={onBack} />
@@ -393,7 +402,8 @@ export function PlaceDetailContent({
           ref={scrollContainerRef}
           className={cn(
             "min-h-0 flex-1 overflow-y-auto overflow-x-hidden",
-            compact ? "pt-9" : "pt-11",
+            // 헤더가 덮는 높이와 같은 패딩 — 비쳐 보이는 틈도, 남는 빈칸도 없다.
+            stickyHeader.paddingClass,
           )}
         >
           {image}
