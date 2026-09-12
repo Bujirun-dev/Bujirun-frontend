@@ -3,9 +3,17 @@
 import { Suspense, useRef, useState, useEffect, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import HotelIcon from "@/assets/icons/itinerary/hotel.svg?svgr";
 import PencilIcon from "@/assets/icons/itinerary/pencil.svg?svgr";
-import { PageCard, Toast, EmptyState, LoadingBoundary, LoadingState } from "@/components";
+import {
+  PageCard,
+  Toast,
+  EmptyState,
+  ErrorState,
+  LoadingBoundary,
+  LoadingState,
+} from "@/components";
 import {
   ItineraryHeader,
   SlidingTimeline,
@@ -67,6 +75,29 @@ function getTimestamp(value?: string): number {
   if (!value) return 0;
   const timestamp = new Date(value).getTime();
   return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+// 상세 조회 실패를 "정말 없는 경우"와 "지금 못 불러온 경우"로 가른다. 상태 코드는 레포의
+// 기존 방식(axios 에러의 response.status — join/[code], MypageProfile 등과 동일)으로 본다.
+const DETAIL_RETRY_LIMIT = 2;
+
+function getErrorStatus(error: unknown): number | undefined {
+  return isAxiosError(error) ? error.response?.status : undefined;
+}
+
+// 404(없음)/403(참여자 아님)은 다시 물어도 답이 같고, 사용자에게 사실대로 알려줘야 한다.
+function isItineraryGoneError(error: unknown): boolean {
+  const status = getErrorStatus(error);
+  return status === 404 || status === 403;
+}
+
+// 4xx는 재시도해도 결과가 같으니 즉시 포기하고, 5xx와 네트워크 오류(status를 못 얻는 경우)는
+// 몇 번 다시 시도한다 — 이 백엔드는 일시적 503 이력이 있어서(generate 타임아웃 등) 한 번
+// 흔들린 것만으로 멀쩡한 일정을 "삭제됨"으로 단정하면 안 된다.
+function shouldRetryItineraryDetail(failureCount: number, error: unknown): boolean {
+  const status = getErrorStatus(error);
+  if (status !== undefined && status >= 400 && status < 500) return false;
+  return failureCount < DETAIL_RETRY_LIMIT;
 }
 
 function subscribeToLastViewedItinerary(onStoreChange: () => void) {
@@ -169,6 +200,57 @@ function findFreeMinute(preferredMin: number, dayStops: BaseStop[]): number {
   return preferredMin;
 }
 
+// 최적화 결과 시각 사이에 두는 최소 간격과, minutesToTime이 잡는 하루 상한(23:59).
+const MIN_STOP_GAP_MINUTES = 10;
+const DAY_END_MINUTE = 23 * 60 + 59;
+
+function resolveStopGap(count: number, lowerBound: number, upperBound: number): number {
+  if (count < 2) return MIN_STOP_GAP_MINUTES;
+  // 경계 폭이 좁아 10분씩 다 넣을 수 없으면 들어가는 만큼으로 간격을 좁힌다.
+  return Math.min(MIN_STOP_GAP_MINUTES, Math.floor((upperBound - lowerBound) / (count - 1)));
+}
+
+// 최적화 응답의 도착 시각을 ① 여행 시작/종료 경계 안에서 ② 서로 다른 시각이 되도록 편다.
+//
+// clampToTripBounds는 경계 밖 값을 "잘라 붙이기"만 하므로 여러 스팟이 같은 시각으로 눌리고,
+// 예전 구현처럼 그 뒤에 앞→뒤로만 밀면 두 가지가 다시 깨졌다.
+//   - 마지막 날 종료가 18:00인데 18:00/18:10/18:20처럼 경계를 넘는다.
+//   - minutesToTime이 23:59로 상한을 잡아서, 늦은 시각대에서는 밀어낸 값들이 다시 같은
+//     23:59로 붙는다(= 막으려던 상태 그대로).
+// 그래서 앞→뒤로 간격을 확보한 뒤, 상한에서 뒤→앞으로 되밀어 넘친 만큼을 앞쪽이 흡수한다.
+// 되밀기는 간격을 유지한 채 내려오므로 경계와 "서로 다른 시각"을 동시에 만족한다.
+// 같은 날 같은 시각은 백엔드가 400으로 막아(ItineraryService.validateArrivalTimeAvailable)
+// 저장 자체가 실패하므로, 중복은 어떤 경우에도 남기지 않는다.
+function spreadStopMinutes(rawMinutes: number[], lowerBound: number, upperBound: number): number[] {
+  const count = rawMinutes.length;
+  if (count === 0) return [];
+
+  let lower = lowerBound;
+  let upper = upperBound;
+  let gap = resolveStopGap(count, lower, upper);
+  // 간격을 1분도 낼 수 없는 경계(시작이 종료보다 늦게 저장된 일정 등)에서는 경계를 포기하고
+  // 하루 전체에 편다 — 경계는 화면 규칙이지만 중복 시각은 저장 실패로 이어지기 때문이다.
+  if (gap < 1) {
+    lower = 0;
+    upper = DAY_END_MINUTE;
+    gap = Math.max(1, resolveStopGap(count, lower, upper));
+  }
+
+  // ① 앞 → 뒤: 최적화가 준 시각을 최대한 살리면서 하한부터 최소 간격을 확보한다.
+  const spread: number[] = [];
+  for (let idx = 0; idx < count; idx += 1) {
+    const earliest = idx === 0 ? lower : spread[idx - 1] + gap;
+    spread.push(Math.max(rawMinutes[idx], earliest));
+  }
+
+  // ② 뒤 → 앞: 상한부터 거꾸로 되밀어 경계를 넘은 만큼을 앞으로 흡수한다.
+  spread[count - 1] = Math.min(spread[count - 1], upper);
+  for (let idx = count - 2; idx >= 0; idx -= 1) {
+    spread[idx] = Math.min(spread[idx], spread[idx + 1] - gap);
+  }
+  return spread;
+}
+
 // 다른 참여자가 만든 변경을 토스트/안내팝업 메시지로 바꾸는 규칙. "누가 뭘 했는지"는
 // activityLog 엔트리에서 그대로 나오고, 여기서는 문구만 고른다.
 const ACTIVITY_MESSAGES: Record<ActivityAction, (entry: ActivityLogEntry) => string> = {
@@ -261,18 +343,21 @@ function ItineraryPageContent() {
     data: detail,
     isLoading: isDetailLoading,
     isError: isDetailError,
+    error: detailError,
+    isFetching: isDetailFetching,
+    refetch: refetchDetail,
   } = useQuery({
     queryKey: itineraryApi.keys.detail(itineraryId ?? ""),
     queryFn: () => itineraryApi.getItinerary(itineraryId as string),
     enabled: !!itineraryId,
-    retry: false,
+    retry: shouldRetryItineraryDetail,
   });
 
   const isLoading = isListLoading || isDetailLoading;
 
-  // 링크로 받은 tripId가 삭제됐거나 내 일정이 아닌 경우. 다른 일정을 대신 열면
-  // "내가 만든 일정이 아닌데 열렸다"가 되므로, 무엇이 일어났는지 알려준다.
-  if (requestedTripId && isDetailError) {
+  // 링크로 받은 tripId가 실제로 삭제됐거나 내 일정이 아닌 경우(404/403). 다른 일정을 대신
+  // 열면 "내가 만든 일정이 아닌데 열렸다"가 되므로, 무엇이 일어났는지 알려준다.
+  if (requestedTripId && isDetailError && isItineraryGoneError(detailError)) {
     return (
       <PageCard>
         <ItineraryFlowResumeBanner />
@@ -285,6 +370,36 @@ function ItineraryPageContent() {
           }}
         />
       </PageCard>
+    );
+  }
+
+  // 그 밖의 실패(5xx·네트워크)는 일정이 없어진 게 아니라 지금 못 불러온 것뿐이다.
+  // 자동 재시도를 다 쓴 뒤에도 사용자가 직접 다시 시도할 수 있어야 하므로 재조회 액션을 준다
+  // (다시 시도 중에는 LoadingBoundary가 덮어서 "눌렀는데 반응이 없다"로 보이지 않게 한다).
+  if (requestedTripId && isDetailError) {
+    const status = getErrorStatus(detailError);
+    return (
+      <LoadingBoundary isLoading={isDetailFetching} message="일정을 불러오는 중이에요">
+        <PageCard>
+          <ItineraryFlowResumeBanner />
+          <ErrorState
+            // 설명 문구는 ErrorState의 상태코드 프리셋(500/503)을 그대로 쓴다 — 제목만
+            // 이 화면 기준으로 바꿔서, 다른 화면의 오류 안내와 톤이 갈리지 않게 한다.
+            code={status === 503 ? 503 : 500}
+            title="일정을 불러오지 못했어요"
+            primaryAction={{
+              label: "다시 시도",
+              onClick: () => {
+                void refetchDetail();
+              },
+            }}
+            secondaryAction={{
+              label: "여행 목록 보기",
+              onClick: () => router.push("/itinerary/trips"),
+            }}
+          />
+        </PageCard>
+      </LoadingBoundary>
     );
   }
 
@@ -364,10 +479,12 @@ function ItineraryMain({
     queryFn: () => travelLogApi.getLog(importedLogId as string),
     enabled: !!importedLogId,
   });
-  // 예전엔 URL의 `?days=`로 화면에 보여줄 날짜 수를 잘랐다. 그런데 잘린 날짜는 공동편집
-  // 문서에서도 빠지고, flush는 "문서에 없고 서버에 있는 항목"을 삭제 대상으로 보기 때문에
-  // (flushItineraryToRest 참고) `?days=1`로 한 번 열면 2일차 이후 항목이 전부 지워질 수
-  // 있었다. 날짜 수는 항상 실제 일정 데이터를 기준으로 삼는다.
+  // 예전엔 URL의 `?days=`로 화면에 보여줄 날짜 수를 잘랐다. 잘린 날짜는 공동편집 문서에서도
+  // 빠지는데, flush는 잘린 dayIds만 순회하며 그 day에 한해 "문서에 없고 서버에 있는 항목"을
+  // 지우므로(flushDayToRest 참고) 잘린 날짜 자체는 애초에 flush 대상이 아니었다 — 즉 데이터가
+  // 지워지는 문제는 아니었고, 화면에서만 뒷날짜가 사라져 편집이 불가능해지는 문제였다.
+  // 레포에 `?days=` 링크가 남아 있지 않아 그대로 제거했고, 날짜 수는 항상 실제 일정 데이터를
+  // 기준으로 삼는다.
   const initialDays = initialDaysData;
   const initialDates = initialDatesData;
   const dayIdsSliced = dayIds;
@@ -759,16 +876,12 @@ function ItineraryMain({
           if (!existing) return null;
           return {
             optimized,
+            // 경계 클램프는 여기서 하지 않는다 — 잘라 붙이면 여러 스팟이 같은 시각이 되고,
+            // 그 뒤에 간격을 벌려도 경계를 다시 넘는다. 아래 spreadStopMinutes가 경계와
+            // 최소 간격을 한 번에 해결하므로, 여기서는 응답 시각을 그대로 들고 간다.
             stop: {
               ...existing,
-              time: minutesToTime(
-                clampToTripBounds(
-                  timeToMinutes(normalizeTime(optimized.arrivalTime, existing.time)),
-                  currentDay,
-                  dayIdsSliced.length,
-                  tripTimeBounds,
-                ),
-              ),
+              time: normalizeTime(optimized.arrivalTime, existing.time),
             } as BaseStop,
           };
         })
@@ -776,20 +889,23 @@ function ItineraryMain({
           (p): p is { optimized: (typeof optimizedSorted)[number]; stop: BaseStop } => p !== null,
         );
 
-      // clampToTripBounds는 여행 시작/종료 시각을 "잘라 붙이기"만 하기 때문에, 최적화가
-      // 여행 시각을 모른 채 계산한 값(백엔드가 09:00부터 계산한다)이 경계 밖으로 나가면
-      // 여러 스팟이 전부 같은 시각으로 눌린다. 같은 날 같은 시각은 백엔드가 400으로
-      // 막아서 저장 자체가 실패하고(그러면 화면 시각과 DB 시각이 갈린다), 화면에서도
-      // 순서를 알 수 없게 된다 — 최소 간격을 두고 오름차순으로 펴준다.
-      const MIN_STOP_GAP_MINUTES = 10;
-      let previousMinutes: number | null = null;
-      pairs.forEach(({ stop }) => {
-        let minutes = timeToMinutes(stop.time);
-        if (previousMinutes !== null && minutes <= previousMinutes) {
-          minutes = previousMinutes + MIN_STOP_GAP_MINUTES;
-        }
-        stop.time = minutesToTime(minutes);
-        previousMinutes = timeToMinutes(stop.time);
+      // 최적화는 여행 시작/종료 시각을 모른 채 계산하므로(백엔드가 09:00부터 계산한다)
+      // 응답 시각이 경계 밖으로 나갈 수 있다. 경계 안으로 넣는 일과 "서로 다른 시각"을
+      // 만드는 일을 한 번에 처리한다 — 자세한 근거는 spreadStopMinutes 주석 참고.
+      const dayLowerBound = clampToTripBounds(0, currentDay, dayIdsSliced.length, tripTimeBounds);
+      const dayUpperBound = clampToTripBounds(
+        DAY_END_MINUTE,
+        currentDay,
+        dayIdsSliced.length,
+        tripTimeBounds,
+      );
+      const spreadMinutes = spreadStopMinutes(
+        pairs.map(({ stop }) => timeToMinutes(stop.time)),
+        dayLowerBound,
+        dayUpperBound,
+      );
+      pairs.forEach(({ stop }, idx) => {
+        stop.time = minutesToTime(spreadMinutes[idx]);
       });
 
       // transport는 항상 "다음 스팟까지의 구간" 정보라, 각 스팟의 transport는 자신이 아니라
@@ -914,7 +1030,9 @@ function ItineraryMain({
 
   // 로그 담기는 "일정 상세 조회 → Yjs 시딩 → 반영"이 순서대로 끝나야 화면에 나온다.
   // 그동안 담기 전 타임라인이 그대로 보여서 "눌렀는데 아무 일도 안 일어난다"처럼 느껴졌다.
-  // 반영이 끝날 때까지(=URL의 importedLogId가 정리될 때까지) 로딩으로 덮는다.
+  // 그래서 로그 상세 응답(importedLog)이 도착하고 Yjs 시딩(yjsSeeded)이 끝날 때까지 로딩으로
+  // 덮는다 — URL 정리와는 무관하다. 위 반영 이펙트가 history.replaceState로 주소만 바꾸는데,
+  // 그건 Next의 searchParams를 갱신하지 않아 importedLogId는 언마운트까지 남아 있다.
   // 로그 조회가 실패하면(삭제된 로그 등) 담을 게 없으므로 로딩을 걷어낸다 —
   // 안 그러면 영영 안 끝나는 오버레이에 갇힌다.
   const isImportingLog = !!importedLogId && !isImportedLogError && (!importedLog || !yjsSeeded);

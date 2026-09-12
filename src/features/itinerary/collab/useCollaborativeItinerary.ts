@@ -139,6 +139,10 @@ export function useCollaborativeItinerary(
   // 예약된 자동 재시도 타이머. 새 flush가 시작되면 취소한다(그 flush가 더 최신 상태를
   // 보내므로 예전 재시도는 의미가 없다).
   const retryTimerRef = useRef<number | null>(null);
+  // flush 겹침 방지(coalesce) 상태: 지금 돌고 있는 flush 체인과, 그 사이에 들어온
+  // "끝나면 한 번 더 돌려야 한다"는 예약 플래그. 자세한 이유는 runFlush 주석 참고.
+  const flushChainRef = useRef<Promise<void> | null>(null);
+  const flushAgainRef = useRef(false);
 
   useEffect(() => {
     dayIdsRef.current = dayIds;
@@ -166,13 +170,17 @@ export function useCollaborativeItinerary(
     applyComputedTransport(doc, prevStopId, addedItem.id, transport);
   };
 
+  // flush 한 번(모든 day)을 실제로 수행하는 패스. 겹침 방지는 입구(runFlush)가 맡으므로
+  // 여기서는 "지금 문서 상태를 REST에 반영"만 한다 — 반드시 runFlush를 통해서 호출할 것.
+  //
   // stopsPerDay(React state)가 아니라 doc에서 매번 직접 읽는다 — Yjs observer가
   // setStopsPerDay를 부른 직후에도 React가 아직 리렌더를 커밋하기 전이면 stopsPerDay는
   // 옛 값 그대로라서, "mutate 하자마자 바로 flush" 같은 흐름(예: 로그 불러오기 직후
   // flushNow)에서 방금 반영한 변경이 아니라 그 이전 상태를 저장해버리는 문제가 있었다.
+  // (예약된 재실행도 이 함수를 다시 호출해 문서를 새로 읽으므로 항상 최신 상태를 보낸다.)
   // attempt: 0이면 최초 시도, 1 이상은 자동 재시도. 실패한 항목은 flushDayToRest가
   // snapshot을 갱신하지 않은 채로 남겨두므로, 다음 시도에서 자연히 다시 대상이 된다.
-  const runFlush = async (attempt: number) => {
+  const flushPass = async (attempt: number) => {
     if (!hasSeededRef.current) return;
     const currentStops = readStopsFromYjs(doc);
     const results = await Promise.all(
@@ -223,6 +231,54 @@ export function useCollaborativeItinerary(
     );
   };
 
+  // flush 입구. 이미 돌고 있는 flush가 있으면 새로 시작하지 않고 "끝난 뒤 한 번 더"만
+  // 예약하고(coalesce), 돌고 있는 체인을 그대로 돌려준다 — 그래야 이탈 시 완료를 기다리는
+  // 호출부(useItineraryYDoc)가 예약된 재실행까지 함께 기다린다.
+  //
+  // 왜 필요한가: flushDayToRest는 id가 "temp-"로 시작하는 항목을 addItem POST로 만들고,
+  // 응답으로 받은 real id를 resolveTempId로 문서에 써야 비로소 "추가 완료"가 된다. 그
+  // 응답이 오기 전에 두 번째 flush가 같은 temp- id를 다시 보면 같은 장소를 한 번 더
+  // POST해서 DB에 항목이 2개 생기고, 이어지는 reorderItems엔 중복 id가 실려 순서 저장이
+  // 400으로 죽는다. 트리거가 여러 개라(2초 디바운스 / 새 인원 합류 / useItineraryYDoc의
+  // pagehide·visibilitychange 이탈 저장) 탭을 숨기는 정도의 평범한 조작으로도 겹친다.
+  // 이탈 이벤트 쪽 최소 간격 가드는 이탈 이벤트끼리의 중복만 막아서 이 경합과는 무관하다.
+  //
+  // "진행 중이면 그냥 스킵"으로 막으면 안 된다 — 겹친 호출이 들고 온 더 최신 편집이 영구히
+  // 저장되지 않을 수 있어(다음 트리거가 없으면 그대로 끝), 중복 생성을 막는 대신 데이터
+  // 손실을 만든다. 그래서 스킵이 아니라 "끝난 뒤 한 번 더"로 미룬다.
+  //
+  // 예약된 재실행은 attempt 0(최초 시도)으로 돈다: 그 사이 들어온 새 편집이라 실패 재시도
+  // 예산을 새로 주는 게 맞다. 재실행은 "진행 중에 들어온 호출"이 있을 때만 일어나므로
+  // (루프 안에서 스스로 플래그를 세우는 경로는 없다) 이 루프가 저절로 계속 돌지는 않는다.
+  const runFlush = (attempt: number): Promise<void> => {
+    if (flushChainRef.current) {
+      flushAgainRef.current = true;
+      return flushChainRef.current;
+    }
+
+    const chain = (async () => {
+      try {
+        let nextAttempt = attempt;
+        for (;;) {
+          await flushPass(nextAttempt);
+          if (!flushAgainRef.current) return;
+          flushAgainRef.current = false;
+          // 예약된 재실행이 더 최신 상태를 보내므로, 직전 패스가 걸어둔 재시도 타이머는
+          // 취소한다(flushAll과 같은 이유 — 그 타이머는 이미 낡은 시도다).
+          if (retryTimerRef.current !== null) {
+            window.clearTimeout(retryTimerRef.current);
+            retryTimerRef.current = null;
+          }
+          nextAttempt = 0;
+        }
+      } finally {
+        flushChainRef.current = null;
+      }
+    })();
+    flushChainRef.current = chain;
+    return chain;
+  };
+
   const flushAll = () => {
     // 새 flush가 더 최신 상태를 보내므로, 예약돼 있던 재시도는 취소하고 재시도 횟수도
     // 처음부터 다시 센다(사용자의 새 편집엔 새 재시도 기회를 준다).
@@ -236,11 +292,20 @@ export function useCollaborativeItinerary(
     return runFlush(0);
   };
 
-  // 언마운트 후에 재시도가 깨어나 요청을 쏘지 않도록 정리한다(이탈 시점엔
+  // 언마운트 후에 재시도가 깨어나 요청을 쏘지 않도록 타이머를 정리한다(이탈 시점엔
   // onBeforeDisconnect=flushAll이 이미 최종 상태를 보낸다).
+  //
+  // 반면 coalesce 예약 플래그(flushAgainRef)는 여기서 비우지 않는다 — 그 플래그는 "아직
+  // REST에 못 보낸 최신 편집이 있다"는 뜻이고, 이탈 직전의 마지막 flushAll도 진행 중인
+  // 체인에 바로 이 플래그로 합류하기 때문에, 여기서 비우면 마지막 편집을 버리게 된다.
+  // 정리하지 않아도 새지 않는다: 두 ref는 이 컴포넌트 인스턴스 전용이고, 진행 중인 체인이
+  // 끝나면 flushChainRef는 스스로 null로 돌아간다(runFlush의 finally).
   useEffect(() => {
     return () => {
-      if (retryTimerRef.current !== null) window.clearTimeout(retryTimerRef.current);
+      if (retryTimerRef.current !== null) {
+        window.clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
     };
   }, []);
 
@@ -437,7 +502,8 @@ export function useCollaborativeItinerary(
   return {
     stopsPerDay: stopsPerDayWithStatus,
     status,
-    // 실시간 연결이 끊겼는지 / 아예 설정이 빠졌는지를 화면에서 알려주기 위해 노출한다.
+    // 실시간 연결 상태(끊김 / 협업 서버 설정 누락)를 그대로 통과시켜 노출만 해둔 값이다 —
+    // 아직 이 값을 쓰는 화면이 없다. 화면 안내 연결은 후속 작업(useItineraryYDoc 주석 참고).
     connectionState,
     isCollabUnavailable,
     seeded,

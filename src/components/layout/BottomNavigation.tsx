@@ -9,12 +9,20 @@ import EmergencyIcon from "@/assets/icons/itinerary/emergency-on.svg?svgr";
 import { navigationItems } from "@/shared/constants/navigation";
 import { useItineraryGenerationLockStore } from "@/shared/stores";
 
+// 화면에 들어오는 것만으로 잠기는 라우트 — 이 단계부터는 이미 생성이 시작돼 있어서
+// 다른 사람들이 내 진행을 기다리는 상태다.
 const LOCKED_WORKFLOW_ROUTES = [
   "/itinerary/trips/swipe",
   "/itinerary/trips/waiting",
   "/itinerary/trips/result",
   "/itinerary/trips/vote-waiting",
 ];
+
+// 들어오는 것만으로는 잠기지 않지만, 그 화면이 직접 lock()을 걸면 그 잠금을 존중하는 라우트.
+// personality 화면은 "확인하고 시작"을 누르기 전이라 도착만으로 탭을 막으면 과하지만,
+// 누른 뒤 "난 다 좋아"의 서버 왕복 중에는 다른 화면과 같은 이유로 이동을 막아야 한다.
+// (여기를 그냥 LOCKED_WORKFLOW_ROUTES에 넣으면 시작 전부터 4개 탭이 잠긴다.)
+const LOCK_HONORING_ROUTES = ["/itinerary/trips/personality"];
 
 const ICON_PATHS = {
   "/": {
@@ -76,16 +84,20 @@ export function BottomNavigation() {
   const unlockGeneration = useItineraryGenerationLockStore((state) => state.unlock);
 
   const isOnWorkflowRoute = LOCKED_WORKFLOW_ROUTES.some((route) => pathname.startsWith(route));
+  const isOnLockHonoringRoute =
+    isOnWorkflowRoute || LOCK_HONORING_ROUTES.some((route) => pathname.startsWith(route));
 
   // 잠금은 "지금 생성 플로우 화면에 있을 때"만 의미가 있다. 예전엔 잠금이 sessionStorage에
   // 남고 정상 완료 경로에서만 풀렸기 때문에, 생성 중에 튕겨서 홈으로 떨어지면 4개 탭이
   // 전부 막힌 채로 갇혀서 일정 생성으로 다시 들어갈 방법이 없었다.
+  // 플로우 밖으로 나간 순간 무조건 풀어주는 건 그대로 두고, 화면이 스스로 건 잠금
+  // (personality의 "확인하고 시작")만 덮어쓰지 않게 한다.
   useEffect(() => {
     if (isOnWorkflowRoute) lockGeneration();
-    else unlockGeneration();
-  }, [isOnWorkflowRoute, lockGeneration, unlockGeneration]);
+    else if (!isOnLockHonoringRoute) unlockGeneration();
+  }, [isOnWorkflowRoute, isOnLockHonoringRoute, lockGeneration, unlockGeneration]);
 
-  const isNavigationBlocked = isGenerationLocked && isOnWorkflowRoute;
+  const isNavigationBlocked = isGenerationLocked && isOnLockHonoringRoute;
 
   // 로그인/회원가입 페이지에서는 숨기기
   if (pathname === "/login" || pathname === "/signup") return null;

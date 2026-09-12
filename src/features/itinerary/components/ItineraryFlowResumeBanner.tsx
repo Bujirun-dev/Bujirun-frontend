@@ -25,6 +25,8 @@ function getFlowHydrationServerSnapshot() {
   return false;
 }
 
+type ConfirmedFlowResult = { isConfirmed: true; itineraryId?: string } | { isConfirmed: false };
+
 const STEP_LABELS: Record<string, string> = {
   invite: "친구 초대",
   personality: "취향 분석 시작",
@@ -62,33 +64,55 @@ export function ItineraryFlowResumeBanner() {
 
   if (!isHydrated || !flow || isItineraryFlowExpired(flow)) return null;
 
+  // 내가 빠져 있는 동안 남은 사람들끼리 이미 확정했을 수 있다. 그때 저장된 단계로 되돌리면
+  // 새 투표 세션이 만들어져 그룹이 갈라지거나, 이미 끝난 대기 화면에 다시 갇힌다.
+  const findConfirmedItinerary = async (): Promise<ConfirmedFlowResult> => {
+    // 투표 세션이 있는 단계(result / vote-waiting)는 세션 상태가 가장 정확하다.
+    if (flow.sessionId) {
+      const status = await queryClient.fetchQuery({
+        queryKey: itineraryApi.keys.voteStatus(flow.sessionId),
+        queryFn: () => itineraryApi.getVoteStatus(flow.sessionId as string),
+      });
+      if (status?.status === "confirmed") {
+        return { isConfirmed: true, itineraryId: status.itineraryId };
+      }
+      return { isConfirmed: false };
+    }
+
+    // invite/personality/swipe/waiting 단계에서 이탈한 사람은 sessionId가 없다. 그 사람은
+    // 확정 처리 지점을 지나지 않아 배너가 24시간 내내 남고, 눌러도 이미 끝난 화면으로
+    // 돌아갔다. 일정 목록은 그룹원 전원에게 내려오므로 groupId로 확정된 일정을 찾는다
+    // (그룹 일정은 확정될 때 처음 생기니, 존재 자체가 확정 신호 — /join 화면과 같은 방식).
+    if (!flow.groupId) return { isConfirmed: false };
+    const itineraries = await queryClient.fetchQuery({
+      queryKey: itineraryApi.keys.lists(),
+      queryFn: itineraryApi.getItineraries,
+      // 기본 staleTime(60초) 때문에 일정 탭이 방금 받아둔 캐시가 그대로 오면, 내가 화면을
+      // 보고 있는 동안 확정된 일정을 놓친다. 이 확인만은 항상 새로 받아온다.
+      staleTime: 0,
+    });
+    const confirmed = itineraries?.find((itinerary) => itinerary.groupId === flow.groupId);
+    return confirmed ? { isConfirmed: true, itineraryId: confirmed.id } : { isConfirmed: false };
+  };
+
   const handleResume = async () => {
     setIsResuming(true);
     try {
-      // 내가 빠져 있는 동안 남은 사람들끼리 이미 확정했을 수 있다. 그때 투표 화면으로
-      // 되돌리면 새 투표 세션이 만들어져 그룹이 갈라지므로, 확정된 일정으로 바로 보낸다.
-      if (flow.sessionId) {
-        const status = await queryClient.fetchQuery({
-          queryKey: itineraryApi.keys.voteStatus(flow.sessionId),
-          queryFn: () => itineraryApi.getVoteStatus(flow.sessionId as string),
+      const result = await findConfirmedItinerary();
+      if (result.isConfirmed) {
+        clearFlow();
+        unlockGeneration();
+        await queryClient.invalidateQueries({
+          queryKey: itineraryApi.keys.lists(),
+          refetchType: "all",
         });
-        if (status?.status === "confirmed") {
-          clearFlow();
-          unlockGeneration();
-          await queryClient.invalidateQueries({
-            queryKey: itineraryApi.keys.lists(),
-            refetchType: "all",
-          });
-          setToastMessage("이미 일정이 확정됐어요. 확정된 일정으로 이동할게요.");
-          router.push(
-            status.itineraryId ? `/itinerary?tripId=${status.itineraryId}` : "/itinerary",
-          );
-          return;
-        }
+        setToastMessage("이미 일정이 확정됐어요. 확정된 일정으로 이동할게요.");
+        router.push(result.itineraryId ? `/itinerary?tripId=${result.itineraryId}` : "/itinerary");
+        return;
       }
       router.push(getItineraryFlowHref(flow));
     } catch {
-      // 세션 조회가 실패해도(만료/네트워크) 저장된 단계로는 돌아갈 수 있게 한다.
+      // 확정 여부 조회가 실패해도(만료/네트워크) 저장된 단계로는 돌아갈 수 있게 한다.
       router.push(getItineraryFlowHref(flow));
     } finally {
       setIsResuming(false);

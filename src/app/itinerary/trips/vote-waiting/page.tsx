@@ -74,6 +74,9 @@ function VoteWaitingContent() {
   // 기존 동률 모달을 띄워서 방장이 직접 고르게 한다.
   const [isHostSkipping, setIsHostSkipping] = useState(false);
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
+  // 동률 모달은 닫는 길이 없으면 플랜을 고르는 것 외에 빠져나갈 수 없다(모달 오버레이가
+  // 하단 탭까지 덮는다). 명시적으로 닫았을 때만 숨기고, 화면에서 다시 열 수 있게 한다.
+  const [isTieDismissed, setIsTieDismissed] = useState(false);
   const { remainingMs, isOver } = useItineraryFlowTimer();
   const unlockGeneration = useItineraryGenerationLockStore((state) => state.unlock);
   const clearFlow = useItineraryFlowStore((state) => state.clearFlow);
@@ -123,14 +126,32 @@ function VoteWaitingContent() {
   });
   const voteCounts = voteStatus?.voteCounts ?? {};
   const doneCount = Math.min(totalSlots, voteStatus?.totalVotes ?? 0);
+  // 아무도 투표하지 않으면 voteCounts가 {A:0,B:0,C:0}으로 내려와서 "0표끼리 동률"로 잡힌다.
+  // 그래서 실제로 들어온 표가 있는지를 따로 본다(totalVotes가 비어 오는 경우까지 감안해
+  // 표 합계와 함께 확인한다).
+  const castVoteCount = Object.values(voteCounts).reduce((sum, count) => sum + (count ?? 0), 0);
+  const hasAnyVote = Math.max(voteStatus?.totalVotes ?? 0, castVoteCount) > 0;
   const winnerPlan = getWinnerPlan(voteCounts);
   const tiedPlans = getTiedPlans(voteCounts);
-  const showTieModal =
-    (doneCount >= totalSlots || isHostSkipping) && !winnerPlan && !selectedTiePlan;
+  // 표가 있는 진짜 동률일 때만 동률 모달을 띄운다.
+  const isTieUnresolved =
+    hasAnyVote &&
+    tiedPlans.length > 1 &&
+    !winnerPlan &&
+    !selectedTiePlan &&
+    (doneCount >= totalSlots || isHostSkipping);
+  const showTieModal = isTieUnresolved && !isTieDismissed;
 
   // 제한 시간이 지나면 방장은 아직 투표 안 한 사람을 기다리지 않고 현재 표로 확정할 수 있다.
   const handleHostSkip = () => {
     setShowSkipConfirm(false);
+    // 표가 한 장도 없는 경우를 최다 득표/동률 판정보다 먼저 걸러야 한다. 0표 상태에서는
+    // 최다 득표도 없고 모든 안이 "같은 0표"라, 그냥 두면 사실과 다른 동률 모달이 뜬다.
+    if (!hasAnyVote) {
+      setToastVariant("warning");
+      setToastMessage("아직 투표한 사람이 없어요. 조금만 더 기다려주세요.");
+      return;
+    }
     if (winnerPlan) {
       setToastVariant("success");
       setToastMessage(`${winnerPlan}안이 최다 투표로 선택됐어요! 🎉`);
@@ -138,11 +159,25 @@ function VoteWaitingContent() {
       return;
     }
     if (tiedPlans.length > 1) {
+      setIsTieDismissed(false);
       setIsHostSkipping(true);
       return;
     }
-    setToastVariant("warning");
-    setToastMessage("아직 투표한 사람이 없어요. 조금만 더 기다려주세요.");
+    // 표는 있다는데 안별 집계가 비어 온 경우 — 조용히 아무 일도 안 일어나면 방장은
+    // 버튼이 먹지 않는 것으로 보이므로 이유를 알려준다.
+    setToastVariant("error");
+    setToastMessage("투표 현황을 확인하지 못했어요. 잠시 후 다시 시도해주세요.");
+  };
+
+  // 모달에서 빠져나가는 길. 방장이 마감을 눌러서 열린 모달이면 "마감 전"으로 되돌려서
+  // 대기 화면의 마감 버튼으로 언제든 다시 들어올 수 있게 하고, 전원 투표로 열린 모달이면
+  // 잠시 닫아둔 뒤 같은 화면에서 다시 열 수 있게 한다.
+  const handleTieDismiss = () => {
+    if (isHostSkipping) {
+      setIsHostSkipping(false);
+      return;
+    }
+    setIsTieDismissed(true);
   };
 
   const confirmPlan = async (planType: string) => {
@@ -244,6 +279,20 @@ function VoteWaitingContent() {
 
         <ParticipantAvatarGrid total={totalSlots} activeCount={doneCount} className="mt-5" />
 
+        {/* 동률 모달을 닫아둔 상태 — 닫고 나면 되돌아올 길이 없으면 안 되므로 다시 여는 버튼을 둔다. */}
+        {isTieUnresolved && isTieDismissed && (
+          <div className="mt-5 flex w-full flex-col items-center gap-2">
+            <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
+              {isHost
+                ? "투표가 동률이에요. 방장이 최종 일정을 골라주세요."
+                : "투표가 동률이에요. 방장이 최종 일정을 고르고 있어요."}
+            </p>
+            <Button variant="primary" onClick={() => setIsTieDismissed(false)}>
+              동률 결과 다시 보기
+            </Button>
+          </div>
+        )}
+
         {/* 10분 제한 — 투표를 안 하고 사라진 사람 때문에 그룹 전체가 갇히지 않게,
             제한이 지나면 방장이 현재 표로 확정할 수 있다. */}
         {doneCount < totalSlots && (
@@ -306,21 +355,31 @@ function VoteWaitingContent() {
         childrenVariant="card"
         hideActions
         footer={
-          isHost ? (
-            <div className="flex w-full gap-3">
-              {tiedPlans.map((plan) => (
-                <Button
-                  key={plan}
-                  variant="primary"
-                  onClick={() => handleTiePick(plan)}
-                  disabled={isConfirming}
-                  className="flex-1"
-                >
-                  {isConfirming ? "확정 중..." : `${plan}안 선택`}
-                </Button>
-              ))}
-            </div>
-          ) : undefined
+          <div className="flex w-full flex-col gap-2">
+            {isHost && (
+              <div className="flex w-full gap-3">
+                {tiedPlans.map((plan) => (
+                  <Button
+                    key={plan}
+                    variant="primary"
+                    onClick={() => handleTiePick(plan)}
+                    disabled={isConfirming}
+                    className="flex-1"
+                  >
+                    {isConfirming ? "확정 중..." : `${plan}안 선택`}
+                  </Button>
+                ))}
+              </div>
+            )}
+            {/* 배경/Esc로는 못 닫게 두고(실수로 닫히면 확정이 멈춘 것처럼 보인다),
+                명시적으로 누를 때만 닫는다. 하단 탭이 모달에 덮여 있어서 닫을 길이
+                없으면 확정 전까지 이 화면에 갇힌다. */}
+            {!isConfirming && (
+              <Button variant="secondary" onClick={handleTieDismiss}>
+                {isHostSkipping ? "더 기다리기" : isHost ? "잠시 닫아두기" : "닫고 기다리기"}
+              </Button>
+            )}
+          </div>
         }
       >
         <div className="flex w-full items-center">

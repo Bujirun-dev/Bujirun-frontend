@@ -9,12 +9,13 @@ import { getJwtExpiryMs } from "@/shared/utils/jwt";
 
 type ConnectionStatus = "connecting" | "connected" | "disconnected";
 
-// 화면에 상태 문구를 그대로 붙일 수 있도록 status를 한 단계 더 나눈 값.
+// 나중에 화면에 상태 문구를 붙일 수 있도록 status를 한 단계 더 나눈 값. 다만 지금은 값만
+// 노출해 둔 상태이고, 이 값을 읽는 화면은 아직 없다(화면 연결은 후속 작업).
 // - "idle": 연결을 시도할 조건이 아직 아니다(일정 id 없음 / 로그인 안 됨) → "대기"
 // - "connecting" / "connected" / "disconnected": 실제 소켓 상태 → "연결 중 / 연결됨 / 끊김"
 // - "unconfigured": WS 주소 설정이 없어(또는 https에서 ws://라) 시도 자체를 안 했다
 //   → "협업 서버 설정 누락". status로는 "disconnected"로 내려가므로, "잠깐 끊김"과
-//   "아예 못 씀"을 구분해야 하는 UI는 이 값을 봐야 한다.
+//   "아예 못 씀"을 구분해야 하는 UI는 (연결되면) 이 값을 봐야 한다.
 export type CollabConnectionState = ConnectionStatus | "idle" | "unconfigured";
 
 // node는 연결 시 1회만 토큰을 검증해서, 만료 후 401을 브라우저가 읽어내는 방식으로는
@@ -147,8 +148,10 @@ export function useItineraryYDoc(
 
     const { url: wsUrl, reason } = resolveWsUrl();
     if (!wsUrl) {
-      // 조용히 localhost로 폴백하지 않는다 — 무한 재시도/mixed content 대신
-      // connectionState("unconfigured")로 화면에 알린다.
+      // 조용히 localhost로 폴백하지 않는다 — 무한 재시도/mixed content를 만드는 대신
+      // 아예 연결하지 않고 connectionState를 "unconfigured"로 내린다. 다만 그 값을 읽는
+      // 화면이 아직 없어서, 지금 사용자에게 보이는 안내는 없고 콘솔 에러만 남는다
+      // (프로덕션에서 env가 비면 협업 없이 로컬 편집만 되는 상태 — 안내는 후속 작업).
       console.error(`[itinerary-collab] 실시간 협업 서버에 연결하지 않습니다: ${reason}`);
       return;
     }
@@ -302,7 +305,9 @@ export function useItineraryYDoc(
         : connectionState,
     synced,
     getProvider,
-    // 아래는 화면 표시용 파생값 — 기존 키는 그대로 두고 추가만 했다.
+    // 아래는 화면 표시용으로 노출만 해둔 파생값이다 — 기존 키는 그대로 두고 추가만 했고,
+    // 지금은 소비하는 화면이 없다(useCollaborativeItinerary가 그대로 재노출만 한다).
+    // 후속 작업에서 안내 UI에 연결할 값이므로 "안 쓰인다"고 지우지 말 것. 매핑 계획:
     // "연결됨"(isConnected) / "연결 중"(connectionState === "connecting") /
     // "끊김"(disconnected) / "설정 누락"(isCollabUnavailable) / "대기"(idle).
     connectionState,

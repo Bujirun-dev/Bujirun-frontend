@@ -143,7 +143,6 @@ export default function TripsPage() {
       // 여행을 계속 보여주니(어제 시작해 내일 끝나는 여행) 이름만 고치는 것도 불가능해진다.
       // 그래서 값이 실제로 바뀌지 않은 날짜 필드는 아예 보내지 않는다.
       const sendStartAt = originalStartAt === null || startAt !== originalStartAt;
-      const sendEndAt = originalEndAt === null || endAt !== originalEndAt;
       // 시간도 같은 이유로 바뀐 것만 보낸다. 여기에 더해 자정은 저장하지 않는다. 서버에 시간이
       // 없는 일정은 모달이 00:00을 대신 보여주는데, 그 값을 그대로 저장하면 여행 종료 시각이
       // 자정으로 박히고 마지막 날 일정이 전부 00:00으로 뭉개진다(scheduleUtils.boundMinutes
@@ -151,6 +150,23 @@ export default function TripsPage() {
       // 보고 필드를 뺀다 — 그래야 이미 저장돼 있던 시간도 덮이지 않는다.
       const sendStartTime = startTime !== "00:00" && startTime !== originalStartTime;
       const sendEndTime = endTime !== "00:00" && endTime !== originalEndTime;
+
+      // 그런데 운영 백엔드(ItineraryService.update)는 startAt/endAt이 하나도 없으면
+      // updatePeriod를 아예 호출하지 않고(`if (req.startAt() != null || req.endAt() != null)`),
+      // startTime/endTime은 그 updatePeriod 안에서만 반영된다. 그래서 날짜는 그대로 두고
+      // 시각만 바꾸면 PATCH는 200인데 서버엔 아무것도 저장되지 않는다 — 낙관적 캐시로 잠깐
+      // 보이다가 아래 invalidate에서 서버 값으로 원복된다. 시각이 바뀐 요청에서는 날짜 필드를
+      // 하나 같이 보내 그 분기를 열어줘야 한다. startAt이 아니라 endAt을 보내는 이유:
+      //  1. startAt/endAt 둘 다 @FutureOrPresent다. 어제 시작해 내일 끝나는 진행 중 여행은
+      //     startAt을 그대로 되보내는 것만으로 400이 되지만, 이 목록은 종료일이 지난 여행을
+      //     숨기므로(isPastTrip — endAt이 오늘보다 이전이면 제외) 화면에 떠 있는 여행의
+      //     endAt은 항상 오늘 이후다. 즉 endAt은 값이 안 바뀌어도 되보내기 안전하다.
+      //  2. Itinerary.updatePeriod는 필드별로 null을 건너뛴다(startAt != null일 때만 대입).
+      //     endAt만 보내도 이미 저장된 startAt/startTime은 지워지지 않는다.
+      //  3. 백엔드의 Day 날짜 재정렬은 startAt이 "실제로 바뀐" 경우에만 돌기 때문에, 같은
+      //     endAt을 되보내는 것으로는 Day 날짜도 움직이지 않는다.
+      const sendEndAt =
+        originalEndAt === null || endAt !== originalEndAt || sendStartTime || sendEndTime;
 
       // 시작 시간이 실제로 밀렸으면 백엔드가 이후 일정들의 방문 시각도 같은 만큼 밀어준다
       // (ItineraryService.update 참고) — 사용자가 그걸 모르고 넘어가지 않게 안내한다.

@@ -20,6 +20,22 @@ interface TripEditModalProps {
   onConfirm: (updated: Trip) => void;
 }
 
+// 시각이 저장돼 있지 않은 여행은 이 모달이 시작/종료를 모두 "00:00"으로 보여준다
+// (trips/page.tsx의 toTripDate가 빈 시간을 00:00으로 대체한다). 즉 여기서의 00:00은
+// 사용자가 고른 자정이 아니라 "시간 미지정"이라는 뜻이다.
+const isTimeUnspecified = (value: string) => (value.split(" ")[1] ?? "00:00") === "00:00";
+
+// 시작·종료가 둘 다 미지정이면 "종료는 시작보다 뒤" 하한 보정/차단을 건너뛴다.
+// 당일치기(숙박 0일) 여행은 minEndDate가 시작 + 1시간이라, 둘 다 00:00인 여행에서 이
+// 가드가 그대로 돌면 이름만 고치려는 사용자에게도 종료가 01:00으로 밀려 보이고, 안내대로
+// 한 번 더 저장하면 endTime=01:00이 실제로 저장된다. scheduleUtils.boundMinutes는 00:00만
+// "미지정"으로 걸러내므로 01:00은 진짜 여행 종료 경계로 취급되고, 그러면 마지막 날 일정
+// 시각이 전부 그 근처로 뭉개진다 — 레포 곳곳에 주석으로 남아 있는 "자정으로 덮지 않기"
+// 방어가 우회되는 셈이다. 한쪽이라도 사용자가 실제 시각을 고른 경우에는 가드가 그대로
+// 동작해야 한다(20:00 시작 / 18:00 종료 같은 저장을 막는 원래 의도).
+const shouldSkipEndTimeGuard = (start: string, end: string) =>
+  isTimeUnspecified(start) && isTimeUnspecified(end);
+
 export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModalProps) {
   const [name, setName] = useState(trip.name);
   const [startDate, setStartDate] = useState(() =>
@@ -62,7 +78,9 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
     // 저장되면 그 뒤로는 시간 수정이 전면 불가해진다. 종료를 하한까지 뒤로 밀되, 사용자가
     // 정해둔 시각을 조용히 바꾸지 않도록 화면(종료 픽커)에 반영하고 토스트로도 알린다.
     const earliestEnd = parseTripDateTime(getMinTripEndDateTime(nextStartDate, originalNights));
-    const shouldPushEnd = nextEnd.getTime() < earliestEnd.getTime();
+    const shouldPushEnd =
+      !shouldSkipEndTimeGuard(nextStartDate, formatTripDateTime(nextEnd)) &&
+      nextEnd.getTime() < earliestEnd.getTime();
 
     setStartDate(nextStartDate);
     setEndDate(formatTripDateTime(shouldPushEnd ? earliestEnd : nextEnd));
@@ -76,7 +94,10 @@ export function TripEditModal({ isOpen, trip, onClose, onConfirm }: TripEditModa
     // 픽커를 건드리지 않아 clamp도 위의 보정도 돌지 않은 채로 저장될 수 있다. 이때도 몰래
     // 고쳐서 저장하지 않고, 보정한 종료 시각을 화면에 보여준 뒤 한 번 더 확인받는다.
     const earliestEnd = parseTripDateTime(minEndDate);
-    if (parseTripDateTime(endDate).getTime() < earliestEnd.getTime()) {
+    if (
+      !shouldSkipEndTimeGuard(startDate, endDate) &&
+      parseTripDateTime(endDate).getTime() < earliestEnd.getTime()
+    ) {
       setEndDate(formatTripDateTime(earliestEnd));
       setToastMessage("종료 시간을 시작 시간 뒤로 맞췄어요. 확인 후 다시 저장해주세요.");
       return;
