@@ -655,10 +655,25 @@ function ItineraryMain({
     if (activeStopId) {
       logActivity("time", activeStop?.placeName ?? "장소");
       updateYjsStopTime(activeDayIdx, activeStopId, timeStr);
+      sortDayByTime(activeDayIdx);
     }
     closeModal();
     showToast("시간이 변경되었어요.");
   };
+  // 시각 변경은 Yjs 문서에서 "제자리 갱신"으로만 처리한다(항목을 지우고 다시 넣으면 두
+  // 사람이 같은 항목을 동시에 옮겼을 때 같은 id가 두 개로 복제된다). 그래서 순서는 바뀌지
+  // 않는데, 타임라인은 시각이 세로로 박히는 UI라 순서가 시간과 어긋나면 사용자에겐 버그로
+  // 보인다 — 실제로 순서가 달라질 때만 기존 재정렬 경로(새 id를 만들지 않는 병합)를 태워
+  // 시간순으로 맞춘다.
+  const sortDayByTime = (dayIdx: number) => {
+    const stops = stopsPerDay[dayIdx] ?? [];
+    if (stops.length < 2) return;
+    const sorted = [...stops].sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+    const orderChanged = sorted.some((stop, index) => stop.id !== stops[index].id);
+    if (!orderChanged) return;
+    pushYjsOptimizedOrder(dayIdx, sorted);
+  };
+
   // 이동수단 변경은 프론트에서 소요시간/역명을 추정하지 않고, 백엔드가 ODsay로 실제
   // 재계산한 경로(진짜 역명·노선번호)를 받아와 반영한다 — 예전엔 로컬에서 "장소명역" 같은
   // 이름을 지어내서 실제로 존재하지 않는 역이 표시되는 문제가 있었다.
@@ -858,6 +873,7 @@ function ItineraryMain({
     }
     logActivity("time", stopsPerDay[dayIdx]?.find((s) => s.id === stopId)?.placeName ?? "장소");
     updateYjsStopTime(dayIdx, stopId, time);
+    sortDayByTime(dayIdx);
     showToast("시간이 변경되었어요.");
   };
 

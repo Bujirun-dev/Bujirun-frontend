@@ -121,7 +121,48 @@ export function GpsLoadingStage({}: Pick<CommonProps, never>) {
   );
 }
 
-export function GpsFailStage({ placeName }: Pick<CommonProps, "placeName">) {
+// 실패 이유를 화면에 남긴다 — 예전엔 원인을 안 알려줘서, 실제로는 "1.4km 떨어져 있음"인데
+// 사용자는 GPS 고장인지 앱 문제인지 알 수 없었다. 서버가 내려주는 거리를 그대로 보여준다.
+export type GpsFailReason =
+  | { type: "too-far"; distanceMeters: number }
+  | { type: "permission" }
+  | { type: "unsupported" }
+  | { type: "error" };
+
+function formatDistance(meters: number): string {
+  if (meters >= 1000) return `${(meters / 1000).toFixed(1)}km`;
+  return `${Math.round(meters)}m`;
+}
+
+export function GpsFailStage({
+  placeName,
+  reason,
+}: Pick<CommonProps, "placeName"> & { reason?: GpsFailReason }) {
+  const { title, notice } = (() => {
+    switch (reason?.type) {
+      case "too-far":
+        return {
+          title: "아직 조금 멀어요!",
+          notice: `* 지금 위치에서 ${formatDistance(reason.distanceMeters)} 떨어져 있어요. 관광지에 도착한 뒤 다시 시도해주세요.`,
+        };
+      case "permission":
+        return {
+          title: "위치 권한이 필요해요!",
+          notice: "* 브라우저 설정에서 위치 접근을 허용한 뒤 다시 시도해주세요.",
+        };
+      case "unsupported":
+        return {
+          title: "위치를 확인할 수 없어요!",
+          notice: "* 이 기기에서는 위치 확인을 지원하지 않아요.",
+        };
+      default:
+        return {
+          title: "위치를 확인할 수 없어요!",
+          notice: "* 잠시 후 관광지 근처에서 다시 시도해주세요.",
+        };
+    }
+  })();
+
   return (
     <>
       <CharacterImage
@@ -131,18 +172,19 @@ export function GpsFailStage({ placeName }: Pick<CommonProps, "placeName">) {
       />
       <div className="mb-5 flex flex-col items-center gap-2 text-center">
         <PlaceBadge placeName={placeName} />
-        <h2 className="font-paperlogy text-md font-bold text-text-heading">
-          위치를 확인할 수 없어요!
-        </h2>
+        <h2 className="font-paperlogy text-md font-bold text-text-heading">{title}</h2>
       </div>
       <div className="w-full">
-        <Notice>* 관광지 근처에서 다시 시도해주세요.</Notice>
+        <Notice>{notice}</Notice>
       </div>
     </>
   );
 }
 
-export function GpsSuccessStage({ placeName }: Pick<CommonProps, "placeName">) {
+export function GpsSuccessStage({
+  placeName,
+  isCameraBlocked = false,
+}: Pick<CommonProps, "placeName"> & { isCameraBlocked?: boolean }) {
   return (
     <>
       <CharacterImage
@@ -157,7 +199,13 @@ export function GpsSuccessStage({ placeName }: Pick<CommonProps, "placeName">) {
         </h2>
       </div>
       <div className="w-full">
-        <Notice>* 사진을 찍어 기록을 남겨주세요.</Notice>
+        {/* 카메라를 못 열었을 때 이유를 알려준다 — 예전엔 사진 화면으로 못 넘어간 채
+            조용히 이 화면으로 돌아와서 버튼이 안 먹는 것처럼 보였다. */}
+        <Notice>
+          {isCameraBlocked
+            ? "* 카메라를 사용할 수 없어요. 브라우저 설정에서 카메라 접근을 허용한 뒤 다시 시도해주세요."
+            : "* 사진을 찍어 기록을 남겨주세요."}
+        </Notice>
       </div>
     </>
   );

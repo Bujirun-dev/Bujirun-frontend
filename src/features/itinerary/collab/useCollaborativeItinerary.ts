@@ -230,7 +230,10 @@ export function useCollaborativeItinerary(
       window.clearTimeout(retryTimerRef.current);
       retryTimerRef.current = null;
     }
-    void runFlush(0);
+    // Promise를 돌려줘야 이탈 시점(useItineraryYDoc의 지연 destroy)이 "저장 완료"를
+    // 실제로 기다릴 수 있다. 예전엔 void로 버려서, 언마운트 직후 연결이 끊기고 응답으로
+    // 받은 새 항목 id가 이미 파괴된 문서에만 반영됐다.
+    return runFlush(0);
   };
 
   // 언마운트 후에 재시도가 깨어나 요청을 쏘지 않도록 정리한다(이탈 시점엔
@@ -251,7 +254,11 @@ export function useCollaborativeItinerary(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stopsPerDay]);
 
-  const { status, synced, getProvider } = useItineraryYDoc(itineraryId, doc, flushAll);
+  const { status, synced, getProvider, connectionState, isCollabUnavailable } = useItineraryYDoc(
+    itineraryId,
+    doc,
+    flushAll,
+  );
 
   // WS 동기화가 끝난 뒤에만 시딩한다 — synced=true가 되는 시점엔 원격(Redis)에 이미
   // 있던 days가 doc에 먼저 반영된 후라, seedYjsDays의 "로컬 문서 비어있으면 시딩" 가드가
@@ -430,6 +437,9 @@ export function useCollaborativeItinerary(
   return {
     stopsPerDay: stopsPerDayWithStatus,
     status,
+    // 실시간 연결이 끊겼는지 / 아예 설정이 빠졌는지를 화면에서 알려주기 위해 노출한다.
+    connectionState,
+    isCollabUnavailable,
     seeded,
     collaboratorsByStop,
     setFocusedStop,
