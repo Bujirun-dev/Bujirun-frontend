@@ -14,7 +14,8 @@ import flagImg from "@/assets/place/flag.png";
 import houseImg from "@/assets/place/house.png";
 import busanStationImg from "@/assets/place/busan-station.png";
 import { groupApi, itineraryApi } from "@/shared/api/domains";
-import { useItineraryGenerationLockStore } from "@/shared/stores";
+import { useItineraryGenerationLockStore, useItineraryFlowStore } from "@/shared/stores";
+import { useItineraryFlowProgress } from "@/features/itinerary/hooks/useItineraryFlowProgress";
 import { getDefaultItemTime, getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
@@ -180,6 +181,7 @@ function TripResultContent() {
   >("default");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const unlockGeneration = useItineraryGenerationLockStore((state) => state.unlock);
+  const clearFlow = useItineraryFlowStore((state) => state.clearFlow);
   const queryClient = useQueryClient();
 
   // 확정 직후엔 일정 목록 캐시(staleTime 60초)에 새 일정이 아직 없다. 그대로 /itinerary로
@@ -187,6 +189,8 @@ function TripResultContent() {
   // 그래서 목록을 무효화하고, 방금 만들어진 일정 id를 tripId로 직접 지정해서 이동한다.
   const goToNewItinerary = async (itineraryId?: string) => {
     unlockGeneration();
+    // 확정까지 끝났으면 더 이어할 게 없다 — "이어하기" 안내가 남지 않게 지운다.
+    clearFlow();
     try {
       await queryClient.invalidateQueries({
         queryKey: itineraryApi.keys.lists(),
@@ -228,6 +232,9 @@ function TripResultContent() {
     ...(accommodationLat ? { accommodationLat } : {}),
     ...(accommodationLng ? { accommodationLng } : {}),
   }).toString();
+
+  // 생성/투표 중에 튕겨도 같은 투표 세션으로 돌아올 수 있게 진행 상황을 남긴다.
+  useItineraryFlowProgress("result", forwardParams, groupId, { sessionId, tripName });
 
   // days 수에 맞게 각 플랜 day 슬라이스 + 하루 최대 3곳(아침/오후/저녁) 슬롯에 맞춰 시간 배정
   const plans: Plan[] = [

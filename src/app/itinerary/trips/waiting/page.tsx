@@ -1,11 +1,18 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
-import { LoadingState } from "@/components";
+import { Button, LoadingState, Modal } from "@/components";
+import EmergencyIcon from "@/assets/icons/itinerary/emergency-on.svg?svgr";
 import { swipeApi } from "@/shared/api/domains";
+import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
+import { useItineraryFlowProgress } from "@/features/itinerary/hooks/useItineraryFlowProgress";
+import {
+  formatRemainingTime,
+  useItineraryFlowTimer,
+} from "@/features/itinerary/hooks/useItineraryFlowTimer";
 
 function PageLoadingFallback() {
   return <LoadingState />;
@@ -44,6 +51,14 @@ function TripWaitingContent() {
     ...(accommodationLng ? { accommodationLng } : {}),
   }).toString();
 
+  useItineraryFlowProgress("waiting", searchParams.toString(), groupId, {
+    tripName: searchParams.get("name") ?? undefined,
+  });
+
+  const isHost = useIsGroupHost(groupId);
+  const { remainingMs, isOver } = useItineraryFlowTimer();
+  const [showSkipConfirm, setShowSkipConfirm] = useState(false);
+
   const { data: swipeStatus } = useQuery({
     queryKey: swipeApi.keys.status(groupId),
     queryFn: () => swipeApi.getSwipeStatus(groupId),
@@ -52,6 +67,10 @@ function TripWaitingContent() {
   });
   const doneCount = Math.min(totalSlots, swipeStatus?.doneCount ?? 0);
   const allDone = swipeStatus?.allDone ?? doneCount >= totalSlots;
+
+  const goToResult = () => {
+    router.push(`/itinerary/trips/result?${forwardParams}`);
+  };
 
   // 전원 완료 시 결과 페이지로 이동
   useEffect(() => {
@@ -92,7 +111,52 @@ function TripWaitingContent() {
 
         {/* 친구 아바타 - 친구 수별 행 배치 */}
         <ParticipantAvatarGrid total={totalSlots} activeCount={doneCount} className="mt-5" />
+
+        {/* 10분 제한 — 중간에 튕겨서 안 돌아오는 사람 한 명 때문에 그룹 전체가
+            영구히 갇히지 않도록, 제한이 지나면 방장이 먼저 진행할 수 있다. */}
+        {!allDone && (
+          <div className="mt-5 flex w-full flex-col items-center gap-2">
+            {isOver ? (
+              isHost ? (
+                <>
+                  <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
+                    10분이 지났어요. 기다리지 않고 진행할 수 있어요.
+                  </p>
+                  <Button variant="warning" onClick={() => setShowSkipConfirm(true)}>
+                    기다리지 않고 진행하기
+                  </Button>
+                </>
+              ) : (
+                <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
+                  10분이 지났어요. 방장이 먼저 진행할 수 있어요.
+                </p>
+              )
+            ) : (
+              <p className="text-center font-paperlogy text-sm font-normal text-sub-darkgray">
+                {formatRemainingTime(remainingMs)} 후에는 방장이 바로 진행할 수 있어요
+              </p>
+            )}
+          </div>
+        )}
       </div>
+
+      <Modal
+        isOpen={showSkipConfirm}
+        onClose={() => setShowSkipConfirm(false)}
+        confirmVariant="warning"
+        icon={<EmergencyIcon width={25} height={25} className="text-sub-coral" aria-hidden />}
+        title="기다리지 않고 진행할까요?"
+        description={
+          "아직 취향분석을 안 한 친구는\n이번 추천에 취향이 반영되지 않아요.\n(일정에서 빠지는 건 아니에요)"
+        }
+        cancelText="더 기다리기"
+        confirmText="진행하기"
+        onCancel={() => setShowSkipConfirm(false)}
+        onConfirm={() => {
+          setShowSkipConfirm(false);
+          goToResult();
+        }}
+      />
     </div>
   );
 }

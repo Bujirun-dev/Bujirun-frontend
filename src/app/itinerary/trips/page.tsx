@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import plusSmallIcon from "@/assets/icons/itinerary/plus-small.svg?url";
 import { PageCard, Toast, EmptyState, LoadingBoundary } from "@/components";
 import { TripCard, TripEditModal, TripDeleteModal, TripDeleteToast } from "@/features/itinerary";
+import { ItineraryFlowResumeBanner } from "@/features/itinerary/components";
 import type { Trip } from "@/features/itinerary";
 import { itineraryApi } from "@/shared/api/domains";
 import { getErrorMessage } from "@/shared/utils";
@@ -236,6 +237,9 @@ export default function TripsPage() {
       <p className="pl-4 pb-2 text-xs text-sub-darkgray font-medium">
         * 진행 중이거나 예정된 여행만 보여드려요.
       </p>
+
+      {/* 생성 중에 튕겼던 사람이 다시 들어올 입구 */}
+      <ItineraryFlowResumeBanner />
 
       {/* 여행 목록 */}
       <LoadingBoundary isLoading={isLoading} message="여행 목록을 불러오는 중이에요">

@@ -4,11 +4,17 @@ import { Fragment, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { Modal, Toast, Button, LoadingState } from "@/components";
+import EmergencyIcon from "@/assets/icons/itinerary/emergency-on.svg?svgr";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { itineraryApi } from "@/shared/api/domains";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
-import { useItineraryGenerationLockStore } from "@/shared/stores";
+import { useItineraryGenerationLockStore, useItineraryFlowStore } from "@/shared/stores";
+import { useItineraryFlowProgress } from "@/features/itinerary/hooks/useItineraryFlowProgress";
+import {
+  formatRemainingTime,
+  useItineraryFlowTimer,
+} from "@/features/itinerary/hooks/useItineraryFlowTimer";
 
 function getWinnerPlan(votes: Record<string, number>): string | null {
   const sorted = Object.entries(votes).sort((a, b) => b[1] - a[1]);
@@ -64,14 +70,26 @@ function VoteWaitingContent() {
   >("default");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
+  // 10분 제한이 지난 뒤 방장이 "지금 표로 확정"을 눌렀는데 동률이면, 전원 투표 전이라도
+  // 기존 동률 모달을 띄워서 방장이 직접 고르게 한다.
+  const [isHostSkipping, setIsHostSkipping] = useState(false);
+  const [showSkipConfirm, setShowSkipConfirm] = useState(false);
+  const { remainingMs, isOver } = useItineraryFlowTimer();
   const unlockGeneration = useItineraryGenerationLockStore((state) => state.unlock);
+  const clearFlow = useItineraryFlowStore((state) => state.clearFlow);
   const queryClient = useQueryClient();
+
+  useItineraryFlowProgress("vote-waiting", searchParams.toString(), groupId, {
+    sessionId,
+    tripName,
+  });
 
   // 확정 직후엔 일정 목록 캐시(staleTime 60초)에 새 일정이 아직 없다. 그대로 /itinerary로
   // 보내면 목록에서 못 찾고 "직전에 보던 일정"으로 폴백해서 예전 일정이 열린다.
   // 그래서 목록을 무효화하고, 방금 만들어진 일정 id를 tripId로 직접 지정해서 이동한다.
   const goToNewItinerary = async (itineraryId?: string) => {
     unlockGeneration();
+    clearFlow();
     try {
       // 비활성 상태인 목록 캐시도 실제로 다시 받아온 뒤 이동해야, 일정 탭이 새 id를
       // 아직 모르는 상태에서 기존 일정으로 폴백하지 않는다.
@@ -99,7 +117,24 @@ function VoteWaitingContent() {
   const doneCount = Math.min(totalSlots, voteStatus?.totalVotes ?? 0);
   const winnerPlan = getWinnerPlan(voteCounts);
   const tiedPlans = getTiedPlans(voteCounts);
-  const showTieModal = doneCount >= totalSlots && !winnerPlan && !selectedTiePlan;
+  const showTieModal = (doneCount >= totalSlots || isHostSkipping) && !winnerPlan && !selectedTiePlan;
+
+  // 제한 시간이 지나면 방장은 아직 투표 안 한 사람을 기다리지 않고 현재 표로 확정할 수 있다.
+  const handleHostSkip = () => {
+    setShowSkipConfirm(false);
+    if (winnerPlan) {
+      setToastVariant("success");
+      setToastMessage(`${winnerPlan}안이 최다 투표로 선택됐어요! 🎉`);
+      void confirmPlan(winnerPlan);
+      return;
+    }
+    if (tiedPlans.length > 1) {
+      setIsHostSkipping(true);
+      return;
+    }
+    setToastVariant("warning");
+    setToastMessage("아직 투표한 사람이 없어요. 조금만 더 기다려주세요.");
+  };
 
   const confirmPlan = async (planType: string) => {
     setIsConfirming(true);
@@ -199,7 +234,51 @@ function VoteWaitingContent() {
         </p>
 
         <ParticipantAvatarGrid total={totalSlots} activeCount={doneCount} className="mt-5" />
+
+        {/* 10분 제한 — 투표를 안 하고 사라진 사람 때문에 그룹 전체가 갇히지 않게,
+            제한이 지나면 방장이 현재 표로 확정할 수 있다. */}
+        {doneCount < totalSlots && (
+          <div className="mt-5 flex w-full flex-col items-center gap-2">
+            {isOver ? (
+              isHost ? (
+                <>
+                  <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
+                    10분이 지났어요. 지금 표로 확정할 수 있어요.
+                  </p>
+                  <Button
+                    variant="warning"
+                    onClick={() => setShowSkipConfirm(true)}
+                    disabled={isConfirming}
+                  >
+                    {isConfirming ? "확정 중..." : "지금 표로 확정하기"}
+                  </Button>
+                </>
+              ) : (
+                <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
+                  10분이 지났어요. 방장이 지금 표로 확정할 수 있어요.
+                </p>
+              )
+            ) : (
+              <p className="text-center font-paperlogy text-sm font-normal text-sub-darkgray">
+                {formatRemainingTime(remainingMs)} 후에는 방장이 바로 확정할 수 있어요
+              </p>
+            )}
+          </div>
+        )}
       </div>
+
+      <Modal
+        isOpen={showSkipConfirm}
+        onClose={() => setShowSkipConfirm(false)}
+        confirmVariant="warning"
+        icon={<EmergencyIcon width={25} height={25} className="text-sub-coral" aria-hidden />}
+        title="지금 표로 확정할까요?"
+        description={"아직 투표하지 않은 친구의 표는\n반영되지 않아요."}
+        cancelText="더 기다리기"
+        confirmText="확정하기"
+        onCancel={() => setShowSkipConfirm(false)}
+        onConfirm={handleHostSkip}
+      />
 
       {/* 동률 모달 */}
       <Modal

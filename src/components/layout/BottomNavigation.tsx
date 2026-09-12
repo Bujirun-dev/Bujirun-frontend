@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import EmergencyIcon from "@/assets/icons/itinerary/emergency-on.svg?svgr";
@@ -69,15 +69,23 @@ function NavIcon({ href, isActive }: { href: string; isActive: boolean }) {
 
 export function BottomNavigation() {
   const pathname = usePathname();
-  const [showNavigationWarning, setShowNavigationWarning] = useState(false);
+  const router = useRouter();
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
   const isGenerationLocked = useItineraryGenerationLockStore((state) => state.isLocked);
   const lockGeneration = useItineraryGenerationLockStore((state) => state.lock);
+  const unlockGeneration = useItineraryGenerationLockStore((state) => state.unlock);
 
+  const isOnWorkflowRoute = LOCKED_WORKFLOW_ROUTES.some((route) => pathname.startsWith(route));
+
+  // 잠금은 "지금 생성 플로우 화면에 있을 때"만 의미가 있다. 예전엔 잠금이 sessionStorage에
+  // 남고 정상 완료 경로에서만 풀렸기 때문에, 생성 중에 튕겨서 홈으로 떨어지면 4개 탭이
+  // 전부 막힌 채로 갇혀서 일정 생성으로 다시 들어갈 방법이 없었다.
   useEffect(() => {
-    if (LOCKED_WORKFLOW_ROUTES.some((route) => pathname.startsWith(route))) {
-      lockGeneration();
-    }
-  }, [lockGeneration, pathname]);
+    if (isOnWorkflowRoute) lockGeneration();
+    else unlockGeneration();
+  }, [isOnWorkflowRoute, lockGeneration, unlockGeneration]);
+
+  const isNavigationBlocked = isGenerationLocked && isOnWorkflowRoute;
 
   // 로그인/회원가입 페이지에서는 숨기기
   if (pathname === "/login" || pathname === "/signup") return null;
@@ -95,9 +103,9 @@ export function BottomNavigation() {
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
                 onClick={(event) => {
-                  if (!isGenerationLocked) return;
+                  if (!isNavigationBlocked) return;
                   event.preventDefault();
-                  setShowNavigationWarning(true);
+                  setPendingHref(item.href);
                 }}
                 className="relative flex min-w-0 flex-col items-center justify-center text-xs font-semibold transition-colors"
               >
@@ -123,18 +131,35 @@ export function BottomNavigation() {
       </nav>
 
       <Modal
-        isOpen={showNavigationWarning}
-        onClose={() => setShowNavigationWarning(false)}
+        isOpen={pendingHref !== null}
+        onClose={() => setPendingHref(null)}
         hideCloseButton
         hideActions
         confirmVariant="warning"
         icon={<EmergencyIcon width={25} height={25} className="text-sub-coral" aria-hidden />}
-        title="지금은 이동할 수 없어요!"
-        description={"일정 생성이 진행 중이에요.\n투표가 완료될 때까지 현재 화면을 유지해주세요."}
+        title="일정 생성 중이에요!"
+        description={
+          "지금 나가면 친구들이 기다릴 수 있어요.\n나가더라도 일정 탭에서 \"이어서 만들기\"로\n같은 자리로 돌아올 수 있어요."
+        }
         footer={
-          <Button variant="warning" onClick={() => setShowNavigationWarning(false)}>
-            계속 진행하기
-          </Button>
+          <div className="flex w-full flex-col gap-2">
+            <Button variant="warning" onClick={() => setPendingHref(null)}>
+              계속 진행하기
+            </Button>
+            {/* 나가는 길을 아예 막으면, 화면이 한 번 꼬였을 때 사용자가 앱 안에서
+                탈출할 방법이 없다. 진행 상황은 저장돼 있어서 언제든 이어할 수 있다. */}
+            <Button
+              variant="secondary"
+              onClick={() => {
+                const href = pendingHref;
+                setPendingHref(null);
+                unlockGeneration();
+                if (href) router.push(href);
+              }}
+            >
+              나가기 (진행 상황 저장됨)
+            </Button>
+          </div>
         }
       />
     </>

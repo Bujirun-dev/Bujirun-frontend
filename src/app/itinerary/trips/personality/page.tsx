@@ -10,6 +10,7 @@ import EmergencyIcon from "@/assets/icons/itinerary/emergency-on.svg?svgr";
 import { SpeechBubble, Toast, Button, LoadingState, Modal } from "@/components";
 import { collectionApi, swipeApi } from "@/shared/api/domains";
 import { useItineraryGenerationLockStore } from "@/shared/stores";
+import { useItineraryFlowProgress } from "@/features/itinerary/hooks/useItineraryFlowProgress";
 
 const TOTAL_SLOTS = 6; // mock - 실제로는 searchParams 또는 API
 
@@ -64,6 +65,10 @@ function TripPersonalityContent() {
     ...(accommodationLat ? { accommodationLat } : {}),
     ...(accommodationLng ? { accommodationLng } : {}),
   }).toString();
+
+  useItineraryFlowProgress("personality", searchParams.toString(), groupId, {
+    tripName: searchParams.get("name") ?? undefined,
+  });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -187,7 +192,7 @@ function TripPersonalityContent() {
         icon={<EmergencyIcon width={25} height={25} className="text-sub-coral" aria-hidden />}
         title="시작 전 꼭 확인해주세요!"
         description={
-          "지금부터 일정 생성이 끝날 때까지\n다른 탭으로 이동할 수 없어요.\n투표 완료 전에는 현재 화면을 유지해주세요."
+          "지금부터 투표가 끝날 때까지\n현재 화면을 유지해주세요.\n중간에 나가도 일정 탭에서 이어서 만들 수 있어요."
         }
         cancelText="취소"
         confirmText="확인하고 시작"

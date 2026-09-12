@@ -11,6 +11,7 @@ import {
   SlidingTimeline,
   ItineraryModals,
   AccommodationSearchField,
+  ItineraryFlowResumeBanner,
 } from "@/features/itinerary";
 import type { ItineraryStop, ModalType, AccommodationPlace } from "@/features/itinerary";
 import { itineraryApi, travelLogApi, userApi } from "@/shared/api/domains";
@@ -182,6 +183,7 @@ function ItineraryEmptyState() {
 
   return (
     <PageCard>
+      <ItineraryFlowResumeBanner />
       <EmptyState
         title="아직 여행 일정이 없어요"
         description={
@@ -822,6 +824,7 @@ function ItineraryMain({
   return (
     <div className="relative h-full">
       <PageCard>
+        <ItineraryFlowResumeBanner />
         <ItineraryHeader
           currentDay={currentDay}
           tripName={tripTitle ?? "부지렁즈"}
