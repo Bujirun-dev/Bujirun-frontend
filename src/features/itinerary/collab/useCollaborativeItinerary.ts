@@ -16,6 +16,7 @@ import {
   readActivityLog,
   readStopsFromYjs,
   reconcileTransportFromRest,
+  reconcileBrokenTimesFromRest,
   replaceStop as yReplaceStop,
   replaceStopsWithImportedLog as yReplaceStopsWithImportedLog,
   resolveTempId,
@@ -86,7 +87,10 @@ export function useCollaborativeItinerary(
   initialDays: BaseStop[][],
   currentUser?: CurrentUser,
   onRemoteActivity?: (entry: ActivityLogEntry) => void,
-  // REST 반영이 끝까지 실패했을 때 알림용(선택). 없으면 예전처럼 조용히 재시도만 한다.
+  // REST 반영에 실패한 변경이 있을 때 알림용(선택). 없으면 예전처럼 조용히 재시도만 한다.
+  // 조용히 삼키면, 화면(Yjs)에는 남아 있어서 사용자는 저장된 줄 알지만 새로고침하면
+  // 사라진다 — 그 사실을 화면에 알리기 위한 통로다. 자동 재시도가 남았는지(willRetry)까지
+  // 함께 넘기므로, 호출부가 "재시도 중" 안내와 "최종 실패" 안내를 나눠 띄울 수 있다.
   onFlushError?: (info: FlushErrorInfo) => void,
   // 서버 반영이 끝난 뒤 호출된다. 호출부가 상세 캐시를 갱신하는 데 쓴다 — 저장은 됐는데
   // 캐시에 옛 응답이 남아 있으면, 앱 안에서 이 화면에 다시 들어올 때 그 옛 응답으로 문서가
@@ -348,6 +352,8 @@ export function useCollaborativeItinerary(
       // 이번 REST 응답 기준으로 채워 넣는다 (없으면 새로고침할 때마다 잠깐 떴다가
       // 사라지는 버그가 있었음 — Yjs 쪽 항목엔 이동수단이 비어있는 채로 굳어있어서).
       reconcileTransportFromRest(doc, dayIdsRef.current, initialDaysRef.current);
+      // 예전 버그로 하루 전체가 같은 시각(대개 00:00)으로 굳어버린 방을 REST 값으로 되돌린다.
+      reconcileBrokenTimesFromRest(doc, dayIdsRef.current, initialDaysRef.current);
       hasSeededRef.current = true;
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSeeded(true);
@@ -356,6 +362,7 @@ export function useCollaborativeItinerary(
     const timer = window.setTimeout(() => {
       seedYjsDays(doc, dayIdsRef.current, initialDaysRef.current);
       reconcileTransportFromRest(doc, dayIdsRef.current, initialDaysRef.current);
+      reconcileBrokenTimesFromRest(doc, dayIdsRef.current, initialDaysRef.current);
       hasSeededRef.current = true;
       setSeeded(true);
     }, SEED_FALLBACK_MS);

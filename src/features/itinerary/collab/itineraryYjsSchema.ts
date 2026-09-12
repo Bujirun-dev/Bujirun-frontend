@@ -368,6 +368,44 @@ export function reconcileTransportFromRest(
   });
 }
 
+// 이미 시딩된 방은 시각도 다시 안 받아온다(seedYjsDays가 "비어있을 때만" 시딩). 예전 버그로
+// 하루 전체가 같은 시각(대개 00:00)으로 뭉개진 채 시딩된 방이 Redis에 그대로 남아 있어서,
+// REST가 제대로 계산해서 내려줘도 화면은 계속 00:00을 보여준다(2026-09-06 라이브 확인).
+//
+// 사용자가 직접 맞춰둔 시각을 덮으면 안 되므로, "그 날 항목이 2개 이상인데 시각이 전부
+// 동일"한 명백히 깨진 경우에만 REST 값으로 되돌린다 — 서로 다른 두 항목이 같은 시각을
+// 갖는 상태는 사용자가 만들 수 없다(백엔드가 같은 날 같은 시각을 아예 막는다).
+export function reconcileBrokenTimesFromRest(
+  doc: Y.Doc,
+  dayIds: string[],
+  restDays: BaseStop[][],
+): void {
+  doc.transact(() => {
+    dayIds.forEach((_, dayIdx) => {
+      const items = getItemsArray(doc, dayIdx);
+      if (!items) return;
+      const maps = items.toArray();
+      if (maps.length < 2) return;
+
+      const times = maps.map((map) => map.get("time") as string | undefined);
+      const isBroken = times.every((time) => time !== undefined && time === times[0]);
+      if (!isBroken) return;
+
+      const restTimesById = new Map(
+        (restDays[dayIdx] ?? []).map((stop) => [stop.id, stop.time] as const),
+      );
+      // REST에 없는 항목(아직 저장 안 된 새 항목)이 섞여 있으면 그 날은 손대지 않는다 —
+      // 일부만 바꾸면 오히려 순서와 시각이 어긋난다.
+      const nextTimes = maps.map((map) => restTimesById.get(map.get("id") as string));
+      if (nextTimes.some((time) => time === undefined)) return;
+      // REST 쪽도 전부 같은 시각이면(= 같은 깨진 값) 고칠 게 없다.
+      if (nextTimes.every((time) => time === nextTimes[0])) return;
+
+      maps.forEach((map, idx) => map.set("time", nextTimes[idx]));
+    });
+  });
+}
+
 // "days" 키를 이 모듈 밖으로 새어나가지 않게 감싼 observe 헬퍼. 매 변화마다 dayId 중복과
 // 항목 id 중복부터 정리한 뒤(동시 최초시딩 경합 / 예전 버전이 남긴 중복 대비, dedupeDaysById·
 // dedupeItemsById 주석 참고) 콜백을 부른다 — 정리할 게 있었다면 그 트랜잭션이 이 observer를
