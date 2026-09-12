@@ -365,10 +365,13 @@ function ItineraryMain({
     queryFn: () => travelLogApi.getLog(importedLogId as string),
     enabled: !!importedLogId,
   });
-  const requestedDays = Math.max(1, Number(searchParams.get("days")) || initialDaysData.length);
-  const initialDays = initialDaysData.slice(0, requestedDays);
-  const initialDates = initialDatesData.slice(0, requestedDays);
-  const dayIdsSliced = dayIds.slice(0, requestedDays);
+  // 예전엔 URL의 `?days=`로 화면에 보여줄 날짜 수를 잘랐다. 그런데 잘린 날짜는 공동편집
+  // 문서에서도 빠지고, flush는 "문서에 없고 서버에 있는 항목"을 삭제 대상으로 보기 때문에
+  // (flushItineraryToRest 참고) `?days=1`로 한 번 열면 2일차 이후 항목이 전부 지워질 수
+  // 있었다. 날짜 수는 항상 실제 일정 데이터를 기준으로 삼는다.
+  const initialDays = initialDaysData;
+  const initialDates = initialDatesData;
+  const dayIdsSliced = dayIds;
   // 확정 시점에 정한 시작/종료 시간 — 첫날은 시작 시간 이전, 마지막날은 종료 시간 이후로
   // 일정을 옮기지 못하게 막는 데 쓴다. 백엔드엔 시간이 저장되지 않아 로컬에만 있을 수 있다.
   const validateStopTime = (dayIdx: number, time: string): string | null => {
@@ -505,6 +508,12 @@ function ItineraryMain({
         }
       : undefined,
     handleRemoteActivity,
+    // 저장 실패는 예전엔 조용히 삼켜져서, 화면엔 바뀐 시간/순서가 보이는데 서버에는
+    // 반영되지 않은 채 새로고침하면 되돌아갔다. 자동 재시도까지 실패한 경우에만 알린다
+    // (재시도 중에 토스트를 띄우면 곧 성공할 저장까지 실패로 보인다).
+    (info) => {
+      if (!info.willRetry) showToast(info.message, "error");
+    },
   );
   const [tripDates, setTripDates] = useState<string[]>(initialDates);
   // initialDates는 마운트 시점 값을 useState 시드로만 쓰기 때문에, 트립 목록 화면에서

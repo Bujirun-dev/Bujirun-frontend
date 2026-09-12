@@ -36,6 +36,30 @@ export const formatTripDateTime = (date: Date) =>
 // "YYYY.MM.DD HH:mm" -> "YYYY-MM-DD" (백엔드 date 파라미터 포맷)
 export const toApiDate = (value: string) => value.split(" ")[0].replaceAll(".", "-");
 
+// 당일치기(숙박 0일) 여행에서 시작과 종료 사이에 최소한 남겨두는 간격.
+export const MIN_TRIP_DURATION_MINUTES = 60;
+
+// 시작 시각과 숙박 수가 정해지면 종료 시각이 그보다 앞설 수 없는 하한이 생긴다.
+// - 숙박이 있으면 종료 날짜가 이미 하루 이상 뒤라서 시간은 자유롭게(그 날 자정부터) 고를 수 있다.
+// - 당일치기면 같은 날 안에서 최소 MIN_TRIP_DURATION_MINUTES만큼은 뒤여야 한다. 단, 날짜가
+//   다음 날로 넘어가면 "여행 일수 유지" 규칙이 깨지므로 그 날 마지막으로 고를 수 있는
+//   시각(시간 휠의 마지막 분 단위)까지만 민다.
+export const getMinTripEndDateTime = (startValue: string, nights: number) => {
+  const minEnd = parseTripDateTime(startValue);
+
+  if (nights > 0) {
+    minEnd.setDate(minEnd.getDate() + nights);
+    minEnd.setHours(0, 0, 0, 0);
+    return formatTripDateTime(minEnd);
+  }
+
+  const lastSlotOfDay = new Date(minEnd);
+  lastSlotOfDay.setHours(23, TIME_WHEEL_MINUTES[TIME_WHEEL_MINUTES.length - 1], 0, 0);
+  minEnd.setMinutes(minEnd.getMinutes() + MIN_TRIP_DURATION_MINUTES);
+
+  return formatTripDateTime(minEnd > lastSlotOfDay ? lastSlotOfDay : minEnd);
+};
+
 const getCalendarDays = (monthDate: Date) => {
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
