@@ -23,7 +23,10 @@ import {
 } from "@/features/itinerary";
 import type { ItineraryStop, ModalType, AccommodationPlace } from "@/features/itinerary";
 import { itineraryApi, travelLogApi, userApi } from "@/shared/api/domains";
-import { useCollaborativeItinerary } from "@/features/itinerary/collab/useCollaborativeItinerary";
+import {
+  useCollaborativeItinerary,
+  type FlushErrorInfo,
+} from "@/features/itinerary/collab/useCollaborativeItinerary";
 import { useTransportBackfill } from "@/features/itinerary/hooks/useTransportBackfill";
 import {
   type BaseStop,
@@ -581,6 +584,21 @@ function ItineraryMain({
     setToastMessage(message);
   };
 
+  // 화면(Yjs)에는 반영됐는데 DB 저장이 실패한 변경이 있을 때. 조용히 넘어가면 사용자는
+  // 저장된 줄 알고 새로고침했다가 항목이 사라지는 걸 보게 된다.
+  //
+  // 자동 재시도가 남아 있는 동안(willRetry)에는 "아직 저장 안 됐고 다시 시도 중"이라는
+  // 사실만 한 번 알린다 — 재시도마다 띄우면 곧 성공할 저장까지 실패로 보이기 때문에
+  // 첫 실패(attempt===1)에서만 띄운다. 재시도까지 모두 실패한 최종 실패에서는 무엇이
+  // 문제인지 알 수 있게 실패 사유(백엔드 message 우선)를 그대로 보여준다.
+  const handleSaveFailed = (info: FlushErrorInfo) => {
+    // 재시도가 남아 있으면 알리지 않는다. 곧 성공할 저장을 실패로 보여주면
+    // 사용자가 같은 편집을 다시 하게 되고, 그게 중복 생성으로 이어졌다.
+    // 더 시도할 게 없을 때만 실제 실패 사유를 띄운다.
+    if (info.willRetry) return;
+    showToast(info.message, "error");
+  };
+
   // 다른 참여자가 만든 변경(추가/삭제/시간변경/교체/최적화/로그 불러오기)을 알려준다.
   // "로그 불러오기"처럼 일정 전체가 바뀌는 큰 변경은 안내 팝업으로, 나머지는 토스트로.
   const handleRemoteActivity = (entry: ActivityLogEntry) => {
@@ -632,11 +650,8 @@ function ItineraryMain({
       : undefined,
     handleRemoteActivity,
     // 저장 실패는 예전엔 조용히 삼켜져서, 화면엔 바뀐 시간/순서가 보이는데 서버에는
-    // 반영되지 않은 채 새로고침하면 되돌아갔다. 자동 재시도까지 실패한 경우에만 알린다
-    // (재시도 중에 토스트를 띄우면 곧 성공할 저장까지 실패로 보인다).
-    (info) => {
-      if (!info.willRetry) showToast(info.message, "error");
-    },
+    // 반영되지 않은 채 새로고침하면 되돌아갔다. 무엇을 언제 알릴지는 handleSaveFailed 참고.
+    handleSaveFailed,
     // 저장이 끝나면 상세 캐시를 무효화한다. 저장 자체는 되는데 캐시(staleTime 60초)에
     // 옛 응답이 남아 있으면, 앱 안에서 이 화면에 다시 들어올 때 그 옛 응답으로 공동편집
     // 문서가 시딩돼 "바꾼 시간이 저장되지 않은 것처럼" 보였다(새로고침하면 캐시가 없어

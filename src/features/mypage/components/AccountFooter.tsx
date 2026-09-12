@@ -8,6 +8,7 @@ import { userApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import { LogoutModal } from "./LogoutModal";
 import { logout } from "@/shared/api/domains/auth";
+import { clearPendingInvite } from "@/shared/utils/pendingInvite";
 
 export function AccountFooter() {
   const router = useRouter();
@@ -23,6 +24,9 @@ export function AccountFooter() {
     } finally {
       useAuthStore.getState().clear();
       queryClient.clear();
+      // 저장된 초대 코드까지 지운다 — 같은 브라우저에서 계정을 바꿨을 때
+      // 앞사람의 초대 잔재가 따라가 초대받은 적 없는 사용자를 일정 생성 흐름으로 끌고 갔다.
+      clearPendingInvite();
       setIsLogoutOpen(false);
       router.replace("/login");
     }

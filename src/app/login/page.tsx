@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { KakaoLoginButton } from "@/components/ui/KakaoLoginButton";
 import characterImg from "@/assets/character/primary.png";
@@ -10,11 +10,20 @@ import {
   PrivacyPolicyModal,
   ServiceTermsModal,
 } from "@/components";
+import { clearPendingInvite } from "@/shared/utils/pendingInvite";
 
 export default function LoginPage() {
   const [isLegalMenuOpen, setIsLegalMenuOpen] = useState(false);
   const [isServiceTermsOpen, setIsServiceTermsOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+
+  // 이 화면을 거쳐 로그인하는 건 초대 참여가 아니라 "그냥 로그인"이다. 예전에 초대 링크를
+  // 열어봤던 브라우저에 남은 초대 코드를 여기서 비워두지 않으면, 로그인 직후 콜백이 그
+  // 코드를 소비해 초대받은 적도 없는 그룹의 일정 생성 흐름으로 끌고 간다.
+  // (초대 링크로 들어온 사용자는 /join 안에서 바로 로그인하므로 이 화면을 지나지 않는다.)
+  useEffect(() => {
+    clearPendingInvite();
+  }, []);
 
   return (
     <main className="relative flex flex-col items-center w-full h-full">

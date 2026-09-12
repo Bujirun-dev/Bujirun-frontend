@@ -16,7 +16,11 @@ import busanStationImg from "@/assets/place/busan-station.png";
 import { groupApi, itineraryApi } from "@/shared/api/domains";
 import { useItineraryGenerationLockStore, useItineraryFlowStore } from "@/shared/stores";
 import { useItineraryFlowProgress } from "@/features/itinerary/hooks/useItineraryFlowProgress";
-import { getDefaultItemTime, getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
+import {
+  getDefaultItemTime,
+  getFallbackImage,
+  toHourMinute,
+} from "@/features/itinerary/utils/scheduleUtils";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
 import type { components } from "@/shared/api/schema";
@@ -171,8 +175,11 @@ function TripResultContent() {
 
   // 그룹당 한 번만 생성되는 값이므로, 실제로 AI 생성에 쓰인 이 값이 항상 화면 표시의
   // 기준이다. 응답이 아직 없을 때(로딩 중)만 요청 시 보낸 값으로 잠깐 대체한다.
-  const startTime = generated?.startTime ?? requestedStartTime;
-  const endTime = generated?.endTime ?? requestedEndTime;
+  // 백엔드 LocalTime은 "17:00:00"처럼 초까지 내려오므로 "HH:mm"으로 맞춰서 쓴다 —
+  // 화면에 "17:00:00 여행 시작!"으로 초가 노출되고, 이 값이 그대로 다음 화면 쿼리와
+  // 확정 요청까지 실려 나가기 때문에 여기 한 곳에서 정규화한다.
+  const startTime = toHourMinute(generated?.startTime) || requestedStartTime;
+  const endTime = toHourMinute(generated?.endTime) || requestedEndTime;
 
   const displayStartTime = startTime.slice(0, 5);
   const displayEndTime = endTime.slice(0, 5);
