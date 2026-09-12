@@ -373,15 +373,21 @@ function ItineraryMain({
   // 일정을 옮기지 못하게 막는 데 쓴다. 백엔드엔 시간이 저장되지 않아 로컬에만 있을 수 있다.
   const validateStopTime = (dayIdx: number, time: string): string | null => {
     if (!tripTimeBounds) return null;
-    if (dayIdx === 0 && tripTimeBounds.startTime && time < tripTimeBounds.startTime) {
-      return `첫날 일정은 여행 시작 시간(${tripTimeBounds.startTime}) 이후로만 설정할 수 있어요.`;
+    // 00:00은 "시간 미지정"으로 본다 — 표시 로직(scheduleUtils.boundMinutes)이 이미 그렇게
+    // 취급하는데 여기서만 실제 자정으로 비교해서, 종료 시각이 00:00으로 저장된 일정은
+    // 마지막 날 어떤 시각도 저장할 수 없었다(표시는 정상이라 이유를 알 수도 없었다).
+    const startBound = tripTimeBounds.startTime === "00:00" ? undefined : tripTimeBounds.startTime;
+    const endBound = tripTimeBounds.endTime === "00:00" ? undefined : tripTimeBounds.endTime;
+    // 시작이 종료보다 늦게 저장된 일정(백엔드 검증이 없어 가능)에서는 두 조건을 동시에
+    // 만족시킬 수 없어 아무 시각도 못 고치게 된다 — 이때는 경계 검증을 건너뛴다.
+    const boundsInverted = !!startBound && !!endBound && startBound > endBound;
+    if (boundsInverted) return null;
+
+    if (dayIdx === 0 && startBound && time < startBound) {
+      return `첫날 일정은 여행 시작 시간(${startBound}) 이후로만 설정할 수 있어요.`;
     }
-    if (
-      dayIdx === dayIdsSliced.length - 1 &&
-      tripTimeBounds.endTime &&
-      time > tripTimeBounds.endTime
-    ) {
-      return `마지막날 일정은 여행 종료 시간(${tripTimeBounds.endTime}) 이전으로만 설정할 수 있어요.`;
+    if (dayIdx === dayIdsSliced.length - 1 && endBound && time > endBound) {
+      return `마지막날 일정은 여행 종료 시간(${endBound}) 이전으로만 설정할 수 있어요.`;
     }
     return null;
   };
@@ -761,6 +767,22 @@ function ItineraryMain({
         .filter(
           (p): p is { optimized: (typeof optimizedSorted)[number]; stop: BaseStop } => p !== null,
         );
+
+      // clampToTripBounds는 여행 시작/종료 시각을 "잘라 붙이기"만 하기 때문에, 최적화가
+      // 여행 시각을 모른 채 계산한 값(백엔드가 09:00부터 계산한다)이 경계 밖으로 나가면
+      // 여러 스팟이 전부 같은 시각으로 눌린다. 같은 날 같은 시각은 백엔드가 400으로
+      // 막아서 저장 자체가 실패하고(그러면 화면 시각과 DB 시각이 갈린다), 화면에서도
+      // 순서를 알 수 없게 된다 — 최소 간격을 두고 오름차순으로 펴준다.
+      const MIN_STOP_GAP_MINUTES = 10;
+      let previousMinutes: number | null = null;
+      pairs.forEach(({ stop }) => {
+        let minutes = timeToMinutes(stop.time);
+        if (previousMinutes !== null && minutes <= previousMinutes) {
+          minutes = previousMinutes + MIN_STOP_GAP_MINUTES;
+        }
+        stop.time = minutesToTime(minutes);
+        previousMinutes = timeToMinutes(stop.time);
+      });
 
       // transport는 항상 "다음 스팟까지의 구간" 정보라, 각 스팟의 transport는 자신이 아니라
       // 바로 다음 스팟의 optimized 데이터(도착 항목이 이동수단을 들고 있는 컨벤션)로 만든다.
