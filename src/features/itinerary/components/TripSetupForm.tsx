@@ -144,7 +144,7 @@ export function TripSetupForm() {
             placeholder="여행 이름을 입력해주세요"
             className={cn(
               "w-full rounded-[10px] border py-[10px] pl-[15px] pr-10",
-              "font-paperlogy font-medium text-xs text-sub-gray",
+              "font-paperlogy font-medium text-xs text-sub-deepgray",
               "placeholder:font-paperlogy placeholder:font-medium placeholder:text-xs placeholder:text-sub-gray",
               "outline-none transition-colors",
               hasName ? "border-main-blue" : "border-sub-gray",

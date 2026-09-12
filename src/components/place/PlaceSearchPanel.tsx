@@ -205,7 +205,7 @@ export function PlaceSearchPanel({
         <button
           type="button"
           onClick={onClose}
-          className="mb-3 flex items-center justify-center self-start -translate-y-0.5"
+          className="mb-3 flex items-center justify-center self-end -translate-y-0.5"
           aria-label="관광지 검색 닫기"
         >
           <CloseIcon width={18} height={18} className="text-sub-darkgray" aria-hidden />

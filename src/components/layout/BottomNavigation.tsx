@@ -102,8 +102,8 @@ export function BottomNavigation() {
                 className="relative flex min-w-0 flex-col items-center justify-center text-xs font-semibold transition-colors"
               >
                 <div
-                  className={`absolute size-12 rounded-2xl transition-all duration-500 ease-out ${
-                    isActive ? "bg-main-blue/[0.18]" : "bg-transparent"
+                  className={`absolute w-20 h-14 rounded-2xl transition-all duration-500 ease-out ${
+                    isActive ? "bg-system-navbg" : "bg-transparent"
                   }`}
                 />
                 <div className="relative flex translate-y-0.5 flex-col items-center justify-center gap-1.5">

@@ -15,7 +15,7 @@ import type { Category } from "@/components/ui/CategoryChip";
 import { userApi, travelLogApi, spotApi } from "@/shared/api/domains";
 import { SPOT_LIST_STALE_TIME_MS } from "@/shared/api/domains/spot";
 import { getCategoryFromKo } from "@/shared/constants/category";
-import pencilIcon from "@/assets/icons/mypage/pencil.svg?url";
+import { CollectionProgress } from "./CollectionProgress";
 
 const AVATAR_SIZE = 100;
 
@@ -66,7 +66,13 @@ export function MypageProfile() {
     () => spots.filter((spot) => spot.isCollection && spot.collected),
     [spots],
   );
+
   const collectedCount = collectedPlaces.length;
+
+  const totalCollectionCount = useMemo(
+    () => spots.filter((spot) => spot.isCollection).length,
+    [spots],
+  );
 
   const favoriteCategory = useMemo(() => {
     const count = collectedPlaces.reduce<Partial<Record<Category, number>>>((acc, place) => {
@@ -140,31 +146,36 @@ export function MypageProfile() {
 
   return (
     <>
-      <Card variant="white" className="w-full pt-[24px] pb-[24px]">
-        <div className="flex flex-col items-center gap-5">
+      <Card variant="white" className="w-full py-8">
+        <div className="flex flex-col items-center gap-4">
           <div
             style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
             className="relative shrink-0 rounded-full"
           >
-            <div
-              style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
-              className="relative overflow-hidden rounded-full bg-system-navbg"
-            >
-              <Image
-                src={currentImage.src}
-                alt={`${nickname} 프로필 이미지`}
-                fill
-                sizes="100px"
-                className="object-cover scale-[1.27] origin-[center_10%]"
-              />
-            </div>
             <button
               type="button"
               aria-label="프로필 사진 변경"
               onClick={() => setIsProfileImageModalOpen(true)}
-              className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-lg bg-system-navbg transition-opacity active:opacity-60"
+              style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}
+              className="group relative shrink-0 rounded-full active:scale-[0.98]"
             >
-              <Image src={pencilIcon} alt="사진 변경" width={10} height={10} />
+              {/* 흐르는 테두리 */}
+              <div
+                className="absolute inset-0 rounded-full 
+              bg-main-blue 
+              group-hover:bg-[conic-gradient(var(--color-main-blue),var(--color-sub-violet),var(--color-main-white),var(--color-main-blue),var(--color-sub-violet),var(--color-main-white),var(--color-main-blue))] 
+              group-hover:animate-spin-border"
+              />
+              {/* 프로필 이미지 */}
+              <div className="absolute inset-[2px] overflow-hidden rounded-full bg-system-navbg">
+                <Image
+                  src={currentImage.src}
+                  alt={`${nickname} 프로필 이미지`}
+                  fill
+                  sizes="100px"
+                  className="object-cover scale-[1.27] origin-[center_10%]"
+                />
+              </div>
             </button>
           </div>
 
@@ -175,6 +186,10 @@ export function MypageProfile() {
             onConfirm={(newNickname) => updateNickname(newNickname)}
             onValueChange={handleNicknameValueChange}
           />
+
+          <div className="w-full px-4 mt-2 mb-1">
+            <CollectionProgress collectedCount={collectedCount} totalCount={totalCollectionCount} />
+          </div>
 
           <ProfileStats
             travelLogCount={myLogs.length}

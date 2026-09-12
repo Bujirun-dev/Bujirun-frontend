@@ -56,12 +56,12 @@ export function RecommendationReasonCard({
         <RecommendationStar />
 
         <div className="pr-[86px]">
-          <p className="font-ssurround text-sm font-bold text-sub-deepblue">
+          <p className="font-ssurround text-md text-sub-darkgray">
             {isFreeEditPlan ? "부지런이 알려드려요!" : "부지런이 추천해요!"}
           </p>
         </div>
 
-        <p className="mt-[8px] max-w-[210px] text-sm font-semibold leading-[1.45] text-text-heading">
+        <p className="mt-[8px] max-w-[210px] text-sm font-semibold leading-[1.45] text-texp-primary">
           {isFreeEditPlan ? "C안은 직접 일정을 채워가는 자유 편집형 일정이에요!" : reasonText}
         </p>
 

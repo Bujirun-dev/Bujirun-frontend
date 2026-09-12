@@ -13,7 +13,7 @@ export function CollectionProgress({ collectedCount, totalCount, icon }: Collect
     totalCount > 0 ? Math.min(100, Math.round((collectedCount / totalCount) * 100)) : 0;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2">
         <div className="relative h-3 flex-1 overflow-visible rounded-full bg-system-navbg">
           <div
@@ -37,7 +37,7 @@ export function CollectionProgress({ collectedCount, totalCount, icon }: Collect
       </div>
 
       <SpeechBubble>
-        <p className="font-paperlogy text-sm text-text-primary">
+        <p className="text-sm text-text-primary">
           영차영차, 현재 <span className="font-ssurround text-main-blue">{progress}%</span>{" "}
           수집했어요!
         </p>

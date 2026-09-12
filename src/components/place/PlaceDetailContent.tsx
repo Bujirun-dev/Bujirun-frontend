@@ -201,23 +201,28 @@ export function PlaceDetailContent({
           <button
             type="button"
             onClick={() => setIsDescriptionExpanded((expanded) => !expanded)}
-            className="self-end text-xs font-semibold text-main-blue active:opacity-70"
+            className="self-end mt-1 text-xs font-semibold text-sub-gray underline underline-offset-2 active:opacity-70"
           >
             {isDescriptionExpanded ? "접기" : "더보기"}
           </button>
         )}
       </section>
 
-      <hr className="border-[0.3px] border-sub-lightgray" />
+      <hr className="border-[0.3px] border-sub-lightgray/70" />
 
       {/* 위치 */}
       <section className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-lg")}>
             위치
           </h2>
           {mapUrl && (
-            <a href={mapUrl} target="_blank" rel="noreferrer" className="active:opacity-70">
+            <a
+              href={mapUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="active:opacity-70 bg-main-blue px-2.5 py-1 rounded-xl"
+            >
               <Image
                 src={kakaoMapIcon}
                 alt="카카오맵"
@@ -235,7 +240,7 @@ export function PlaceDetailContent({
 
       {infoItems && infoItems.length > 0 && (
         <>
-          <hr className="border-[0.3px] border-sub-lightgray" />
+          <hr className="border-[0.3px] border-sub-lightgray/70" />
           <section className="flex flex-col gap-2">
             <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-lg")}>
               정보
@@ -260,7 +265,7 @@ export function PlaceDetailContent({
 
       {relatedLogs !== undefined && (
         <>
-          <hr className="border-[0.3px] border-sub-lightgray" />
+          <hr className="border-[0.3px] border-sub-lightgray/70" />
           <section className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <h2 className={cn("font-bold text-text-heading", compact ? "text-sm" : "text-lg")}>
@@ -269,7 +274,7 @@ export function PlaceDetailContent({
               {relatedLogsHref ? (
                 <Link href={relatedLogsHref} className="flex items-center gap-1 active:opacity-70">
                   <span className="text-xs font-semibold text-sub-gray">더보기</span>
-                  <span className="text-xs text-sub-gray">›</span>
+                  <ChevronRightIcon className="h-2.5 w-2.5 shrink-0 text-sub-gray" />
                 </Link>
               ) : (
                 onViewMoreLogs && (
@@ -279,7 +284,7 @@ export function PlaceDetailContent({
                     onClick={onViewMoreLogs}
                   >
                     <span className="text-xs font-semibold text-sub-gray">더보기</span>
-                    <span className="text-xs text-sub-gray">›</span>
+                    <ChevronRightIcon className="h-2.5 w-2.5 shrink-0 text-sub-gray" />
                   </button>
                 )
               )}
@@ -367,8 +372,8 @@ export function PlaceDetailContent({
         {toast}
         <div
           className={cn(
-            "absolute inset-x-0 top-0 z-20 flex shrink-0 gap-3 bg-main-white",
-            compact ? "h-9 items-center" : "h-11 items-start",
+            "absolute inset-x-0 top-0 z-20 flex shrink-0 items-center gap-3 bg-main-white",
+            compact ? "h-9" : "h-11",
           )}
         >
           <BackButton className="bg-transparent" onClick={onBack} />
@@ -391,7 +396,7 @@ export function PlaceDetailContent({
         >
           {image}
           {nameRow}
-          <hr className="border-[0.3px] border-sub-lightgray" />
+          <hr className="border-[0.3px] border-sub-lightgray/70" />
           {sections}
         </div>
         {footer && <div className="shrink-0 px-1 pb-6 pt-3">{footer}</div>}
@@ -405,7 +410,7 @@ export function PlaceDetailContent({
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
         {image}
         {nameRow}
-        <hr className="border-[0.3px] border-sub-lightgray" />
+        <hr className="border-[0.3px] border-sub-lightgray/70" />
         {sections}
       </div>
       {footer && (
@@ -450,5 +455,13 @@ function InfoRow({
         {value.replace(/<br\s*\/?>\s*/gi, "\n")}
       </p>
     </div>
+  );
+}
+
+function ChevronRightIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className={className} fill="currentColor">
+      <path d="M6.079,22.5a1.5,1.5,0,0,1,.44-1.06l7.672-7.672a2.5,2.5,0,0,0,0-3.536L6.529,2.565A1.5,1.5,0,0,1,8.65.444l7.662,7.661a5.506,5.506,0,0,1,0,7.779L8.64,23.556A1.5,1.5,0,0,1,6.079,22.5Z" />
+    </svg>
   );
 }

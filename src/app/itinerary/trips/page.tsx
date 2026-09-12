@@ -229,9 +229,13 @@ export default function TripsPage() {
       </button>
 
       {/* 헤더 */}
-      <div className="flex items-center justify-center pb-6">
+      <div className="flex flex-col items-center gap-1.5 pb-4">
         <span className="font-ssurround font-bold text-lg text-text-heading">여행 목록</span>
       </div>
+
+      <p className="pl-4 pb-2 text-xs text-sub-darkgray font-medium">
+        * 진행 중이거나 예정된 여행만 보여드려요.
+      </p>
 
       {/* 여행 목록 */}
       <LoadingBoundary isLoading={isLoading} message="여행 목록을 불러오는 중이에요">

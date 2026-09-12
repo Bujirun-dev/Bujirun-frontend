@@ -72,7 +72,7 @@ export default function HomePage() {
             </div>
             <p>
               <span className="text-2xl font-semibold text-sub-deepblue">{collectionCount}</span>
-              <span className="text-md font-medium text-sub-darkgray">{` / ${collectionTotal} 수집완료`}</span>
+              <span className="text-md font-medium text-sub-deepgray">{` / ${collectionTotal} 수집완료`}</span>
             </p>
           </div>
         </div>
