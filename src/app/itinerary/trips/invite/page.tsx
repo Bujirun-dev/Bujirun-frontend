@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ParticipantAvatarGrid, ShareInviteModal } from "@/features/itinerary/components";
 import { groupApi, userApi } from "@/shared/api/domains";
 import { LoadingState, Toast } from "@/components";
+import { useItineraryFlowProgress } from "@/features/itinerary/hooks/useItineraryFlowProgress";
 import { formatTripPeriod } from "@/shared/utils";
 
 function PageLoadingFallback() {
@@ -41,6 +42,8 @@ function TripInviteContent() {
   const accommodationLat = searchParams.get("accommodationLat") ?? "";
   const accommodationLng = searchParams.get("accommodationLng") ?? "";
   const role = searchParams.get("role") === "guest" ? "guest" : "host";
+  useItineraryFlowProgress("invite", searchParams.toString(), groupId, { tripName });
+
   const [showShareModal, setShowShareModal] = useState(false);
   const [showExitWarning, setShowExitWarning] = useState(role === "host");
 

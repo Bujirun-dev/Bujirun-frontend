@@ -1,5 +1,6 @@
 "use client";
 
+import type { GpsFailReason } from "./arrival-verify/ArrivalVerifyStages";
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -64,6 +65,10 @@ export function ArrivalVerifyModal({
   const [step, setStep] = useState<VerifyStep>("arrival");
   const [isVerified, setIsVerified] = useState(false);
   const [isCheckingLocation, setIsCheckingLocation] = useState(false);
+  // 실패 이유를 화면에 그대로 보여주기 위해 들고 있는다(거리 초과 / 권한 거부 / 기타).
+  const [gpsFailReason, setGpsFailReason] = useState<GpsFailReason | undefined>(undefined);
+  // 카메라 접근이 막혔을 때 안내를 띄우기 위한 플래그.
+  const [cameraBlocked, setCameraBlocked] = useState(false);
   const [capturedFile, setCapturedFile] = useState<File | null>(null);
   const [visitId, setVisitId] = useState<string | null>(null);
   const [capturedImageUrl, setCapturedImageUrl] = useState<string | null>(null);
@@ -77,6 +82,7 @@ export function ArrivalVerifyModal({
     if (isCheckingLocation || isVerifying) return;
 
     if (!navigator.geolocation) {
+      setGpsFailReason({ type: "unsupported" });
       setStep("gps-fail");
       return;
     }
@@ -98,20 +104,32 @@ export function ArrivalVerifyModal({
           });
 
           if (response.verified && response.visitId) {
+            setGpsFailReason(undefined);
             setVisitId(response.visitId);
             setStep("gps-success");
           } else {
             setVisitId(null);
+            // 서버가 관광지까지의 거리를 함께 내려준다 — 얼마나 멀어서 실패했는지 보여준다.
+            setGpsFailReason(
+              typeof response.distanceMeters === "number"
+                ? { type: "too-far", distanceMeters: response.distanceMeters }
+                : { type: "error" },
+            );
             setStep("gps-fail");
           }
         } catch (error) {
           console.error(error);
+          setGpsFailReason({ type: "error" });
           setStep("gps-fail");
         } finally {
           setIsCheckingLocation(false);
         }
       },
-      () => {
+      (error) => {
+        // PERMISSION_DENIED(1)면 권한 안내, 그 외(위치 사용 불가/시간 초과)는 일반 안내.
+        setGpsFailReason(
+          error.code === error.PERMISSION_DENIED ? { type: "permission" } : { type: "error" },
+        );
         setStep("gps-fail");
         setIsCheckingLocation(false);
       },
@@ -143,6 +161,7 @@ export function ArrivalVerifyModal({
   };
 
   const handleRequestCamera = async () => {
+    setCameraBlocked(false);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: "environment" } },
@@ -152,6 +171,9 @@ export function ArrivalVerifyModal({
       stream.getTracks().forEach((track) => track.stop());
       setStep("camera-capture");
     } catch {
+      // 예전엔 조용히 이전 화면으로 되돌아가서, 사용자는 "사진 화면이 안 열린다"만 겪고
+      // 원인(카메라 권한 거부/카메라 없음)을 알 수 없었다.
+      setCameraBlocked(true);
       setStep("gps-success");
     }
   };
@@ -234,9 +256,9 @@ export function ArrivalVerifyModal({
       case "gps-loading":
         return <GpsLoadingStage />;
       case "gps-fail":
-        return <GpsFailStage placeName={placeName} />;
+        return <GpsFailStage placeName={placeName} reason={gpsFailReason} />;
       case "gps-success":
-        return <GpsSuccessStage placeName={placeName} />;
+        return <GpsSuccessStage placeName={placeName} isCameraBlocked={cameraBlocked} />;
       case "camera-permission":
         return <CameraPermissionStage placeName={placeName} placeImageUrl={placeImageUrl} />;
       case "camera-capture":

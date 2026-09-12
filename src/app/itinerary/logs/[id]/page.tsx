@@ -8,6 +8,7 @@ import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import calendarPlusIcon from "@/assets/icons/itinerary/calendar-plus.svg?url";
+import { getLastViewedItineraryId } from "@/shared/constants/itinerary";
 import { PageCard, ErrorState, LoadingBoundary } from "@/components";
 import { LogDetailContent, toLogDetailData } from "@/components/log/LogDetailContent";
 import { ImportLogModal } from "@/features/itinerary";
@@ -55,7 +56,14 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
     importTimerRef.current = window.setTimeout(() => {
       setIsImporting(false);
       setShowAddModal(false);
-      router.push(`/itinerary?importedLogId=${id}`);
+      // 담을 여행을 명시하지 않으면 일정 화면의 폴백 규칙("오늘 진행 중 → 최근 수정")이
+      // 대상을 정해버려서, 보고 있던 여행이 아닌 다른 여행에 로그가 들어갔다.
+      const targetTripId = getLastViewedItineraryId();
+      router.push(
+        targetTripId
+          ? `/itinerary?importedLogId=${id}&tripId=${targetTripId}`
+          : `/itinerary?importedLogId=${id}`,
+      );
     }, 600);
   };
 

@@ -32,6 +32,7 @@ import {
   snapshotFromStops,
   type AddedItem,
   type DaySnapshot,
+  type FlushFailure,
 } from "./flushItineraryToRest";
 import { pickAvailableParticipantColorClass } from "./participantColor";
 
@@ -56,6 +57,27 @@ interface CurrentUser {
 // 그냥 시딩해서 로컬 편집만이라도 항상 가능하게 한다.
 const SEED_FALLBACK_MS = 4000;
 
+// flush(REST 반영)가 실패했을 때 자동으로 다시 시도하는 횟수와 간격.
+// 예전엔 flush 실패를 전부 조용히 삼켰고, 재flush 트리거가 stopsPerDay 변화뿐이라
+// 사용자가 그 뒤에 아무것도 더 건드리지 않으면 영구히 재시도되지 않았다 — 화면은 12:00,
+// DB는 10:00인 상태로 갈려 있다가 새로고침하면 변경이 되돌아갔다.
+// 상한을 두는 이유: 재시도해도 절대 성공하지 않는 실패(값 자체가 거부되는 400 등)에
+// 대해서까지 계속 재시도하면 같은 요청으로 백엔드를 무한히 두드리게 된다.
+const MAX_FLUSH_RETRIES = 2;
+const FLUSH_RETRY_DELAY_MS = 1500;
+
+// flush가 끝까지 실패했을 때 호출부(일정 페이지)에 넘기는 정보. 사용자에게 "저장되지
+// 않았어요" 같은 안내를 띄우고, 필요하면 직접 재시도 버튼을 붙이는 데 쓴다.
+export interface FlushErrorInfo {
+  failures: FlushFailure[];
+  // 사용자에게 그대로 보여줄 수 있는 대표 문구(첫 실패 기준, 백엔드 message 우선).
+  message: string;
+  // 몇 번째 시도가 실패했는지(1 = 최초 시도).
+  attempt: number;
+  // 자동 재시도가 예약됐는지. false면 이번 실패가 이 flush 사이클의 최종 실패다.
+  willRetry: boolean;
+}
+
 // useItineraryYDoc(연결 생명주기)을 감싸 실제 화면이 쓰는 형태로 데이터를 노출한다:
 // Yjs 상태를 BaseStop[][]로 파생시키고, 초기 시딩·이탈시/합류시 DB 반영을 처리한다.
 export function useCollaborativeItinerary(
@@ -64,6 +86,8 @@ export function useCollaborativeItinerary(
   initialDays: BaseStop[][],
   currentUser?: CurrentUser,
   onRemoteActivity?: (entry: ActivityLogEntry) => void,
+  // REST 반영이 끝까지 실패했을 때 알림용(선택). 없으면 예전처럼 조용히 재시도만 한다.
+  onFlushError?: (info: FlushErrorInfo) => void,
 ) {
   // 문서는 빈 채로 만든다. 시딩은 아래 useEffect에서, WS 동기화가 끝나 원격(Redis)에
   // 이미 있던 days가 doc에 먼저 반영된 뒤에 한다 — 그래야 seedYjsDays의 "로컬 문서가
@@ -109,8 +133,16 @@ export function useCollaborativeItinerary(
   const hasSeededRef = useRef(false);
   const [seeded, setSeeded] = useState(false);
 
+  // 항상 최신 콜백을 참조하기 위한 ref (stale closure 방지 — flushAll은 effect/타이머/
+  // awareness 콜백에서 불리므로 마운트 시점 콜백에 고정되면 안 된다).
+  const onFlushErrorRef = useRef(onFlushError);
+  // 예약된 자동 재시도 타이머. 새 flush가 시작되면 취소한다(그 flush가 더 최신 상태를
+  // 보내므로 예전 재시도는 의미가 없다).
+  const retryTimerRef = useRef<number | null>(null);
+
   useEffect(() => {
     dayIdsRef.current = dayIds;
+    onFlushErrorRef.current = onFlushError;
   });
 
   // 새 항목이 저장되면서 백엔드가 계산해준 (직전 스팟 → 새 항목) 구간 정보를, 그 직전
@@ -138,22 +170,79 @@ export function useCollaborativeItinerary(
   // setStopsPerDay를 부른 직후에도 React가 아직 리렌더를 커밋하기 전이면 stopsPerDay는
   // 옛 값 그대로라서, "mutate 하자마자 바로 flush" 같은 흐름(예: 로그 불러오기 직후
   // flushNow)에서 방금 반영한 변경이 아니라 그 이전 상태를 저장해버리는 문제가 있었다.
-  const flushAll = () => {
+  // attempt: 0이면 최초 시도, 1 이상은 자동 재시도. 실패한 항목은 flushDayToRest가
+  // snapshot을 갱신하지 않은 채로 남겨두므로, 다음 시도에서 자연히 다시 대상이 된다.
+  const runFlush = async (attempt: number) => {
     if (!hasSeededRef.current) return;
     const currentStops = readStopsFromYjs(doc);
-    dayIdsRef.current.forEach((dayId, dayIdx) => {
-      if (!dayId) return;
-      const snapshot = (snapshotsRef.current[dayIdx] ??= new Map());
-      flushDayToRest(
-        itineraryId,
-        dayId,
-        currentStops[dayIdx] ?? [],
-        snapshot,
-        (tempId, realId) => resolveTempId(doc, dayIdx, tempId, realId),
-        applyLegTransport,
-      );
+    const results = await Promise.all(
+      dayIdsRef.current.map((dayId, dayIdx) => {
+        if (!dayId) return Promise.resolve<FlushFailure[]>([]);
+        const snapshot = (snapshotsRef.current[dayIdx] ??= new Map());
+        return flushDayToRest(
+          itineraryId,
+          dayId,
+          currentStops[dayIdx] ?? [],
+          snapshot,
+          (tempId, realId) => resolveTempId(doc, dayIdx, tempId, realId),
+          applyLegTransport,
+          // flushDayToRest는 내부에서 실패를 전부 잡아 배열로 돌려주지만, 예상 못한
+          // 예외로 Promise.all 전체가 깨져 다른 day의 결과까지 잃지 않도록 막아둔다.
+        ).catch((error: unknown) => [
+          {
+            kind: "update" as const,
+            dayId,
+            message: "일정을 저장하지 못했어요. 잠시 후 다시 시도해요.",
+            error,
+          },
+        ]);
+      }),
+    );
+
+    const failures = results.flat();
+    if (failures.length === 0) return;
+
+    const willRetry = attempt < MAX_FLUSH_RETRIES;
+    onFlushErrorRef.current?.({
+      failures,
+      message: failures[0].message,
+      attempt: attempt + 1,
+      willRetry,
     });
+    if (!willRetry) return;
+
+    // 짧은 지연 후 한 번 더(최대 MAX_FLUSH_RETRIES회) — 중복 시각 400처럼 "다른 항목이
+    // 먼저 반영되면 풀리는" 실패가 대부분이라 대개 이 재시도에서 성공한다.
+    if (retryTimerRef.current !== null) window.clearTimeout(retryTimerRef.current);
+    retryTimerRef.current = window.setTimeout(
+      () => {
+        retryTimerRef.current = null;
+        void runFlush(attempt + 1);
+      },
+      FLUSH_RETRY_DELAY_MS * (attempt + 1),
+    );
   };
+
+  const flushAll = () => {
+    // 새 flush가 더 최신 상태를 보내므로, 예약돼 있던 재시도는 취소하고 재시도 횟수도
+    // 처음부터 다시 센다(사용자의 새 편집엔 새 재시도 기회를 준다).
+    if (retryTimerRef.current !== null) {
+      window.clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+    // Promise를 돌려줘야 이탈 시점(useItineraryYDoc의 지연 destroy)이 "저장 완료"를
+    // 실제로 기다릴 수 있다. 예전엔 void로 버려서, 언마운트 직후 연결이 끊기고 응답으로
+    // 받은 새 항목 id가 이미 파괴된 문서에만 반영됐다.
+    return runFlush(0);
+  };
+
+  // 언마운트 후에 재시도가 깨어나 요청을 쏘지 않도록 정리한다(이탈 시점엔
+  // onBeforeDisconnect=flushAll이 이미 최종 상태를 보낸다).
+  useEffect(() => {
+    return () => {
+      if (retryTimerRef.current !== null) window.clearTimeout(retryTimerRef.current);
+    };
+  }, []);
 
   // 편집하고 몇 초 지나면 자동으로 DB에 반영한다("저장 버튼 없음" 전제). 이탈 시/합류 시
   // 트리거만으로는, 페이지를 나가지 않고 계속 머무는 사용자의 편집이(특히 아직 실시간
@@ -165,7 +254,11 @@ export function useCollaborativeItinerary(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stopsPerDay]);
 
-  const { status, synced, getProvider } = useItineraryYDoc(itineraryId, doc, flushAll);
+  const { status, synced, getProvider, connectionState, isCollabUnavailable } = useItineraryYDoc(
+    itineraryId,
+    doc,
+    flushAll,
+  );
 
   // WS 동기화가 끝난 뒤에만 시딩한다 — synced=true가 되는 시점엔 원격(Redis)에 이미
   // 있던 days가 doc에 먼저 반영된 후라, seedYjsDays의 "로컬 문서 비어있으면 시딩" 가드가
@@ -344,6 +437,9 @@ export function useCollaborativeItinerary(
   return {
     stopsPerDay: stopsPerDayWithStatus,
     status,
+    // 실시간 연결이 끊겼는지 / 아예 설정이 빠졌는지를 화면에서 알려주기 위해 노출한다.
+    connectionState,
+    isCollabUnavailable,
     seeded,
     collaboratorsByStop,
     setFocusedStop,

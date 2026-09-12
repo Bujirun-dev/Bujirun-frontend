@@ -2,7 +2,7 @@
 
 import { Suspense, useRef, useState, useEffect, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import HotelIcon from "@/assets/icons/itinerary/hotel.svg?svgr";
 import PencilIcon from "@/assets/icons/itinerary/pencil.svg?svgr";
 import { PageCard, Toast, EmptyState, LoadingBoundary, LoadingState } from "@/components";
@@ -11,6 +11,7 @@ import {
   SlidingTimeline,
   ItineraryModals,
   AccommodationSearchField,
+  ItineraryFlowResumeBanner,
 } from "@/features/itinerary";
 import type { ItineraryStop, ModalType, AccommodationPlace } from "@/features/itinerary";
 import { itineraryApi, travelLogApi, userApi } from "@/shared/api/domains";
@@ -31,6 +32,10 @@ import {
   toHourMinute,
 } from "@/features/itinerary/utils/scheduleUtils";
 import type { TripTimeBounds } from "@/shared/utils/tripTimeBounds";
+import {
+  LAST_VIEWED_ITINERARY_EVENT,
+  LAST_VIEWED_ITINERARY_KEY,
+} from "@/shared/constants/itinerary";
 import type { SearchPlace } from "@/components/place/PlaceSearchPanel";
 import type { RouteOption } from "@/features/itinerary";
 import type {
@@ -42,8 +47,6 @@ import type {
 // 줄이기 위해, 그 날 마지막 일정 다음 시간(1시간 뒤)으로 잡아준다. 비어있는 날은 09:00부터.
 const DEFAULT_DAY_START = "09:00";
 const DEFAULT_STOP_GAP_MIN = 60;
-const LAST_VIEWED_ITINERARY_KEY = "bujirun:last-viewed-itinerary-id";
-const LAST_VIEWED_ITINERARY_EVENT = "bujirun:last-viewed-itinerary-change";
 
 interface ItinerarySummaryForSelection {
   id?: string;
@@ -182,6 +185,7 @@ function ItineraryEmptyState() {
 
   return (
     <PageCard>
+      <ItineraryFlowResumeBanner />
       <EmptyState
         title="아직 여행 일정이 없어요"
         description={
@@ -217,6 +221,7 @@ export default function ItineraryPage() {
 }
 
 function ItineraryPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const requestedTripId = searchParams.get("tripId");
   const lastViewedItineraryId = useSyncExternalStore(
@@ -236,7 +241,11 @@ function ItineraryPageContent() {
   const selectedItinerary = itineraries
     ? selectItinerary(itineraries, requestedTripId, lastViewedItineraryId)
     : undefined;
-  const itineraryId = selectedItinerary?.id;
+  // tripId를 명시적으로 받았으면 목록에 아직 없어도 그 id를 그대로 연다. 확정 직후엔
+  // 목록 응답에 새 일정이 아직 안 들어와 있는 경우가 있는데, 예전에는 그 id를 조용히
+  // 버리고 "최근 수정" 일정으로 폴백해서 방금 만든 게 아닌 엉뚱한 일정이 열렸다
+  // (새로고침해야 제대로 나오던 원인). 상세 조회가 실패하면 아래에서 안내한다.
+  const itineraryId = requestedTripId ?? selectedItinerary?.id;
 
   useEffect(() => {
     if (!itineraryId) return;
@@ -248,15 +257,38 @@ function ItineraryPageContent() {
     }
   }, [itineraryId]);
 
-  const { data: detail, isLoading: isDetailLoading } = useQuery({
+  const {
+    data: detail,
+    isLoading: isDetailLoading,
+    isError: isDetailError,
+  } = useQuery({
     queryKey: itineraryApi.keys.detail(itineraryId ?? ""),
     queryFn: () => itineraryApi.getItinerary(itineraryId as string),
     enabled: !!itineraryId,
+    retry: false,
   });
 
   const isLoading = isListLoading || isDetailLoading;
 
-  if (!itineraries || itineraries.length === 0 || !itineraryId || !detail) {
+  // 링크로 받은 tripId가 삭제됐거나 내 일정이 아닌 경우. 다른 일정을 대신 열면
+  // "내가 만든 일정이 아닌데 열렸다"가 되므로, 무엇이 일어났는지 알려준다.
+  if (requestedTripId && isDetailError) {
+    return (
+      <PageCard>
+        <ItineraryFlowResumeBanner />
+        <EmptyState
+          title="일정을 찾을 수 없어요"
+          description="삭제됐거나 참여 중이 아닌 일정이에요."
+          primaryAction={{
+            label: "여행 목록 보기",
+            onClick: () => router.push("/itinerary/trips"),
+          }}
+        />
+      </PageCard>
+    );
+  }
+
+  if (!itineraryId || !detail) {
     return (
       <LoadingBoundary isLoading={isLoading} message="일정을 불러오는 중이에요">
         <ItineraryEmptyState />
@@ -298,6 +330,9 @@ function ItineraryPageContent() {
   );
 }
 
+// 상세 조회 응답 타입 — 스키마가 바뀌어도 따라가도록 API 함수 반환 타입에서 뽑는다.
+type ItineraryDetailData = Awaited<ReturnType<typeof itineraryApi.getItinerary>>;
+
 function ItineraryMain({
   itineraryId,
   groupId,
@@ -324,28 +359,37 @@ function ItineraryMain({
   const searchParams = useSearchParams();
   const importedLogId = searchParams.get("importedLogId");
   // 다른 사람의 여행 로그를 이 일정에 그대로 불러오는 기능(로그 상세 페이지의 "일정 담기").
-  const { data: importedLog } = useQuery({
+  const { data: importedLog, isError: isImportedLogError } = useQuery({
     queryKey: travelLogApi.keys.detail(importedLogId ?? ""),
     queryFn: () => travelLogApi.getLog(importedLogId as string),
     enabled: !!importedLogId,
   });
-  const requestedDays = Math.max(1, Number(searchParams.get("days")) || initialDaysData.length);
-  const initialDays = initialDaysData.slice(0, requestedDays);
-  const initialDates = initialDatesData.slice(0, requestedDays);
-  const dayIdsSliced = dayIds.slice(0, requestedDays);
+  // 예전엔 URL의 `?days=`로 화면에 보여줄 날짜 수를 잘랐다. 그런데 잘린 날짜는 공동편집
+  // 문서에서도 빠지고, flush는 "문서에 없고 서버에 있는 항목"을 삭제 대상으로 보기 때문에
+  // (flushItineraryToRest 참고) `?days=1`로 한 번 열면 2일차 이후 항목이 전부 지워질 수
+  // 있었다. 날짜 수는 항상 실제 일정 데이터를 기준으로 삼는다.
+  const initialDays = initialDaysData;
+  const initialDates = initialDatesData;
+  const dayIdsSliced = dayIds;
   // 확정 시점에 정한 시작/종료 시간 — 첫날은 시작 시간 이전, 마지막날은 종료 시간 이후로
   // 일정을 옮기지 못하게 막는 데 쓴다. 백엔드엔 시간이 저장되지 않아 로컬에만 있을 수 있다.
   const validateStopTime = (dayIdx: number, time: string): string | null => {
     if (!tripTimeBounds) return null;
-    if (dayIdx === 0 && tripTimeBounds.startTime && time < tripTimeBounds.startTime) {
-      return `첫날 일정은 여행 시작 시간(${tripTimeBounds.startTime}) 이후로만 설정할 수 있어요.`;
+    // 00:00은 "시간 미지정"으로 본다 — 표시 로직(scheduleUtils.boundMinutes)이 이미 그렇게
+    // 취급하는데 여기서만 실제 자정으로 비교해서, 종료 시각이 00:00으로 저장된 일정은
+    // 마지막 날 어떤 시각도 저장할 수 없었다(표시는 정상이라 이유를 알 수도 없었다).
+    const startBound = tripTimeBounds.startTime === "00:00" ? undefined : tripTimeBounds.startTime;
+    const endBound = tripTimeBounds.endTime === "00:00" ? undefined : tripTimeBounds.endTime;
+    // 시작이 종료보다 늦게 저장된 일정(백엔드 검증이 없어 가능)에서는 두 조건을 동시에
+    // 만족시킬 수 없어 아무 시각도 못 고치게 된다 — 이때는 경계 검증을 건너뛴다.
+    const boundsInverted = !!startBound && !!endBound && startBound > endBound;
+    if (boundsInverted) return null;
+
+    if (dayIdx === 0 && startBound && time < startBound) {
+      return `첫날 일정은 여행 시작 시간(${startBound}) 이후로만 설정할 수 있어요.`;
     }
-    if (
-      dayIdx === dayIdsSliced.length - 1 &&
-      tripTimeBounds.endTime &&
-      time > tripTimeBounds.endTime
-    ) {
-      return `마지막날 일정은 여행 종료 시간(${tripTimeBounds.endTime}) 이전으로만 설정할 수 있어요.`;
+    if (dayIdx === dayIdsSliced.length - 1 && endBound && time > endBound) {
+      return `마지막날 일정은 여행 종료 시간(${endBound}) 이전으로만 설정할 수 있어요.`;
     }
     return null;
   };
@@ -358,6 +402,7 @@ function ItineraryMain({
   const [toastVariant, setToastVariant] = useState<"default" | "error">("default");
   const [modal, setModal] = useState<ModalType | null>(null);
   const [peerUpdateMessage, setPeerUpdateMessage] = useState<string | undefined>(undefined);
+  const queryClient = useQueryClient();
   const [accommodation, setAccommodation] = useState<AccommodationPlace | null>(
     tripTimeBounds?.accommodationName
       ? {
@@ -373,7 +418,24 @@ function ItineraryMain({
   // ItineraryOptimizeRequest)엔 아직 반영 안 된다. 최적화 요청에 숙소 좌표를 출발/도착
   // 기준점으로 넘기려면 최적화 API에 좌표 필드 추가가 먼저 필요함.
   const handleAccommodationChange = (place: AccommodationPlace | null) => {
+    const previous = accommodation;
     setAccommodation(place);
+
+    // 화면의 숙소는 마운트 시점 상세 응답으로 초기화된다. 저장만 하고 상세 캐시를
+    // 그대로 두면, 다른 화면에 갔다가 staleTime(60초) 안에 돌아왔을 때 옛 응답으로
+    // 다시 초기화돼 방금 저장한 숙소가 사라진 것처럼 보였다.
+    queryClient.setQueryData<ItineraryDetailData>(itineraryApi.keys.detail(itineraryId), (prev) =>
+      prev
+        ? {
+            ...prev,
+            accommodationName: place?.name ?? undefined,
+            accommodationAddress: place?.address ?? undefined,
+            accommodationLat: place?.lat,
+            accommodationLng: place?.lng,
+          }
+        : prev,
+    );
+
     itineraryApi
       .updateItinerary(itineraryId, {
         // 빈 문자열 = "지우기"를 명시적으로 보내는 신호. 필드 자체를 안 보내면(undefined)
@@ -384,7 +446,16 @@ function ItineraryMain({
         accommodationLat: place?.lat,
         accommodationLng: place?.lng,
       })
-      .catch(() => showToast("숙소 정보를 저장하지 못했어요.", "error"));
+      .then(() => {
+        // 서버가 정규화한 값으로 최종 동기화.
+        queryClient.invalidateQueries({ queryKey: itineraryApi.keys.detail(itineraryId) });
+      })
+      .catch(() => {
+        // 저장이 실패했으면 화면도 되돌린다 — 안 되돌리면 저장된 것처럼 보인다.
+        setAccommodation(previous);
+        queryClient.invalidateQueries({ queryKey: itineraryApi.keys.detail(itineraryId) });
+        showToast("숙소 정보를 저장하지 못했어요.", "error");
+      });
   };
 
   const showToast = (message: string, variant: "default" | "error" = "default") => {
@@ -436,6 +507,12 @@ function ItineraryMain({
         }
       : undefined,
     handleRemoteActivity,
+    // 저장 실패는 예전엔 조용히 삼켜져서, 화면엔 바뀐 시간/순서가 보이는데 서버에는
+    // 반영되지 않은 채 새로고침하면 되돌아갔다. 자동 재시도까지 실패한 경우에만 알린다
+    // (재시도 중에 토스트를 띄우면 곧 성공할 저장까지 실패로 보인다).
+    (info) => {
+      if (!info.willRetry) showToast(info.message, "error");
+    },
   );
   const [tripDates, setTripDates] = useState<string[]>(initialDates);
   // initialDates는 마운트 시점 값을 useState 시드로만 쓰기 때문에, 트립 목록 화면에서
@@ -699,6 +776,22 @@ function ItineraryMain({
           (p): p is { optimized: (typeof optimizedSorted)[number]; stop: BaseStop } => p !== null,
         );
 
+      // clampToTripBounds는 여행 시작/종료 시각을 "잘라 붙이기"만 하기 때문에, 최적화가
+      // 여행 시각을 모른 채 계산한 값(백엔드가 09:00부터 계산한다)이 경계 밖으로 나가면
+      // 여러 스팟이 전부 같은 시각으로 눌린다. 같은 날 같은 시각은 백엔드가 400으로
+      // 막아서 저장 자체가 실패하고(그러면 화면 시각과 DB 시각이 갈린다), 화면에서도
+      // 순서를 알 수 없게 된다 — 최소 간격을 두고 오름차순으로 펴준다.
+      const MIN_STOP_GAP_MINUTES = 10;
+      let previousMinutes: number | null = null;
+      pairs.forEach(({ stop }) => {
+        let minutes = timeToMinutes(stop.time);
+        if (previousMinutes !== null && minutes <= previousMinutes) {
+          minutes = previousMinutes + MIN_STOP_GAP_MINUTES;
+        }
+        stop.time = minutesToTime(minutes);
+        previousMinutes = timeToMinutes(stop.time);
+      });
+
       // transport는 항상 "다음 스팟까지의 구간" 정보라, 각 스팟의 transport는 자신이 아니라
       // 바로 다음 스팟의 optimized 데이터(도착 항목이 이동수단을 들고 있는 컨벤션)로 만든다.
       const reordered = pairs.map(({ stop }, idx) => {
@@ -819,9 +912,22 @@ function ItineraryMain({
     })),
   );
 
+  // 로그 담기는 "일정 상세 조회 → Yjs 시딩 → 반영"이 순서대로 끝나야 화면에 나온다.
+  // 그동안 담기 전 타임라인이 그대로 보여서 "눌렀는데 아무 일도 안 일어난다"처럼 느껴졌다.
+  // 반영이 끝날 때까지(=URL의 importedLogId가 정리될 때까지) 로딩으로 덮는다.
+  // 로그 조회가 실패하면(삭제된 로그 등) 담을 게 없으므로 로딩을 걷어낸다 —
+  // 안 그러면 영영 안 끝나는 오버레이에 갇힌다.
+  const isImportingLog = !!importedLogId && !isImportedLogError && (!importedLog || !yjsSeeded);
+
   return (
     <div className="relative h-full">
+      {isImportingLog && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-main-white/90 backdrop-blur-sm">
+          <LoadingState variant="inline" message="로그를 일정에 담고 있어요" />
+        </div>
+      )}
       <PageCard>
+        <ItineraryFlowResumeBanner />
         <ItineraryHeader
           currentDay={currentDay}
           tripName={tripTitle ?? "부지렁즈"}

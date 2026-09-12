@@ -8,6 +8,7 @@ import pawIcon from "@/assets/icons/itinerary/paw-print.png";
 import { collectionApi, swipeApi } from "@/shared/api/domains";
 import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 import { EmptyState, LoadingBoundary, LoadingState, Toast } from "@/components";
+import { useItineraryFlowProgress } from "@/features/itinerary/hooks/useItineraryFlowProgress";
 
 const SWIPE_THRESHOLD = 80;
 const SWIPE_ANIMATION_MS = 300;
@@ -53,6 +54,8 @@ function TripSwipeContent() {
     ...(accommodationLat ? { accommodationLat } : {}),
     ...(accommodationLng ? { accommodationLng } : {}),
   }).toString();
+
+  useItineraryFlowProgress("swipe", searchParams.toString(), groupId, { tripName: name });
 
   const {
     data: spotsData,

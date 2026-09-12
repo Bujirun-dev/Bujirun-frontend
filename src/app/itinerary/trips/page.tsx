@@ -5,8 +5,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import plusSmallIcon from "@/assets/icons/itinerary/plus-small.svg?url";
-import { PageCard, Toast, EmptyState, LoadingBoundary } from "@/components";
+import { PageCard, Toast, EmptyState, BackButton } from "@/components";
 import { TripCard, TripEditModal, TripDeleteModal, TripDeleteToast } from "@/features/itinerary";
+import { ItineraryFlowResumeBanner, TripListSkeleton } from "@/features/itinerary/components";
 import type { Trip } from "@/features/itinerary";
 import { itineraryApi } from "@/shared/api/domains";
 import { getErrorMessage } from "@/shared/utils";
@@ -122,37 +123,51 @@ export default function TripsPage() {
 
   const handleEditConfirm = useCallback(
     async (updated: Trip) => {
+      // "무엇이 실제로 바뀌었나"의 기준은 모달을 열 때 쓴 값이어야 한다. 모달은 상세 API
+      // 값으로 열리는데(handleEdit), 목록 캐시엔 같은 시간이 "09:00:00"처럼 초까지 들어있거나
+      // 아예 없을 수도 있어서 캐시와 비교하면 바뀌지 않았는데도 바뀐 것으로 잡힌다.
+      const original = modal?.type === "edit" ? modal.trip : null;
       setModal(null);
       const startAt = toApiDate(updated.startDate);
       const endAt = toApiDate(updated.endDate);
       const startTime = toApiTime(updated.startDate);
       const endTime = toApiTime(updated.endDate);
-      // 자정은 저장하지 않는다. 서버에 시간이 없는 일정은 모달이 00:00을 대신 보여주는데,
-      // 그 값을 그대로 저장하면 여행 종료 시각이 자정으로 박히고 마지막 날 일정이 전부
-      // 00:00으로 뭉개진다(scheduleUtils.boundMinutes 주석 참고). 실제로 자정에 시작하거나
-      // 끝나는 여행은 없으므로 00:00은 "시간 미지정"으로 보고 필드를 아예 보내지 않는다
-      // — 그래야 이미 저장돼 있던 시간도 덮이지 않는다.
-      const sendStartTime = startTime !== "00:00";
-      const sendEndTime = endTime !== "00:00";
+      const originalStartAt = original ? toApiDate(original.startDate) : null;
+      const originalEndAt = original ? toApiDate(original.endDate) : null;
+      const originalStartTime = original ? toHourMinute(toApiTime(original.startDate)) : null;
+      const originalEndTime = original ? toHourMinute(toApiTime(original.endDate)) : null;
 
-      const previousStartTime = queryClient
-        .getQueryData<typeof summaries>(itineraryApi.keys.lists())
-        ?.find((summary) => summary.id === updated.id)?.startTime;
+      // 이미 시작한 여행은 날짜를 그대로 다시 보내는 것만으로도 막힌다 —
+      // UpdateItineraryRequest.startAt에 @FutureOrPresent가 걸려 있어서 과거 시작일이면
+      // "지난 날짜로는 일정을 생성할 수 없습니다" 400이 된다. 목록은 종료일이 지나지 않은
+      // 여행을 계속 보여주니(어제 시작해 내일 끝나는 여행) 이름만 고치는 것도 불가능해진다.
+      // 그래서 값이 실제로 바뀌지 않은 날짜 필드는 아예 보내지 않는다.
+      const sendStartAt = originalStartAt === null || startAt !== originalStartAt;
+      const sendEndAt = originalEndAt === null || endAt !== originalEndAt;
+      // 시간도 같은 이유로 바뀐 것만 보낸다. 여기에 더해 자정은 저장하지 않는다. 서버에 시간이
+      // 없는 일정은 모달이 00:00을 대신 보여주는데, 그 값을 그대로 저장하면 여행 종료 시각이
+      // 자정으로 박히고 마지막 날 일정이 전부 00:00으로 뭉개진다(scheduleUtils.boundMinutes
+      // 주석 참고). 실제로 자정에 시작하거나 끝나는 여행은 없으므로 00:00은 "시간 미지정"으로
+      // 보고 필드를 뺀다 — 그래야 이미 저장돼 있던 시간도 덮이지 않는다.
+      const sendStartTime = startTime !== "00:00" && startTime !== originalStartTime;
+      const sendEndTime = endTime !== "00:00" && endTime !== originalEndTime;
+
       // 시작 시간이 실제로 밀렸으면 백엔드가 이후 일정들의 방문 시각도 같은 만큼 밀어준다
       // (ItineraryService.update 참고) — 사용자가 그걸 모르고 넘어가지 않게 안내한다.
+      // 원래 시간이 없던(미지정) 여행은 밀 기준이 없으니 안내하지 않는다.
       const timeShifted =
-        sendStartTime && Boolean(previousStartTime) && previousStartTime !== startTime;
+        sendStartTime && Boolean(originalStartTime) && originalStartTime !== "00:00";
 
       // 네트워크 응답을 기다리지 않고 목록에 바로 반영 — 실패하면 finally의 invalidate가
-      // 서버 값으로 다시 맞춰준다.
+      // 서버 값으로 다시 맞춰준다. 보내지 않는 필드는 캐시에서도 건드리지 않는다.
       queryClient.setQueryData<typeof summaries>(itineraryApi.keys.lists(), (prev) =>
         prev?.map((summary) =>
           summary.id === updated.id
             ? {
                 ...summary,
                 title: updated.name,
-                startAt,
-                endAt,
+                ...(sendStartAt ? { startAt } : {}),
+                ...(sendEndAt ? { endAt } : {}),
                 ...(sendStartTime ? { startTime } : {}),
                 ...(sendEndTime ? { endTime } : {}),
               }
@@ -163,8 +178,8 @@ export default function TripsPage() {
       try {
         await itineraryApi.updateItinerary(updated.id, {
           title: updated.name,
-          startAt,
-          endAt,
+          ...(sendStartAt ? { startAt } : {}),
+          ...(sendEndAt ? { endAt } : {}),
           ...(sendStartTime ? { startTime } : {}),
           ...(sendEndTime ? { endTime } : {}),
         });
@@ -178,7 +193,7 @@ export default function TripsPage() {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [modal],
   );
 
   const handleDeleteConfirm = useCallback(async () => {
@@ -228,22 +243,52 @@ export default function TripsPage() {
         />
       </button>
 
+      {/* 뒤로가기는 직전 화면이 아니라 항상 일정 메인으로 보낸다. 이 화면은 일정 탭 헤더 /
+          빈 상태 / 이어하기 배너 등 여러 경로로 들어와서, history.back()이면 생성 플로우
+          중간 화면 같은 엉뚱한 곳으로 돌아갈 수 있다. */}
+      <BackButton
+        variant="plain"
+        iconSize={13}
+        className="absolute left-[32px] top-[28px] size-[24px]"
+        onClick={() => router.push("/itinerary")}
+      />
+
       {/* 헤더 */}
-      <div className="flex flex-col items-center gap-1.5 pb-4">
+      <div className="flex flex-col items-center gap-1.5 pb-6">
         <span className="font-ssurround font-bold text-lg text-text-heading">여행 목록</span>
       </div>
 
-      <p className="pl-4 pb-2 text-xs text-sub-darkgray font-medium">
-        * 진행 중이거나 예정된 여행만 보여드려요.
-      </p>
+      {/* 목록이 비었을 땐 숨긴다 — 보여줄 여행이 없는데 "이런 여행만 보여드려요"는
+          안내가 아니라 잡음이다. */}
+      {(isLoading || trips.length > 0) && (
+        <p className="pl-4 pb-2 text-xs text-sub-darkgray font-medium">
+          * 진행 중이거나 예정된 여행만 보여드려요.
+        </p>
+      )}
 
-      {/* 여행 목록 */}
-      <LoadingBoundary isLoading={isLoading} message="여행 목록을 불러오는 중이에요">
+      {/* 생성 중에 튕겼던 사람이 다시 들어올 입구 */}
+      <ItineraryFlowResumeBanner />
+
+      {/* 여행 목록 — 목록 화면은 캐릭터 로딩보다 실제 카드 모양 스켈레톤이 덜 튄다.
+          (로딩이 끝나도 레이아웃이 그대로라 "깜빡임"이 안 생긴다) */}
+      {isLoading ? (
+        <div className="flex-1 overflow-hidden pb-6">
+          <TripListSkeleton />
+        </div>
+      ) : (
         <div className="flex-1 overflow-y-auto overflow-x-hidden pb-6 flex flex-col gap-3.5">
           {trips.length === 0 ? (
             <EmptyState
               title="아직 여행이 없어요"
-              description="오른쪽 위 (+) 버튼으로 새 여행을 만들어보세요"
+              description="오른쪽 위 (+)로 새 여행을 만들어보세요"
+              secondaryAction={{
+                label: "로그 둘러보기",
+                onClick: () => router.push("/itinerary/logs"),
+              }}
+              primaryAction={{
+                label: "관광지 보러가기",
+                onClick: () => router.push("/home/recommend"),
+              }}
             />
           ) : (
             trips.map((trip) => (
@@ -257,7 +302,7 @@ export default function TripsPage() {
             ))
           )}
         </div>
-      </LoadingBoundary>
+      )}
 
       {/* 수정 모달 */}
       {modal?.type === "edit" && (

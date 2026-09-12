@@ -14,7 +14,8 @@ import flagImg from "@/assets/place/flag.png";
 import houseImg from "@/assets/place/house.png";
 import busanStationImg from "@/assets/place/busan-station.png";
 import { groupApi, itineraryApi } from "@/shared/api/domains";
-import { useItineraryGenerationLockStore } from "@/shared/stores";
+import { useItineraryGenerationLockStore, useItineraryFlowStore } from "@/shared/stores";
+import { useItineraryFlowProgress } from "@/features/itinerary/hooks/useItineraryFlowProgress";
 import { getDefaultItemTime, getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
@@ -130,10 +131,13 @@ function TripResultContent() {
   const accommodationLng = searchParams.get("accommodationLng") ?? "";
   const isHost = useIsGroupHost(groupId);
 
+  // 초대 화면이 3초 폴링으로 받아둔 값이 캐시에 남아 있어서, 그 뒤 들어온 멤버가
+  // 이 화면에서 빠져 보일 수 있다. 마운트 시 한 번은 최신으로 맞춘다.
   const { data: members = [] } = useQuery({
     queryKey: groupApi.keys.members(groupId),
     queryFn: () => groupApi.getGroupMembers(groupId),
     enabled: !!groupId,
+    refetchOnMount: "always",
   });
 
   // 스와이프 완료 직후 방장/참여자가 거의 동시에 이 페이지에 진입하면 각자의
@@ -180,6 +184,7 @@ function TripResultContent() {
   >("default");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const unlockGeneration = useItineraryGenerationLockStore((state) => state.unlock);
+  const clearFlow = useItineraryFlowStore((state) => state.clearFlow);
   const queryClient = useQueryClient();
 
   // 확정 직후엔 일정 목록 캐시(staleTime 60초)에 새 일정이 아직 없다. 그대로 /itinerary로
@@ -187,11 +192,21 @@ function TripResultContent() {
   // 그래서 목록을 무효화하고, 방금 만들어진 일정 id를 tripId로 직접 지정해서 이동한다.
   const goToNewItinerary = async (itineraryId?: string) => {
     unlockGeneration();
+    // 확정까지 끝났으면 더 이어할 게 없다 — "이어하기" 안내가 남지 않게 지운다.
+    clearFlow();
     try {
       await queryClient.invalidateQueries({
         queryKey: itineraryApi.keys.lists(),
         refetchType: "all",
       });
+      // 상세도 미리 받아둔다 — 일정 화면은 마운트 시점 데이터로 Yjs를 시딩하기 때문에,
+      // 상세가 아직 없는 채로 열리면 빈 상태가 굳어서 새로고침 전까지 제대로 안 보인다.
+      if (itineraryId) {
+        await queryClient.prefetchQuery({
+          queryKey: itineraryApi.keys.detail(itineraryId),
+          queryFn: () => itineraryApi.getItinerary(itineraryId),
+        });
+      }
     } finally {
       router.push(itineraryId ? `/itinerary?tripId=${itineraryId}` : "/itinerary");
     }
@@ -228,6 +243,9 @@ function TripResultContent() {
     ...(accommodationLat ? { accommodationLat } : {}),
     ...(accommodationLng ? { accommodationLng } : {}),
   }).toString();
+
+  // 생성/투표 중에 튕겨도 같은 투표 세션으로 돌아올 수 있게 진행 상황을 남긴다.
+  useItineraryFlowProgress("result", forwardParams, groupId, { sessionId, tripName });
 
   // days 수에 맞게 각 플랜 day 슬라이스 + 하루 최대 3곳(아침/오후/저녁) 슬롯에 맞춰 시간 배정
   const plans: Plan[] = [
