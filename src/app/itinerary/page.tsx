@@ -24,6 +24,7 @@ import {
 import type { ItineraryStop, ModalType, AccommodationPlace } from "@/features/itinerary";
 import { itineraryApi, travelLogApi, userApi } from "@/shared/api/domains";
 import { useCollaborativeItinerary } from "@/features/itinerary/collab/useCollaborativeItinerary";
+import { useTransportBackfill } from "@/features/itinerary/hooks/useTransportBackfill";
 import {
   type BaseStop,
   buildDaysFromTravelLogDetail,
@@ -596,6 +597,12 @@ function ItineraryMain({
     showToast(message);
   };
 
+  // 순서가 REST에 반영(flush 성공)될 때마다 올라가는 값. 비워진 구간의 교통수단을 다시
+  // 계산해달라고 백엔드에 물어보는 시점을 여기에 맞춘다 — 백엔드는 DB의 order_index로
+  // "직전 항목"을 찾기 때문에, 순서가 아직 저장되기 전에 물어보면 옛 순서 기준의 엉뚱한
+  // 구간이 돌아온다(useTransportBackfill 주석 참고).
+  const [transportSyncTick, setTransportSyncTick] = useState(0);
+
   const {
     stopsPerDay,
     seeded: yjsSeeded,
@@ -636,8 +643,22 @@ function ItineraryMain({
     // 정상으로 보이던 이유).
     () => {
       queryClient.invalidateQueries({ queryKey: itineraryApi.keys.detail(itineraryId) });
+      setTransportSyncTick((tick) => tick + 1);
     },
   );
+
+  // 시각 변경으로 순서가 바뀌면 이웃이 달라진 구간의 교통수단 카드가 비워진다
+  // (rebuildTransport가 가짜 역명을 만들지 않으려고 일부러 비운다). 그 구간만 골라 서버가
+  // 계산한 실제 경로로 다시 채운다 — 로컬 state가 아니라 Yjs 문서에 써서 같이 보고 있는
+  // 다른 참여자 화면에도 반영되게 한다.
+  useTransportBackfill({
+    itineraryId,
+    dayIds: dayIdsSliced,
+    stopsPerDay,
+    syncTick: transportSyncTick,
+    enabled: yjsSeeded,
+    applyTransport: updateYjsStopTransport,
+  });
   const [tripDates, setTripDates] = useState<string[]>(initialDates);
   // initialDates는 마운트 시점 값을 useState 시드로만 쓰기 때문에, 트립 목록 화면에서
   // 여행 날짜를 수정해 detail이 리페치돼도 그 자체로는 반영되지 않는다(같은 itineraryId면
