@@ -630,6 +630,13 @@ function ItineraryMain({
     (info) => {
       if (!info.willRetry) showToast(info.message, "error");
     },
+    // 저장이 끝나면 상세 캐시를 무효화한다. 저장 자체는 되는데 캐시(staleTime 60초)에
+    // 옛 응답이 남아 있으면, 앱 안에서 이 화면에 다시 들어올 때 그 옛 응답으로 공동편집
+    // 문서가 시딩돼 "바꾼 시간이 저장되지 않은 것처럼" 보였다(새로고침하면 캐시가 없어
+    // 정상으로 보이던 이유).
+    () => {
+      queryClient.invalidateQueries({ queryKey: itineraryApi.keys.detail(itineraryId) });
+    },
   );
   const [tripDates, setTripDates] = useState<string[]>(initialDates);
   // initialDates는 마운트 시점 값을 useState 시드로만 쓰기 때문에, 트립 목록 화면에서

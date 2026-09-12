@@ -88,6 +88,10 @@ export function useCollaborativeItinerary(
   onRemoteActivity?: (entry: ActivityLogEntry) => void,
   // REST 반영이 끝까지 실패했을 때 알림용(선택). 없으면 예전처럼 조용히 재시도만 한다.
   onFlushError?: (info: FlushErrorInfo) => void,
+  // 서버 반영이 끝난 뒤 호출된다. 호출부가 상세 캐시를 갱신하는 데 쓴다 — 저장은 됐는데
+  // 캐시에 옛 응답이 남아 있으면, 앱 안에서 이 화면에 다시 들어올 때 그 옛 응답으로 문서가
+  // 시딩돼 "바꾼 시간이 저장되지 않은 것처럼" 보였다(새로고침하면 캐시가 없어 정상).
+  onFlushed?: () => void,
 ) {
   // 문서는 빈 채로 만든다. 시딩은 아래 useEffect에서, WS 동기화가 끝나 원격(Redis)에
   // 이미 있던 days가 doc에 먼저 반영된 뒤에 한다 — 그래야 seedYjsDays의 "로컬 문서가
@@ -136,6 +140,7 @@ export function useCollaborativeItinerary(
   // 항상 최신 콜백을 참조하기 위한 ref (stale closure 방지 — flushAll은 effect/타이머/
   // awareness 콜백에서 불리므로 마운트 시점 콜백에 고정되면 안 된다).
   const onFlushErrorRef = useRef(onFlushError);
+  const onFlushedRef = useRef(onFlushed);
   // 예약된 자동 재시도 타이머. 새 flush가 시작되면 취소한다(그 flush가 더 최신 상태를
   // 보내므로 예전 재시도는 의미가 없다).
   const retryTimerRef = useRef<number | null>(null);
@@ -147,6 +152,7 @@ export function useCollaborativeItinerary(
   useEffect(() => {
     dayIdsRef.current = dayIds;
     onFlushErrorRef.current = onFlushError;
+    onFlushedRef.current = onFlushed;
   });
 
   // 새 항목이 저장되면서 백엔드가 계산해준 (직전 스팟 → 새 항목) 구간 정보를, 그 직전
@@ -208,7 +214,12 @@ export function useCollaborativeItinerary(
     );
 
     const failures = results.flat();
-    if (failures.length === 0) return;
+    // 실패가 없다면 이번 패스에서 보낸 변경은 모두 서버에 반영됐다. 상세 캐시를 갱신할
+    // 기회를 호출부에 준다(변경이 없었던 패스도 갱신해도 무해하다 — 서버 값과 같다).
+    if (failures.length === 0) {
+      onFlushedRef.current?.();
+      return;
+    }
 
     const willRetry = attempt < MAX_FLUSH_RETRIES;
     onFlushErrorRef.current?.({
