@@ -147,7 +147,7 @@ export function BottomNavigation() {
         icon={<EmergencyIcon width={25} height={25} className="text-sub-coral" aria-hidden />}
         title="일정 생성 중이에요!"
         description={
-          "지금 나가면 친구들이 기다릴 수 있어요.\n나가더라도 일정 탭에서 \"이어서 만들기\"로\n같은 자리로 돌아올 수 있어요."
+          '지금 나가면 친구들이 기다릴 수 있어요.\n나가더라도 일정 탭에서 "이어서 만들기"로\n같은 자리로 돌아올 수 있어요.'
         }
         footer={
           <div className="flex w-full flex-col gap-2">

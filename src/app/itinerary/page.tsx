@@ -48,7 +48,6 @@ import type {
 const DEFAULT_DAY_START = "09:00";
 const DEFAULT_STOP_GAP_MIN = 60;
 
-
 interface ItinerarySummaryForSelection {
   id?: string;
   startAt?: string;
@@ -918,8 +917,7 @@ function ItineraryMain({
   // 반영이 끝날 때까지(=URL의 importedLogId가 정리될 때까지) 로딩으로 덮는다.
   // 로그 조회가 실패하면(삭제된 로그 등) 담을 게 없으므로 로딩을 걷어낸다 —
   // 안 그러면 영영 안 끝나는 오버레이에 갇힌다.
-  const isImportingLog =
-    !!importedLogId && !isImportedLogError && (!importedLog || !yjsSeeded);
+  const isImportingLog = !!importedLogId && !isImportedLogError && (!importedLog || !yjsSeeded);
 
   return (
     <div className="relative h-full">

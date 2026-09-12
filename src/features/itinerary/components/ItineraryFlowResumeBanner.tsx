@@ -80,7 +80,9 @@ export function ItineraryFlowResumeBanner() {
             refetchType: "all",
           });
           setToastMessage("이미 일정이 확정됐어요. 확정된 일정으로 이동할게요.");
-          router.push(status.itineraryId ? `/itinerary?tripId=${status.itineraryId}` : "/itinerary");
+          router.push(
+            status.itineraryId ? `/itinerary?tripId=${status.itineraryId}` : "/itinerary",
+          );
           return;
         }
       }
@@ -103,9 +105,7 @@ export function ItineraryFlowResumeBanner() {
   return (
     <>
       <div className="mb-3.5 rounded-2xl border border-main-blue bg-system-navbg p-4">
-        <p className="font-ssurround text-md font-bold text-sub-deepblue">
-          만들던 일정이 있어요!
-        </p>
+        <p className="font-ssurround text-md font-bold text-sub-deepblue">만들던 일정이 있어요!</p>
         <p className="mt-1 font-paperlogy text-sm font-normal text-text-primary">
           {flow.tripName ? `${flow.tripName} · ` : ""}
           {STEP_LABELS[flow.step] ?? "일정 생성"} 단계에서 멈췄어요.

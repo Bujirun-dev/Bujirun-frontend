@@ -127,7 +127,9 @@ export function ArrivalVerifyModal({
       },
       (error) => {
         // PERMISSION_DENIED(1)면 권한 안내, 그 외(위치 사용 불가/시간 초과)는 일반 안내.
-        setGpsFailReason(error.code === error.PERMISSION_DENIED ? { type: "permission" } : { type: "error" });
+        setGpsFailReason(
+          error.code === error.PERMISSION_DENIED ? { type: "permission" } : { type: "error" },
+        );
         setStep("gps-fail");
         setIsCheckingLocation(false);
       },

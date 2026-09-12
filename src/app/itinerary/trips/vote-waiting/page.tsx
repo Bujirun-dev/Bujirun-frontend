@@ -125,7 +125,8 @@ function VoteWaitingContent() {
   const doneCount = Math.min(totalSlots, voteStatus?.totalVotes ?? 0);
   const winnerPlan = getWinnerPlan(voteCounts);
   const tiedPlans = getTiedPlans(voteCounts);
-  const showTieModal = (doneCount >= totalSlots || isHostSkipping) && !winnerPlan && !selectedTiePlan;
+  const showTieModal =
+    (doneCount >= totalSlots || isHostSkipping) && !winnerPlan && !selectedTiePlan;
 
   // 제한 시간이 지나면 방장은 아직 투표 안 한 사람을 기다리지 않고 현재 표로 확정할 수 있다.
   const handleHostSkip = () => {
