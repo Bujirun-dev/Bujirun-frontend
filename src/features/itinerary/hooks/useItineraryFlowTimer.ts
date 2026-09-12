@@ -7,7 +7,7 @@ import {
   useItineraryFlowStore,
 } from "@/shared/stores";
 
-// 지금 단계(대기 화면)에 들어온 뒤 남은 제한 시간(5분)을 1초마다 갱신해서 돌려준다.
+// 지금 단계(대기 화면)에 들어온 뒤 남은 제한 시간(3분)을 1초마다 갱신해서 돌려준다.
 // 제한 시간이 지나면 방장은 아직 안 끝낸 사람을 기다리지 않고 다음 단계로 넘어갈 수 있다.
 export function useItineraryFlowTimer(): { remainingMs: number; isOver: boolean } {
   const flow = useItineraryFlowStore((state) => state.flow);

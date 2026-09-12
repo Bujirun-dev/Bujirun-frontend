@@ -120,20 +120,23 @@ function TripWaitingContent() {
               isHost ? (
                 <>
                   <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
-                    5분이 지났어요. 기다리지 않고 진행할 수 있어요.
+                    3분이 지났어요. 기다리지 않고 진행할 수 있어요.
                   </p>
-                  <Button variant="warning" onClick={() => setShowSkipConfirm(true)}>
+                  <Button variant="primary" onClick={() => setShowSkipConfirm(true)}>
                     기다리지 않고 진행하기
                   </Button>
                 </>
               ) : (
                 <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
-                  5분이 지났어요. 방장이 먼저 진행할 수 있어요.
+                  3분이 지났어요. 방장이 먼저 진행할 수 있어요.
                 </p>
               )
             ) : (
-              <p className="text-center font-paperlogy text-sm font-normal text-sub-darkgray">
-                {formatRemainingTime(remainingMs)} 후에는 방장이 바로 진행할 수 있어요
+              <p className="flex items-center gap-2 text-center font-paperlogy text-sm font-normal text-sub-darkgray">
+                방장 진행 가능까지
+                <span className="font-paperlogy text-md font-bold text-sub-deepblue">
+                  {formatRemainingTime(remainingMs)}
+                </span>
               </p>
             )}
           </div>

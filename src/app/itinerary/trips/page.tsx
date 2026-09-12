@@ -257,7 +257,15 @@ export default function TripsPage() {
           {trips.length === 0 ? (
             <EmptyState
               title="아직 여행이 없어요"
-              description="오른쪽 위 (+) 버튼으로 새 여행을 만들어보세요"
+              description="오른쪽 위 (+) 버튼으로 새 여행을 만들거나, 먼저 둘러봐도 좋아요"
+              secondaryAction={{
+                label: "로그 둘러보기",
+                onClick: () => router.push("/itinerary/logs"),
+              }}
+              primaryAction={{
+                label: "관광지 보러가기",
+                onClick: () => router.push("/home/recommend"),
+              }}
             />
           ) : (
             trips.map((trip) => (

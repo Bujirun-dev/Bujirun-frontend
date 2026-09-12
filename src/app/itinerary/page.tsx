@@ -32,6 +32,10 @@ import {
   toHourMinute,
 } from "@/features/itinerary/utils/scheduleUtils";
 import type { TripTimeBounds } from "@/shared/utils/tripTimeBounds";
+import {
+  LAST_VIEWED_ITINERARY_EVENT,
+  LAST_VIEWED_ITINERARY_KEY,
+} from "@/shared/constants/itinerary";
 import type { SearchPlace } from "@/components/place/PlaceSearchPanel";
 import type { RouteOption } from "@/features/itinerary";
 import type {
@@ -43,8 +47,7 @@ import type {
 // 줄이기 위해, 그 날 마지막 일정 다음 시간(1시간 뒤)으로 잡아준다. 비어있는 날은 09:00부터.
 const DEFAULT_DAY_START = "09:00";
 const DEFAULT_STOP_GAP_MIN = 60;
-const LAST_VIEWED_ITINERARY_KEY = "bujirun:last-viewed-itinerary-id";
-const LAST_VIEWED_ITINERARY_EVENT = "bujirun:last-viewed-itinerary-change";
+
 
 interface ItinerarySummaryForSelection {
   id?: string;
@@ -354,7 +357,7 @@ function ItineraryMain({
   const searchParams = useSearchParams();
   const importedLogId = searchParams.get("importedLogId");
   // 다른 사람의 여행 로그를 이 일정에 그대로 불러오는 기능(로그 상세 페이지의 "일정 담기").
-  const { data: importedLog } = useQuery({
+  const { data: importedLog, isError: isImportedLogError } = useQuery({
     queryKey: travelLogApi.keys.detail(importedLogId ?? ""),
     queryFn: () => travelLogApi.getLog(importedLogId as string),
     enabled: !!importedLogId,
@@ -849,8 +852,21 @@ function ItineraryMain({
     })),
   );
 
+  // 로그 담기는 "일정 상세 조회 → Yjs 시딩 → 반영"이 순서대로 끝나야 화면에 나온다.
+  // 그동안 담기 전 타임라인이 그대로 보여서 "눌렀는데 아무 일도 안 일어난다"처럼 느껴졌다.
+  // 반영이 끝날 때까지(=URL의 importedLogId가 정리될 때까지) 로딩으로 덮는다.
+  // 로그 조회가 실패하면(삭제된 로그 등) 담을 게 없으므로 로딩을 걷어낸다 —
+  // 안 그러면 영영 안 끝나는 오버레이에 갇힌다.
+  const isImportingLog =
+    !!importedLogId && !isImportedLogError && (!importedLog || !yjsSeeded);
+
   return (
     <div className="relative h-full">
+      {isImportingLog && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-main-white/90 backdrop-blur-sm">
+          <LoadingState variant="inline" message="로그를 일정에 담고 있어요" />
+        </div>
+      )}
       <PageCard>
         <ItineraryFlowResumeBanner />
         <ItineraryHeader

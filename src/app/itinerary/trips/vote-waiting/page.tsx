@@ -251,10 +251,10 @@ function VoteWaitingContent() {
               isHost ? (
                 <>
                   <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
-                    5분이 지났어요. 투표를 마감할 수 있어요.
+                    3분이 지났어요. 투표를 마감할 수 있어요.
                   </p>
                   <Button
-                    variant="warning"
+                    variant="primary"
                     onClick={() => setShowSkipConfirm(true)}
                     disabled={isConfirming}
                   >
@@ -263,12 +263,15 @@ function VoteWaitingContent() {
                 </>
               ) : (
                 <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
-                  5분이 지났어요. 방장이 투표를 마감할 수 있어요.
+                  3분이 지났어요. 방장이 투표를 마감할 수 있어요.
                 </p>
               )
             ) : (
-              <p className="text-center font-paperlogy text-sm font-normal text-sub-darkgray">
-                {formatRemainingTime(remainingMs)} 후에 방장이 투표를 마감할 수 있어요
+              <p className="flex items-center gap-2 text-center font-paperlogy text-sm font-normal text-sub-darkgray">
+                방장 마감 가능까지
+                <span className="font-paperlogy text-md font-bold text-sub-deepblue">
+                  {formatRemainingTime(remainingMs)}
+                </span>
               </p>
             )}
           </div>

@@ -131,10 +131,13 @@ function TripResultContent() {
   const accommodationLng = searchParams.get("accommodationLng") ?? "";
   const isHost = useIsGroupHost(groupId);
 
+  // 초대 화면이 3초 폴링으로 받아둔 값이 캐시에 남아 있어서, 그 뒤 들어온 멤버가
+  // 이 화면에서 빠져 보일 수 있다. 마운트 시 한 번은 최신으로 맞춘다.
   const { data: members = [] } = useQuery({
     queryKey: groupApi.keys.members(groupId),
     queryFn: () => groupApi.getGroupMembers(groupId),
     enabled: !!groupId,
+    refetchOnMount: "always",
   });
 
   // 스와이프 완료 직후 방장/참여자가 거의 동시에 이 페이지에 진입하면 각자의

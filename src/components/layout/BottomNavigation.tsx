@@ -96,18 +96,26 @@ export function BottomNavigation() {
         <div className="grid h-[72px] grid-cols-4 p-2">
           {navigationItems.map((item) => {
             const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+            // 생성 중엔 지금 있는 탭(일정)만 색을 살리고 나머지를 흐리게 해서,
+            // "다른 탭으로는 못 간다"가 눌러보기 전에 보이게 한다.
+            const isDimmed = isNavigationBlocked && !isActive;
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
+                aria-disabled={isNavigationBlocked || undefined}
                 onClick={(event) => {
                   if (!isNavigationBlocked) return;
                   event.preventDefault();
                   setPendingHref(item.href);
                 }}
-                className="relative flex min-w-0 flex-col items-center justify-center text-xs font-semibold transition-colors"
+                // 생성 중에는 못 넘어간다는 걸 눌러보기 전에 알 수 있게 흐리게 보여준다.
+                // 클릭 자체는 살려둬서(pointer-events 유지) 왜 막혔는지 모달로 안내한다.
+                className={`relative flex min-w-0 flex-col items-center justify-center text-xs font-semibold transition-all duration-300 ${
+                  isDimmed ? "opacity-25 grayscale" : ""
+                }`}
               >
                 <div
                   className={`absolute w-20 h-14 rounded-2xl transition-all duration-500 ease-out ${
