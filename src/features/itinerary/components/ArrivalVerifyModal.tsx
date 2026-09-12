@@ -183,6 +183,11 @@ export function ArrivalVerifyModal({
     setIsVerified(false);
     setIsCheckingLocation(false);
     setVisitId(null);
+    // 실패 안내는 "이번 인증 시도"에 대한 것이라 닫을 때 같이 비운다. 남겨두면 다음에 열어서
+    // GPS 인증에 성공해도 지난번 거절 안내("카메라를 사용할 수 없어요")가 그대로 뜨고,
+    // 지난번 거리 초과 안내가 새 시도의 실패 화면에 섞여 나온다.
+    setGpsFailReason(undefined);
+    setCameraBlocked(false);
 
     if (capturedImageUrl) {
       URL.revokeObjectURL(capturedImageUrl);
