@@ -219,6 +219,7 @@ export default function ItineraryPage() {
 }
 
 function ItineraryPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const requestedTripId = searchParams.get("tripId");
   const lastViewedItineraryId = useSyncExternalStore(
@@ -238,7 +239,11 @@ function ItineraryPageContent() {
   const selectedItinerary = itineraries
     ? selectItinerary(itineraries, requestedTripId, lastViewedItineraryId)
     : undefined;
-  const itineraryId = selectedItinerary?.id;
+  // tripId를 명시적으로 받았으면 목록에 아직 없어도 그 id를 그대로 연다. 확정 직후엔
+  // 목록 응답에 새 일정이 아직 안 들어와 있는 경우가 있는데, 예전에는 그 id를 조용히
+  // 버리고 "최근 수정" 일정으로 폴백해서 방금 만든 게 아닌 엉뚱한 일정이 열렸다
+  // (새로고침해야 제대로 나오던 원인). 상세 조회가 실패하면 아래에서 안내한다.
+  const itineraryId = requestedTripId ?? selectedItinerary?.id;
 
   useEffect(() => {
     if (!itineraryId) return;
@@ -250,15 +255,38 @@ function ItineraryPageContent() {
     }
   }, [itineraryId]);
 
-  const { data: detail, isLoading: isDetailLoading } = useQuery({
+  const {
+    data: detail,
+    isLoading: isDetailLoading,
+    isError: isDetailError,
+  } = useQuery({
     queryKey: itineraryApi.keys.detail(itineraryId ?? ""),
     queryFn: () => itineraryApi.getItinerary(itineraryId as string),
     enabled: !!itineraryId,
+    retry: false,
   });
 
   const isLoading = isListLoading || isDetailLoading;
 
-  if (!itineraries || itineraries.length === 0 || !itineraryId || !detail) {
+  // 링크로 받은 tripId가 삭제됐거나 내 일정이 아닌 경우. 다른 일정을 대신 열면
+  // "내가 만든 일정이 아닌데 열렸다"가 되므로, 무엇이 일어났는지 알려준다.
+  if (requestedTripId && isDetailError) {
+    return (
+      <PageCard>
+        <ItineraryFlowResumeBanner />
+        <EmptyState
+          title="일정을 찾을 수 없어요"
+          description="삭제됐거나 참여 중이 아닌 일정이에요."
+          primaryAction={{
+            label: "여행 목록 보기",
+            onClick: () => router.push("/itinerary/trips"),
+          }}
+        />
+      </PageCard>
+    );
+  }
+
+  if (!itineraryId || !detail) {
     return (
       <LoadingBoundary isLoading={isLoading} message="일정을 불러오는 중이에요">
         <ItineraryEmptyState />

@@ -196,6 +196,14 @@ function TripResultContent() {
         queryKey: itineraryApi.keys.lists(),
         refetchType: "all",
       });
+      // 상세도 미리 받아둔다 — 일정 화면은 마운트 시점 데이터로 Yjs를 시딩하기 때문에,
+      // 상세가 아직 없는 채로 열리면 빈 상태가 굳어서 새로고침 전까지 제대로 안 보인다.
+      if (itineraryId) {
+        await queryClient.prefetchQuery({
+          queryKey: itineraryApi.keys.detail(itineraryId),
+          queryFn: () => itineraryApi.getItinerary(itineraryId),
+        });
+      }
     } finally {
       router.push(itineraryId ? `/itinerary?tripId=${itineraryId}` : "/itinerary");
     }
