@@ -243,24 +243,24 @@ function VoteWaitingContent() {
               isHost ? (
                 <>
                   <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
-                    10분이 지났어요. 지금 표로 확정할 수 있어요.
+                    5분이 지났어요. 투표를 마감할 수 있어요.
                   </p>
                   <Button
                     variant="warning"
                     onClick={() => setShowSkipConfirm(true)}
                     disabled={isConfirming}
                   >
-                    {isConfirming ? "확정 중..." : "지금 표로 확정하기"}
+                    {isConfirming ? "확정 중..." : "투표 마감하고 확정하기"}
                   </Button>
                 </>
               ) : (
                 <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
-                  10분이 지났어요. 방장이 지금 표로 확정할 수 있어요.
+                  5분이 지났어요. 방장이 투표를 마감할 수 있어요.
                 </p>
               )
             ) : (
               <p className="text-center font-paperlogy text-sm font-normal text-sub-darkgray">
-                {formatRemainingTime(remainingMs)} 후에는 방장이 바로 확정할 수 있어요
+                {formatRemainingTime(remainingMs)} 후에 방장이 투표를 마감할 수 있어요
               </p>
             )}
           </div>
@@ -272,7 +272,7 @@ function VoteWaitingContent() {
         onClose={() => setShowSkipConfirm(false)}
         confirmVariant="warning"
         icon={<EmergencyIcon width={25} height={25} className="text-sub-coral" aria-hidden />}
-        title="지금 표로 확정할까요?"
+        title="투표를 마감할까요?"
         description={"아직 투표하지 않은 친구의 표는\n반영되지 않아요."}
         cancelText="더 기다리기"
         confirmText="확정하기"

@@ -26,10 +26,13 @@ const FLOW_STEP_PATHS: Record<ItineraryFlowStep, string> = {
 // 하루가 지난 기록은 이미 남이 확정했거나 그냥 버려진 방일 가능성이 높아서 더 권하지 않는다.
 export const ITINERARY_FLOW_TTL_MS = 24 * 60 * 60 * 1000;
 
-// 생성을 시작한 뒤 이 시간이 지나면, 방장은 안 끝낸 사람을 기다리지 않고 다음 단계로
-// 넘어갈 수 있다 — 중간에 튕겨서 안 돌아오는 사람이 한 명만 있어도 그룹 전체가 대기
-// 화면에 영구히 갇히던 문제 때문에 둔 제한.
-export const ITINERARY_FLOW_SKIP_AFTER_MS = 10 * 60 * 1000;
+// 대기 화면(취향분석 대기 / 투표 대기)에 들어온 뒤 이 시간이 지나면, 방장은 아직 안 끝낸
+// 사람을 기다리지 않고 진행할 수 있다 — 중간에 튕겨서 안 돌아오는 사람이 한 명만 있어도
+// 그룹 전체가 대기 화면에 영구히 갇히던 문제 때문에 둔 제한.
+// 전체 플로우 합산이 아니라 단계마다 따로 센다: 스와이프 6장(~1분), AI 생성(최대 1분),
+// 투표(1~2분)라 정상 흐름에서는 이 버튼이 뜨지 않고, 한 단계에서 5분을 넘기면
+// 그때는 확실히 누가 이탈한 상황이다.
+export const ITINERARY_FLOW_SKIP_AFTER_MS = 5 * 60 * 1000;
 
 export type ItineraryFlowProgress = {
   step: ItineraryFlowStep;
@@ -39,14 +42,14 @@ export type ItineraryFlowProgress = {
   tripName?: string;
   // 투표 세션이 만들어진 뒤(result 이후)에만 있다. 이어하기 전에 이미 확정됐는지 확인하는 데 쓴다.
   sessionId?: string;
-  // 이 그룹의 생성 플로우에 처음 들어온 시각. 단계가 바뀌어도 유지된다(10분 제한 기준).
-  startedAt: number;
+  // 지금 단계에 들어온 시각. 같은 단계에 머무는 동안에는 갱신되지 않는다(제한 시간 기준).
+  stepStartedAt: number;
   updatedAt: number;
 };
 
 type ItineraryFlowState = {
   flow: ItineraryFlowProgress | null;
-  saveFlow: (progress: Omit<ItineraryFlowProgress, "startedAt" | "updatedAt">) => void;
+  saveFlow: (progress: Omit<ItineraryFlowProgress, "stepStartedAt" | "updatedAt">) => void;
   clearFlow: () => void;
 };
 
@@ -54,17 +57,21 @@ export const useItineraryFlowStore = create<ItineraryFlowState>()(
   persist(
     (set) => ({
       flow: null,
-      // startedAt은 같은 그룹의 플로우를 계속 진행하는 동안에는 갱신하지 않는다 —
-      // 단계마다 새로 찍으면 10분 제한이 계속 미뤄져서 방장이 영영 건너뛸 수 없다.
+      // stepStartedAt은 같은 그룹의 같은 단계에 머무는 동안에는 갱신하지 않는다 —
+      // 화면이 리렌더/재진입될 때마다 새로 찍으면 제한 시간이 계속 미뤄져서
+      // 방장이 영영 건너뛸 수 없다.
       saveFlow: (progress) =>
-        set((state) => ({
-          flow: {
-            ...progress,
-            startedAt:
-              state.flow?.groupId === progress.groupId ? state.flow.startedAt : Date.now(),
-            updatedAt: Date.now(),
-          },
-        })),
+        set((state) => {
+          const isSameStep =
+            state.flow?.groupId === progress.groupId && state.flow?.step === progress.step;
+          return {
+            flow: {
+              ...progress,
+              stepStartedAt: isSameStep ? state.flow!.stepStartedAt : Date.now(),
+              updatedAt: Date.now(),
+            },
+          };
+        }),
       clearFlow: () => set({ flow: null }),
     }),
     {
@@ -84,5 +91,5 @@ export function isItineraryFlowExpired(flow: ItineraryFlowProgress): boolean {
 }
 
 export function getItineraryFlowRemainingMs(flow: ItineraryFlowProgress): number {
-  return Math.max(0, flow.startedAt + ITINERARY_FLOW_SKIP_AFTER_MS - Date.now());
+  return Math.max(0, flow.stepStartedAt + ITINERARY_FLOW_SKIP_AFTER_MS - Date.now());
 }

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import plusSmallIcon from "@/assets/icons/itinerary/plus-small.svg?url";
-import { PageCard, Toast, EmptyState, LoadingBoundary } from "@/components";
+import { PageCard, Toast, EmptyState, LoadingBoundary, BackButton } from "@/components";
 import { TripCard, TripEditModal, TripDeleteModal, TripDeleteToast } from "@/features/itinerary";
 import { ItineraryFlowResumeBanner } from "@/features/itinerary/components";
 import type { Trip } from "@/features/itinerary";
@@ -229,8 +229,18 @@ export default function TripsPage() {
         />
       </button>
 
+      {/* 뒤로가기는 직전 화면이 아니라 항상 일정 메인으로 보낸다. 이 화면은 일정 탭 헤더 /
+          빈 상태 / 이어하기 배너 등 여러 경로로 들어와서, history.back()이면 생성 플로우
+          중간 화면 같은 엉뚱한 곳으로 돌아갈 수 있다. */}
+      <BackButton
+        variant="plain"
+        iconSize={13}
+        className="absolute left-[32px] top-[28px] size-[24px]"
+        onClick={() => router.push("/itinerary")}
+      />
+
       {/* 헤더 */}
-      <div className="flex flex-col items-center gap-1.5 pb-4">
+      <div className="flex flex-col items-center gap-1.5 pb-6">
         <span className="font-ssurround font-bold text-lg text-text-heading">여행 목록</span>
       </div>
 
