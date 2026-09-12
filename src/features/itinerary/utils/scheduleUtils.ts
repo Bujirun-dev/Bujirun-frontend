@@ -437,12 +437,26 @@ function resolveDayTimes(
   const stored = items.map((item) =>
     item.arrivalTime ? timeToMinutes(normalizeTime(item.arrivalTime)) : undefined,
   );
-  const isUsable =
-    stored.every((minute) => minute !== undefined) &&
-    stored.every((minute, idx) => idx === 0 || minute! > stored[idx - 1]!) &&
-    (startMin === undefined || stored[0]! >= startMin) &&
-    (endMin === undefined || stored[stored.length - 1]! <= endMin);
-  if (isUsable) return stored as number[];
+  // 저장된 시각이 다 있고 순서대로 늘어나면 그 값을 쓴다. 여행 시작/종료 밖으로 나간
+  // 경우에도 "버리고 다시 계산"하지 않는다 — 그러면 사용자가 직접 정한 시각까지 함께
+  // 사라지고, 다시 계산한 값은 기준선과 같아서 서버로 저장되지도 않아 화면과 DB가 계속
+  // 갈린다(백엔드 최적화가 종료 시각을 넘겨 저장하는 경우에 실제로 그렇게 됐다).
+  // 간격은 유지한 채 여행 시간 안으로 옮기면, 옮긴 값이 기준선과 달라 저장까지 이어져
+  // 다음 조회부터는 화면과 DB가 같아진다.
+  const hasAllStored = stored.every((minute) => minute !== undefined);
+  const isIncreasing = stored.every((minute, idx) => idx === 0 || minute! > stored[idx - 1]!);
+  if (hasAllStored && isIncreasing) {
+    let usable = stored as number[];
+    if (startMin !== undefined && usable[0] < startMin) {
+      const behind = startMin - usable[0];
+      usable = usable.map((minute) => Math.min(LAST_MINUTE_OF_DAY, minute + behind));
+    }
+    if (endMin !== undefined && usable[usable.length - 1] > endMin) {
+      const over = usable[usable.length - 1] - endMin;
+      usable = usable.map((minute) => Math.max(0, minute - over));
+    }
+    return usable;
+  }
 
   // items[idx].travelTimeMin은 "이전 장소 → 이 장소" 이동시간이다(다음 구간 표시에
   // nextItem.travelTimeMin을 쓰는 것과 같은 기준).
