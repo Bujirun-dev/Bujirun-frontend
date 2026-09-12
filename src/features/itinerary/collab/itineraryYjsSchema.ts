@@ -421,12 +421,20 @@ export function deleteStop(doc: Y.Doc, dayIdx: number, itemId: string): void {
 // 읽을 때 정렬하면 DB의 방문 순서까지 같이 뒤바뀌고 그 구간의 이동수단이 연쇄로 비워진다
 // (2026-09-03에 똑같은 이유로 shiftFollowingStopTimes에서 시간순 정렬을 걷어냈다 — 그 주석 참고).
 // 그래서 이 파일의 규칙을 "방문 순서는 사용자가 명시적으로 재배치할 때만 바뀐다"로 통일했다.
+// 시각을 바꾸면 그날 목록을 시간순으로 다시 정렬한다(타임라인이 시간축 UI라 순서와 시각이
+// 어긋나 보이면 안 되고, 이 배열 순서가 그대로 DB 방문 순서가 된다).
+//
+// 이 경로는 항목을 지우고 다시 넣는 방식이라, 두 사람이 "같은 항목의 시각"을 동시에 바꾸면
+// 같은 id가 문서에 두 벌로 병합될 수 있다. 그 경우는 dedupeItemsById가 변경을 받는 시점에
+// 정리한다 — 정렬을 없애는 방향은 시각과 순서가 어긋나 보이는 더 큰 문제를 만들고,
+// "배열 슬롯은 두고 내용만 옮기는" 방식은 피어별로 슬롯 승자가 갈려 항목이 소멸하는 게
+// 실제 시뮬레이션에서 확인돼 쓰지 않는다.
 export function updateStopTime(doc: Y.Doc, dayIdx: number, itemId: string, time: string): void {
-  mutateStopById(doc, dayIdx, itemId, (map) => {
-    if (map.get("time") !== time) map.set("time", time);
-    // 사용자가 직접 정한 시각이므로 이후 자동 시간조정(shiftFollowingStopTimes)이 밀지 않게 표시.
-    if (map.get("timeIsManual") !== true) map.set("timeIsManual", true);
-  });
+  replaceItemsArray(doc, dayIdx, (stops) =>
+    stops
+      .map((stop) => (stop.id === itemId ? { ...stop, time, timeIsManual: true } : stop))
+      .sort((a, b) => a.time.localeCompare(b.time)),
+  );
 }
 
 export interface ShiftTimesResult {
