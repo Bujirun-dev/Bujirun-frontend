@@ -79,6 +79,7 @@ export function BottomNavigation() {
   const pathname = usePathname();
   const router = useRouter();
   const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const [pathnameAtPrompt, setPathnameAtPrompt] = useState(pathname);
   const isGenerationLocked = useItineraryGenerationLockStore((state) => state.isLocked);
   const lockGeneration = useItineraryGenerationLockStore((state) => state.lock);
   const unlockGeneration = useItineraryGenerationLockStore((state) => state.unlock);
@@ -98,6 +99,16 @@ export function BottomNavigation() {
   }, [isOnWorkflowRoute, isOnLockHonoringRoute, lockGeneration, unlockGeneration]);
 
   const isNavigationBlocked = isGenerationLocked && isOnLockHonoringRoute;
+
+  // 화면이 바뀌면 띄워둔 안내 모달은 버린다. 이 모달은 열림 여부가 pendingHref 하나로만
+  // 결정되고 BottomNavigation은 AppShell에 있어 페이지 이동에도 살아남는데, 투표 확정
+  // 폴링(vote-waiting/result)은 사용자가 누르지 않아도 /itinerary로 넘겨버린다. 그래서
+  // 모달을 띄워둔 채 확정이 나면 완성된 일정 위에 "생성 중" 경고만 남아 있었다.
+  // (effect가 아니라 렌더 중에 맞추는 건 React가 권하는 "상태 초기화" 방식이다.)
+  if (pathnameAtPrompt !== pathname) {
+    setPathnameAtPrompt(pathname);
+    setPendingHref(null);
+  }
 
   // 로그인/회원가입 페이지에서는 숨기기
   if (pathname === "/login" || pathname === "/signup") return null;
