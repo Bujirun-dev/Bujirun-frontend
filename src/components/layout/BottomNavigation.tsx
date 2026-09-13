@@ -170,6 +170,8 @@ export function BottomNavigation() {
                 탈출할 방법이 없다. 진행 상황은 저장돼 있어서 언제든 이어할 수 있다. */}
             <Button
               variant="secondary"
+              // 경고 모달이라 취소 버튼도 코랄로 맞춘다(Modal의 warning 취소 버튼과 동일).
+              className="!border-sub-coral !text-sub-coral"
               onClick={() => {
                 const href = pendingHref;
                 setPendingHref(null);
