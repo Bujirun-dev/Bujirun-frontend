@@ -106,7 +106,12 @@ function resolveImportedLogTimes(arrivalTimes: (string | undefined)[]): number[]
   );
 }
 
-export function buildDaysFromTravelLogDetail(log: TravelLogDetailResponse): {
+export function buildDaysFromTravelLogDetail(
+  log: TravelLogDetailResponse,
+  // 로그 응답의 spotThumbnailUrl이 비어 있는 스팟을 위해 호출부가 관광지 단건 조회로
+  // 따로 받아온 썸네일(spotId 기준). 없으면 폴백 이미지로 간다.
+  spotThumbnails?: ReadonlyMap<string, string>,
+): {
   days: BaseStop[][];
   dates: string[];
 } {
@@ -122,15 +127,20 @@ export function buildDaysFromTravelLogDetail(log: TravelLogDetailResponse): {
 
     return items.map((item, idx): BaseStop => {
       const placeName = item.spotName ?? "장소 미정";
-      const representativePhoto =
-        item.photos?.find((photo) => photo.representative)?.photoUrl ?? item.photos?.[0]?.photoUrl;
 
       return {
         id: ids[idx],
         spotId: item.spotId,
         time: minutesToTime(dayMinutes[idx]),
         placeName,
-        imageUrl: item.spotThumbnailUrl || representativePhoto || getFallbackImage(item.spotId),
+        // 로그에 달린 사진(item.photos)은 작성자가 찍은 개인 사진이라 관광지 이미지 자리에
+        // 쓰지 않는다. 로그 응답에 spotId도 spotThumbnailUrl도 없던 시절(이름으로 관광지를
+        // 검색해 매칭하던 때)의 잔재였는데, 그 탓에 담아온 일정에 남의 인증샷이 관광지
+        // 대표 이미지로 박혀 있었다.
+        imageUrl:
+          item.spotThumbnailUrl ||
+          (item.spotId ? spotThumbnails?.get(item.spotId) : undefined) ||
+          getFallbackImage(item.spotId),
         category: getCategoryFromKo(item.spotCategory ?? "", placeName),
         status: "verify",
         // description/운영시간/문의처는 TimelinePlaceDetailPopup이 spotId로 실제 데이터를

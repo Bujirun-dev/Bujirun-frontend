@@ -112,7 +112,7 @@ function TripWaitingContent() {
         {/* 친구 아바타 - 친구 수별 행 배치 */}
         <ParticipantAvatarGrid total={totalSlots} activeCount={doneCount} className="mt-5" />
 
-        {/* 10분 제한 — 중간에 튕겨서 안 돌아오는 사람 한 명 때문에 그룹 전체가
+        {/* 3분 제한 — 중간에 튕겨서 안 돌아오는 사람 한 명 때문에 그룹 전체가
             영구히 갇히지 않도록, 제한이 지나면 방장이 먼저 진행할 수 있다. */}
         {!allDone && (
           <div className="mt-5 flex w-full flex-col items-center gap-2">
@@ -120,7 +120,7 @@ function TripWaitingContent() {
               isHost ? (
                 <>
                   <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
-                    3분이 지났어요. 기다리지 않고 진행할 수 있어요.
+                    지금 바로 진행할 수 있어요
                   </p>
                   <Button variant="primary" onClick={() => setShowSkipConfirm(true)}>
                     기다리지 않고 진행하기
@@ -128,15 +128,17 @@ function TripWaitingContent() {
                 </>
               ) : (
                 <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
-                  3분이 지났어요. 방장이 먼저 진행할 수 있어요.
+                  방장이 곧 다음 단계로 진행해요
                 </p>
               )
             ) : (
-              <p className="flex items-center gap-2 text-center font-paperlogy text-sm font-normal text-sub-darkgray">
-                방장 진행 가능까지
+              // 제한이 지난 뒤 문구와 짝이 맞게, 카운트다운도 보는 사람 기준으로
+              // 무슨 일이 생기는지를 말해준다.
+              <p className="text-center font-paperlogy text-sm font-normal text-sub-darkgray">
                 <span className="font-paperlogy text-md font-bold text-sub-deepblue">
                   {formatRemainingTime(remainingMs)}
-                </span>
+                </span>{" "}
+                뒤 {isHost ? "진행할 수 있어요" : "방장이 진행할 수 있어요"}
               </p>
             )}
           </div>

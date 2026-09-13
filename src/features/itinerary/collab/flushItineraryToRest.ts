@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { itineraryApi } from "@/shared/api/domains";
 import { getErrorMessage } from "@/shared/utils";
 import type { BaseStop } from "@/features/itinerary/utils/scheduleUtils";
@@ -22,6 +23,10 @@ export interface FlushFailure {
   message: string;
   error: unknown;
 }
+
+// 서버에 이미 없는 항목(404). 삭제에서 이건 실패가 아니라 "목적이 이미 달성된 것"이다 —
+// 다른 참여자가 먼저 지웠거나, 같은 항목이 두 번 삭제 대상이 된 경우다.
+const isAlreadyGone = (error: unknown) => isAxiosError(error) && error.response?.status === 404;
 
 const FAILURE_FALLBACK_MESSAGE: Record<FlushFailureKind, string> = {
   add: "일정 항목을 저장하지 못했어요.",
@@ -91,7 +96,17 @@ export async function flushDayToRest(
     itineraryApi
       .deleteItem(itineraryId, dayId, id)
       .then(() => snapshot.delete(id))
-      .catch((error: unknown) => recordFailure("delete", error, id)),
+      .catch((error: unknown) => {
+        // 404를 실패로 남기면 snapshot에 id가 그대로 남아 다음 flush가 같은 삭제를 또
+        // 시도한다 — 서버엔 이미 없으니 영원히 404다. 그동안 사용자에겐 백엔드 문구
+        // ("항목을 찾을 수 없습니다. id=…")가 계속 뜨고, 정상 저장까지 실패한 것처럼 보인다.
+        // 이미 없으면 지운 것으로 처리하고 snapshot에서 뺀다.
+        if (isAlreadyGone(error)) {
+          snapshot.delete(id);
+          return;
+        }
+        recordFailure("delete", error, id);
+      }),
   );
   await Promise.allSettled(deletions);
 
