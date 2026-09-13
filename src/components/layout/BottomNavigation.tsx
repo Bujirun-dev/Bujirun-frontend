@@ -132,6 +132,10 @@ export function BottomNavigation() {
                 onClick={(event) => {
                   if (!isNavigationBlocked) return;
                   event.preventDefault();
+                  // 지금 화면이 속한 탭(일정)은 눌러도 갈 곳이 없다. 여기에까지 "생성 중"
+                  // 경고를 띄우면 나갈 생각도 없던 사람에게 뜬금없이 뜨는 꼴이라,
+                  // 흐려진 다른 탭을 눌렀을 때만 왜 막혔는지 안내한다.
+                  if (isActive) return;
                   setPendingHref(item.href);
                 }}
                 // 생성 중에는 못 넘어간다는 걸 눌러보기 전에 알 수 있게 흐리게 보여준다.
