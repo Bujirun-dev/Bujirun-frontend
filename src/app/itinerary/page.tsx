@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useRef, useState, useEffect, useSyncExternalStore } from "react";
+import { Suspense, useMemo, useRef, useState, useEffect, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
@@ -22,7 +22,7 @@ import {
   ItineraryFlowResumeBanner,
 } from "@/features/itinerary";
 import type { ItineraryStop, ModalType, AccommodationPlace } from "@/features/itinerary";
-import { itineraryApi, travelLogApi, userApi } from "@/shared/api/domains";
+import { itineraryApi, spotApi, travelLogApi, userApi } from "@/shared/api/domains";
 import {
   useCollaborativeItinerary,
   type FlushErrorInfo,
@@ -524,6 +524,48 @@ function ItineraryMain({
   const [modal, setModal] = useState<ModalType | null>(null);
   const [peerUpdateMessage, setPeerUpdateMessage] = useState<string | undefined>(undefined);
   const queryClient = useQueryClient();
+
+  // 로그의 spotThumbnailUrl은 로그를 만들 때 박아둔 스냅샷이라 비어 있는 항목이 있다.
+  // 그대로 두면 관광지 자리에 폴백(부산 일반 사진)이 박히므로, 비어 있는 스팟만 관광지
+  // 단건 조회로 실제 썸네일을 받아온다. 이미 값이 있는 스팟은 건드리지 않는다.
+  const missingThumbnailSpotIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          (importedLog?.days ?? []).flatMap((day) =>
+            (day.items ?? [])
+              .filter((item) => !item.spotThumbnailUrl && item.spotId)
+              .map((item) => item.spotId as string),
+          ),
+        ),
+      ),
+    [importedLog],
+  );
+
+  // 조회에 실패한 스팟은 폴백 이미지로 남기고 불러오기 자체는 진행한다(allSettled) —
+  // 이미지 하나 때문에 로그 담기 전체가 막히면 손해가 더 크다.
+  const { data: importedSpotThumbnails } = useQuery({
+    queryKey: [...travelLogApi.keys.detail(importedLogId ?? ""), "spot-thumbnails"],
+    queryFn: async () => {
+      const results = await Promise.allSettled(
+        missingThumbnailSpotIds.map((spotId) =>
+          queryClient.fetchQuery({
+            queryKey: spotApi.keys.detail(spotId),
+            queryFn: () => spotApi.getSpot(spotId),
+          }),
+        ),
+      );
+      const thumbnails = new Map<string, string>();
+      results.forEach((result, idx) => {
+        if (result.status === "fulfilled" && result.value?.thumbnailUrl) {
+          thumbnails.set(missingThumbnailSpotIds[idx], result.value.thumbnailUrl);
+        }
+      });
+      return thumbnails;
+    },
+    enabled: !!importedLogId && !!importedLog,
+    staleTime: Infinity,
+  });
   const [accommodation, setAccommodation] = useState<AccommodationPlace | null>(
     tripTimeBounds?.accommodationName
       ? {
@@ -693,6 +735,9 @@ function ItineraryMain({
 
   useEffect(() => {
     if (!importedLogId || !importedLog) return;
+    // 썸네일 보강이 끝나기 전에 반영하면 폴백 이미지가 먼저 박히고, 그 뒤에 이미지가
+    // 바뀌는 게 아니라 그대로 굳는다(반영은 이 이펙트에서 한 번만 일어난다).
+    if (!importedSpotThumbnails) return;
     // Yjs 문서가 아직 시딩 전이면 day별 items 배열 자체가 doc 안에 없어서, 이 시점에
     // pushYjsOptimizedOrder를 호출해도 조용히 아무 일도 안 일어난다(day map을 못 찾아
     // no-op) — "로그 불러오기 버튼을 눌러도 일정이 그대로"인 버그의 원인이었다. seeded가
@@ -703,7 +748,7 @@ function ItineraryMain({
     // (예전엔 이름으로 관광지를 다시 검색해 매칭했었는데, 백엔드가 spotId를 내려주기
     // 시작한 뒤에도 안 지워져 있던 워크어라운드였음 — 이름이 안 맞으면 엉뚱한 스팟에
     // 매칭되거나 spotId가 비어 REST addItem 저장 자체가 안 되는 문제가 있었음).
-    const { days } = buildDaysFromTravelLogDetail(importedLog);
+    const { days } = buildDaysFromTravelLogDetail(importedLog, importedSpotThumbnails);
     // 로그 쪽 day 수가 현재 일정보다 적을 수 있다(예: 2박3일 일정에 1박2일 로그를 불러오는
     // 경우) — 그럴 땐 로그가 채워주는 날짜까지만 덮어쓰고, 남는 뒷날은 원래 상태(대개 빈
     // 상태) 그대로 둔다. 로그 쪽 day 수가 더 많으면 초과분은 그냥 버린다(현재 일정 기준).
@@ -733,7 +778,7 @@ function ItineraryMain({
       window.clearTimeout(toastTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [importedLogId, importedLog, yjsSeeded]);
+  }, [importedLogId, importedLog, importedSpotThumbnails, yjsSeeded]);
 
   const activeStop = stopsPerDay[activeDayIdx]?.find((s) => s.id === activeStopId);
   const selectedRouteOptionId = getActiveTransportOptionId(activeStop);
@@ -1078,7 +1123,10 @@ function ItineraryMain({
   // 그건 Next의 searchParams를 갱신하지 않아 importedLogId는 언마운트까지 남아 있다.
   // 로그 조회가 실패하면(삭제된 로그 등) 담을 게 없으므로 로딩을 걷어낸다 —
   // 안 그러면 영영 안 끝나는 오버레이에 갇힌다.
-  const isImportingLog = !!importedLogId && !isImportedLogError && (!importedLog || !yjsSeeded);
+  const isImportingLog =
+    !!importedLogId &&
+    !isImportedLogError &&
+    (!importedLog || !importedSpotThumbnails || !yjsSeeded);
 
   return (
     <div className="relative h-full">
