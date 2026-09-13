@@ -1,6 +1,5 @@
 import { isAxiosError } from "axios";
 import { itineraryApi } from "@/shared/api/domains";
-import { getErrorMessage } from "@/shared/utils";
 import type { BaseStop } from "@/features/itinerary/utils/scheduleUtils";
 
 type DaySnapshotEntry = { spotId?: string; time: string; orderIndex: number };
@@ -19,7 +18,10 @@ export interface FlushFailure {
   // reorder는 day 전체를 한 번에 보내므로 항목 정보가 없다.
   stopId?: string;
   placeName?: string;
-  // 사용자에게 그대로 보여줄 수 있는 문구(백엔드 message가 있으면 그걸 우선).
+  // 사용자에게 그대로 보여줄 문구. 백엔드 message는 쓰지 않는다 — "항목을 찾을 수 없습니다.
+  // id=5201d714-…", "요청한 항목 목록이 현재 일차의 항목 구성과 일치하지 않습니다"처럼
+  // 내부 사정이 그대로 나가면 사용자는 무슨 일인지도, 뭘 해야 하는지도 알 수 없다.
+  // 원인 파악에 필요한 실제 응답은 error에 그대로 담겨 있다.
   message: string;
   error: unknown;
 }
@@ -28,7 +30,7 @@ export interface FlushFailure {
 // 다른 참여자가 먼저 지웠거나, 같은 항목이 두 번 삭제 대상이 된 경우다.
 const isAlreadyGone = (error: unknown) => isAxiosError(error) && error.response?.status === 404;
 
-const FAILURE_FALLBACK_MESSAGE: Record<FlushFailureKind, string> = {
+const FAILURE_MESSAGE: Record<FlushFailureKind, string> = {
   add: "일정 항목을 저장하지 못했어요.",
   update: "변경한 시각을 저장하지 못했어요.",
   reorder: "변경한 순서를 저장하지 못했어요.",
@@ -84,7 +86,7 @@ export async function flushDayToRest(
       dayId,
       stopId,
       placeName,
-      message: getErrorMessage(error, FAILURE_FALLBACK_MESSAGE[kind]),
+      message: FAILURE_MESSAGE[kind],
       error,
     });
   };
