@@ -53,13 +53,16 @@ function loadKakaoMaps(): Promise<boolean> {
 // 이미 저장돼 있는 값은 검색과 무관하게 그대로 표시된다.
 const ACCOMMODATION_CATEGORY_CODE = "AD5";
 
-// 목록이 길면 고르기가 오히려 어려워서 짧게 끊는다.
-const MAX_RESULTS = 8;
+// 카카오 키워드 검색이 한 번에 돌려주는 최대치. 예전엔 8개로 끊었는데, 이름이 비슷한
+// 숙소가 많아서 정작 찾던 곳이 잘려 안 보이는 경우가 있었다(목록은 스크롤된다).
+const MAX_RESULTS = 15;
 
-// "해운대"를 치는 도중 "해"·"해운"으로 검색이 나가면 결과가 0건이라 빈 화면이 번쩍 뜬다.
-// 입력이 멎고 나서 검색하도록 넉넉히 기다리고, 한 글자로는 아예 검색하지 않는다.
-const SEARCH_DEBOUNCE_MS = 500;
-const MIN_QUERY_LENGTH = 2;
+// 입력이 멎고 나서 검색하도록 기다린다. 예전엔 "해"·"해운"처럼 치는 도중의 검색이
+// 0건이라 빈 화면이 번쩍이는 걸 막으려고 두 글자부터 검색했는데, 정작 "신라"·"롯데"처럼
+// 짧은 이름을 칠 때 목록이 안 떠서 "검색이 안 된다"로 느껴졌다. 한 글자부터 검색하고,
+// 대신 대기 시간을 줄여 결과가 빨리 따라붙게 한다.
+const SEARCH_DEBOUNCE_MS = 300;
+const MIN_QUERY_LENGTH = 1;
 
 export function AccommodationSearchField({
   value,

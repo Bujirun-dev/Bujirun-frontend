@@ -98,15 +98,27 @@ function resolveImportedLogTimes(arrivalTimes: (string | undefined)[]): number[]
     stored.every((minute, idx) => idx === 0 || minute! > stored[idx - 1]!);
   if (isUsable) return stored as number[];
 
+  // 기본 간격(120분)을 그대로 쓰면 8번째 항목부터 전부 23:50으로 몰린다 — 위 주석대로
+  // 같은 날 같은 시각은 백엔드가 400으로 막아서(validateArrivalTimeAvailable) 그 항목들은
+  // 저장 자체가 안 된다. clamp가 "하루치를 한 번에 정한다"는 이 함수의 목적을 도로
+  // 깨뜨리고 있었다. 하루 안에 다 들어가도록 항목 수에 맞춰 간격을 좁힌다(10분 단위 유지).
+  const span = LAST_MINUTE_OF_DAY - IMPORTED_LOG_DAY_START_MIN;
+  const defaultStep = DEFAULT_STAY_MIN + DEFAULT_TRAVEL_MIN;
+  const fittingStep =
+    arrivalTimes.length > 1 ? Math.floor(span / (arrivalTimes.length - 1) / 10) * 10 : defaultStep;
+  const step = Math.max(MIN_IMPORTED_LOG_GAP_MIN, Math.min(defaultStep, fittingStep));
+
   return arrivalTimes.map((_, idx) =>
-    Math.min(
-      LAST_MINUTE_OF_DAY,
-      IMPORTED_LOG_DAY_START_MIN + idx * (DEFAULT_STAY_MIN + DEFAULT_TRAVEL_MIN),
-    ),
+    Math.min(LAST_MINUTE_OF_DAY, IMPORTED_LOG_DAY_START_MIN + idx * step),
   );
 }
 
-export function buildDaysFromTravelLogDetail(log: TravelLogDetailResponse): {
+export function buildDaysFromTravelLogDetail(
+  log: TravelLogDetailResponse,
+  // 로그 응답의 spotThumbnailUrl이 비어 있는 스팟을 위해 호출부가 관광지 단건 조회로
+  // 따로 받아온 썸네일(spotId 기준). 없으면 폴백 이미지로 간다.
+  spotThumbnails?: ReadonlyMap<string, string>,
+): {
   days: BaseStop[][];
   dates: string[];
 } {
@@ -122,15 +134,20 @@ export function buildDaysFromTravelLogDetail(log: TravelLogDetailResponse): {
 
     return items.map((item, idx): BaseStop => {
       const placeName = item.spotName ?? "장소 미정";
-      const representativePhoto =
-        item.photos?.find((photo) => photo.representative)?.photoUrl ?? item.photos?.[0]?.photoUrl;
 
       return {
         id: ids[idx],
         spotId: item.spotId,
         time: minutesToTime(dayMinutes[idx]),
         placeName,
-        imageUrl: item.spotThumbnailUrl || representativePhoto || getFallbackImage(item.spotId),
+        // 로그에 달린 사진(item.photos)은 작성자가 찍은 개인 사진이라 관광지 이미지 자리에
+        // 쓰지 않는다. 로그 응답에 spotId도 spotThumbnailUrl도 없던 시절(이름으로 관광지를
+        // 검색해 매칭하던 때)의 잔재였는데, 그 탓에 담아온 일정에 남의 인증샷이 관광지
+        // 대표 이미지로 박혀 있었다.
+        imageUrl:
+          item.spotThumbnailUrl ||
+          (item.spotId ? spotThumbnails?.get(item.spotId) : undefined) ||
+          getFallbackImage(item.spotId),
         category: getCategoryFromKo(item.spotCategory ?? "", placeName),
         status: "verify",
         // description/운영시간/문의처는 TimelinePlaceDetailPopup이 spotId로 실제 데이터를
@@ -446,6 +463,8 @@ export function getDefaultItemTime(
 // 관광지 기본 체류시간과, 이동시간을 모르는 구간에 쓰는 기본 이동시간.
 // 로그를 불러올 때 시간을 다시 매기는 기준 시각 — 일정 탭의 하루 기본 시작(10:00)과 맞춘다.
 const IMPORTED_LOG_DAY_START_MIN = 10 * 60;
+// 간격을 좁히더라도 이보다 붙이지는 않는다(일정 시각은 10분 단위).
+const MIN_IMPORTED_LOG_GAP_MIN = 10;
 const DEFAULT_STAY_MIN = 90;
 const DEFAULT_TRAVEL_MIN = 30;
 
