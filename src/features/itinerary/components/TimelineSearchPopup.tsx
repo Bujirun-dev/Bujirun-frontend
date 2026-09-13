@@ -69,12 +69,17 @@ function SelectedPlacePreview({
 
       <PlaceDetailContent
         place={place}
+        // 도감(수집) 대상이 아닌 관광지는 status가 undefined다(SearchPlace 참고). 검색 목록은
+        // 이걸 보고 배지를 숨기는데 상세보기만 그대로 그려서, 도감에 없는 관광지에도 "미수집"이
+        // 붙었다 — 모을 수 없는 곳인데 안 모은 것처럼 보인다.
         imageOverlay={
-          <div className="absolute right-2 top-2">
-            <StatusBadge
-              status={selectedPlace.status === "completed" ? "collected" : "uncollected"}
-            />
-          </div>
+          selectedPlace.status ? (
+            <div className="absolute right-2 top-2">
+              <StatusBadge
+                status={selectedPlace.status === "completed" ? "collected" : "uncollected"}
+              />
+            </div>
+          ) : undefined
         }
         onBookmark={toggleBookmark}
         relatedLogs={relatedLogs}
