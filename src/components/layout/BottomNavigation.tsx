@@ -79,6 +79,7 @@ export function BottomNavigation() {
   const pathname = usePathname();
   const router = useRouter();
   const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const [pathnameAtPrompt, setPathnameAtPrompt] = useState(pathname);
   const isGenerationLocked = useItineraryGenerationLockStore((state) => state.isLocked);
   const lockGeneration = useItineraryGenerationLockStore((state) => state.lock);
   const unlockGeneration = useItineraryGenerationLockStore((state) => state.unlock);
@@ -98,6 +99,16 @@ export function BottomNavigation() {
   }, [isOnWorkflowRoute, isOnLockHonoringRoute, lockGeneration, unlockGeneration]);
 
   const isNavigationBlocked = isGenerationLocked && isOnLockHonoringRoute;
+
+  // 화면이 바뀌면 띄워둔 안내 모달은 버린다. 이 모달은 열림 여부가 pendingHref 하나로만
+  // 결정되고 BottomNavigation은 AppShell에 있어 페이지 이동에도 살아남는데, 투표 확정
+  // 폴링(vote-waiting/result)은 사용자가 누르지 않아도 /itinerary로 넘겨버린다. 그래서
+  // 모달을 띄워둔 채 확정이 나면 완성된 일정 위에 "생성 중" 경고만 남아 있었다.
+  // (effect가 아니라 렌더 중에 맞추는 건 React가 권하는 "상태 초기화" 방식이다.)
+  if (pathnameAtPrompt !== pathname) {
+    setPathnameAtPrompt(pathname);
+    setPendingHref(null);
+  }
 
   // 로그인/회원가입 페이지에서는 숨기기
   if (pathname === "/login" || pathname === "/signup") return null;
@@ -121,6 +132,10 @@ export function BottomNavigation() {
                 onClick={(event) => {
                   if (!isNavigationBlocked) return;
                   event.preventDefault();
+                  // 지금 화면이 속한 탭(일정)은 눌러도 갈 곳이 없다. 여기에까지 "생성 중"
+                  // 경고를 띄우면 나갈 생각도 없던 사람에게 뜬금없이 뜨는 꼴이라,
+                  // 흐려진 다른 탭을 눌렀을 때만 왜 막혔는지 안내한다.
+                  if (isActive) return;
                   setPendingHref(item.href);
                 }}
                 // 생성 중에는 못 넘어간다는 걸 눌러보기 전에 알 수 있게 흐리게 보여준다.
@@ -170,6 +185,8 @@ export function BottomNavigation() {
                 탈출할 방법이 없다. 진행 상황은 저장돼 있어서 언제든 이어할 수 있다. */}
             <Button
               variant="secondary"
+              // 경고 모달이라 취소 버튼도 코랄로 맞춘다(Modal의 warning 취소 버튼과 동일).
+              className="!border-sub-coral !text-sub-coral"
               onClick={() => {
                 const href = pendingHref;
                 setPendingHref(null);
