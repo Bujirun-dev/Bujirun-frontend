@@ -98,11 +98,18 @@ function resolveImportedLogTimes(arrivalTimes: (string | undefined)[]): number[]
     stored.every((minute, idx) => idx === 0 || minute! > stored[idx - 1]!);
   if (isUsable) return stored as number[];
 
+  // 기본 간격(120분)을 그대로 쓰면 8번째 항목부터 전부 23:50으로 몰린다 — 위 주석대로
+  // 같은 날 같은 시각은 백엔드가 400으로 막아서(validateArrivalTimeAvailable) 그 항목들은
+  // 저장 자체가 안 된다. clamp가 "하루치를 한 번에 정한다"는 이 함수의 목적을 도로
+  // 깨뜨리고 있었다. 하루 안에 다 들어가도록 항목 수에 맞춰 간격을 좁힌다(10분 단위 유지).
+  const span = LAST_MINUTE_OF_DAY - IMPORTED_LOG_DAY_START_MIN;
+  const defaultStep = DEFAULT_STAY_MIN + DEFAULT_TRAVEL_MIN;
+  const fittingStep =
+    arrivalTimes.length > 1 ? Math.floor(span / (arrivalTimes.length - 1) / 10) * 10 : defaultStep;
+  const step = Math.max(MIN_IMPORTED_LOG_GAP_MIN, Math.min(defaultStep, fittingStep));
+
   return arrivalTimes.map((_, idx) =>
-    Math.min(
-      LAST_MINUTE_OF_DAY,
-      IMPORTED_LOG_DAY_START_MIN + idx * (DEFAULT_STAY_MIN + DEFAULT_TRAVEL_MIN),
-    ),
+    Math.min(LAST_MINUTE_OF_DAY, IMPORTED_LOG_DAY_START_MIN + idx * step),
   );
 }
 
@@ -456,6 +463,8 @@ export function getDefaultItemTime(
 // 관광지 기본 체류시간과, 이동시간을 모르는 구간에 쓰는 기본 이동시간.
 // 로그를 불러올 때 시간을 다시 매기는 기준 시각 — 일정 탭의 하루 기본 시작(10:00)과 맞춘다.
 const IMPORTED_LOG_DAY_START_MIN = 10 * 60;
+// 간격을 좁히더라도 이보다 붙이지는 않는다(일정 시각은 10분 단위).
+const MIN_IMPORTED_LOG_GAP_MIN = 10;
 const DEFAULT_STAY_MIN = 90;
 const DEFAULT_TRAVEL_MIN = 30;
 
