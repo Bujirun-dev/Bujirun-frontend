@@ -14,7 +14,7 @@ export const TimelinePlaceDetailPopup = forwardRef<HTMLDivElement, TimelinePlace
   function TimelinePlaceDetailPopup({ stop, onClose }, ref) {
     const spotId = stop.spotId;
 
-    const { place, isBookmarked, toggleBookmark, relatedLogs } = useSpotDetail(spotId, {
+    const { spot, place, isBookmarked, toggleBookmark, relatedLogs } = useSpotDetail(spotId, {
       name: stop.placeName,
       imageUrl: stop.imageUrl,
       category: stop.category,
@@ -43,10 +43,17 @@ export const TimelinePlaceDetailPopup = forwardRef<HTMLDivElement, TimelinePlace
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
             <PlaceDetailContent
               place={{ ...place, mapUrl: place.mapUrl ?? stop.mapUrl, isBookmarked }}
+              // 도감(수집) 대상이 아닌 관광지엔 수집 배지를 붙이지 않는다 — 모을 수 없는 곳에
+              // "미수집"이 붙어 안 모은 것처럼 보였다(검색 목록은 이미 같은 기준으로 숨긴다).
+              // 상세를 아직 못 받았으면 붙이지 않는다 — 잘못 붙는 것보다 늦게 붙는 게 낫다.
               imageOverlay={
-                <div className="absolute right-2 top-2">
-                  <StatusBadge status={stop.status === "completed" ? "collected" : "uncollected"} />
-                </div>
+                spot?.collection ? (
+                  <div className="absolute right-2 top-2">
+                    <StatusBadge
+                      status={stop.status === "completed" ? "collected" : "uncollected"}
+                    />
+                  </div>
+                ) : undefined
               }
               onBookmark={spotId ? toggleBookmark : undefined}
               relatedLogs={spotId ? relatedLogs : undefined}

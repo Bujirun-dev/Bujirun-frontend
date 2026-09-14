@@ -355,9 +355,28 @@ function ItineraryPageContent() {
     queryFn: () => itineraryApi.getItinerary(itineraryId as string),
     enabled: !!itineraryId,
     retry: shouldRetryItineraryDetail,
+    // Yjs 문서 시딩(seedYjsDays)은 "문서가 비어 있을 때" 딱 한 번, 마운트 시점의 이 응답으로
+    // 일어난다. 전역 staleTime(60초) 안에 이 화면에 다시 들어오면 그 응답이 "삭제 전" 값일 수
+    // 있는데, 그렇게 굳은 항목은 방(room)이 살아있는 한 다시 시딩되지 않아 서버엔 없는 채로
+    // 계속 남는다. 그러면 flush가 그 항목을 PATCH/DELETE하며 404를, 순서 반영에선 "항목 구성이
+    // 일치하지 않습니다" 400을 무한히 반복한다(2026-09-13 배포본 콘솔에서 확인).
+    // 그래서 이 화면에 들어올 때는 캐시가 신선하더라도 항상 한 번 다시 받는다. staleTime 자체는
+    // 건드리지 않아서 낙관적 업데이트나 다른 화면의 캐시 동작은 그대로다.
+    refetchOnMount: "always",
   });
 
   const isLoading = isListLoading || isDetailLoading;
+
+  // 위 재조회가 끝나기 전의 (캐시) 응답으로 ItineraryMain을 마운트하면 시딩이 그 값으로 굳어
+  // 버리므로, 이번 진입에서 한 번 새로 받은 뒤에 마운트한다. 한 번 통과한 뒤에는 다시 닫히지
+  // 않는다 — 이후의 배경 재조회까지 여기서 막으면 화면이 통째로 다시 마운트되며 Yjs 연결과
+  // 편집 상태가 끊긴다. 조회가 실패해도(재시도 소진) isDetailFetching이 내려가며 열리므로
+  // 로딩에 갇히지 않는다.
+  const [seedReadyItineraryId, setSeedReadyItineraryId] = useState<string | null>(null);
+  if (itineraryId && detail && !isDetailFetching && seedReadyItineraryId !== itineraryId) {
+    setSeedReadyItineraryId(itineraryId);
+  }
+  const isWaitingForFreshDetail = !!itineraryId && seedReadyItineraryId !== itineraryId;
 
   // 링크로 받은 tripId가 실제로 삭제됐거나 내 일정이 아닌 경우(404/403). 다른 일정을 대신
   // 열면 "내가 만든 일정이 아닌데 열렸다"가 되므로, 무엇이 일어났는지 알려준다.
@@ -434,7 +453,10 @@ function ItineraryPageContent() {
   const { days, dates, dayIds } = mapItineraryDetailToDays(detail, tripTimeBounds);
 
   return (
-    <LoadingBoundary isLoading={isLoading} message="일정을 불러오는 중이에요">
+    <LoadingBoundary
+      isLoading={isLoading || isWaitingForFreshDetail}
+      message="일정을 불러오는 중이에요"
+    >
       <ItineraryMain
         key={itineraryId}
         itineraryId={itineraryId}
@@ -771,7 +793,11 @@ function ItineraryMain({
     setCurrentDay(0);
     const toastTimer = window.setTimeout(() => {
       showToast("일정이 추가되었어요.");
-      window.history.replaceState(null, "", "/itinerary");
+      // importedLogId만 지우려던 게 tripId까지 같이 날려서, 다음 렌더에 URL이 빈
+      // "/itinerary"로 읽혀 화면이 "오늘 진행중" 폴백 규칙으로 엉뚱한 일정으로
+      // 넘어가 버렸다(2026-09-14 실브라우저 재현: 저장은 맞는 일정에 됐는데 화면만
+      // 다른 일정으로 바뀜). importedLogId만 지우고 tripId는 유지한다.
+      window.history.replaceState(null, "", `/itinerary?tripId=${itineraryId}`);
     }, 300);
 
     return () => {
