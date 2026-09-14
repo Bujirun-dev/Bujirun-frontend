@@ -793,7 +793,11 @@ function ItineraryMain({
     setCurrentDay(0);
     const toastTimer = window.setTimeout(() => {
       showToast("일정이 추가되었어요.");
-      window.history.replaceState(null, "", "/itinerary");
+      // importedLogId만 지우려던 게 tripId까지 같이 날려서, 다음 렌더에 URL이 빈
+      // "/itinerary"로 읽혀 화면이 "오늘 진행중" 폴백 규칙으로 엉뚱한 일정으로
+      // 넘어가 버렸다(2026-09-14 실브라우저 재현: 저장은 맞는 일정에 됐는데 화면만
+      // 다른 일정으로 바뀜). importedLogId만 지우고 tripId는 유지한다.
+      window.history.replaceState(null, "", `/itinerary?tripId=${itineraryId}`);
     }, 300);
 
     return () => {
