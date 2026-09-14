@@ -1619,6 +1619,7 @@ export interface components {
             id?: string;
             name?: string;
             category?: string;
+            collectionCategory?: string;
             address?: string;
             lat?: number;
             lng?: number;
