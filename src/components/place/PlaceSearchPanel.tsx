@@ -223,9 +223,9 @@ export function PlaceSearchPanel({
           // x를 누르면 검색어만 지우는 게 아니라 검색 때문에 바뀐 필터까지 되돌려서
           // "검색하기 전" 상태로 돌아가게 한다.
           onClear={() => setCategoryFilter("all")}
-          placeholder="관광지 검색"
+          placeholder=" "
           className="!h-[30px] !w-full !rounded-lg !bg-system-searchbg !py-0"
-          inputClassName="!!text-xs !font-normal !text-sub-gray placeholder:!text-sub-gray"
+          inputClassName="!!text-xs !font-normal !text-sub-deepgray placeholder:!text-sub-gray"
           iconSize={11}
         />
       </div>
