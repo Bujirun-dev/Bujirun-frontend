@@ -81,13 +81,7 @@ export function SearchBar({
         >
           {/* 아이콘 에셋 중 x 표시는 비트맵을 품은 SVG라 색·크기 제어가 안 돼서
               (작게 렌더하면 형태가 깨진다) 인라인으로 그린다 — Modal의 닫기 버튼과 같은 방식. */}
-          <svg
-            viewBox="0 0 24 24"
-            width={iconSize}
-            height={iconSize}
-            className="text-sub-gray"
-            aria-hidden
-          >
+          <svg viewBox="0 0 24 24" width={18} height={18} className="text-sub-gray" aria-hidden>
             <circle cx="12" cy="12" r="10" fill="currentColor" />
             <path
               d="M8.5 8.5l7 7M15.5 8.5l-7 7"

@@ -30,6 +30,11 @@ const STICKY_HEADER = {
   compact: { height: 36, heightClass: "h-9", paddingClass: "pt-9" },
 } as const;
 
+const CONTENT_TOP_GAP = {
+  default: 12,
+  compact: 12,
+} as const;
+
 const INFO_ICONS: Record<InfoIconType, StaticImageData> = {
   clock: clockIcon,
   fee: feeIcon,
@@ -112,6 +117,7 @@ export function PlaceDetailContent({
   } | null>(null);
   const stickyHeader = STICKY_HEADER[compact ? "compact" : "default"];
   const headerHeight = stickyHeader.height;
+  const contentTopGap = CONTENT_TOP_GAP[compact ? "compact" : "default"];
   const formattedDescription = formatDescription(description?.trim() || "등록된 내용이 없습니다.");
   const canExpandDescription = formattedDescription.length > 80;
   const hideBookmarkToast = useCallback(() => setBookmarkToast(null), []);
@@ -141,11 +147,15 @@ export function PlaceDetailContent({
 
     const observer = new IntersectionObserver(
       ([entry]) => setShowStickyName(!entry.isIntersecting),
-      { root, rootMargin: `-${headerHeight}px 0px 0px 0px`, threshold: 0 },
+      {
+        root,
+        rootMargin: `-${headerHeight + contentTopGap}px 0px 0px 0px`,
+        threshold: 0,
+      },
     );
     observer.observe(target);
     return () => observer.disconnect();
-  }, [onBack, headerHeight]);
+  }, [onBack, headerHeight, contentTopGap]);
 
   const nameRow = (
     <div
@@ -402,10 +412,11 @@ export function PlaceDetailContent({
           ref={scrollContainerRef}
           className={cn(
             "min-h-0 flex-1 overflow-y-auto overflow-x-hidden",
-            // 헤더가 덮는 높이와 같은 패딩 — 비쳐 보이는 틈도, 남는 빈칸도 없다.
             stickyHeader.paddingClass,
           )}
         >
+          <div className="h-3 shrink-0" aria-hidden />
+
           {image}
           {nameRow}
           <hr className="border-[0.3px] border-sub-lightgray/70" />

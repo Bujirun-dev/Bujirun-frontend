@@ -542,7 +542,7 @@ function ItineraryMain({
 
   const [currentDay, setCurrentDay] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [toastVariant, setToastVariant] = useState<"default" | "error">("default");
+  const [toastVariant, setToastVariant] = useState<"itinerary" | "error">("itinerary");
   const [modal, setModal] = useState<ModalType | null>(null);
   const [peerUpdateMessage, setPeerUpdateMessage] = useState<string | undefined>(undefined);
   const queryClient = useQueryClient();
@@ -643,7 +643,7 @@ function ItineraryMain({
       });
   };
 
-  const showToast = (message: string, variant: "default" | "error" = "default") => {
+  const showToast = (message: string, variant: "itinerary" | "error" = "itinerary") => {
     setToastVariant(variant);
     setToastMessage(message);
   };
@@ -868,7 +868,7 @@ function ItineraryMain({
       deleteYjsStop(activeDayIdx, activeStopId);
     }
     closeModal();
-    showToast("장소가 삭제되었어요.", "error");
+    showToast("관광지가 삭제되었어요.", "error");
   };
   const confirmTime = () => {
     const timeStr = `${String(timeValue.hour).padStart(2, "0")}:${String(timeValue.minute).padStart(2, "0")}`;
