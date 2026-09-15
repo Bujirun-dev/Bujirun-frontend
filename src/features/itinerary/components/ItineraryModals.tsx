@@ -1,5 +1,6 @@
 "use client";
 
+import { formatTransportDuration } from "@/shared/utils/formatTransportDuration";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import characterImg from "@/assets/character/map.png";
@@ -174,7 +175,7 @@ export function ItineraryModals({
           selectedOptionId: selectedRouteOptionId,
           options: routeOptions.map((option) => ({
             id: option.id,
-            durationText: `${option.durationMin}분`,
+            durationText: formatTransportDuration(option.durationMin),
             costText: `${(option.cost ?? 0).toLocaleString()}원`,
             isRecommended: option.isRecommended,
             steps: option.legs.map((leg) => ({

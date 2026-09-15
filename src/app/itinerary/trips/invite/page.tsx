@@ -119,7 +119,7 @@ function TripInviteContent() {
   const shareImageUrl =
     typeof window === "undefined"
       ? ""
-      : `${window.location.origin}/join/${encodeURIComponent(inviteCode)}/opengraph-image`;
+      : `${window.location.origin}/join/${encodeURIComponent(inviteCode)}/opengraph-image?v=3`;
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pb-16">
