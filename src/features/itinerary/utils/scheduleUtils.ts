@@ -148,7 +148,7 @@ export function buildDaysFromTravelLogDetail(
           item.spotThumbnailUrl ||
           (item.spotId ? spotThumbnails?.get(item.spotId) : undefined) ||
           getFallbackImage(item.spotId),
-        category: getCategoryFromKo(item.spotCategory ?? "", placeName),
+        category: getCategoryFromKo(item.spotCollectionCategory ?? "", placeName),
         status: "verify",
         // description/운영시간/문의처는 TimelinePlaceDetailPopup이 spotId로 실제 데이터를
         // 조회해서 보여준다(useSpotDetail) — 여기서 가짜 문구로 채우지 않는다.
@@ -595,7 +595,7 @@ export function mapItineraryDetailToDays(
         time: minutesToTime(dayMinutes[idx]),
         placeName,
         imageUrl: item.spot?.thumbnailUrl || getFallbackImage(item.spot?.id),
-        category: getCategoryFromKo(item.spot?.category ?? "", placeName),
+        category: getCategoryFromKo(item.spot?.collectionCategory ?? "", placeName),
         // item.spot.visited는 "나(현재 로그인한 사용자)"의 방문인증 여부다(백엔드가
         // userId 기준으로 계산해서 내려줌) — 그룹 일정이어도 다른 멤버의 인증 여부가
         // 섞이지 않는다.
