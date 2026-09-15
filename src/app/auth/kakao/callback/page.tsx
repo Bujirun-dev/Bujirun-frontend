@@ -4,6 +4,7 @@ import { useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { apiClient, unwrap } from "@/shared/api";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
+import { LoadingState } from "@/components";
 import { buildPendingInviteQuery, consumePendingInvite } from "@/shared/utils/pendingInvite";
 import type { OpResponse, OpQuery } from "@/shared/api/types";
 
@@ -68,22 +69,12 @@ function CallbackContent() {
       });
   }, [searchParams, router, setAccessToken]);
 
-  return (
-    <div className="flex h-screen items-center justify-center">
-      <p className="text-text-primary">로그인 중...</p>
-    </div>
-  );
+  return <LoadingState message="로그인 중..." />;
 }
 
 export default function CallbackPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex h-screen items-center justify-center">
-          <p className="text-text-primary">로그인 중...</p>
-        </div>
-      }
-    >
+    <Suspense fallback={<LoadingState message="로그인 중..." />}>
       <CallbackContent />
     </Suspense>
   );
