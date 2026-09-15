@@ -33,7 +33,14 @@ const TransportDetailModal = dynamic(() =>
 );
 
 export type ModalType =
-  "optimize" | "optimizing" | "delete" | "time" | "transport" | "verify" | "peerUpdate" | "members";
+  | "optimize"
+  | "optimizing"
+  | "delete"
+  | "time"
+  | "transport"
+  | "verify"
+  | "peerUpdate"
+  | "members";
 
 interface ItineraryModalsProps {
   modal: ModalType | null;

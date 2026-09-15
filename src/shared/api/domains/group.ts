@@ -29,8 +29,8 @@ export function getGroupMembers(groupId: string) {
 
 export function previewInvite(inviteCode: string) {
   return apiClient
-    .get<OpResponse<"previewInvite">>(
-      `/api/groups/invites/${encodeURIComponent(inviteCode)}/preview`,
-    )
+    .get<
+      OpResponse<"previewInvite">
+    >(`/api/groups/invites/${encodeURIComponent(inviteCode)}/preview`)
     .then((res) => unwrap(res));
 }

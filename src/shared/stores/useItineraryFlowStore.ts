@@ -7,7 +7,12 @@ import { createJSONStorage, persist } from "zustand/middleware";
 // 그래서 sessionStorage(탭 단위)가 아니라 localStorage에 저장한다 — 앱을 완전히 닫고
 // 다시 열어도 "이어하기"로 돌아올 수 있어야 한다.
 export type ItineraryFlowStep =
-  "invite" | "personality" | "swipe" | "waiting" | "result" | "vote-waiting";
+  | "invite"
+  | "personality"
+  | "swipe"
+  | "waiting"
+  | "result"
+  | "vote-waiting";
 
 const FLOW_STEP_PATHS: Record<ItineraryFlowStep, string> = {
   invite: "/itinerary/trips/invite",
