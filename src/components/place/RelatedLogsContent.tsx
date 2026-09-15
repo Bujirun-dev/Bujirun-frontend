@@ -32,7 +32,7 @@ function toLogCardProps(log: TravelLogSummary) {
     placeName: log.firstSpotName ?? log.title ?? "",
     extraCount,
     author: log.authorNickname ?? "",
-    duration: "",
+    duration: log.duration ?? "",
     date,
     downloadCount: log.addedCount ?? 0,
   };

@@ -40,7 +40,7 @@ export default function LogsPage() {
     placeName: log.firstSpotName ?? log.title ?? "제목 없음",
     extraCount: Math.max(0, (log.totalSpots ?? 1) - 1),
     author: log.authorNickname ?? "익명",
-    duration: "",
+    duration: log.duration ?? "",
     date: (log.startDate ?? "").replaceAll("-", "."),
     downloadCount: log.addedCount ?? 0,
   }));

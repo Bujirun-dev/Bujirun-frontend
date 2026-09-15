@@ -2140,6 +2140,7 @@ export interface components {
             firstSpotName?: string;
             thumbnailPhotoUrl?: string;
             isPublic?: boolean;
+            duration?: string;
             /** Format: date */
             startDate?: string;
             /** Format: date */
