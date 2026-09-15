@@ -1,5 +1,6 @@
 "use client";
 
+import { formatTransportDuration } from "@/shared/utils/formatTransportDuration";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { travelLogApi } from "@/shared/api/domains";
@@ -95,7 +96,7 @@ function buildTransportGroup(
 
   const option: TransportOption = {
     id: "actual",
-    durationText: leg?.travelTimeMin != null ? `${leg.travelTimeMin}분` : "-",
+    durationText: leg?.travelTimeMin != null ? formatTransportDuration(leg.travelTimeMin) : "-",
     costText: "-",
     isRecommended: true,
     steps: [step],
@@ -194,7 +195,7 @@ export function TodayItinerary() {
             ...currentOption,
             durationText:
               matchedOption.totalTime != null
-                ? `${matchedOption.totalTime}분`
+                ? formatTransportDuration(matchedOption.totalTime)
                 : currentOption.durationText,
             costText:
               matchedOption.totalFare != null
@@ -338,7 +339,7 @@ export function TodayItinerary() {
                   ...selectedOption,
                   durationText:
                     matchedTransportOption?.totalTime != null
-                      ? `${matchedTransportOption.totalTime}분`
+                      ? formatTransportDuration(matchedTransportOption.totalTime)
                       : selectedOption.durationText,
                   costText:
                     matchedTransportOption?.totalFare != null

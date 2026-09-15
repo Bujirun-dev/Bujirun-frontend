@@ -76,9 +76,10 @@ export function updateItem(
   body: OpBody<"updateItem">,
 ) {
   return apiClient
-    .patch<
-      OpResponse<"updateItem">
-    >(`/api/itineraries/${itineraryId}/days/${dayId}/items/${itemId}`, body)
+    .patch<OpResponse<"updateItem">>(
+      `/api/itineraries/${itineraryId}/days/${dayId}/items/${itemId}`,
+      body,
+    )
     .then((res) => unwrap(res));
 }
 
@@ -101,9 +102,10 @@ export function updateTravelMode(
   body: OpBody<"updateTravelMode">,
 ) {
   return apiClient
-    .patch<
-      OpResponse<"updateTravelMode">
-    >(`/api/itineraries/${itineraryId}/days/${dayId}/items/${itemId}/travel-mode`, body)
+    .patch<OpResponse<"updateTravelMode">>(
+      `/api/itineraries/${itineraryId}/days/${dayId}/items/${itemId}/travel-mode`,
+      body,
+    )
     .then((res) => unwrap(res));
 }
 
@@ -111,9 +113,9 @@ export function updateTravelMode(
 // 각각의 실제 요금·소요시간을 조회한다. DB에 저장된 값이 아니라 매번 새로 계산된 값.
 export function getTravelModeOptions(itineraryId: string, dayId: string, itemId: string) {
   return apiClient
-    .get<
-      OpResponse<"getTravelModeOptions">
-    >(`/api/itineraries/${itineraryId}/days/${dayId}/items/${itemId}/travel-mode/options`)
+    .get<OpResponse<"getTravelModeOptions">>(
+      `/api/itineraries/${itineraryId}/days/${dayId}/items/${itemId}/travel-mode/options`,
+    )
     .then((res) => unwrap(res));
 }
 

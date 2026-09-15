@@ -1,5 +1,6 @@
 "use client";
 
+import { formatTransportDuration } from "@/shared/utils/formatTransportDuration";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import characterImg from "@/assets/character/map.png";
@@ -32,14 +33,7 @@ const TransportDetailModal = dynamic(() =>
 );
 
 export type ModalType =
-  | "optimize"
-  | "optimizing"
-  | "delete"
-  | "time"
-  | "transport"
-  | "verify"
-  | "peerUpdate"
-  | "members";
+  "optimize" | "optimizing" | "delete" | "time" | "transport" | "verify" | "peerUpdate" | "members";
 
 interface ItineraryModalsProps {
   modal: ModalType | null;
@@ -174,7 +168,7 @@ export function ItineraryModals({
           selectedOptionId: selectedRouteOptionId,
           options: routeOptions.map((option) => ({
             id: option.id,
-            durationText: `${option.durationMin}분`,
+            durationText: formatTransportDuration(option.durationMin),
             costText: `${(option.cost ?? 0).toLocaleString()}원`,
             isRecommended: option.isRecommended,
             steps: option.legs.map((leg) => ({
