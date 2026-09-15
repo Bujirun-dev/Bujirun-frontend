@@ -317,7 +317,7 @@ function VoteWaitingContent() {
                 </p>
               )
             ) : (
-              <p className="flex items-center gap-2 text-center font-paperlogy text-sm font-normal text-sub-darkgray">
+              <p className="flex items-center gap-2 text-center text-md font-medium text-sub-deepgray">
                 방장 마감 가능까지
                 <span className="font-paperlogy text-md font-bold text-sub-deepblue">
                   {formatRemainingTime(remainingMs)}
