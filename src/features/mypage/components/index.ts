@@ -6,6 +6,5 @@ export { MypageMenuList } from "./MypageMenuList";
 export { AccountFooter } from "./AccountFooter";
 export { LogoutModal } from "./LogoutModal";
 export { WithdrawModal } from "./WithdrawModal";
-export { BookmarkCard } from "./BookmarkCard";
 export { BookmarkList } from "./BookmarkList";
 export { ProfileStats } from "./ProfileStats";

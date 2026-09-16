@@ -1,8 +1,10 @@
 "use client";
 
+import { usePlaceDetailQueries } from "@/shared/hooks/usePlaceDetailQueries";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Category, PlaceDetailData } from "@/components";
-import { bookmarkApi, spotApi, travelLogApi } from "@/shared/api/domains";
+import { bookmarkApi, spotApi } from "@/shared/api/domains";
 import { getCategoryFromKo } from "@/shared/constants/category";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import { getKakaoMapUrl } from "@/shared/utils";
@@ -24,15 +26,11 @@ export function useSpotDetail(spotId: string | undefined, fallback: UseSpotDetai
   const accessToken = useAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
 
-  const {
-    data: spot,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: spotApi.keys.detail(spotId ?? ""),
-    queryFn: () => spotApi.getSpot(spotId as string),
-    enabled: Boolean(spotId),
+  const { detailQuery, relatedLogs } = usePlaceDetailQueries(spotId ?? "", {
+    detail: Boolean(spotId),
+    logs: Boolean(accessToken && spotId),
   });
+  const { data: spot, isLoading, isError } = detailQuery;
 
   const { data: bookmarks = [] } = useQuery({
     queryKey: bookmarkApi.keys.list(),
@@ -58,18 +56,6 @@ export function useSpotDetail(spotId: string | undefined, fallback: UseSpotDetai
       ]);
     },
   });
-
-  const { data: logs = [] } = useQuery({
-    queryKey: travelLogApi.keys.bySpot(spotId ?? ""),
-    queryFn: () => travelLogApi.getLogsBySpot(spotId as string),
-    enabled: Boolean(accessToken && spotId),
-  });
-
-  const relatedLogs = logs.slice(0, 2).map((log) => ({
-    id: log.id ?? "",
-    imageUrl: log.thumbnailPhotoUrl ?? "",
-    author: log.authorNickname ?? "",
-  }));
 
   const name = spot?.name || fallback.name || "";
   const place: PlaceDetailData = {

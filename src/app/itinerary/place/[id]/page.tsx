@@ -2,7 +2,7 @@
 
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { Button, PageCard, ErrorState, LoadingBoundary } from "@/components";
+import { Button, PageCard, ErrorState, LoadingBoundary, StatusBadge } from "@/components";
 import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
 import { useSpotDetail } from "@/features/itinerary/hooks/useSpotDetail";
 
@@ -27,6 +27,13 @@ export default function PlaceDetailPage({ params }: { params: Promise<{ id: stri
         ) : (
           <PlaceDetailContent
             place={place}
+            imageOverlay={
+              spot.collection ? (
+                <div className="absolute right-2 top-2">
+                  <StatusBadge status={spot.collected ? "collected" : "uncollected"} />
+                </div>
+              ) : undefined
+            }
             onBack={() => router.back()}
             onBookmark={toggleBookmark}
             relatedLogs={relatedLogs}

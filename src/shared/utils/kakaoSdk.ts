@@ -23,7 +23,12 @@ function loadScript(id: string, src: string): Promise<boolean> {
       script.dataset.loaded = "true";
       resolve(true);
     });
-    script.addEventListener("error", () => resolve(false));
+    script.addEventListener("error", () => {
+      // 실패한 결과를 계속 재사용하면 네트워크가 복구돼도 공유를 다시 시도할 수 없다.
+      scriptPromises.delete(id);
+      script.remove();
+      resolve(false);
+    });
     if (!existing) document.head.appendChild(script);
   });
 
@@ -32,6 +37,7 @@ function loadScript(id: string, src: string): Promise<boolean> {
 }
 
 export function loadKakaoShareSdk(): Promise<boolean> {
+  if (typeof window === "undefined") return Promise.resolve(false);
   if (window.Kakao) return Promise.resolve(true);
   return loadScript(
     KAKAO_SHARE_SCRIPT_ID,

@@ -1,9 +1,11 @@
 "use client";
 
+import { getPlaceCollectionStatus } from "@/shared/utils/placeCollection";
+
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
+import { PlaceMarker } from "@/components/place/PlaceMarker";
 import CloseIcon from "@/assets/icons/mypage/close.svg?svgr";
 import { SearchBar, EmptyState } from "@/components";
 import { PlaceSearchSkeleton } from "./PlaceSkeletons";
@@ -166,7 +168,7 @@ export function PlaceSearchPanel({
     name: spot.name ?? "이름 미상",
     collectionCategory: getCategoryFromKo(spot.collectionCategory ?? "", spot.name),
     // 도감에 없는 관광지(isCollection: false)는 수집 여부 배지를 아예 안 보여준다.
-    status: spot.isCollection ? (spot.collected ? "completed" : "uncollected") : undefined,
+    status: getPlaceCollectionStatus(spot),
     imageUrl: spot.thumbnailUrl || getFallbackImage(spot.spotId ?? spot.name),
   }));
 
@@ -223,9 +225,9 @@ export function PlaceSearchPanel({
           // x를 누르면 검색어만 지우는 게 아니라 검색 때문에 바뀐 필터까지 되돌려서
           // "검색하기 전" 상태로 돌아가게 한다.
           onClear={() => setCategoryFilter("all")}
-          placeholder="관광지 검색"
+          placeholder=" "
           className="!h-[30px] !w-full !rounded-lg !bg-system-searchbg !py-0"
-          inputClassName="!!text-xs !font-normal !text-sub-gray placeholder:!text-sub-gray"
+          inputClassName="!!text-xs !font-normal !text-sub-deepgray placeholder:!text-sub-gray"
           iconSize={11}
         />
       </div>
@@ -339,15 +341,7 @@ export function PlaceSearchPanel({
                           }
                         }}
                       >
-                        <MarkerIcon
-                          width={12}
-                          height={12}
-                          className={cn(
-                            "shrink-0",
-                            place.status === "completed" ? "fill-sub-deepblue" : "fill-sub-pink",
-                          )}
-                          aria-hidden
-                        />
+                        <PlaceMarker size={12} status={place.status} />
 
                         <span className="min-w-0 flex-1 truncate text-sm font-normal text-text-primary">
                           {place.name}

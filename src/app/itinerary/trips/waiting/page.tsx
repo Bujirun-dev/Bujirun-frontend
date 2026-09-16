@@ -56,7 +56,12 @@ function TripWaitingContent() {
   });
 
   const isHost = useIsGroupHost(groupId);
-  const { remainingMs, isOver } = useItineraryFlowTimer();
+  const {
+    remainingMs,
+    isOver,
+    isSynced,
+    isError: isTimerError,
+  } = useItineraryFlowTimer(groupId, "waiting");
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
 
   const { data: swipeStatus } = useQuery({
@@ -116,7 +121,11 @@ function TripWaitingContent() {
             영구히 갇히지 않도록, 제한이 지나면 방장이 먼저 진행할 수 있다. */}
         {!allDone && (
           <div className="mt-5 flex w-full flex-col items-center gap-2">
-            {isOver ? (
+            {!isSynced ? (
+              <p className="text-center font-paperlogy text-sm text-sub-darkgray">
+                {isTimerError ? "남은 시간을 다시 확인하고 있어요" : "남은 시간을 확인하고 있어요"}
+              </p>
+            ) : isOver ? (
               isHost ? (
                 <>
                   <p className="text-center font-paperlogy text-sm font-normal text-text-primary">

@@ -104,22 +104,18 @@ function TripInviteContent() {
   const shareDescription = tripPeriod
     ? `${tripPeriod}\n부지런에서 함께 일정을 만들어봐요 🤩`
     : "부지런에서 함께 부산 여행 일정을 만들어봐요 🤩";
-  const inviteUrl =
-    typeof window === "undefined"
-      ? ""
-      : `${window.location.origin}/join/${inviteCode}?${new URLSearchParams({
-          count: String(totalSlots),
-          days,
-          startDate,
-          endDate,
-          // 시작/종료 시각까지 넘겨야 초대받은 멤버의 결과(투표) 화면 시간이 방장과 같아진다.
-          startTime,
-          endTime,
-        }).toString()}`;
-  const shareImageUrl =
-    typeof window === "undefined"
-      ? ""
-      : `${window.location.origin}/join/${encodeURIComponent(inviteCode)}/opengraph-image`;
+  // 공유받은 친구가 접속할 수 있도록 로컬/미리보기 주소 대신 서비스 주소를 사용한다.
+  const shareOrigin = new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://bujirun.store").origin;
+  const inviteUrl = `${shareOrigin}/join/${encodeURIComponent(inviteCode)}?${new URLSearchParams({
+    count: String(totalSlots),
+    days,
+    startDate,
+    endDate,
+    // 시작/종료 시각까지 넘겨야 초대받은 멤버의 결과(투표) 화면 시간이 방장과 같아진다.
+    startTime,
+    endTime,
+  }).toString()}`;
+  const shareImageUrl = `${shareOrigin}/images/invite-character.png`;
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pb-16">

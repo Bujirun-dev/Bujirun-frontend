@@ -2,25 +2,25 @@
 
 import Image from "next/image";
 import type { StaticImageData } from "next/image";
-import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
+import { PlaceMarker } from "@/components/place/PlaceMarker";
 import bookmarkOnIcon from "@/assets/icons/mypage/bookmark-on.png";
 import bookmarkOffIcon from "@/assets/icons/mypage/bookmark-off.png";
 import { CategoryChip, StatusBadge } from "@/components";
 import type { Category } from "@/components";
 
-type StatusType = "completed" | "verify" | "pending" | "uncollected" | "collected";
+import type { PlaceStatus } from "@/components/ui/StatusBadge";
 
-interface BookmarkCardProps {
+interface PlaceBookmarkCardProps {
   imageUrl?: StaticImageData | string;
   name: string;
   category?: Category; //카테고리
-  status?: StatusType;
+  status?: PlaceStatus;
   isBookmarked?: boolean;
   onBookmarkToggle?: () => void;
   onClick?: () => void;
 }
 
-export function BookmarkCard({
+export function PlaceBookmarkCard({
   imageUrl,
   name,
   category,
@@ -28,7 +28,7 @@ export function BookmarkCard({
   isBookmarked = true,
   onBookmarkToggle,
   onClick,
-}: BookmarkCardProps) {
+}: PlaceBookmarkCardProps) {
   return (
     <div
       className="relative flex h-[98px] w-full cursor-pointer items-start gap-3 rounded-[20px] border-[0.3px] border-sub-lightblue bg-main-white px-[14px] py-[13px] shadow-[2px_2px_6px_var(--color-system-scroll)] active:opacity-80"
@@ -43,7 +43,7 @@ export function BookmarkCard({
         {/* 상단: 관광지명 + 북마크 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
-            <MarkerIcon width={13} height={13} className="shrink-0 fill-sub-pink" aria-hidden />
+            <PlaceMarker size={13} status={status} />
             <span className="text-md font-medium text-text-heading tracking-[-0.3px]">{name}</span>
           </div>
           <button

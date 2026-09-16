@@ -345,7 +345,7 @@ export function toLogDetailData(log: TravelLogDetail): LogDetailData {
     title: log.title ?? "",
     placeName: log.days?.[0]?.items?.[0]?.spotName ?? "",
     extraCount: log.totalSpots != null && log.totalSpots > 1 ? log.totalSpots - 1 : undefined,
-    duration: "",
+    duration: log.duration ?? "",
     date: log.startDate?.replace(/-/g, ".") ?? "",
     days: (log.days ?? []).map((day) => ({
       day: day.dayNumber ?? 1,

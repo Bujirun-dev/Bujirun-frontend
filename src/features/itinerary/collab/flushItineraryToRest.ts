@@ -73,6 +73,10 @@ export async function flushDayToRest(
   // 새 항목이 저장되면서 백엔드가 계산해준 (직전 스팟 → 새 항목) 구간 정보를 넘긴다.
   // 호출부가 직전 스팟의 교통수단 배너를 바로 채우는 데 쓴다.
   onLegComputed?: (prevStopId: string, addedItem: AddedItem) => void,
+  collaboration?: {
+    readStops: () => BaseStop[];
+    removeMissingStop: (id: string) => void;
+  },
 ): Promise<FlushFailure[]> {
   const failures: FlushFailure[] = [];
   const recordFailure = (
@@ -89,6 +93,46 @@ export async function flushDayToRest(
       message: FAILURE_MESSAGE[kind],
       error,
     });
+  };
+
+  // REST에 없는 확정 ID는 삭제/교체된 항목이다. temp- 항목은 아직 저장 중이므로
+  // 유지한다. 조회 실패나 일차 자체의 삭제는 항목 삭제로 간주하지 않는다.
+  const reconcileMissingStops = async () => {
+    const detail = await itineraryApi.getItinerary(itineraryId);
+    const day = detail.days?.find((entry) => entry.id === dayId);
+    if (!day?.items) throw new Error("일차의 저장 상태를 확인하지 못했습니다.");
+    const serverIds = new Set(day.items.map((item) => item.id));
+    for (const stop of currentStops) {
+      if (!stop.id.startsWith("temp-") && !serverIds.has(stop.id)) {
+        collaboration?.removeMissingStop(stop.id);
+        snapshot.delete(stop.id);
+      }
+    }
+    for (const id of snapshot.keys()) {
+      if (!serverIds.has(id)) snapshot.delete(id);
+    }
+    return serverIds;
+  };
+  if (collaboration) {
+    try {
+      await reconcileMissingStops();
+      currentStops = collaboration.readStops();
+    } catch (error) {
+      recordFailure("update", error);
+      return failures;
+    }
+  }
+  const isCurrent = (stop: BaseStop) =>
+    !collaboration ||
+    collaboration.readStops().some((latest) => latest.id === stop.id && latest.time === stop.time);
+  const recoverMissingStop = async (error: unknown, stop: BaseStop) => {
+    if (!collaboration || !isAlreadyGone(error)) return false;
+    try {
+      const serverIds = await reconcileMissingStops();
+      return !serverIds.has(stop.id);
+    } catch {
+      return false;
+    }
   };
 
   const currentIds = new Set(currentStops.map((stop) => stop.id));
@@ -130,6 +174,7 @@ export async function flushDayToRest(
 
   for (let index = 0; index < currentStops.length; index += 1) {
     const stop = currentStops[index];
+    if (!isCurrent(stop)) continue;
 
     if (stop.id.startsWith("temp-")) {
       if (!stop.spotId) continue;
@@ -165,7 +210,11 @@ export async function flushDayToRest(
         time: stop.time,
         orderIndex: prev?.orderIndex ?? index,
       });
-    } catch {
+    } catch (error) {
+      if (!isCurrent(stop) || (await recoverMissingStop(error, stop))) {
+        resolvedIds[index] = null;
+        continue;
+      }
       // 바로 실패로 확정하지 않고 아래 재시도 pass로 넘긴다(중복 시각 400이 대부분이라,
       // 나머지 항목이 반영된 뒤엔 성공한다). snapshot은 일부러 손대지 않는다.
       timeRetryTargets.push({ stop, index });
@@ -175,6 +224,7 @@ export async function flushDayToRest(
   // 재시도는 딱 이 한 pass로 끝낸다 — 더 돌리면 재시도해도 절대 성공하지 않는 실패(잘못된
   // 값으로 인한 400 등)에 대해 같은 요청을 무한히 두드리게 된다.
   for (const { stop, index } of timeRetryTargets) {
+    if (!isCurrent(stop)) continue;
     const prev = snapshot.get(stop.id);
     try {
       await itineraryApi.updateItem(itineraryId, dayId, stop.id, { arrivalTime: stop.time });
@@ -184,12 +234,25 @@ export async function flushDayToRest(
         orderIndex: prev?.orderIndex ?? index,
       });
     } catch (error) {
+      if (!isCurrent(stop) || (await recoverMissingStop(error, stop))) {
+        resolvedIds[index] = null;
+        continue;
+      }
       recordFailure("update", error, stop.id, stop.placeName);
     }
   }
 
   const orderedRealIds = resolvedIds.filter((id): id is string => id !== null);
   if (orderedRealIds.length === 0) return failures;
+  // 저장을 기다리는 동안 편집이 진행됐으면 옛 순서를 보내지 않고 다음 저장에 맡긴다.
+  if (collaboration) {
+    const latestIds = collaboration.readStops().map((stop) => stop.id);
+    if (
+      latestIds.length !== orderedRealIds.length ||
+      latestIds.some((id, index) => id !== orderedRealIds[index])
+    )
+      return failures;
+  }
 
   const prevOrder = [...snapshot.entries()]
     .filter(([id]) => orderedRealIds.includes(id))
@@ -208,6 +271,14 @@ export async function flushDayToRest(
       if (entry) entry.orderIndex = index;
     });
   } catch (error) {
+    if (collaboration && isAxiosError(error) && error.response?.status === 400) {
+      try {
+        const serverIds = await reconcileMissingStops();
+        if (orderedRealIds.some((id) => !serverIds.has(id))) return failures;
+      } catch {
+        // 서버 상태를 확인하지 못했으면 원래 저장 실패를 유지한다.
+      }
+    }
     // snapshot의 orderIndex를 갱신하지 않으므로 다음 flush 시점에 다시 reorder 대상이 된다.
     recordFailure("reorder", error, undefined, undefined);
   }

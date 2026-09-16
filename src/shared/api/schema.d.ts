@@ -1619,6 +1619,7 @@ export interface components {
             id?: string;
             name?: string;
             category?: string;
+            collectionCategory?: string;
             address?: string;
             lat?: number;
             lng?: number;
@@ -2139,6 +2140,7 @@ export interface components {
             firstSpotName?: string;
             thumbnailPhotoUrl?: string;
             isPublic?: boolean;
+            duration?: string;
             /** Format: date */
             startDate?: string;
             /** Format: date */

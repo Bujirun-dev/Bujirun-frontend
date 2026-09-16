@@ -43,9 +43,9 @@ export function LogCard({
       {/* 대표 사진 */}
       <div className="relative w-full h-[146px] shrink-0">
         <Image src={imageUrl} alt={placeName} fill sizes="390px" className="object-cover" />
-        <div className="absolute top-[12px] right-[14px] flex items-center justify-center gap-1 px-2 py-1 bg-main-white rounded-lg">
-          <CalendarPlusIcon width={10} height={10} className="fill-sub-gray" aria-hidden />
-          <span className="text-xs font-medium text-sub-gray">{downloadCount}</span>
+        <div className="absolute top-3 right-3 flex items-center justify-center gap-1.5 px-[11px] py-[7px] bg-system-blackbg rounded-lg">
+          <CalendarPlusIcon width={12} height={12} className="fill-main-white" aria-hidden />
+          <span className="text-sm font-medium text-main-white">{downloadCount}</span>
         </div>
       </div>
 

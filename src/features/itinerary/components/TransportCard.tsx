@@ -1,3 +1,4 @@
+import { formatTransportDuration } from "@/shared/utils/formatTransportDuration";
 import Image from "next/image";
 import busIcon from "@/assets/icons/itinerary/bus.svg?url";
 import subwayIcon from "@/assets/icons/itinerary/subway.svg?url";
@@ -139,7 +140,7 @@ export function TransportCard({
     selected === false ? "bg-main-white" : "bg-system-navbg",
     className,
   );
-  const metaText = `${durationMin}분${cost !== undefined ? ` · ${cost.toLocaleString()}원` : ""}`;
+  const metaText = `${formatTransportDuration(durationMin)}${cost !== undefined ? ` · ${cost.toLocaleString()}원` : ""}`;
 
   // 단일 leg (택시/도보/환승 없는 버스 등): 점 없이 심플 레이아웃
   if (legs.length === 1) {

@@ -1,5 +1,3 @@
-import { toBlob } from "html-to-image";
-
 export const waitForImages = async (element: HTMLElement) => {
   const images = Array.from(element.querySelectorAll("img"));
 
@@ -21,7 +19,7 @@ export const waitForImages = async (element: HTMLElement) => {
 
 const sanitizeFileName = (fileName: string) => fileName.replace(/[\\/:*?"<>|]/g, "").trim();
 
-export const createReceiptFileName = (title: string, tripId: number) => {
+export const createReceiptFileName = (title: string, tripId: string | number) => {
   const safeTitle = sanitizeFileName(title);
 
   return safeTitle ? `[bujirun]${safeTitle}.png` : `[bujirun]receipt-${tripId}.png`;
@@ -31,6 +29,7 @@ export const downloadReceiptAsPng = async (element: HTMLElement, fileName: strin
   await document.fonts.ready;
   await waitForImages(element);
 
+  const { toBlob } = await import("html-to-image");
   const blob = await toBlob(element, {
     pixelRatio: 2,
     backgroundColor: "transparent",

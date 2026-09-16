@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import kakaoTalkIcon from "@/assets/icons/itinerary/kakaotalk.png";
 import LinkIcon from "@/assets/icons/itinerary/link.svg?svgr";
 import { Modal, Card, Toast } from "@/components";
-import { shareInviteLink } from "@/shared/utils/kakaoShare";
+import { initKakaoShare, shareInviteLink } from "@/shared/utils/kakaoShare";
 
 interface ShareInviteModalProps {
   isOpen: boolean;
@@ -32,6 +32,17 @@ export function ShareInviteModal({
   imageUrl,
   inviteUrl,
 }: ShareInviteModalProps) {
+  const [kakaoReady, setKakaoReady] = useState(false);
+  useEffect(() => {
+    if (!isOpen) return;
+    let active = true;
+    void initKakaoShare().then((ready) => {
+      if (active) setKakaoReady(ready);
+    });
+    return () => {
+      active = false;
+    };
+  }, [isOpen]);
   const [toast, setToast] = useState<{ message: string; variant: "success" | "error" } | null>(
     null,
   );
@@ -60,14 +71,28 @@ export function ShareInviteModal({
 
   const handleCopyLink = () => void copyInviteUrl();
 
-  const handleKakaoShare = async () => {
-    const shared = await shareInviteLink({ title, description, imageUrl, inviteUrl });
+  const handleKakaoShare = () => {
+    if (!kakaoReady) {
+      setToast({
+        message: "카카오톡 공유를 준비 중이에요. 잠시 후 다시 눌러주세요.",
+        variant: "error",
+      });
+      void initKakaoShare().then((ready) => {
+        setKakaoReady(ready);
+        if (!ready)
+          setToast({
+            message: "카카오톡 공유를 준비하지 못했어요. 다시 시도해 주세요.",
+            variant: "error",
+          });
+      });
+      return;
+    }
+    const shared = shareInviteLink({ title, description, imageUrl, inviteUrl });
     if (shared) {
       onClose();
       return;
     }
-    // 카카오톡 공유 설정 전이면 링크 복사로 대체
-    void copyInviteUrl();
+    setToast({ message: "카카오톡 공유를 열지 못했어요. 다시 시도해 주세요.", variant: "error" });
   };
 
   return (

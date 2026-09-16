@@ -1,25 +1,17 @@
 "use client";
 
+import { getPlaceCollectionStatus } from "@/shared/utils/placeCollection";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookmarkCard } from "./BookmarkCard";
+import { PlaceBookmarkCard } from "@/components/place/PlaceBookmarkCard";
 import { Toast, EmptyState, PlaceCardListSkeleton, ErrorState } from "@/components";
-import { bookmarkApi } from "@/shared/api/domains";
+import { SPOT_LIST_STALE_TIME_MS } from "@/shared/api/domains/spot";
+import { bookmarkApi, spotApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import { BOOKMARK_TOAST_MESSAGE } from "@/shared/constants/bookmark";
-import type { Category } from "@/components";
-
-function toCategory(value?: string, name?: string): Category | undefined {
-  if (!value && !name) return undefined;
-  if (name?.includes("해수욕장") || name?.includes("해변")) return "sea";
-  if (!value) return undefined;
-  if (value.includes("자연")) return "nature";
-  if (value.includes("문화") || value.includes("역사")) return "culture";
-  if (value.includes("체험") || value.includes("놀이")) return "experience";
-  if (value.includes("바다") || value.includes("해수욕")) return "sea";
-  return undefined;
-}
+import { getBookmarkCategory } from "@/features/mypage/utils/bookmarkCategory";
 
 export function BookmarkList() {
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -38,6 +30,15 @@ export function BookmarkList() {
     queryFn: () => bookmarkApi.getBookmarks(),
     enabled: !!accessToken,
   });
+
+  // 북마크 응답에는 수집 여부가 없으므로 검색과 같은 관광지 캐시에서 상태를 가져온다.
+  const { data: spots = [] } = useQuery({
+    queryKey: spotApi.keys.search(),
+    queryFn: () => spotApi.searchSpots(),
+    staleTime: SPOT_LIST_STALE_TIME_MS,
+    enabled: !!accessToken && bookmarks.length > 0,
+  });
+  const spotsById = new Map(spots.map((spot) => [spot.spotId, spot]));
 
   const { mutate: removeBookmark } = useMutation({
     mutationFn: (spotId: string) => bookmarkApi.removeBookmark(spotId),
@@ -89,10 +90,11 @@ export function BookmarkList() {
       ) : (
         <div className="flex flex-col gap-4">
           {bookmarks.map((item) => (
-            <BookmarkCard
+            <PlaceBookmarkCard
               key={item.spotId}
               name={item.name ?? ""}
-              category={toCategory(item.category, item.name ?? "")}
+              category={getBookmarkCategory(item.category, item.name ?? "")}
+              status={getPlaceCollectionStatus(spotsById.get(item.spotId))}
               isBookmarked={true}
               imageUrl={item.thumbnailUrl ?? undefined}
               onBookmarkToggle={() => item.spotId && removeBookmark(item.spotId)}

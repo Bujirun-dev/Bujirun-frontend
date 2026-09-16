@@ -204,6 +204,10 @@ export function useCollaborativeItinerary(
           snapshot,
           (tempId, realId) => resolveTempId(doc, dayIdx, tempId, realId),
           applyLegTransport,
+          {
+            readStops: () => readStopsFromYjs(doc)[dayIdx] ?? [],
+            removeMissingStop: (id) => yDeleteStop(doc, dayIdx, id),
+          },
           // flushDayToRest는 내부에서 실패를 전부 잡아 배열로 돌려주지만, 예상 못한
           // 예외로 Promise.all 전체가 깨져 다른 day의 결과까지 잃지 않도록 막아둔다.
         ).catch((error: unknown) => [
