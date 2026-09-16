@@ -70,14 +70,19 @@ function VoteWaitingContent() {
   >("default");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
-  // 10분 제한이 지난 뒤 방장이 "지금 표로 확정"을 눌렀는데 동률이면, 전원 투표 전이라도
+  // 3분 제한이 지난 뒤 방장이 "지금 표로 확정"을 눌렀는데 동률이면, 전원 투표 전이라도
   // 기존 동률 모달을 띄워서 방장이 직접 고르게 한다.
   const [isHostSkipping, setIsHostSkipping] = useState(false);
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
   // 동률 모달은 닫는 길이 없으면 플랜을 고르는 것 외에 빠져나갈 수 없다(모달 오버레이가
   // 하단 탭까지 덮는다). 명시적으로 닫았을 때만 숨기고, 화면에서 다시 열 수 있게 한다.
   const [isTieDismissed, setIsTieDismissed] = useState(false);
-  const { remainingMs, isOver } = useItineraryFlowTimer();
+  const {
+    remainingMs,
+    isOver,
+    isSynced,
+    isError: isTimerError,
+  } = useItineraryFlowTimer(groupId, "vote-waiting", sessionId);
   const unlockGeneration = useItineraryGenerationLockStore((state) => state.unlock);
   const clearFlow = useItineraryFlowStore((state) => state.clearFlow);
   const queryClient = useQueryClient();
@@ -293,11 +298,15 @@ function VoteWaitingContent() {
           </div>
         )}
 
-        {/* 10분 제한 — 투표를 안 하고 사라진 사람 때문에 그룹 전체가 갇히지 않게,
+        {/* 3분 제한 — 투표를 안 하고 사라진 사람 때문에 그룹 전체가 갇히지 않게,
             제한이 지나면 방장이 현재 표로 확정할 수 있다. */}
         {doneCount < totalSlots && (
           <div className="mt-5 flex w-full flex-col items-center gap-2">
-            {isOver ? (
+            {!isSynced ? (
+              <p className="text-center font-paperlogy text-sm text-sub-darkgray">
+                {isTimerError ? "남은 시간을 다시 확인하고 있어요" : "남은 시간을 확인하고 있어요"}
+              </p>
+            ) : isOver ? (
               isHost ? (
                 <>
                   <p className="text-center font-paperlogy text-sm font-normal text-text-primary">

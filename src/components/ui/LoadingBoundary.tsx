@@ -26,6 +26,7 @@ export function LoadingBoundary({
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let completionTimer: ReturnType<typeof setTimeout> | undefined;
 
     if (isLoading) {
       timer = setTimeout(() => {
@@ -40,7 +41,7 @@ export function LoadingBoundary({
       timer = setTimeout(() => {
         setIsComplete(true);
 
-        window.setTimeout(() => {
+        completionTimer = setTimeout(() => {
           setShowLoading(false);
           setIsComplete(false);
           shownAtRef.current = null;
@@ -50,6 +51,7 @@ export function LoadingBoundary({
 
     return () => {
       if (timer) clearTimeout(timer);
+      if (completionTimer) clearTimeout(completionTimer);
     };
   }, [isLoading, delay, minDuration]);
 

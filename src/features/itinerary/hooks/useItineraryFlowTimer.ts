@@ -1,35 +1,65 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  getItineraryFlowRemainingMs,
-  ITINERARY_FLOW_SKIP_AFTER_MS,
-  useItineraryFlowStore,
-} from "@/shared/stores";
+import { useQuery } from "@tanstack/react-query";
+import { getOrStartFlowTimer } from "@/shared/api/domains/group";
 
-// 지금 단계(대기 화면)에 들어온 뒤 남은 제한 시간(3분)을 1초마다 갱신해서 돌려준다.
-// 제한 시간이 지나면 방장은 아직 안 끝낸 사람을 기다리지 않고 다음 단계로 넘어갈 수 있다.
-export function useItineraryFlowTimer(): { remainingMs: number; isOver: boolean } {
-  const flow = useItineraryFlowStore((state) => state.flow);
-  const startedAt = flow?.stepStartedAt;
-  const [remainingMs, setRemainingMs] = useState(() =>
-    flow ? getItineraryFlowRemainingMs(flow) : ITINERARY_FLOW_SKIP_AFTER_MS,
-  );
+// 서버에 저장한 공통 마감을 사용한다. 기기 시계 대신 요청 왕복 시간과 단조 시계로
+// 남은 시간을 계산하고, 탭 복귀/재접속 시 서버와 다시 맞춘다.
+export function useItineraryFlowTimer(
+  groupId: string,
+  phase: "waiting" | "vote-waiting",
+  sessionId?: string,
+) {
+  const { data, isError, refetch } = useQuery({
+    queryKey: ["groups", groupId, "flow-timer", phase, sessionId ?? ""],
+    queryFn: async () => {
+      const sentAt = performance.now();
+      const timer = await getOrStartFlowTimer(groupId, phase, sessionId);
+      const receivedAt = performance.now();
+      return {
+        remainingAtReceipt: Math.max(
+          0,
+          timer.deadlineAt - timer.serverNow - (receivedAt - sentAt) / 2,
+        ),
+        receivedAt,
+      };
+    },
+    enabled: !!groupId && (phase === "waiting" || !!sessionId),
+    staleTime: 0,
+    refetchInterval: 15000,
+    refetchOnWindowFocus: "always",
+    refetchOnReconnect: "always",
+  });
+  const [clock, setClock] = useState<{ sample: typeof data; remainingMs: number } | null>(null);
 
   useEffect(() => {
-    if (!startedAt) return;
+    if (!data) return;
     const update = () =>
-      setRemainingMs(Math.max(0, startedAt + ITINERARY_FLOW_SKIP_AFTER_MS - Date.now()));
+      setClock({
+        sample: data,
+        remainingMs: Math.max(0, data.remainingAtReceipt - (performance.now() - data.receivedAt)),
+      });
     update();
-    const timer = window.setInterval(update, 1000);
-    return () => window.clearInterval(timer);
-  }, [startedAt]);
+    const timer = window.setInterval(update, 250);
+    const refresh = () => {
+      update();
+      if (document.visibilityState === "visible") void refetch();
+    };
+    document.addEventListener("visibilitychange", refresh);
+    window.addEventListener("focus", refresh);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [data, refetch]);
 
-  // 시작 시각을 아직 모르면(스토어 복원 전) 제한이 지난 것으로 보지 않는다.
-  return { remainingMs, isOver: startedAt !== undefined && remainingMs === 0 };
+  const isSynced = !!data && clock?.sample === data;
+  const remainingMs = isSynced ? clock.remainingMs : 0;
+  return { remainingMs, isOver: isSynced && remainingMs === 0, isSynced, isError };
 }
 
-// 남은 시간을 "9:07" 형태로 보여준다.
 export function formatRemainingTime(remainingMs: number): string {
   const totalSeconds = Math.ceil(remainingMs / 1000);
   const minutes = Math.floor(totalSeconds / 60);

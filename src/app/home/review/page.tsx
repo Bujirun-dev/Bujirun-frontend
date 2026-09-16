@@ -4,12 +4,13 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { MOOD_VALUE } from "@/features/home/components/MoodOptions";
-import { travelLogApi, userApi } from "@/shared/api/domains";
+import { itineraryApi, travelLogApi, userApi } from "@/shared/api/domains";
+import { ErrorState, LoadingBoundary } from "@/components";
 import { ReviewPromptModal } from "@/features/home/components/ReviewPromptModal";
 import { TripReceiptModal } from "@/features/receipt/components/TripReceiptModal";
 import type { ReceiptData, ReviewPromptSubmitData } from "@/features/receipt/types/receipt";
 import { convertTripLogToReceipt } from "@/features/receipt/utils/convertTripLogToReceipt";
-import { PROFILE_IMAGES } from "@/components/profile/profileImages";
+import { resolveProfileImage } from "@/components/profile/profileImages";
 import { skipReview } from "@/shared/utils/skippedReviews";
 
 export default function HomeReceiptPage() {
@@ -18,6 +19,17 @@ export default function HomeReceiptPage() {
 
   // 리뷰 페이지 진입 전에는 log가 없으므로 itineraryId를 받음
   const itineraryId = searchParams.get("itineraryId");
+
+  const {
+    data: itinerary,
+    isLoading: isTripLoading,
+    isError: isTripError,
+    refetch: refetchTrip,
+  } = useQuery({
+    queryKey: itineraryApi.keys.detail(itineraryId ?? ""),
+    queryFn: () => itineraryApi.getItinerary(itineraryId!),
+    enabled: !!itineraryId,
+  });
 
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(true);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
@@ -28,21 +40,7 @@ export default function HomeReceiptPage() {
     queryFn: userApi.getMyProfile,
   });
 
-  const profileImage = (() => {
-    const profileImageUrl = myProfile?.profileImageUrl;
-
-    if (!profileImageUrl) return PROFILE_IMAGES[0].src;
-
-    const profileImageId = Number(profileImageUrl);
-
-    if (!Number.isNaN(profileImageId)) {
-      return (
-        PROFILE_IMAGES.find((image) => image.id === profileImageId)?.src ?? PROFILE_IMAGES[0].src
-      );
-    }
-
-    return profileImageUrl;
-  })();
+  const profileImage = resolveProfileImage(myProfile?.profileImageUrl);
 
   // "취소"/X로 이 팝업을 닫으면 이 페이지엔 모달 외엔 아무 것도 렌더링되는 게 없어서
   // (아래 return의 <main>에 이 두 모달뿐), 홈으로 돌려보내지 않으면 빈 화면에 그대로
@@ -123,12 +121,28 @@ export default function HomeReceiptPage() {
 
   return (
     <main className="relative flex h-full flex-col">
-      <ReviewPromptModal
-        isOpen={isReviewModalOpen}
-        tripTitle="여행 기록"
-        onClose={closeReviewModal}
-        onConfirm={handleCreateReceipt}
-      />
+      <LoadingBoundary isLoading={isTripLoading} message="여행 정보를 불러오는 중이에요">
+        {isTripError || !itineraryId ? (
+          <ErrorState
+            title="여행 정보를 불러오지 못했어요"
+            primaryAction={{
+              label: itineraryId ? "다시 시도" : "홈으로",
+              onClick: () => {
+                if (itineraryId) void refetchTrip();
+                else router.push("/home");
+              },
+            }}
+            secondaryAction={{ label: "홈으로", onClick: () => router.push("/home") }}
+          />
+        ) : (
+          <ReviewPromptModal
+            isOpen={isReviewModalOpen}
+            tripTitle={itinerary?.title?.trim() || "이름 없는 여행"}
+            onClose={closeReviewModal}
+            onConfirm={handleCreateReceipt}
+          />
+        )}
+      </LoadingBoundary>
 
       <TripReceiptModal
         isOpen={isReceiptModalOpen}

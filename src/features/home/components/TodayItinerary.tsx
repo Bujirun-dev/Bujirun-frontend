@@ -3,24 +3,34 @@
 import { formatTransportDuration } from "@/shared/utils/formatTransportDuration";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { travelLogApi } from "@/shared/api/domains";
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, StatusBadge, EmptyState, LoadingBoundary } from "@/components";
 import { useTodayItinerary } from "@/features/home/hooks/useTodayItinerary";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 import { TransportSummaryCard } from "@/features/home/components/TransportSummaryCard";
-import { TransportDetailModal } from "@/features/home/components/TransportDetailModal";
-import { ArrivalVerifyModal } from "@/features/itinerary/components/ArrivalVerifyModal";
 import { openKakaoMapRoute } from "@/features/itinerary/components/transportRoute";
 import { getSelectedTransportOption } from "@/features/home/data/sampleTransport";
 import { isReviewSkipped } from "@/shared/utils/skippedReviews";
-import { getTravelModeOptions } from "@/shared/api/domains/itinerary";
+import { getTravelModeOptions, keys as itineraryKeys } from "@/shared/api/domains/itinerary";
 import type {
   TransportGroup,
   TransportOption,
   TransportStep,
 } from "@/features/home/types/transport";
 import type { TransportType } from "@/features/home/components/TransportIcons";
+
+const TransportDetailModal = dynamic(() =>
+  import("@/features/home/components/TransportDetailModal").then(
+    (module) => module.TransportDetailModal,
+  ),
+);
+const ArrivalVerifyModal = dynamic(() =>
+  import("@/features/itinerary/components/ArrivalVerifyModal").then(
+    (module) => module.ArrivalVerifyModal,
+  ),
+);
 
 const getTransportRouteKey = (transportGroup: TransportGroup) =>
   `${transportGroup.fromPlace}-${transportGroup.toPlace}`;
@@ -112,6 +122,7 @@ function buildTransportGroup(
 
 export function TodayItinerary() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const accessToken = useAuthStore((state) => state.accessToken);
   const hasRedirectedToReviewRef = useRef(false);
 
@@ -128,7 +139,7 @@ export function TodayItinerary() {
 
   const transportOptionQueries = useQueries({
     queries: plans.slice(1).map((plan) => ({
-      queryKey: ["travel-mode-options", itinerary?.id, day?.id, plan.id],
+      queryKey: itineraryKeys.travelModeOptions(itinerary?.id ?? "", day?.id ?? "", plan.id ?? ""),
       queryFn: () => {
         if (!itinerary?.id || !day?.id || !plan.id) {
           throw new Error("이동수단 조회에 필요한 일정 정보가 없습니다.");
@@ -148,6 +159,7 @@ export function TodayItinerary() {
     queryFn: () => travelLogApi.checkLogExists(completedItineraryIds),
     enabled: !!accessToken && completedItineraryIds.length > 0,
   });
+  const [hasOpenedTransport, setHasOpenedTransport] = useState(false);
   const [selectedTransportGroup, setSelectedTransportGroup] = useState<TransportGroup | null>(null);
 
   const [selectedOptionIdByRoute, setSelectedOptionIdByRoute] = useState<Record<string, string>>(
@@ -167,13 +179,20 @@ export function TodayItinerary() {
     travelMode?: string,
     routeType?: string,
   ) => {
+    setHasOpenedTransport(true);
     if (!itinerary?.id || !day?.id || !itemId || !travelMode) {
       setSelectedTransportGroup(transportGroup);
       return;
     }
 
     try {
-      const travelModeOptions = await getTravelModeOptions(itinerary.id, day.id, itemId);
+      const itineraryId = itinerary.id;
+      const dayId = day.id;
+      const travelModeOptions = await queryClient.fetchQuery({
+        queryKey: itineraryKeys.travelModeOptions(itineraryId, dayId, itemId),
+        queryFn: () => getTravelModeOptions(itineraryId, dayId, itemId),
+        staleTime: 60_000,
+      });
 
       const optionType = resolveTravelModeOptionType(travelMode, routeType);
 
@@ -411,22 +430,24 @@ export function TodayItinerary() {
             );
           })}
         </ol>
-        <TransportDetailModal
-          isOpen={selectedTransportGroup !== null}
-          transportGroup={selectedTransportGroup ?? EMPTY_TRANSPORT_GROUP}
-          selectedOptionId={
-            selectedTransportGroup
-              ? (selectedOptionIdByRoute[getTransportRouteKey(selectedTransportGroup)] ??
-                selectedTransportGroup.selectedOptionId)
-              : EMPTY_TRANSPORT_GROUP.selectedOptionId
-          }
-          onClose={closeTransportModal}
-          onChange={handleChangeTransportOption}
-          onKakaoMapClick={() =>
-            selectedTransportGroup &&
-            openKakaoMapRoute(selectedTransportGroup.fromPlace, selectedTransportGroup.toPlace)
-          }
-        />
+        {hasOpenedTransport && (
+          <TransportDetailModal
+            isOpen={selectedTransportGroup !== null}
+            transportGroup={selectedTransportGroup ?? EMPTY_TRANSPORT_GROUP}
+            selectedOptionId={
+              selectedTransportGroup
+                ? (selectedOptionIdByRoute[getTransportRouteKey(selectedTransportGroup)] ??
+                  selectedTransportGroup.selectedOptionId)
+                : EMPTY_TRANSPORT_GROUP.selectedOptionId
+            }
+            onClose={closeTransportModal}
+            onChange={handleChangeTransportOption}
+            onKakaoMapClick={() =>
+              selectedTransportGroup &&
+              openKakaoMapRoute(selectedTransportGroup.fromPlace, selectedTransportGroup.toPlace)
+            }
+          />
+        )}
         {selectedVerifySpot && itinerary?.id && (
           <ArrivalVerifyModal
             spotId={selectedVerifySpot.spotId}

@@ -1,13 +1,13 @@
 import { cn } from "@/shared/utils";
 
-type StatusType = "completed" | "verify" | "pending" | "uncollected" | "collected";
+export type PlaceStatus = "completed" | "verify" | "pending" | "uncollected" | "collected";
 
 interface StatusBadgeProps {
-  status: StatusType;
+  status: PlaceStatus;
   className?: string;
 }
 
-const STATUS_CONFIG: Record<StatusType, { label: string; style: string }> = {
+const STATUS_CONFIG: Record<PlaceStatus, { label: string; style: string }> = {
   completed: {
     label: "수집 완료",
     style: "bg-sub-gray text-white",

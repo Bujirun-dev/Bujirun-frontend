@@ -13,7 +13,16 @@ export function getNearestItineraryDay<T extends DatedItineraryItem>(
   const today = new Date(baseDate);
   today.setHours(0, 0, 0, 0);
 
-  return [...days]
-    .filter((day) => getDateValue(day.date) >= today.getTime())
-    .sort((a, b) => getDateValue(a.date) - getDateValue(b.date))[0];
+  const todayValue = today.getTime();
+  let nearest: T | undefined;
+  let nearestValue = Infinity;
+  // 같은 날짜는 원래 배열에서 먼저 나온 항목을 유지한다(기존 stable sort와 동일).
+  for (const day of days) {
+    const value = getDateValue(day.date);
+    if (value >= todayValue && value < nearestValue) {
+      nearest = day;
+      nearestValue = value;
+    }
+  }
+  return nearest;
 }
