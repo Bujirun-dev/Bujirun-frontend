@@ -492,6 +492,13 @@ function resolveDayTimes(
   const stored = items.map((item) =>
     item.arrivalTime ? timeToMinutes(normalizeTime(item.arrivalTime)) : undefined,
   );
+  // 확정 직후에는 도착시간이 비어 있다. 추천 화면과 같은 오전/오후/저녁 배분을
+  // 사용해야 메인 진입 시 일정이 오전에 몰리지 않는다. 저장된 사용자 편집은 유지한다.
+  if (stored.every((minute) => minute === undefined)) {
+    return items.map((_, idx) =>
+      timeToMinutes(getDefaultItemTime(dayIdx, totalDays, idx, items.length, bounds)),
+    );
+  }
   // 저장된 시각이 다 있고 순서대로 늘어나면 그 값을 쓴다. 여행 시작/종료 밖으로 나간
   // 경우에도 "버리고 다시 계산"하지 않는다 — 그러면 사용자가 직접 정한 시각까지 함께
   // 사라지고, 다시 계산한 값은 기준선과 같아서 서버로 저장되지도 않아 화면과 DB가 계속

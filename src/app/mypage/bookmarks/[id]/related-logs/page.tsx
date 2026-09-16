@@ -1,24 +1,16 @@
 "use client";
 
+import { usePlaceDetailQueries } from "@/shared/hooks/usePlaceDetailQueries";
+
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { BackButton, PageCard } from "@/components";
 import { getKakaoMapUrl } from "@/shared/utils";
 import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
-import { travelLogApi, spotApi, bookmarkApi } from "@/shared/api/domains";
+import { bookmarkApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
-import type { Category } from "@/components";
-
-function toCategory(value?: string, name?: string): Category {
-  if (name?.includes("해수욕장") || name?.includes("해변")) return "sea";
-  if (!value) return "nature";
-  if (value.includes("자연")) return "nature";
-  if (value.includes("문화") || value.includes("역사")) return "culture";
-  if (value.includes("체험") || value.includes("놀이")) return "experience";
-  if (value.includes("바다") || value.includes("해수욕")) return "sea";
-  return "nature";
-}
+import { getBookmarkCategory } from "@/features/mypage/utils/bookmarkCategory";
 
 export default function BookmarkDetailPage({
   params,
@@ -34,17 +26,11 @@ export default function BookmarkDetailPage({
   const accessToken = useAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
 
-  const { data: spot } = useQuery({
-    queryKey: spotApi.keys.detail(id),
-    queryFn: () => spotApi.getSpot(id),
-    enabled: !!accessToken && !!id,
+  const { detailQuery, relatedLogs } = usePlaceDetailQueries(id, {
+    detail: Boolean(accessToken && id),
+    logs: Boolean(accessToken && id),
   });
-
-  const { data: logs = [] } = useQuery({
-    queryKey: travelLogApi.keys.bySpot(id),
-    queryFn: () => travelLogApi.getLogsBySpot(id),
-    enabled: !!accessToken && !!id,
-  });
+  const { data: spot } = detailQuery;
 
   const [isBookmarked, setIsBookmarked] = useState(true);
 
@@ -55,12 +41,6 @@ export default function BookmarkDetailPage({
       queryClient.invalidateQueries({ queryKey: bookmarkApi.keys.list() });
     },
   });
-
-  const relatedLogs = logs.slice(0, 2).map((log) => ({
-    id: log.id ?? "",
-    imageUrl: log.thumbnailPhotoUrl ?? "",
-    author: log.authorNickname ?? "",
-  }));
 
   return (
     <PageCard>
@@ -74,7 +54,7 @@ export default function BookmarkDetailPage({
           // spot API 응답 전엔 목록에서 받은 thumbnail 사용, 그것도 없으면 플레이스홀더
           imageUrl: spot?.thumbnailUrl ?? thumbnail ?? `https://picsum.photos/seed/${id}/400/300`,
           name: spot?.name ?? "",
-          category: toCategory(spot?.collectionCategory, spot?.name),
+          category: getBookmarkCategory(spot?.collectionCategory, spot?.name) ?? "nature",
           description: spot?.overview ?? "",
           address: spot?.address ?? "",
           mapUrl: getKakaoMapUrl(spot?.name, spot?.lat, spot?.lng),

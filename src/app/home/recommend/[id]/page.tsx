@@ -1,5 +1,7 @@
 "use client";
 
+import { usePlaceDetailQueries } from "@/shared/hooks/usePlaceDetailQueries";
+
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -7,7 +9,7 @@ import { PageCard, ErrorState, LoadingBoundary } from "@/components";
 import { getKakaoMapUrl } from "@/shared/utils";
 import type { Category } from "@/components";
 import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
-import { bookmarkApi, spotApi, travelLogApi } from "@/shared/api/domains";
+import { bookmarkApi, spotApi } from "@/shared/api/domains";
 import { useAuthStore } from "@/shared/stores/useAuthStore";
 
 function toCategory(value?: string, name?: string): Category {
@@ -49,28 +51,17 @@ export default function RecommendedPlaceDetailPage({
   const accessToken = useAuthStore((state) => state.accessToken);
 
   // 관광지 상세 조회
-  const {
-    data: spot,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: spotApi.keys.detail(id),
-    queryFn: () => spotApi.getSpot(id),
-    enabled: Boolean(accessToken && id),
+  const { detailQuery, relatedLogs } = usePlaceDetailQueries(id, {
+    detail: Boolean(accessToken && id),
+    logs: Boolean(accessToken && id),
   });
+  const { data: spot, isLoading, isError } = detailQuery;
 
   // 북마크 목록 조회
   const { data: bookmarks = [] } = useQuery({
     queryKey: bookmarkApi.keys.list(),
     queryFn: bookmarkApi.getBookmarks,
     enabled: Boolean(accessToken),
-  });
-
-  // 관광지 관련 로그 조회
-  const { data: logs = [] } = useQuery({
-    queryKey: travelLogApi.keys.bySpot(id),
-    queryFn: () => travelLogApi.getLogsBySpot(id),
-    enabled: Boolean(accessToken && id),
   });
 
   // collected가 아니라 북마크 목록에 현재 spotId가 있는지로 판단
@@ -94,12 +85,6 @@ export default function RecommendedPlaceDetailPage({
       ]);
     },
   });
-
-  const relatedLogs = logs.slice(0, 2).map((log) => ({
-    id: log.id ?? "",
-    imageUrl: log.thumbnailPhotoUrl ?? "",
-    author: log.authorNickname ?? "",
-  }));
 
   return (
     <PageCard>

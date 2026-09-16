@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ReceiptButtons } from "@/features/receipt/components/ReceiptButtons";
 import { TripReceipt } from "@/features/receipt/components/TripReceipt";
-import { toPng } from "html-to-image";
+import { createReceiptFileName, waitForImages } from "@/features/receipt/utils/downloadReceipt";
 import type { ReceiptData } from "@/features/receipt/types/receipt";
 import { Toast } from "@/components";
 
@@ -15,28 +15,6 @@ type TripReceiptModalProps = {
   onClose: () => void;
   onDownloadComplete?: () => void;
   onDownloadError?: () => void;
-};
-
-const waitForImages = async (element: HTMLElement) => {
-  const images = Array.from(element.querySelectorAll("img"));
-
-  await Promise.all(
-    images.map((image) => {
-      if (image.complete) return Promise.resolve();
-
-      return new Promise<void>((resolve) => {
-        image.onload = () => resolve();
-        image.onerror = () => resolve();
-      });
-    }),
-  );
-};
-
-const sanitizeFileName = (fileName: string) => fileName.replace(/[\\/:*?"<>|]/g, "").trim();
-
-const createReceiptFileName = (title: string, tripId: string | number) => {
-  const safeTitle = sanitizeFileName(title);
-  return safeTitle ? `[bujirun]${safeTitle}.png` : `[bujirun]receipt-${tripId}.png`;
 };
 
 export function TripReceiptModal({
@@ -67,6 +45,7 @@ export function TripReceiptModal({
       await document.fonts.ready;
       await waitForImages(receiptRef.current);
 
+      const { toPng } = await import("html-to-image");
       const dataUrl = await toPng(receiptRef.current, {
         cacheBust: true,
         pixelRatio: 2,

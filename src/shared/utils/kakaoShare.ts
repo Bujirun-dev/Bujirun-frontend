@@ -12,7 +12,8 @@ declare global {
   }
 }
 
-// 카카오 디벨로퍼스 콘솔에서 "카카오톡 공유" 활성화 + Web 플랫폼 도메인 등록 + JS 키 발급이 끝나야 동작한다.
+// JavaScript SDK 도메인과 별도로 앱 > 제품 링크 관리에 공유할 웹 도메인을 등록해야 한다.
+// 미등록 도메인은 카카오가 링크를 대체하므로 webUrl이 있어도 PC에서 열리지 않을 수 있다.
 // 공유 화면에서 미리 준비하고 버튼 클릭 시에는 네트워크 요청을 기다리지 않는다.
 export async function initKakaoShare(): Promise<boolean> {
   if (typeof window === "undefined" || !(await loadKakaoShareSdk()) || !window.Kakao) return false;
@@ -60,7 +61,7 @@ export function shareInviteLink({
       },
       buttons: [
         {
-          title: "참여하기",
+          title: "웹에서 참여하기",
           link: { mobileWebUrl: inviteUrl, webUrl: inviteUrl },
         },
       ],

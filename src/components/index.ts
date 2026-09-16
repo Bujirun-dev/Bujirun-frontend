@@ -14,6 +14,8 @@ export { CategoryChip } from "./ui/CategoryChip";
 export type { Category } from "./ui/CategoryChip";
 export { FilterChips } from "./ui/FilterChips";
 export { BackButton } from "./ui/BackButton";
+export { PlaceBookmarkCard } from "./place/PlaceBookmarkCard";
+export { PlaceMarker } from "./place/PlaceMarker";
 export { PlaceCard } from "./place/PlaceCard";
 export { PlaceDetailContent } from "./place/PlaceDetailContent";
 export type {

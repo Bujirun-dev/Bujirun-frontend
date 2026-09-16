@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import MarkerIcon from "@/assets/icons/itinerary/marker.svg?svgr";
+import { PlaceMarker } from "@/components/place/PlaceMarker";
 import removeIcon from "@/assets/icons/itinerary/remove.svg?url";
 import bookmarkOnIcon from "@/assets/icons/mypage/bookmark-on.png";
 import bookmarkOffIcon from "@/assets/icons/mypage/bookmark-off.png";
@@ -11,7 +11,7 @@ import { getFallbackImage } from "@/features/itinerary/utils/scheduleUtils";
 import { CategoryChip, StatusBadge } from "@/components";
 import type { Category } from "@/components";
 
-type PlaceStatus = "completed" | "verify" | "pending";
+import type { PlaceStatus } from "@/components/ui/StatusBadge";
 
 interface PlaceCardProps {
   imageUrl: string;
@@ -66,7 +66,7 @@ export function PlaceCard({
       <div className="min-w-0 flex-1 flex flex-col justify-between px-2.5 py-2.5 overflow-hidden relative">
         <div className="flex flex-col gap-1">
           <div className="flex min-w-0 items-center gap-1 pr-5">
-            <MarkerIcon width={13} height={13} className="shrink-0 fill-main-blue" aria-hidden />
+            <PlaceMarker size={13} status={status} />
             <span className="font-medium text-md text-text-heading truncate">{name}</span>
           </div>
           <CategoryChip category={category} className="self-start" />

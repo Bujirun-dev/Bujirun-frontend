@@ -19,3 +19,12 @@ export const PROFILE_IMAGES = [
   { id: 8, src: profile08 },
   { id: 9, src: profile09 },
 ];
+
+export function resolveProfileImage(profileImageUrl?: string) {
+  if (!profileImageUrl) return PROFILE_IMAGES[0].src;
+  const id = Number(profileImageUrl);
+  if (!Number.isNaN(id)) {
+    return PROFILE_IMAGES.find((image) => image.id === id)?.src ?? PROFILE_IMAGES[0].src;
+  }
+  return profileImageUrl;
+}

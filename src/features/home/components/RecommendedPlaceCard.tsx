@@ -1,8 +1,10 @@
 "use client";
 
+import { getPlaceCollectionStatus } from "@/shared/utils/placeCollection";
+
 import type { OpResponse } from "@/shared/api/types";
 import { useRouter } from "next/navigation";
-import { BookmarkCard } from "@/features/mypage/components/BookmarkCard";
+import { PlaceBookmarkCard } from "@/components/place/PlaceBookmarkCard";
 
 type Place = OpResponse<"search">[number];
 
@@ -32,11 +34,11 @@ export function RecommendedPlaceCard({
         : "experience";
 
   return (
-    <BookmarkCard
+    <PlaceBookmarkCard
       imageUrl={place.thumbnailUrl}
       name={place.name}
       category={collectionCategory}
-      status="pending"
+      status={getPlaceCollectionStatus(place)}
       isBookmarked={isBookmarked}
       onBookmarkToggle={onBookmarkToggle}
       onClick={() => router.push(`/home/recommend/${place.spotId}`)}

@@ -1,5 +1,5 @@
 import { apiClient } from "@/shared/api/client";
-import { unwrap } from "@/shared/api/response";
+import { unwrap, type ApiResponse } from "@/shared/api/response";
 import type { OpBody, OpResponse } from "@/shared/api/types";
 
 export const keys = {
@@ -33,4 +33,21 @@ export function previewInvite(inviteCode: string) {
       OpResponse<"previewInvite">
     >(`/api/groups/invites/${encodeURIComponent(inviteCode)}/preview`)
     .then((res) => unwrap(res));
+}
+
+export interface GroupFlowTimer {
+  deadlineAt: number;
+  serverNow: number;
+}
+
+export function getOrStartFlowTimer(
+  groupId: string,
+  phase: "waiting" | "vote-waiting",
+  sessionId?: string,
+) {
+  return apiClient
+    .post<ApiResponse<GroupFlowTimer>>(`/api/groups/${groupId}/flow-timers/${phase}`, null, {
+      params: sessionId ? { sessionId } : undefined,
+    })
+    .then(unwrap);
 }
