@@ -5,6 +5,7 @@ import Image from "next/image";
 import angleLeftIcon from "@/assets/icons/itinerary/angle-left.svg?url";
 import PlusIcon from "@/assets/icons/itinerary/plus-small.svg?svgr";
 import { PlaceDetailContent, StatusBadge } from "@/components";
+import { cn } from "@/shared/utils";
 import { useSpotDetail } from "@/features/itinerary/hooks/useSpotDetail";
 import {
   PlaceSearchPanel,
@@ -15,6 +16,12 @@ import {
 interface TimelineSearchPopupProps {
   onClose: () => void;
   onAddToItinerary?: (place: SearchPlace) => void;
+  /**
+   * 평소엔 타임라인 세로선 오른쪽(카드 자리)에 맞춰 띄우지만, 일정이 하나도 없어 세로선도
+   * 카드도 없는 화면에서는 기준 삼을 게 없어 오른쪽으로 치우쳐 보인다 — 그때만 화면 전체
+   * 너비로 가운데에 띄운다.
+   */
+  centered?: boolean;
 }
 
 function SelectedPlacePreview({
@@ -90,7 +97,7 @@ function SelectedPlacePreview({
 }
 
 export const TimelineSearchPopup = forwardRef<HTMLDivElement, TimelineSearchPopupProps>(
-  function TimelineSearchPopup({ onClose, onAddToItinerary }, ref) {
+  function TimelineSearchPopup({ onClose, onAddToItinerary, centered = false }, ref) {
     const [selectedPlace, setSelectedPlace] = useState<SearchPlace | null>(null);
     const [searchState, setSearchState] = useState<PlaceSearchState>({
       searchValue: "",
@@ -99,7 +106,13 @@ export const TimelineSearchPopup = forwardRef<HTMLDivElement, TimelineSearchPopu
     });
 
     return (
-      <div ref={ref} className="absolute left-[52px] right-0 top-0 z-20 pl-3">
+      <div
+        ref={ref}
+        className={cn(
+          "absolute top-0 z-20",
+          centered ? "inset-x-0 px-1" : "left-[52px] right-0 pl-3",
+        )}
+      >
         <div className="flex h-[470px] w-full flex-col overflow-hidden rounded-3xl border-[0.5px] border-system-glassborder bg-main-white px-4 py-5 shadow-[2px_2px_10px_0px_var(--color-system-glassborder)]">
           {selectedPlace ? (
             <SelectedPlacePreview
