@@ -74,10 +74,10 @@ export default function SignUpPage() {
           390x844 프레임에서는 다른 화면보다 34px 아래에서 시작해 상단 여백이 더 벌어졌다. */}
       <PageCard>
         {/* 타이틀 */}
-        <p className="text-center font-ssurround font-bold text-xl text-text-heading">회원가입</p>
-        <div className="mt-8 flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
+        <p className="text-center font-ssurround font-bold text-2xl text-text-heading">회원가입</p>
+        <div className="mt-10 flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto">
           {/* 닉네임 입력 */}
-          <section className="flex flex-col gap-[8px]">
+          <section className="flex flex-col gap-3">
             <label className="font-semibold text-lg text-text-primary">닉네임</label>
             <div className="relative">
               <TextInput
@@ -108,7 +108,7 @@ export default function SignUpPage() {
           </section>
 
           {/* 프로필 사진 선택 */}
-          <section className="flex flex-col gap-[10px]">
+          <section className="flex flex-col gap-2">
             <label className="font-semibold text-lg text-text-primary">프로필 사진</label>
             <ProfileImageSelector
               images={PROFILE_IMAGES}
@@ -120,11 +120,11 @@ export default function SignUpPage() {
         </div>
 
         {/* 버튼 영역 */}
-        <div className="mt-6 shrink-0">
+        <div className="shrink-0">
           {/* 동의 안내 - 배경 박스 없이 캡션 텍스트로, 버튼 위에 배치
               이용약관 콘텐츠가 별도로 없어 링크를 하나로 통합 (분리 시 실제로 없는 문서가 있는 것처럼 보임) */}
-          <p className="mb-3 text-center text-2xs leading-relaxed text-sub-gray">
-            가입 완료 시{" "}
+          <p className="mb-3 text-center text-xs leading-relaxed text-sub-gray">
+            * 가입 완료 시{" "}
             <button
               type="button"
               onClick={() => setIsLegalMenuOpen(true)}
