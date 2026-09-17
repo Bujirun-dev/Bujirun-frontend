@@ -26,7 +26,7 @@ export function CollaboratorBadge({ editors }: { editors: CollaboratorInfo[] }) 
         const avatarSrc = resolveAvatarSrc(editor.avatarUrl);
         return (
           <div
-            key={`${editor.name}-${idx}`}
+            key={editor.id ?? `${editor.name}-${idx}`}
             className={cn(
               "relative flex size-[30px] items-center justify-center overflow-hidden rounded-full border border-main-white",
               editor.colorClass,

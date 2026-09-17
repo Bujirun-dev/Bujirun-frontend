@@ -35,9 +35,12 @@ import {
   type DaySnapshot,
   type FlushFailure,
 } from "./flushItineraryToRest";
-import { pickAvailableParticipantColorClass } from "./participantColor";
+import { resolveParticipantColorClass } from "./participantColor";
 
 export interface CollaboratorInfo {
+  // 색이 겹쳤을 때 "누가 양보할지"를 정하는 기준. 이게 없으면 양보하는 쪽이 접속마다
+  // 달라져 같은 사람 색이 또 바뀐다(participantColor.ts 참고).
+  id?: string;
   name: string;
   colorClass: string;
   avatarUrl?: string;
@@ -384,30 +387,29 @@ export function useCollaborativeItinerary(
 
   // 내 프레즌스(이름/색/아바타)를 알린다. currentUser가 나중에 로드되거나 provider가
   // status 변화(connecting→connected)로 뒤늦게 생겨도 다시 타도록 status를 deps에 둔다.
-  // 그룹 최대 인원(6명)이 색상 팔레트 수와 같아서, 접속 중인 다른 사람들의 색을 피해
-  // 배정하면 동시 접속자끼리는 겹치지 않는다 — 누가 새로 들어오거나 나갈 때마다
-  // awareness "change"로 다시 확인해서 겹치면 그때만 재배정한다.
+  // 색은 userId 해시로 정해서 같은 사람이 늘 같은 색을 갖게 하고, 겹칠 때만 userId가 큰
+  // 쪽이 양보한다(participantColor.ts). 그래서 누가 들어오고 나가든, 새로고침을 하든
+  // 내 색은 그대로다 — 예전엔 접속마다 랜덤으로 뽑고 겹칠 때 양쪽이 서로를 피해서
+  // 색이 계속 바뀌었다.
   useEffect(() => {
     const provider = getProvider();
     if (!provider || !currentUser) return;
 
     const broadcastPresence = () => {
-      const peerColorClasses = new Set<string>();
+      const peers: CollaboratorInfo[] = [];
       provider.awareness.getStates().forEach((state, clientId) => {
         if (clientId === provider.awareness.clientID) return;
         const peerUser = state.user as CollaboratorInfo | undefined;
-        if (peerUser?.colorClass) peerColorClasses.add(peerUser.colorClass);
+        if (peerUser?.colorClass) peers.push(peerUser);
       });
 
+      const colorClass = resolveParticipantColorClass(currentUser.id, peers);
       const localUser = provider.awareness.getLocalState()?.user as CollaboratorInfo | undefined;
-      const colorClass =
-        localUser?.colorClass && !peerColorClasses.has(localUser.colorClass)
-          ? localUser.colorClass
-          : pickAvailableParticipantColorClass(peerColorClasses);
 
       // 실제로 바뀐 게 없으면 재브로드캐스트하지 않는다 — setLocalStateField는 내용이
       // 같아도 awareness "change"를 다시 쏴서, 그대로 두면 무한 루프에 빠진다.
       if (
+        localUser?.id === currentUser.id &&
         localUser?.name === currentUser.nickname &&
         localUser?.colorClass === colorClass &&
         localUser?.avatarUrl === currentUser.profileImageUrl
@@ -416,6 +418,7 @@ export function useCollaborativeItinerary(
       }
 
       provider.awareness.setLocalStateField("user", {
+        id: currentUser.id,
         name: currentUser.nickname,
         colorClass,
         avatarUrl: currentUser.profileImageUrl,

@@ -311,6 +311,7 @@ export function ItineraryTimeline({
               ref={addNewCardRef}
               onClose={closeAddNew}
               onAddToItinerary={handleAddNewPlace}
+              centered={isEmpty}
             />
           )}
         </div>

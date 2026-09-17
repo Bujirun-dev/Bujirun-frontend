@@ -409,19 +409,54 @@ interface TripTimeBoundsLike {
   endTime: string;
 }
 
-// 백엔드에서 아직 도착시간이 안 정해진(null) 항목에 아침/오후/저녁 순으로 대략적인
-// 시간을 미리 배정한다. 첫날은 여행 시작 시간, 마지막날은 종료 시간을 벗어나지 않게 한다.
-// arrivalTime이 없는 항목에 기본 시간을 배정한다.
-// 예전엔 [10:00, 14:00, 18:00] 슬롯을 itemIdx % slots.length로 돌려썼는데, 여행 종료
-// 시간 때문에 슬롯이 걸러지면 3번째 항목이 다시 첫 슬롯(10:00)으로 돌아가서 앞 항목보다
-// 이른 시간이 찍혔다(마지막 날 14:00 다음에 10:00이 오던 버그). 이제는 그날의
-// 가능 시간대를 [시작, 종료]로 잡고 항목 수만큼 균등 배분해서 항상 오름차순이 되게 한다.
+// 관광지 방문 시각은 3시간 간격으로 배치한다 — 기본은 10:00 / 13:00 / 16:00.
+//
+// AI 생성·투표 확정이 채워주는 시각은 체류시간+이동시간을 누적한 값이라 간격이 촘촘해서
+// 하루 일정이 오전에 몰려 보인다. 어차피 사용자가 편집하면서 고치는 값이라, 화면에는
+// 우리가 정한 간격으로 보여주는 게 낫다.
+//
+// 여행 시작/종료 시각은 첫날/마지막날에만 적용한다(백엔드 ItineraryTimeUtils와 같은 규칙).
+//  - 첫날 시작이 늦으면 그 시각부터 3시간 간격 (20:00 시작, 2곳 → 20:00 / 23:00)
+//  - 관광지가 1곳이면 그 시작 시각 그대로
+//  - 마지막날은 종료 시각을 넘길 수 없으니, 3시간이 안 들어가면 들어가는 만큼 간격을 좁힌다
 const DEFAULT_DAY_START_MIN = 10 * 60;
-const DEFAULT_DAY_END_MIN = 18 * 60;
-const DEFAULT_STOP_GAP_MIN = 4 * 60;
-// 기본 시간대를 못 쓰는 날(늦게 시작/일찍 끝나는 날)에 쓰는 최소 간격.
-const SQUEEZE_GAP_MIN = 60;
+const DEFAULT_STOP_GAP_MIN = 3 * 60;
+// 간격을 좁히더라도 이보다 붙이지는 않는다 — 같은 날 같은 시각은 백엔드가 400으로 막는다.
+const MIN_STOP_GAP_MIN = 10;
 const LAST_MINUTE_OF_DAY = 23 * 60 + 50;
+
+export function getDefaultDayMinutes(
+  dayIdx: number,
+  totalDays: number,
+  itemCount: number,
+  bounds?: TripTimeBoundsLike | null,
+): number[] {
+  if (itemCount <= 0) return [];
+
+  const startMin = dayIdx === 0 ? boundMinutes(bounds?.startTime) : undefined;
+  const endMin = dayIdx === totalDays - 1 ? boundMinutes(bounds?.endTime) : undefined;
+
+  let lower =
+    startMin === undefined ? DEFAULT_DAY_START_MIN : Math.max(DEFAULT_DAY_START_MIN, startMin);
+  // 상한은 마지막 날의 여행 종료 시각, 그 외의 날은 하루의 마지막 슬롯(23:50).
+  const ceiling = Math.min(endMin ?? LAST_MINUTE_OF_DAY, LAST_MINUTE_OF_DAY);
+  if (itemCount === 1) return [Math.max(0, Math.min(lower, ceiling))];
+
+  // 3시간이 다 안 들어가면 들어가는 만큼 좁힌다. 같은 날 같은 시각은 백엔드가 400으로
+  // 막으므로(저장 자체가 실패한다) 경계를 조금 벗어나더라도 겹치게 두지는 않는다.
+  let gap = DEFAULT_STOP_GAP_MIN;
+  const span = ceiling - lower;
+  if (span < gap * (itemCount - 1)) {
+    gap = Math.max(MIN_STOP_GAP_MIN, roundToNearest10(span / (itemCount - 1)));
+  }
+  // 마지막 항목이 상한(마지막 날의 여행 종료 시각, 그 외에는 23:50)을 넘으면 간격은
+  // 그대로 두고 하루를 통째로 앞당긴다 — 늦게 시작하는 날도 순서와 간격이 유지된다.
+  lower = Math.max(0, Math.min(lower, ceiling - gap * (itemCount - 1)));
+
+  return Array.from({ length: itemCount }, (_, idx) =>
+    Math.min(LAST_MINUTE_OF_DAY, roundToNearest10(lower + gap * idx)),
+  );
+}
 
 export function getDefaultItemTime(
   dayIdx: number,
@@ -430,34 +465,8 @@ export function getDefaultItemTime(
   itemCount: number,
   bounds?: TripTimeBoundsLike | null,
 ): string {
-  const startMin = dayIdx === 0 ? boundMinutes(bounds?.startTime) : undefined;
-  const endMin = dayIdx === totalDays - 1 ? boundMinutes(bounds?.endTime) : undefined;
-
-  let lower =
-    startMin === undefined ? DEFAULT_DAY_START_MIN : Math.max(DEFAULT_DAY_START_MIN, startMin);
-  let upper = endMin === undefined ? DEFAULT_DAY_END_MIN : Math.min(DEFAULT_DAY_END_MIN, endMin);
-
-  // 기본 시간대(10~18시)가 여행 시작/종료 시간과 안 맞아 창이 뒤집히는 경우
-  // (예: 19:20에 시작하는 여행). 한 시간으로 몰아넣지 말고 경계를 기준으로 펼친다.
-  if (upper < lower) {
-    const squeeze = SQUEEZE_GAP_MIN * Math.max(0, itemCount - 1);
-    if (endMin !== undefined) {
-      // 종료 시간은 넘길 수 없으니 종료 시간에서 거꾸로 펼친다.
-      upper = endMin;
-      lower = Math.max(startMin ?? 0, upper - squeeze);
-    } else {
-      // 시작 시간 이후여야 하니 시작 시간부터 뒤로 펼친다.
-      lower = startMin!;
-      upper = Math.min(LAST_MINUTE_OF_DAY, lower + squeeze);
-    }
-    if (upper < lower) upper = lower;
-  }
-
-  if (itemCount <= 1 || upper === lower) return minutesToTime(lower);
-
-  // 기본 간격은 4시간이되, 남은 시간이 모자라면 균등 분배해서 경계를 넘지 않게 한다.
-  const gap = Math.min(DEFAULT_STOP_GAP_MIN, (upper - lower) / (itemCount - 1));
-  return minutesToTime(roundToNearest10(lower + gap * itemIdx));
+  const minutes = getDefaultDayMinutes(dayIdx, totalDays, itemCount, bounds);
+  return minutesToTime(minutes[itemIdx] ?? minutes[minutes.length - 1] ?? DEFAULT_DAY_START_MIN);
 }
 
 // 관광지 기본 체류시간과, 이동시간을 모르는 구간에 쓰는 기본 이동시간.
@@ -492,12 +501,10 @@ function resolveDayTimes(
   const stored = items.map((item) =>
     item.arrivalTime ? timeToMinutes(normalizeTime(item.arrivalTime)) : undefined,
   );
-  // 확정 직후에는 도착시간이 비어 있다. 추천 화면과 같은 오전/오후/저녁 배분을
-  // 사용해야 메인 진입 시 일정이 오전에 몰리지 않는다. 저장된 사용자 편집은 유지한다.
+  // 확정 직후에는 도착시간이 비어 있다. 추천 화면과 같은 3시간 간격 배치를 써야
+  // 메인 진입 시 일정이 오전에 몰리지 않는다. 저장된 사용자 편집은 유지한다.
   if (stored.every((minute) => minute === undefined)) {
-    return items.map((_, idx) =>
-      timeToMinutes(getDefaultItemTime(dayIdx, totalDays, idx, items.length, bounds)),
-    );
+    return getDefaultDayMinutes(dayIdx, totalDays, items.length, bounds);
   }
   // 저장된 시각이 다 있고 순서대로 늘어나면 그 값을 쓴다. 여행 시작/종료 밖으로 나간
   // 경우에도 "버리고 다시 계산"하지 않는다 — 그러면 사용자가 직접 정한 시각까지 함께
