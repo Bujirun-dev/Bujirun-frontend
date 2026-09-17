@@ -499,7 +499,7 @@ function TripResultContent() {
             {activePlan === "C" ? (
               <Card
                 variant="glass-sm"
-                className="mt-3 flex flex-col items-center gap-1.5 px-8 py-6 text-center"
+                className="mt-3 flex flex-col items-center gap-1.5 px-8 py-10 text-center"
               >
                 <p className="font-ssurround font-bold text-lg text-text-heading">
                   자유 편집형 일정
