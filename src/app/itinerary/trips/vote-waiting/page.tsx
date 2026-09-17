@@ -311,7 +311,7 @@ function VoteWaitingContent() {
         {doneCount < totalSlots && (
           <div className="mt-5 flex w-full flex-col items-center gap-2">
             {!isSynced ? (
-              <p className="text-center font-paperlogy text-sm text-sub-darkgray">
+              <p className="text-center text-sm text-sub-deepgray">
                 {isTimerError ? "남은 시간을 다시 확인하고 있어요" : "남은 시간을 확인하고 있어요"}
               </p>
             ) : isOver ? (

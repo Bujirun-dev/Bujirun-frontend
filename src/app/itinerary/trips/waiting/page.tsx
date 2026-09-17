@@ -91,7 +91,7 @@ function TripWaitingContent() {
       <div className="w-full rounded-[30px] border border-white/40 bg-gradient-to-b from-system-glassfrom to-system-glassto px-[30px] py-[50px] backdrop-blur-[15px] flex flex-col items-center">
         {/* 안내 문구 */}
         <p
-          className="font-paperlogy font-medium text-xl text-text-heading text-center"
+          className="font-medium text-xl text-text-heading text-center"
           style={{ lineHeight: "23px" }}
         >
           {allDone ? (
@@ -110,7 +110,7 @@ function TripWaitingContent() {
         </p>
 
         {/* 완료 카운트 */}
-        <p className="mt-[27px] font-paperlogy font-bold text-md text-sub-deepblue text-center">
+        <p className="mt-[27px] font-bold text-md text-sub-deepblue text-center">
           ( {doneCount} / {totalSlots} )
         </p>
 
@@ -122,13 +122,13 @@ function TripWaitingContent() {
         {!allDone && (
           <div className="mt-5 flex w-full flex-col items-center gap-2">
             {!isSynced ? (
-              <p className="text-center font-paperlogy text-sm text-sub-darkgray">
+              <p className="text-center text-sm text-sub-deepkgray">
                 {isTimerError ? "남은 시간을 다시 확인하고 있어요" : "남은 시간을 확인하고 있어요"}
               </p>
             ) : isOver ? (
               isHost ? (
                 <>
-                  <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
+                  <p className="text-center text-sm font-normal text-text-primary">
                     지금 바로 진행할 수 있어요
                   </p>
                   <Button variant="primary" onClick={() => setShowSkipConfirm(true)}>
@@ -143,8 +143,8 @@ function TripWaitingContent() {
             ) : (
               // 제한이 지난 뒤 문구와 짝이 맞게, 카운트다운도 보는 사람 기준으로
               // 무슨 일이 생기는지를 말해준다.
-              <p className="text-center font-paperlogy text-sm font-normal text-sub-darkgray">
-                <span className="font-paperlogy text-md font-bold text-sub-deepblue">
+              <p className="text-center text-md font-normal text-sub-deepgray">
+                <span className="text-md font-bold text-sub-deepblue">
                   {formatRemainingTime(remainingMs)}
                 </span>{" "}
                 뒤 {isHost ? "진행할 수 있어요" : "방장이 진행할 수 있어요"}
