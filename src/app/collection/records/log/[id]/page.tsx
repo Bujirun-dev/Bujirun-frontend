@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { PageCard, ErrorState, LoadingBoundary, Toast } from "@/components";
@@ -37,6 +37,17 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
     message: string;
     variant: "success" | "error";
   } | null>(null);
+  const [showPublicNotice, setShowPublicNotice] = useState(false);
+
+  useEffect(() => {
+    if (!showPublicNotice) return;
+
+    const timer = window.setTimeout(() => {
+      setShowPublicNotice(false);
+    }, 2000);
+
+    return () => window.clearTimeout(timer);
+  }, [showPublicNotice]);
 
   const {
     data: travelLog,
@@ -88,10 +99,13 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
     mutationFn: (nextIsPublic: boolean) => travelLogApi.updateLog(id, { isPublic: nextIsPublic }),
     onSuccess: (_, nextIsPublic) => {
       setLocalVisibility(nextIsPublic);
+      setShowPublicNotice(nextIsPublic);
+
       setToast({
         message: nextIsPublic ? "공개로 전환했어요" : "비공개로 전환했어요",
         variant: "success",
       });
+
       queryClient.invalidateQueries({ queryKey: travelLogApi.keys.detail(id) });
     },
     onError: () => {
@@ -229,7 +243,19 @@ export default function LogDetailPage({ params }: { params: Promise<{ id: string
               days,
             }}
             onBack={() => router.back()}
-            headerRight={<SwitchButton isPublic={isVisible} onClick={handleVisibilityToggle} />}
+            headerRight={
+              <div className="relative">
+                <SwitchButton isPublic={isVisible} onClick={handleVisibilityToggle} />
+
+                {showPublicNotice && (
+                  <div className="pointer-events-none absolute right-0 top-full z-20 mt-1.5 rounded-xl border border-sub-coral bg-system-coralbg px-3.5 py-[9px] shadow-md">
+                    <p className="whitespace-nowrap text-center text-sm font-semibold leading-5 text-sub-coral">
+                      사진도 함께 공개돼요. 개인정보나 촬영 내용에 유의해주세요.
+                    </p>
+                  </div>
+                )}
+              </div>
+            }
             editableTags
             onAddTag={handleAddTag}
             onDeleteTag={handleDeleteTag}
