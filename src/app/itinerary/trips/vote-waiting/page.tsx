@@ -8,6 +8,7 @@ import EmergencyIcon from "@/assets/icons/itinerary/emergency-on.svg?svgr";
 import { ParticipantAvatarGrid } from "@/features/itinerary/components";
 import { itineraryApi } from "@/shared/api/domains";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
+import { applyDefaultItemTimes } from "@/features/itinerary/utils/applyDefaultItemTimes";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
 import { useItineraryGenerationLockStore, useItineraryFlowStore } from "@/shared/stores";
 import { useItineraryFlowProgress } from "@/features/itinerary/hooks/useItineraryFlowProgress";
@@ -108,6 +109,13 @@ function VoteWaitingContent() {
       // 상세도 미리 받아둔다 — 일정 화면은 마운트 시점 데이터로 Yjs를 시딩하기 때문에,
       // 상세가 아직 없는 채로 열리면 빈 상태가 굳어서 새로고침 전까지 제대로 안 보인다.
       if (itineraryId) {
+        // 확정 직후 도착 시각을 추천 화면과 같은 3시간 간격으로 맞춰 저장한다(방장만 —
+        // 참여자까지 각자 고치면 같은 항목에 동시에 PATCH가 날아간다).
+        try {
+          if (isHost) await applyDefaultItemTimes(itineraryId);
+        } catch {
+          // 시각 보정 실패는 일정 이동을 막을 이유가 아니다.
+        }
         await queryClient.prefetchQuery({
           queryKey: itineraryApi.keys.detail(itineraryId),
           queryFn: () => itineraryApi.getItinerary(itineraryId),

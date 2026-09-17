@@ -5,10 +5,9 @@ import { useMutation } from "@tanstack/react-query";
 import { cn } from "@/shared/utils";
 import { Button } from "@/components/ui/Button";
 import { TextInput } from "@/components/ui/TextInput";
-import { Card } from "@/components/ui/Card";
 import { ProfileImageSelector } from "@/components/profile/ProfileImageSelector";
 import { SignUpSuccessModal } from "@/features/auth/components/SignUpSuccessModal";
-import { LegalMenuModal, PrivacyPolicyModal, ServiceTermsModal } from "@/components";
+import { LegalMenuModal, PageCard, PrivacyPolicyModal, ServiceTermsModal } from "@/components";
 import { PROFILE_IMAGES } from "@/components/profile/profileImages";
 import { apiClient, unwrap } from "@/shared/api";
 import type { OpBody, OpResponse } from "@/shared/api/types";
@@ -70,15 +69,13 @@ export default function SignUpPage() {
 
   return (
     <>
-      <Card
-        variant="white"
-        className="absolute bottom-0 left-0 right-0 h-[722px] rounded-t-[40px] rounded-b-none shadow-none p-0 flex flex-col"
-      >
+      {/* 카드는 다른 화면과 같은 공용 PageCard 기준(헤더 바로 아래 고정)으로 띄운다.
+          예전엔 absolute + h-[722px] 고정이라 카드 상단이 뷰포트 높이에 따라 움직였고,
+          390x844 프레임에서는 다른 화면보다 34px 아래에서 시작해 상단 여백이 더 벌어졌다. */}
+      <PageCard>
         {/* 타이틀 */}
-        <p className="text-center font-ssurround font-bold text-xl text-text-heading mt-[35px]">
-          회원가입
-        </p>
-        <div className="px-[24px] mt-[32px] flex flex-col gap-[24px]">
+        <p className="text-center font-ssurround font-bold text-xl text-text-heading">회원가입</p>
+        <div className="mt-8 flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
           {/* 닉네임 입력 */}
           <section className="flex flex-col gap-[8px]">
             <label className="font-semibold text-lg text-text-primary">닉네임</label>
@@ -123,7 +120,7 @@ export default function SignUpPage() {
         </div>
 
         {/* 버튼 영역 */}
-        <div className="px-[24px] mt-6 mb-[24px]">
+        <div className="mt-6 shrink-0">
           {/* 동의 안내 - 배경 박스 없이 캡션 텍스트로, 버튼 위에 배치
               이용약관 콘텐츠가 별도로 없어 링크를 하나로 통합 (분리 시 실제로 없는 문서가 있는 것처럼 보임) */}
           <p className="mb-3 text-center text-2xs leading-relaxed text-sub-gray">
@@ -147,7 +144,7 @@ export default function SignUpPage() {
             {isPending ? "처리 중..." : "회원가입 완료"}
           </Button>
         </div>
-      </Card>
+      </PageCard>
       <SignUpSuccessModal
         isOpen={isSuccessModalOpen}
         onClose={() => setIsSuccessModalOpen(false)}
