@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { cn } from "@/shared/utils";
@@ -32,6 +32,7 @@ export function ReportLogModal({ isOpen, spots, onClose, onConfirm }: ReportLogM
   const [selectedSpotIds, setSelectedSpotIds] = useState<string[]>([]);
   const [selectedReason, setSelectedReason] = useState<ReportReason | null>(null);
   const [otherReason, setOtherReason] = useState("");
+  const otherReasonRef = useRef<HTMLDivElement>(null);
 
   const [isSpotOpen, setIsSpotOpen] = useState(true);
   const [isReasonOpen, setIsReasonOpen] = useState(false);
@@ -175,7 +176,18 @@ export function ReportLogModal({ isOpen, spots, onClose, onConfirm }: ReportLogM
                       type="button"
                       onClick={() => {
                         setSelectedReason(reason);
-                        if (reason !== "기타") setOtherReason("");
+
+                        if (reason !== "기타") {
+                          setOtherReason("");
+                          return;
+                        }
+
+                        requestAnimationFrame(() => {
+                          otherReasonRef.current?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "nearest",
+                          });
+                        });
                       }}
                       className={
                         "flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left text-sm font-medium"
@@ -197,7 +209,7 @@ export function ReportLogModal({ isOpen, spots, onClose, onConfirm }: ReportLogM
                     </button>
 
                     {reason === "기타" && isSelected && (
-                      <div className="px-2 pb-2 pt-1">
+                      <div ref={otherReasonRef} className="px-2 pb-2 pt-1">
                         <TextInput
                           value={otherReason}
                           onChange={(event) => setOtherReason(event.target.value)}
