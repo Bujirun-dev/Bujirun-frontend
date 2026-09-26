@@ -16,6 +16,7 @@ interface ModalProps {
   confirmText?: string;
   cancelText?: string;
   confirmVariant?: "primary" | "warning";
+  confirmDisabled?: boolean;
   scrollBody?: boolean;
   onConfirm?: () => void;
   onCancel?: () => void;
@@ -40,6 +41,7 @@ export function Modal({
   confirmText = "확인",
   cancelText = "취소",
   confirmVariant = "primary",
+  confirmDisabled = false,
   scrollBody = false,
   onConfirm,
   onCancel,
@@ -185,7 +187,7 @@ export function Modal({
               {cancelText}
             </Button>
             {onConfirm && (
-              <Button variant={confirmVariant} onClick={onConfirm}>
+              <Button variant={confirmVariant} onClick={onConfirm} disabled={confirmDisabled}>
                 {confirmText}
               </Button>
             )}

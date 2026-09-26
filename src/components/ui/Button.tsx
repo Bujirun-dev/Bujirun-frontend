@@ -36,6 +36,6 @@ const buttonVariants: Record<ButtonVariant, string> = {
     "bg-sub-coral",
     "rounded-lg",
     "font-ssurround text-md text-main-white font-bold",
-    "transition-opacity active:opacity-80",
+    "transition-opacity active:opacity-80 disabled:cursor-not-allowed disabled:opacity-50 disabled:active:opacity-40",
   ].join(" "),
 };

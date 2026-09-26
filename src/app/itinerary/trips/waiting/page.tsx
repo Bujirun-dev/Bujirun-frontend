@@ -9,10 +9,8 @@ import EmergencyIcon from "@/assets/icons/itinerary/emergency-on.svg?svgr";
 import { swipeApi } from "@/shared/api/domains";
 import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useItineraryFlowProgress } from "@/features/itinerary/hooks/useItineraryFlowProgress";
-import {
-  formatRemainingTime,
-  useItineraryFlowTimer,
-} from "@/features/itinerary/hooks/useItineraryFlowTimer";
+import { useItineraryFlowTimer } from "@/features/itinerary/hooks/useItineraryFlowTimer";
+import { ItineraryFlowCountdown } from "@/features/itinerary/components/ItineraryFlowCountdown";
 
 function PageLoadingFallback() {
   return <LoadingState />;
@@ -123,13 +121,15 @@ function TripWaitingContent() {
           <div className="mt-5 flex w-full flex-col items-center gap-2">
             {!isSynced ? (
               <p className="text-center font-paperlogy text-sm text-sub-darkgray">
-                {isTimerError ? "남은 시간을 다시 확인하고 있어요" : "남은 시간을 확인하고 있어요"}
+                {isTimerError
+                  ? "남은 시간을 불러오지 못했어요. 다시 시도해 주세요"
+                  : "남은 시간을 확인하고 있어요"}
               </p>
             ) : isOver ? (
               isHost ? (
                 <>
                   <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
-                    지금 바로 진행할 수 있어요
+                    시간이 끝났어요. 다음 단계로 넘어가 주세요
                   </p>
                   <Button variant="primary" onClick={() => setShowSkipConfirm(true)}>
                     기다리지 않고 진행하기
@@ -137,18 +137,11 @@ function TripWaitingContent() {
                 </>
               ) : (
                 <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
-                  방장이 곧 다음 단계로 진행해요
+                  시간이 끝났어요. 방장이 다음 단계로 넘어가기를 기다리고 있어요
                 </p>
               )
             ) : (
-              // 제한이 지난 뒤 문구와 짝이 맞게, 카운트다운도 보는 사람 기준으로
-              // 무슨 일이 생기는지를 말해준다.
-              <p className="text-center font-paperlogy text-sm font-normal text-sub-darkgray">
-                <span className="font-paperlogy text-md font-bold text-sub-deepblue">
-                  {formatRemainingTime(remainingMs)}
-                </span>{" "}
-                뒤 {isHost ? "진행할 수 있어요" : "방장이 진행할 수 있어요"}
-              </p>
+              <ItineraryFlowCountdown remainingMs={remainingMs} isHost={isHost} />
             )}
           </div>
         )}
