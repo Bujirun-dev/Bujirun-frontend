@@ -306,16 +306,23 @@ export function ItineraryTimeline({
             )}
           </div>
 
-          {isAddingNew && (
+          {isAddingNew && !isEmpty && (
             <TimelineSearchPopup
               ref={addNewCardRef}
               onClose={closeAddNew}
               onAddToItinerary={handleAddNewPlace}
-              centered={isEmpty}
             />
           )}
         </div>
       </div>
+      {isAddingNew && isEmpty && (
+        <TimelineSearchPopup
+          ref={addNewCardRef}
+          onClose={closeAddNew}
+          onAddToItinerary={handleAddNewPlace}
+          centered
+        />
+      )}
       <div
         className={cn(
           "min-h-0 flex-1 overflow-y-auto pt-3 pb-16 flex flex-col gap-5",
