@@ -221,7 +221,9 @@ export function CameraPermissionStage({
         “BUJIRUN”이 사용자의{"\n"}카메라에 접근하려고 합니다.
       </h2>
       <div className="mb-6 w-full">
-        <Notice>* 사진을 촬영해서 기록을 남겨봐요!</Notice>
+        <Notice>
+          * 여행 기록 공개 시 사진이 함께 공개될 수 있으니 개인정보 및 촬영 내용에 유의해주세요!
+        </Notice>
       </div>
       <div className="relative h-[162px] w-full overflow-hidden rounded-[10px]">
         <Image
