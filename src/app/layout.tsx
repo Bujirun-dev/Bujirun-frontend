@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     title: "Bujirun",
   },
   icons: {
+    icon: "/images/invite-character.png",
     apple: "/icons/apple-touch-icon.png",
   },
 };

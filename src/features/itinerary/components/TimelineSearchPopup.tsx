@@ -109,8 +109,10 @@ export const TimelineSearchPopup = forwardRef<HTMLDivElement, TimelineSearchPopu
       <div
         ref={ref}
         className={cn(
-          "absolute top-0 z-20",
-          centered ? "inset-x-0 px-1" : "left-[52px] right-0 pl-3",
+          "z-20",
+          centered
+            ? "absolute inset-x-0 top-0 flex translate-x-1.5 justify-center px-4"
+            : "absolute left-[52px] right-0 top-0 pl-3",
         )}
       >
         <div className="flex h-[470px] w-full flex-col overflow-hidden rounded-3xl border-[0.5px] border-system-glassborder bg-main-white px-4 py-5 shadow-[2px_2px_10px_0px_var(--color-system-glassborder)]">
