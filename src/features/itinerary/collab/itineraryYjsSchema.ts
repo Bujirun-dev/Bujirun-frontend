@@ -598,6 +598,14 @@ export function replaceStopsWithImportedLog(doc: Y.Doc, dayIdx: number, stops: B
   replaceItemsArray(doc, dayIdx, () => stops, { allowNewIds: true });
 }
 
+// flush(REST 반영)가 재시도까지 모두 실패했을 때, 로컬(Yjs)이 서버와 갈라진 채로 영영 남지
+// 않도록 그 day를 서버 최신 상태로 강제 동기화한다. replaceStopsWithImportedLog와 구현은
+// 같지만(전량 교체 + LCS 기반 diff라 동시 편집 중에도 안전하게 병합됨) 의도가 다르므로
+// 별도 이름으로 노출한다 — 로그 불러오기가 아니라 실패 복구 용도.
+export function reconcileDayWithServer(doc: Y.Doc, dayIdx: number, stops: BaseStop[]): void {
+  replaceItemsArray(doc, dayIdx, () => stops, { allowNewIds: true });
+}
+
 export function resolveTempId(doc: Y.Doc, dayIdx: number, tempId: string, realId: string): void {
   mutateStopById(doc, dayIdx, tempId, (map) => map.set("id", realId));
 }

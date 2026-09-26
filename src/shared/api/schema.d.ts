@@ -4,6 +4,34 @@
  */
 
 export interface paths {
+    "/api/itineraries/{itineraryId}/days/{dayId}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * 일차 항목 전체 교체(원자적) (담당: 윤제승)
+         * @description 해당 일차의 방문 항목 전체를 요청 목록으로 통째 교체합니다. 개별 추가/삭제 API를
+         *     여러 번 나눠 보내는 대신 이 API로 한 번에 반영하면, 중간에 일부만 성공하고 나머지가
+         *     실패해 일차가 반쪽만 재구성된 채 남는 상황을 막을 수 있습니다. operationId가 같은
+         *     요청을 다시 보내면(재시도, 다중 클라이언트 중복 전송 등) 재처리하지 않고 첫 요청의
+         *     결과를 그대로 돌려줍니다(멱등).
+         */
+        put: operations["replaceDayItems"];
+        /**
+         * 방문 항목 추가 (담당: 윤제승)
+         * @description 특정 일차에 방문할 장소(항목)를 추가합니다.
+         */
+        post: operations["addItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/visits": {
         parameters: {
             query?: never;
@@ -148,6 +176,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/logs/{id}/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 여행 기록 불러오기 카운트 증가 (담당: 윤제승)
+         * @description 다른 사용자의(또는 본인의) 여행 기록을 편집 중인 내 일정에 불러왔을 때(로그 상세의 "일정 담기")
+         *     호출해 해당 기록의 담긴 횟수(added_count)를 1 증가시킵니다. 이 값은 로그 목록 카운트 배지와
+         *     공개 로그 인기순 정렬의 기준입니다. 공개 기록이거나 본인 기록일 때만 허용됩니다.
+         *     '일정으로 복사'(POST /api/logs/{id}/copy)는 새 일정을 통째로 만드는 별도 흐름이라 그쪽에서
+         *     이미 카운트를 올리므로, 이 API는 편집 중 일정에 항목을 불러오는 경우에만 호출하세요.
+         */
+        post: operations["recordImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/logs/{id}/copy": {
         parameters: {
             query?: never;
@@ -238,26 +290,6 @@ export interface paths {
          * @description 일정에 새로운 여행 일차(Day)를 추가합니다.
          */
         post: operations["addDay"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/itineraries/{itineraryId}/days/{dayId}/items": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 방문 항목 추가 (담당: 윤제승)
-         * @description 특정 일차에 방문할 장소(항목)를 추가합니다.
-         */
-        post: operations["addItem"];
         delete?: never;
         options?: never;
         head?: never;
@@ -378,6 +410,26 @@ export interface paths {
          * @description 새로운 여행 그룹을 생성합니다.
          */
         post: operations["create_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/groups/{groupId}/flow-timers/{phase}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 공통 대기 타이머 시작/조회 (담당: 윤제승)
+         * @description 그룹 단계별 마감 시각과 서버 현재 시각을 밀리초로 반환합니다. 재요청해도 마감은 연장되지 않습니다.
+         */
+        post: operations["flowTimer"];
         delete?: never;
         options?: never;
         head?: never;
@@ -736,7 +788,7 @@ export interface paths {
         head?: never;
         /**
          * 일정 수정 (담당: 윤제승)
-         * @description 일정의 제목, 기간 등 기본 정보를 수정합니다.
+         * @description 일정의 제목, 기간 등 기본 정보를 수정합니다. 여행 시작 시각(startTime)이 바뀌면 항목이 있는 각 Day를 새 시작 시각 기준으로 다시 최적화합니다. 날짜·시각 필드를 보낸 요청에서 종료가 시작보다 빠르면 400입니다.
          */
         patch: operations["update_1"];
         trace?: never;
@@ -1361,6 +1413,129 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ItemInput: {
+            /** Format: uuid */
+            existingItemId?: string;
+            /** Format: uuid */
+            spotId: string;
+            arrivalTime?: string;
+            /** Format: int32 */
+            durationMin?: number;
+            travelMode?: string;
+            /** Format: int32 */
+            travelTimeMin?: number;
+            memo?: string;
+        };
+        ReplaceDayItemsRequest: {
+            /** Format: uuid */
+            operationId: string;
+            /** Format: int64 */
+            expectedVersion?: number;
+            items?: components["schemas"]["ItemInput"][];
+        };
+        ApiResponseItineraryDayResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["ItineraryDayResponse"];
+        };
+        ItineraryDayResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: int32 */
+            dayNumber?: number;
+            /** Format: date */
+            date?: string;
+            /** Format: int64 */
+            version?: number;
+            items?: components["schemas"]["ItineraryItemResponse"][];
+        };
+        ItineraryItemResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: int32 */
+            orderIndex?: number;
+            spot?: components["schemas"]["SpotSummary"];
+            arrivalTime?: string;
+            /** Format: int32 */
+            durationMin?: number;
+            travelMode?: string;
+            /** Format: int32 */
+            travelTimeMin?: number;
+            routeType?: string;
+            routeNo?: string;
+            startStationName?: string;
+            endStationName?: string;
+            startArsId?: string;
+            transitDetail?: components["schemas"]["TransitDetail"];
+            memo?: string;
+        };
+        SpotSummary: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            category?: string;
+            collectionCategory?: string;
+            address?: string;
+            lat?: number;
+            lng?: number;
+            thumbnailUrl?: string;
+            collected?: boolean;
+            visited?: boolean;
+        };
+        SubwayDeparture: {
+            departureTime?: string;
+            /** Format: int32 */
+            subwayClass?: number;
+            /** Format: int32 */
+            firstLastFlag?: number;
+        };
+        SubwaySegmentTimetable: {
+            /** Format: int32 */
+            subPathIndex?: number;
+            startStationName?: string;
+            endStationName?: string;
+            lineName?: string;
+            /** Format: int32 */
+            stationId?: number;
+            /** Format: int32 */
+            wayCode?: number;
+            upcomingDepartures?: components["schemas"]["SubwayDeparture"][];
+            /** Format: int32 */
+            nextDepartureMinutes?: number;
+            transferInfo?: components["schemas"]["SubwayTransitInfo"];
+        };
+        SubwayTransferDetail: {
+            /** Format: int32 */
+            takeStationId?: number;
+            takeLaneName?: string;
+            /** Format: int32 */
+            exStationId?: number;
+            exLaneName?: string;
+            /** Format: int32 */
+            fastTrainNo?: number;
+            /** Format: int32 */
+            fastTrainDoor?: number;
+        };
+        SubwayTransitInfo: {
+            /** Format: int32 */
+            count?: number;
+            transitTotalInfo?: components["schemas"]["SubwayTransferDetail"][];
+        };
+        TransitDetail: {
+            segments?: components["schemas"]["TransitDetailSegment"][];
+        };
+        TransitDetailSegment: {
+            /** Format: int32 */
+            index?: number;
+            trafficType?: string;
+            startName?: string;
+            endName?: string;
+            routeNo?: string;
+            /** Format: int32 */
+            sectionTime?: number;
+            startArsId?: string;
+            subwaySchedule?: components["schemas"]["SubwaySegmentTimetable"];
+        };
         VisitRequest: {
             /** Format: uuid */
             tourSpotId: string;
@@ -1555,15 +1730,6 @@ export interface components {
             message?: string;
             data?: components["schemas"]["ItineraryDetailResponse"];
         };
-        ItineraryDayResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: int32 */
-            dayNumber?: number;
-            /** Format: date */
-            date?: string;
-            items?: components["schemas"]["ItineraryItemResponse"][];
-        };
         ItineraryDetailResponse: {
             /** Format: uuid */
             id?: string;
@@ -1594,93 +1760,6 @@ export interface components {
             updatedAt?: string;
             days?: components["schemas"]["ItineraryDayResponse"][];
         };
-        ItineraryItemResponse: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: int32 */
-            orderIndex?: number;
-            spot?: components["schemas"]["SpotSummary"];
-            arrivalTime?: string;
-            /** Format: int32 */
-            durationMin?: number;
-            travelMode?: string;
-            /** Format: int32 */
-            travelTimeMin?: number;
-            routeType?: string;
-            routeNo?: string;
-            startStationName?: string;
-            endStationName?: string;
-            startArsId?: string;
-            transitDetail?: components["schemas"]["TransitDetail"];
-            memo?: string;
-        };
-        SpotSummary: {
-            /** Format: uuid */
-            id?: string;
-            name?: string;
-            category?: string;
-            collectionCategory?: string;
-            address?: string;
-            lat?: number;
-            lng?: number;
-            thumbnailUrl?: string;
-            collected?: boolean;
-            visited?: boolean;
-        };
-        SubwayDeparture: {
-            departureTime?: string;
-            /** Format: int32 */
-            subwayClass?: number;
-            /** Format: int32 */
-            firstLastFlag?: number;
-        };
-        SubwaySegmentTimetable: {
-            /** Format: int32 */
-            subPathIndex?: number;
-            startStationName?: string;
-            endStationName?: string;
-            lineName?: string;
-            /** Format: int32 */
-            stationId?: number;
-            /** Format: int32 */
-            wayCode?: number;
-            upcomingDepartures?: components["schemas"]["SubwayDeparture"][];
-            /** Format: int32 */
-            nextDepartureMinutes?: number;
-            transferInfo?: components["schemas"]["SubwayTransitInfo"];
-        };
-        SubwayTransferDetail: {
-            /** Format: int32 */
-            takeStationId?: number;
-            takeLaneName?: string;
-            /** Format: int32 */
-            exStationId?: number;
-            exLaneName?: string;
-            /** Format: int32 */
-            fastTrainNo?: number;
-            /** Format: int32 */
-            fastTrainDoor?: number;
-        };
-        SubwayTransitInfo: {
-            /** Format: int32 */
-            count?: number;
-            transitTotalInfo?: components["schemas"]["SubwayTransferDetail"][];
-        };
-        TransitDetail: {
-            segments?: components["schemas"]["TransitDetailSegment"][];
-        };
-        TransitDetailSegment: {
-            /** Format: int32 */
-            index?: number;
-            trafficType?: string;
-            startName?: string;
-            endName?: string;
-            routeNo?: string;
-            /** Format: int32 */
-            sectionTime?: number;
-            startArsId?: string;
-            subwaySchedule?: components["schemas"]["SubwaySegmentTimetable"];
-        };
         CreateItineraryRequest: {
             planType?: string;
             title?: string;
@@ -1700,11 +1779,6 @@ export interface components {
             dayNumber: number;
             /** Format: date */
             date?: string;
-        };
-        ApiResponseItineraryDayResponse: {
-            success?: boolean;
-            message?: string;
-            data?: components["schemas"]["ItineraryDayResponse"];
         };
         AddItemRequest: {
             /** Format: uuid */
@@ -1915,6 +1989,17 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
         };
+        ApiResponseTimerResponse: {
+            success?: boolean;
+            message?: string;
+            data?: components["schemas"]["TimerResponse"];
+        };
+        TimerResponse: {
+            /** Format: int64 */
+            deadlineAt?: number;
+            /** Format: int64 */
+            serverNow?: number;
+        };
         JoinGroupRequest: {
             inviteCode: string;
         };
@@ -1988,6 +2073,8 @@ export interface components {
         };
         ReorderItemsRequest: {
             itemIds: string[];
+            /** Format: int64 */
+            expectedVersion?: number;
         };
         UpdateItineraryRequest: {
             title?: string;
@@ -2274,6 +2361,60 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    replaceDayItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itineraryId: string;
+                dayId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceDayItemsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseItineraryDayResponse"];
+                };
+            };
+        };
+    };
+    addItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itineraryId: string;
+                dayId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddItemRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseItineraryItemResponse"];
+                };
+            };
+        };
+    };
     getHistory: {
         parameters: {
             query?: never;
@@ -2470,6 +2611,26 @@ export interface operations {
             };
         };
     };
+    recordImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     copyToItinerary: {
         parameters: {
             query?: never;
@@ -2602,33 +2763,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseItineraryDayResponse"];
-                };
-            };
-        };
-    };
-    addItem: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                itineraryId: string;
-                dayId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AddItemRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ApiResponseItineraryItemResponse"];
                 };
             };
         };
@@ -2775,6 +2909,31 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseGroupResponse"];
+                };
+            };
+        };
+    };
+    flowTimer: {
+        parameters: {
+            query?: {
+                sessionId?: string;
+            };
+            header?: never;
+            path: {
+                groupId: string;
+                phase: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseTimerResponse"];
                 };
             };
         };
@@ -3270,7 +3429,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "*/*": components["schemas"]["ApiResponseItineraryDayResponse"];
+                };
             };
         };
     };
