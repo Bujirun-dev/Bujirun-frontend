@@ -12,10 +12,8 @@ import { applyDefaultItemTimes } from "@/features/itinerary/utils/applyDefaultIt
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
 import { useItineraryGenerationLockStore, useItineraryFlowStore } from "@/shared/stores";
 import { useItineraryFlowProgress } from "@/features/itinerary/hooks/useItineraryFlowProgress";
-import {
-  formatRemainingTime,
-  useItineraryFlowTimer,
-} from "@/features/itinerary/hooks/useItineraryFlowTimer";
+import { useItineraryFlowTimer } from "@/features/itinerary/hooks/useItineraryFlowTimer";
+import { ItineraryFlowCountdown } from "@/features/itinerary/components/ItineraryFlowCountdown";
 
 function getWinnerPlan(votes: Record<string, number>): string | null {
   const sorted = Object.entries(votes).sort((a, b) => b[1] - a[1]);
@@ -312,34 +310,31 @@ function VoteWaitingContent() {
           <div className="mt-5 flex w-full flex-col items-center gap-2">
             {!isSynced ? (
               <p className="text-center font-paperlogy text-sm text-sub-darkgray">
-                {isTimerError ? "남은 시간을 다시 확인하고 있어요" : "남은 시간을 확인하고 있어요"}
+                {isTimerError
+                  ? "남은 시간을 불러오지 못했어요. 다시 시도해 주세요"
+                  : "남은 시간을 확인하고 있어요"}
               </p>
             ) : isOver ? (
               isHost ? (
                 <>
                   <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
-                    3분이 지났어요. 투표를 마감할 수 있어요.
+                    시간이 끝났어요. 다음 단계로 넘어가 주세요
                   </p>
                   <Button
                     variant="primary"
                     onClick={() => setShowSkipConfirm(true)}
                     disabled={isConfirming}
                   >
-                    {isConfirming ? "확정 중..." : "투표 마감하고 확정하기"}
+                    {isConfirming ? "확정 중..." : "기다리지 않고 진행하기"}
                   </Button>
                 </>
               ) : (
                 <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
-                  3분이 지났어요. 방장이 투표를 마감할 수 있어요.
+                  시간이 끝났어요. 방장이 다음 단계로 넘어가기를 기다리고 있어요
                 </p>
               )
             ) : (
-              <p className="flex items-center gap-2 text-center text-md font-medium text-sub-deepgray">
-                방장 마감 가능까지
-                <span className="font-paperlogy text-md font-bold text-sub-deepblue">
-                  {formatRemainingTime(remainingMs)}
-                </span>
-              </p>
+              <ItineraryFlowCountdown remainingMs={remainingMs} isHost={isHost} />
             )}
           </div>
         )}
