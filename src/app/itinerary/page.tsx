@@ -244,7 +244,7 @@ function ItineraryPageContent() {
           accommodationLng: detail.accommodationLng,
         }
       : null;
-  const { days, dates, dayIds } = mapItineraryDetailToDays(detail, tripTimeBounds);
+  const { days, dates, dayIds, versions } = mapItineraryDetailToDays(detail, tripTimeBounds);
 
   return (
     <LoadingBoundary
@@ -259,6 +259,7 @@ function ItineraryPageContent() {
         initialDays={days}
         initialDates={dates}
         dayIds={dayIds}
+        initialVersions={versions}
         tripTimeBounds={tripTimeBounds}
       />
     </LoadingBoundary>

@@ -87,10 +87,36 @@ export function deleteItem(itineraryId: string, dayId: string, itemId: string) {
 }
 
 // 일차(day)에 속한 방문 항목 전체의 순서를 한 번에 원자적으로 반영한다. itemIds는 그 일차에
-// 존재하는 항목 id 전체를 원하는 순서대로 담아야 한다(부분 목록 불가).
-export function reorderItems(itineraryId: string, dayId: string, itemIds: string[]) {
-  const body: OpBody<"reorderItems"> = { itemIds };
-  return apiClient.patch(`/api/itineraries/${itineraryId}/days/${dayId}/items/order`, body);
+// 존재하는 항목 id 전체를 원하는 순서대로 담아야 한다(부분 목록 불가). expectedVersion이
+// 서버의 현재 값과 다르면 409(내용이 다른 동시 편집과 충돌)가 온다 — 응답 바디에 최신 day
+// 상태가 실려 있어 호출부가 추가 조회 없이 reconcile할 수 있다.
+export function reorderItems(
+  itineraryId: string,
+  dayId: string,
+  itemIds: string[],
+  expectedVersion?: number,
+) {
+  const body: OpBody<"reorderItems"> = { itemIds, expectedVersion };
+  return apiClient
+    .patch<
+      OpResponse<"reorderItems">
+    >(`/api/itineraries/${itineraryId}/days/${dayId}/items/order`, body)
+    .then((res) => unwrap(res));
+}
+
+// 일차의 방문 항목 전체를 한 번의 원자적 요청으로 교체한다. 개별 add/delete를 여러 번
+// 나눠 보내면 여러 클라이언트가 동시에 같은 변경을 재전송할 때 일부만 반영되고 나머지가
+// 유실될 수 있어(2026-09-16 실제 사고) 도입됨. operationId가 같은 요청을 다시 보내면
+// 서버가 재처리 없이 첫 요청의 결과를 그대로 돌려준다(멱등) — 같은 논리적 편집을 재시도할
+// 때는 반드시 같은 operationId를 재사용해야 한다.
+export function replaceDayItems(
+  itineraryId: string,
+  dayId: string,
+  body: OpBody<"replaceDayItems">,
+) {
+  return apiClient
+    .put<OpResponse<"replaceDayItems">>(`/api/itineraries/${itineraryId}/days/${dayId}/items`, body)
+    .then((res) => unwrap(res));
 }
 
 // 사용자가 이동수단을 직접 선택했을 때 실제 경로(역명/노선번호 등)를 재계산해서 돌려받는다.
