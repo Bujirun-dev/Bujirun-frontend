@@ -1,6 +1,13 @@
 import { isAxiosError } from "axios";
 import { itineraryApi } from "@/shared/api/domains";
-import type { BaseStop } from "@/features/itinerary/utils/scheduleUtils";
+import type { components } from "@/shared/api/schema";
+import {
+  mapDayItemsToStops,
+  type BaseStop,
+  type TripTimeBoundsLike,
+} from "@/features/itinerary/utils/scheduleUtils";
+
+type ItineraryDayResponse = components["schemas"]["ItineraryDayResponse"];
 
 type DaySnapshotEntry = { spotId?: string; time: string; orderIndex: number };
 export type DaySnapshot = Map<string, DaySnapshotEntry>;
@@ -24,11 +31,23 @@ export interface FlushFailure {
   // 원인 파악에 필요한 실제 응답은 error에 그대로 담겨 있다.
   message: string;
   error: unknown;
+  // 낙관적 락(409) 충돌이라 이미 서버 최신 상태로 reconcile까지 끝낸 실패. 일반 실패와
+  // 달리 "네트워크 문제"가 아니라 "정상적인 동시편집 충돌"이므로, 호출부는 에러 배너 대신
+  // "다른 사람이 먼저 수정했다"는 안내만 띄우면 된다(handleSaveFailed 참고).
+  conflict?: boolean;
 }
 
 // 서버에 이미 없는 항목(404). 삭제에서 이건 실패가 아니라 "목적이 이미 달성된 것"이다 —
 // 다른 참여자가 먼저 지웠거나, 같은 항목이 두 번 삭제 대상이 된 경우다.
 const isAlreadyGone = (error: unknown) => isAxiosError(error) && error.response?.status === 404;
+
+// 낙관적 락 충돌(409)이면 서버가 이미 실어보낸 최신 day 상태를 꺼내 돌려준다 — 호출부가
+// 추가 조회 없이 바로 reconcile할 수 있게 하기 위함(DayVersionConflictException 참고).
+function getVersionConflictDay(error: unknown): ItineraryDayResponse | null {
+  if (!isAxiosError(error) || error.response?.status !== 409) return null;
+  const day = (error.response.data as { data?: ItineraryDayResponse } | undefined)?.data;
+  return day?.id ? day : null;
+}
 
 const FAILURE_MESSAGE: Record<FlushFailureKind, string> = {
   add: "일정 항목을 저장하지 못했어요.",
@@ -36,6 +55,19 @@ const FAILURE_MESSAGE: Record<FlushFailureKind, string> = {
   reorder: "변경한 순서를 저장하지 못했어요.",
   delete: "삭제한 항목을 저장하지 못했어요.",
 };
+
+// 같은 논리적 편집에는 항상 같은 operationId가 나오도록 편집 내용을 해시한다. 여러
+// 클라이언트가 같은 순간 같은 상태(Yjs로 이미 동기화된 동일한 currentStops)를 보고 각자
+// 독립적으로 flush해도, 계산되는 해시가 동일해서 서버의 멱등 캐시가 자연스럽게 중복을
+// 걸러낸다 — 클라이언트끼리 별도로 조율(리더 선출 등)할 필요가 없다.
+async function hashToOperationId(input: string): Promise<string> {
+  const bytes = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  const hex = Array.from(new Uint8Array(digest).slice(0, 16))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+}
 
 export function snapshotFromStops(stops: BaseStop[]): DaySnapshot {
   const snapshot: DaySnapshot = new Map();
@@ -76,7 +108,23 @@ export async function flushDayToRest(
   collaboration?: {
     readStops: () => BaseStop[];
     removeMissingStop: (id: string) => void;
+    // 낙관적 락(409) 충돌 시 서버가 돌려준 최신 day 상태로 로컬(Yjs)을 강제 동기화한다.
+    reconcileWithServer: (stops: BaseStop[]) => void;
   },
+  // 구조적 변경(replaceDayItems)/순서 변경(reorderItems) 요청에 실어 보낼 낙관적 락 버전.
+  // 없으면(구버전 호출부) 버전 체크 없이 예전처럼 동작한다.
+  versioning?: {
+    getVersion: () => number | undefined;
+    setVersion: (version: number | undefined) => void;
+    dayIdx: number;
+    totalDays: number;
+    timeBounds?: TripTimeBoundsLike | null;
+    // 409를 정상 흐름으로 안내하기 위한 훅(에러 토스트가 아니라 "누가 먼저 고쳤어요" 안내용).
+    onConflict?: () => void;
+  },
+  // 409 충돌 뒤 스스로 한 번 재호출한 것인지 — 재귀가 무한히 반복되지 않도록 이 재시도에서
+  // 또 충돌하면 더는 재시도하지 않고 그대로 받아들인다(사용자가 요청한 "1회 재시도").
+  isConflictRetry = false,
 ): Promise<FlushFailure[]> {
   const failures: FlushFailure[] = [];
   const recordFailure = (
@@ -93,6 +141,57 @@ export async function flushDayToRest(
       message: FAILURE_MESSAGE[kind],
       error,
     });
+  };
+
+  // 낙관적 락 충돌이면 서버가 이미 실어보낸 최신 day를 그대로 로컬에 반영한다(추가 조회
+  // 없음). true를 돌려주면 호출부가 "1회 재시도"할지, 그냥 받아들일지를 isConflictRetry로
+  // 판단한다.
+  const handleVersionConflict = async (error: unknown): Promise<boolean> => {
+    const conflictDay = getVersionConflictDay(error);
+    if (!conflictDay || !versioning) return false;
+    const stops = mapDayItemsToStops(
+      dayId,
+      conflictDay.items,
+      versioning.dayIdx,
+      versioning.totalDays,
+      versioning.timeBounds,
+    );
+    collaboration?.reconcileWithServer(stops);
+    snapshot.clear();
+    stops.forEach((stop, index) =>
+      snapshot.set(stop.id, { spotId: stop.spotId, time: stop.time, orderIndex: index }),
+    );
+    versioning.setVersion(conflictDay.version ?? undefined);
+    versioning.onConflict?.();
+    return true;
+  };
+  // 충돌 처리 공통 경로: 처음 겪는 충돌이면 방금 reconcile한 최신 상태로 한 번 더 시도하고,
+  // 이미 한 번 재시도한 뒤라면(isConflictRetry) 더 시도하지 않고 "정상 동작"으로 받아들인다.
+  const retryOrAcceptConflict = (
+    kind: FlushFailureKind,
+    error: unknown,
+  ): Promise<FlushFailure[]> => {
+    if (!isConflictRetry) {
+      return flushDayToRest(
+        itineraryId,
+        dayId,
+        collaboration?.readStops() ?? currentStops,
+        snapshot,
+        onIdResolved,
+        onLegComputed,
+        collaboration,
+        versioning,
+        true,
+      );
+    }
+    failures.push({
+      kind,
+      dayId,
+      message: "다른 사람이 먼저 수정해서 최신 내용으로 맞췄어요.",
+      error,
+      conflict: true,
+    });
+    return Promise.resolve(failures);
   };
 
   // REST에 없는 확정 ID는 삭제/교체된 항목이다. temp- 항목은 아직 저장 중이므로
@@ -137,6 +236,51 @@ export async function flushDayToRest(
 
   const currentIds = new Set(currentStops.map((stop) => stop.id));
   const idsToDelete = [...snapshot.keys()].filter((id) => !currentIds.has(id));
+
+  // 구조적 변경(추가/삭제)이 있으면 개별 add/delete를 따로 쏘지 않고 day 전체를 한 번의
+  // 원자적 요청(replaceDayItems)으로 교체한다. 여러 클라이언트가 같은 순간 같은 변경을
+  // 각자 flush해도(2026-09-16 실제 프로덕션 사고 원인) operationId가 편집 내용의 해시라
+  // 서버 멱등 캐시에서 자연히 하나로 합쳐진다. 시간만 바뀌는 경우는 기존 개별 PATCH
+  // 경로를 그대로 쓴다(비용이 더 낮고, 이 경로가 원인이었던 적은 없음).
+  const hasNewItems = currentStops.some(
+    (stop) => isCurrent(stop) && stop.spotId && stop.id.startsWith("temp-"),
+  );
+  if (idsToDelete.length > 0 || hasNewItems) {
+    const targetStops = currentStops.filter((stop) => isCurrent(stop) && stop.spotId);
+    const orderedInputs = targetStops.map((stop) => ({
+      existingItemId: stop.id.startsWith("temp-") ? undefined : stop.id,
+      spotId: stop.spotId as string,
+      arrivalTime: stop.time || undefined,
+    }));
+
+    // 해시엔 구조(day + 항목 구성 + 순서)만 싣는다 — arrivalTime처럼 같은 논리적 편집
+    // 안에서도 흔들릴 수 있는 값(Yjs 수렴 타이밍차 등)까지 실으면, 똑같은 구조 변경인데
+    // 계산 시점에 따라 해시가 달라져 멱등 캐시가 중복을 못 걸러내는 경우가 생긴다.
+    const operationId = await hashToOperationId(
+      `${dayId}|${orderedInputs.map((i) => `${i.existingItemId ?? "new"}:${i.spotId}`).join(",")}`,
+    );
+
+    try {
+      const result = await itineraryApi.replaceDayItems(itineraryId, dayId, {
+        operationId,
+        expectedVersion: versioning?.getVersion(),
+        items: orderedInputs,
+      });
+      const resultItems = result?.items ?? [];
+      snapshot.clear();
+      targetStops.forEach((stop, index) => {
+        const real = resultItems[index];
+        if (!real?.id) return;
+        if (stop.id.startsWith("temp-")) onIdResolved(stop.id, real.id);
+        snapshot.set(real.id, { spotId: stop.spotId, time: stop.time, orderIndex: index });
+      });
+      versioning?.setVersion(result?.version ?? undefined);
+    } catch (error) {
+      if (await handleVersionConflict(error)) return retryOrAcceptConflict("add", error);
+      recordFailure("add", error);
+    }
+    return failures;
+  }
 
   const deletions = idsToDelete.map((id) =>
     itineraryApi
@@ -265,12 +409,19 @@ export async function flushDayToRest(
   if (!orderChanged && !hasStructuralChange) return failures;
 
   try {
-    await itineraryApi.reorderItems(itineraryId, dayId, orderedRealIds);
+    const result = await itineraryApi.reorderItems(
+      itineraryId,
+      dayId,
+      orderedRealIds,
+      versioning?.getVersion(),
+    );
     orderedRealIds.forEach((id, index) => {
       const entry = snapshot.get(id);
       if (entry) entry.orderIndex = index;
     });
+    versioning?.setVersion(result?.version ?? undefined);
   } catch (error) {
+    if (await handleVersionConflict(error)) return retryOrAcceptConflict("reorder", error);
     if (collaboration && isAxiosError(error) && error.response?.status === 400) {
       try {
         const serverIds = await reconcileMissingStops();

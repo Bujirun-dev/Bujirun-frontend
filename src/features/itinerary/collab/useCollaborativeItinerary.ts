@@ -2,8 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as Y from "yjs";
+import { itineraryApi } from "@/shared/api/domains";
 import type { BaseStop } from "@/features/itinerary/utils/scheduleUtils";
-import { buildTransportFromItem } from "@/features/itinerary/utils/scheduleUtils";
+import {
+  buildTransportFromItem,
+  mapItineraryDetailToDays,
+} from "@/features/itinerary/utils/scheduleUtils";
 import { useItineraryYDoc } from "./useItineraryYDoc";
 import {
   addStop as yAddStop,
@@ -15,6 +19,7 @@ import {
   pushOptimizedOrder as yPushOptimizedOrder,
   readActivityLog,
   readStopsFromYjs,
+  reconcileDayWithServer,
   reconcileTransportFromRest,
   reconcileBrokenTimesFromRest,
   replaceStop as yReplaceStop,
@@ -70,6 +75,14 @@ const SEED_FALLBACK_MS = 4000;
 const MAX_FLUSH_RETRIES = 2;
 const FLUSH_RETRY_DELAY_MS = 1500;
 
+// 3단계: flush 주체를 node-yjs 서버로 이관. true면 이 훅은 Yjs 문서만 갱신하고 REST flush를
+// 전혀 하지 않는다(디바운스 타이머도 켜지 않음) — node-yjs의 RoomFlushManager가 대신
+// 5초 디바운스/30초 주기로 flush하고, 저장 상태는 awareness로 브로드캐스트한다(아래
+// __system 구독 참고). false(기본값, 미설정 시도 false)면 예전 그대로 이 훅이 직접 flush한다
+// — 문제가 생기면 이 값만 false로 되돌리면 즉시 롤백된다. 코드 자체는 지우지 않고 이 플래그
+// 뒤에 그대로 남겨둔다(안정화 확인 후 별도 커밋으로 제거하기로 함, 2026-09-17).
+const SERVER_SIDE_FLUSH_ENABLED = process.env.NEXT_PUBLIC_SERVER_SIDE_FLUSH === "true";
+
 // flush가 끝까지 실패했을 때 호출부(일정 페이지)에 넘기는 정보. 사용자에게 "저장되지
 // 않았어요" 같은 안내를 띄우고, 필요하면 직접 재시도 버튼을 붙이는 데 쓴다.
 export interface FlushErrorInfo {
@@ -80,6 +93,10 @@ export interface FlushErrorInfo {
   attempt: number;
   // 자동 재시도가 예약됐는지. false면 이번 실패가 이 flush 사이클의 최종 실패다.
   willRetry: boolean;
+  // 최종 실패 뒤 로컬(Yjs)을 서버 최신 상태로 강제 동기화했는지. true면 화면에 남아있던
+  // 저장 안 된 편집은 사라지고 서버 값으로 되돌아간 것이므로, 호출부는 재시도 안내가
+  // 아니라 "편집이 되돌아갔다"는 걸 알려줘야 한다.
+  reconciled: boolean;
 }
 
 // useItineraryYDoc(연결 생명주기)을 감싸 실제 화면이 쓰는 형태로 데이터를 노출한다:
@@ -88,6 +105,9 @@ export function useCollaborativeItinerary(
   itineraryId: string,
   dayIds: string[],
   initialDays: BaseStop[][],
+  // 서버가 내려준 day별 낙관적 락 버전(GET 상세 응답 기준). replaceDayItems/reorderItems
+  // 요청의 expectedVersion으로 실어 보내고, 성공/충돌 응답이 올 때마다 갱신한다.
+  initialVersions: (number | undefined)[],
   currentUser?: CurrentUser,
   onRemoteActivity?: (entry: ActivityLogEntry) => void,
   // REST 반영에 실패한 변경이 있을 때 알림용(선택). 없으면 예전처럼 조용히 재시도만 한다.
@@ -95,6 +115,10 @@ export function useCollaborativeItinerary(
   // 사라진다 — 그 사실을 화면에 알리기 위한 통로다. 자동 재시도가 남았는지(willRetry)까지
   // 함께 넘기므로, 호출부가 "재시도 중" 안내와 "최종 실패" 안내를 나눠 띄울 수 있다.
   onFlushError?: (info: FlushErrorInfo) => void,
+  // 낙관적 락(409) 충돌이 있었을 때 알림용(선택). 이건 실패가 아니라 "다른 사람이 먼저
+  // 저장한 정상적인 충돌"이라 onFlushError와 분리한다 — flushDayToRest가 이미 자체적으로
+  // 서버 최신 상태로 reconcile까지 끝낸 뒤 알리므로, 호출부는 안내 토스트만 띄우면 된다.
+  onVersionConflict?: () => void,
   // 서버 반영이 끝난 뒤 호출된다. 호출부가 상세 캐시를 갱신하는 데 쓴다 — 저장은 됐는데
   // 캐시에 옛 응답이 남아 있으면, 앱 안에서 이 화면에 다시 들어올 때 그 옛 응답으로 문서가
   // 시딩돼 "바꾼 시간이 저장되지 않은 것처럼" 보였다(새로고침하면 캐시가 없어 정상).
@@ -129,6 +153,9 @@ export function useCollaborativeItinerary(
   // 대입하면 안 되므로(react-hooks/refs) effect에서 매 렌더 최신값으로 갱신한다.
   const dayIdsRef = useRef(dayIds);
   const snapshotsRef = useRef<DaySnapshot[]>(initialDays.map(snapshotFromStops));
+  // day별로 마지막에 확인한 낙관적 락 버전. replaceDayItems/reorderItems 성공·충돌 응답마다
+  // 갱신되고, 다음 요청의 expectedVersion으로 실린다.
+  const versionsRef = useRef<(number | undefined)[]>(initialVersions);
   // 시딩용 초기값은 마운트 시점 값 그대로 고정한다 — props가 그 사이 바뀌어도
   // 시딩 로직이 재실행되며 엉뚱한 값을 시딩하면 안 되기 때문.
   const initialDaysRef = useRef(initialDays);
@@ -147,6 +174,7 @@ export function useCollaborativeItinerary(
   // 항상 최신 콜백을 참조하기 위한 ref (stale closure 방지 — flushAll은 effect/타이머/
   // awareness 콜백에서 불리므로 마운트 시점 콜백에 고정되면 안 된다).
   const onFlushErrorRef = useRef(onFlushError);
+  const onVersionConflictRef = useRef(onVersionConflict);
   const onFlushedRef = useRef(onFlushed);
   // 예약된 자동 재시도 타이머. 새 flush가 시작되면 취소한다(그 flush가 더 최신 상태를
   // 보내므로 예전 재시도는 의미가 없다).
@@ -159,6 +187,7 @@ export function useCollaborativeItinerary(
   useEffect(() => {
     dayIdsRef.current = dayIds;
     onFlushErrorRef.current = onFlushError;
+    onVersionConflictRef.current = onVersionConflict;
     onFlushedRef.current = onFlushed;
   });
 
@@ -181,6 +210,34 @@ export function useCollaborativeItinerary(
     );
     if (!transport) return;
     applyComputedTransport(doc, prevStopId, addedItem.id, transport);
+  };
+
+  // flush 재시도까지 모두 실패한 day들을 서버 최신 상태로 강제 동기화한다. reconcileDayWithServer
+  // 자체는 LCS 기반 부분 diff라 그 사이 다른 참여자가 만든 편집과도 안전하게 병합되지만,
+  // 이 함수가 덮어쓰는 건 "이 클라이언트가 저장하지 못한 로컬 편집"이므로 그 편집은 사라진다
+  // — 실패를 조용히 삼켜 화면과 DB가 영영 갈린 채로 남는 것보다는 안전한 선택이다.
+  // 서버 조회 자체가 실패하면(오프라인 등) 아무것도 건드리지 않고 false를 돌려준다 — 다음
+  // flush 트리거 때 이 실패한 로컬 편집이 다시 대상이 되어 재시도된다.
+  const reconcileFailedDays = async (failures: FlushFailure[]): Promise<boolean> => {
+    const failedDayIds = [...new Set(failures.map((f) => f.dayId))];
+    if (failedDayIds.length === 0) return false;
+    try {
+      const detail = await itineraryApi.getItinerary(itineraryId);
+      const { days: serverDays, dayIds: serverDayIds } = mapItineraryDetailToDays(detail);
+      let didReconcile = false;
+      for (const dayId of failedDayIds) {
+        const dayIdx = dayIdsRef.current.indexOf(dayId);
+        const serverIdx = serverDayIds.indexOf(dayId);
+        if (dayIdx < 0 || serverIdx < 0) continue;
+        const stops = serverDays[serverIdx] ?? [];
+        reconcileDayWithServer(doc, dayIdx, stops);
+        snapshotsRef.current[dayIdx] = snapshotFromStops(stops);
+        didReconcile = true;
+      }
+      return didReconcile;
+    } catch {
+      return false;
+    }
   };
 
   // flush 한 번(모든 day)을 실제로 수행하는 패스. 겹침 방지는 입구(runFlush)가 맡으므로
@@ -210,12 +267,22 @@ export function useCollaborativeItinerary(
           {
             readStops: () => readStopsFromYjs(doc)[dayIdx] ?? [],
             removeMissingStop: (id) => yDeleteStop(doc, dayIdx, id),
+            reconcileWithServer: (stops) => reconcileDayWithServer(doc, dayIdx, stops),
+          },
+          {
+            getVersion: () => versionsRef.current[dayIdx],
+            setVersion: (v) => {
+              versionsRef.current[dayIdx] = v;
+            },
+            dayIdx,
+            totalDays: dayIdsRef.current.length,
+            onConflict: () => onVersionConflictRef.current?.(),
           },
           // flushDayToRest는 내부에서 실패를 전부 잡아 배열로 돌려주지만, 예상 못한
           // 예외로 Promise.all 전체가 깨져 다른 day의 결과까지 잃지 않도록 막아둔다.
-        ).catch((error: unknown) => [
+        ).catch((error: unknown): FlushFailure[] => [
           {
-            kind: "update" as const,
+            kind: "update",
             dayId,
             message: "일정을 저장하지 못했어요. 잠시 후 다시 시도해요.",
             error,
@@ -224,7 +291,12 @@ export function useCollaborativeItinerary(
       }),
     );
 
-    const failures = results.flat();
+    const allFailures = results.flat();
+    // 낙관적 락 충돌(409)은 flushDayToRest가 이미 자체적으로 서버 최신 상태로 reconcile하고
+    // "1회 재시도"까지 끝낸 뒤 돌아온 것이다 — 여기서 또 지수 백오프로 재시도하면 이미 끝난
+    // 충돌을 다시 건드리는 셈이라 의미가 없다. 실제로 더 재시도가 필요한 실패(네트워크 오류,
+    // 검증 실패 등)만 아래 재시도 로직의 대상으로 삼는다.
+    const failures = allFailures.filter((f) => !f.conflict);
     // 실패가 없다면 이번 패스에서 보낸 변경은 모두 서버에 반영됐다. 상세 캐시를 갱신할
     // 기회를 호출부에 준다(변경이 없었던 패스도 갱신해도 무해하다 — 서버 값과 같다).
     if (failures.length === 0) {
@@ -233,11 +305,17 @@ export function useCollaborativeItinerary(
     }
 
     const willRetry = attempt < MAX_FLUSH_RETRIES;
+    // 더 재시도할 게 없으면 이 시점 로컬(Yjs)엔 서버에 반영되지 못한 편집이 그대로 남는다.
+    // 다음 flush 트리거(추가 편집, 재합류 등)가 없으면 영영 그 상태로 남아, 화면은 바뀐
+    // 값을 보여주지만 새로고침하면 사라지는 예전 사고와 같은 모양이 된다. 조용히 두지 않고
+    // 서버 최신 상태로 강제 동기화해 화면과 DB를 다시 일치시킨다.
+    const reconciled = willRetry ? false : await reconcileFailedDays(failures);
     onFlushErrorRef.current?.({
       failures,
       message: failures[0].message,
       attempt: attempt + 1,
       willRetry,
+      reconciled,
     });
     if (!willRetry) return;
 
@@ -273,6 +351,10 @@ export function useCollaborativeItinerary(
   // 예산을 새로 주는 게 맞다. 재실행은 "진행 중에 들어온 호출"이 있을 때만 일어나므로
   // (루프 안에서 스스로 플래그를 세우는 경로는 없다) 이 루프가 저절로 계속 돌지는 않는다.
   const runFlush = (attempt: number): Promise<void> => {
+    // node-yjs가 flush를 전담하는 동안엔 이 훅에서 REST를 전혀 건드리지 않는다 — 문서(Yjs)
+    // 갱신은 이미 다른 경로(add/delete/updateStopTime 등)에서 doc.transact로 끝나 있으므로,
+    // 여기서 할 일이 없다.
+    if (SERVER_SIDE_FLUSH_ENABLED) return Promise.resolve();
     if (flushChainRef.current) {
       flushAgainRef.current = true;
       return flushChainRef.current;
@@ -336,6 +418,7 @@ export function useCollaborativeItinerary(
   // 협업 서버가 없어서 이탈 트리거 자체가 잘 안 걸리는 지금 같은 상황엔 더더욱) 전혀
   // 저장되지 않는 문제가 있었다.
   useEffect(() => {
+    if (SERVER_SIDE_FLUSH_ENABLED) return;
     const timer = window.setTimeout(() => flushAll(), 2000);
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -461,6 +544,44 @@ export function useCollaborativeItinerary(
     recomputeCollaborators();
     return () => provider.awareness.off("change", handleAwarenessChange);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doc, getProvider, status]);
+
+  // 3단계: node-yjs가 flush를 전담할 때는 "내가 REST를 성공시켰다"가 아니라 node가 room의
+  // flush 결과를 awareness로 브로드캐스트한 걸 구독해서 안내한다(__system 플래그로 실제
+  // 참여자 프레즌스와 구분 — recomputeCollaborators는 user/cursor 없는 상태를 이미 걸러내므로
+  // 참여자 목록엔 안 보인다). 기존 onFlushError/onFlushed 콜백을 그대로 재사용해서
+  // ItineraryMain의 토스트/캐시 무효화 로직을 새로 만들지 않는다.
+  useEffect(() => {
+    if (!SERVER_SIDE_FLUSH_ENABLED) return;
+    const provider = getProvider();
+    if (!provider) return;
+
+    let lastSavedAt = 0;
+    const handleSaveStatus = () => {
+      const states = Array.from(provider.awareness.getStates().values()) as Array<{
+        __system?: boolean;
+        saveStatus?: "saved" | "error";
+        savedAt?: number;
+      }>;
+      const system = states.find((state) => state.__system === true);
+      if (!system || typeof system.savedAt !== "number" || system.savedAt <= lastSavedAt) return;
+      lastSavedAt = system.savedAt;
+
+      if (system.saveStatus === "saved") {
+        onFlushedRef.current?.();
+        return;
+      }
+      onFlushErrorRef.current?.({
+        failures: [],
+        message: "일정을 저장하지 못했어요. 잠시 후 다시 시도해요.",
+        attempt: 1,
+        willRetry: false,
+        reconciled: false,
+      });
+    };
+
+    provider.awareness.on("change", handleSaveStatus);
+    return () => provider.awareness.off("change", handleSaveStatus);
   }, [doc, getProvider, status]);
 
   const setFocusedStop = (dayIdx: number, itemId: string | null) => {

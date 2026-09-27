@@ -62,6 +62,7 @@ export function ItineraryMain({
   initialDays: initialDaysData,
   initialDates: initialDatesData,
   dayIds,
+  initialVersions,
   tripTimeBounds,
 }: {
   itineraryId: string;
@@ -70,6 +71,7 @@ export function ItineraryMain({
   initialDays: BaseStop[][];
   initialDates: string[];
   dayIds: string[];
+  initialVersions: (number | undefined)[];
   tripTimeBounds: TripTimeBounds | null;
 }) {
   const router = useRouter();
@@ -198,7 +200,25 @@ export function ItineraryMain({
     // 사용자가 같은 편집을 다시 하게 되고, 그게 중복 생성으로 이어졌다.
     // 더 시도할 게 없을 때만 실제 실패 사유를 띄운다.
     if (info.willRetry) return;
+    // 최종 실패 후 서버 최신 상태로 강제 동기화됐다면, 화면에 남아있던 저장 안 된 편집은
+    // 이미 사라진 상태다 — 원래 실패 문구("~ 저장하지 못했어요")는 사용자가 다시 시도할
+    // 대상이 남아있는 것처럼 보이게 하므로, 편집이 되돌아갔다는 사실을 그대로 알린다.
+    if (info.reconciled) {
+      showToast(
+        "동시 편집이 겹쳐 방금 변경이 저장되지 못했어요. 최신 내용으로 되돌렸어요.",
+        "error",
+      );
+      return;
+    }
     showToast(info.message, "error");
+  };
+
+  // 낙관적 락(409) 충돌 — "네트워크 실패"가 아니라 "다른 사람이 먼저 저장한, 정상적인
+  // 동시편집 충돌"이므로 에러 토스트가 아니라 평범한 안내로 보여준다. 재시도가 성공하든
+  // 실패하든(useCollaborativeItinerary의 handleVersionConflict) 항상 한 번은 뜬다 — 재시도가
+  // 성공해도 방금 화면에 있던 내용은 이미 다른 사람 편집으로 갈아끼워진 뒤이기 때문이다.
+  const handleVersionConflict = () => {
+    showToast("다른 사람이 먼저 수정해서 최신 내용으로 맞췄어요.");
   };
 
   // 다른 참여자가 만든 변경(추가/삭제/시간변경/교체/최적화/로그 불러오기)을 알려준다.
@@ -243,6 +263,7 @@ export function ItineraryMain({
     itineraryId,
     dayIdsSliced,
     initialDays,
+    initialVersions,
     myProfile?.id && myProfile.nickname
       ? {
           id: myProfile.id,
@@ -254,6 +275,7 @@ export function ItineraryMain({
     // 저장 실패는 예전엔 조용히 삼켜져서, 화면엔 바뀐 시간/순서가 보이는데 서버에는
     // 반영되지 않은 채 새로고침하면 되돌아갔다. 무엇을 언제 알릴지는 handleSaveFailed 참고.
     handleSaveFailed,
+    handleVersionConflict,
     // 저장이 끝나면 상세 캐시를 무효화한다. 저장 자체는 되는데 캐시(staleTime 60초)에
     // 옛 응답이 남아 있으면, 앱 안에서 이 화면에 다시 들어올 때 그 옛 응답으로 공동편집
     // 문서가 시딩돼 "바꾼 시간이 저장되지 않은 것처럼" 보였다(새로고침하면 캐시가 없어

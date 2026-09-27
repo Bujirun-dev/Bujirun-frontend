@@ -404,7 +404,7 @@ export function buildTransportFromItem(
   };
 }
 
-interface TripTimeBoundsLike {
+export interface TripTimeBoundsLike {
   startTime: string;
   endTime: string;
 }
@@ -550,6 +550,81 @@ function resolveDayTimes(
 
 // GET /api/itineraries/{id} 응답을 타임라인 UI가 쓰는 BaseStop[][] 구조로 변환한다.
 // dayIds는 stopsPerDay와 같은 인덱스로 대응하는 실제 dayId — 일차별 쓰기 API(PATCH/DELETE)에 필요.
+// day 하나의 항목 목록을 화면이 쓰는 BaseStop[]로 변환한다. mapItineraryDetailToDays(전체
+// 일정 조회 응답)와 낙관적 락 충돌(409) 응답의 day 하나를 화면에 반영하는 경로가 이 로직을
+// 공유한다 — 후자는 응답 바디에 이미 최신 day 상태가 실려 있어(ItineraryService의
+// DayVersionConflictException) 별도 조회 없이 바로 이 함수로 reconcile할 수 있다.
+export function mapDayItemsToStops(
+  dayId: string,
+  rawItems: ItineraryItemResponse[] | undefined,
+  dayIdx: number,
+  totalDays: number,
+  timeBounds?: TripTimeBoundsLike | null,
+): BaseStop[] {
+  const items = [...(rawItems ?? [])].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+
+  // 시각은 항목마다 따로 맞추지 않고 하루치를 한 번에 정한다(resolveDayTimes 주석 참고).
+  const dayMinutes = resolveDayTimes(items, dayIdx, totalDays, timeBounds);
+
+  return items.map((item, idx): BaseStop => {
+    const nextItem = items[idx + 1];
+    const placeName = item.spot?.name ?? "장소 미정";
+    const nextPlaceName = nextItem?.spot?.name ?? "";
+    const nextStopId = nextItem?.id ?? `${dayId}-${idx + 1}`;
+    // travelMode/routeType은 최적화가 실행된 뒤에만 채워진다 — 값이 없으면(방금 추가한
+    // 스팟 등) "버스"로 임의 확정하지 않고 transport 자체를 비워서 아직 계산 전임을
+    // 그대로 반영한다.
+    const transportType = resolveTransportType(nextItem?.routeType, nextItem?.travelMode);
+    const legFrom = nextItem?.startStationName ?? placeName;
+    const legTo = nextItem?.endStationName ?? nextPlaceName;
+    const recommendedTransport =
+      nextItem &&
+      transportType &&
+      hasDisplayableTransport(transportType, nextItem.startStationName, nextItem.endStationName)
+        ? {
+            from: placeName,
+            to: nextPlaceName,
+            durationMin: nextItem.travelTimeMin ?? 30,
+            baseDurationMin: nextItem.travelTimeMin ?? 30,
+            // transitDetail이 있으면(버스+지하철 조합 등 환승 포함) 실제 다구간으로,
+            // 없으면 대표값 1구간(routeNo가 있으면 실제 값, 없으면(도보/택시 등) 타입 이름)으로 표시한다.
+            legs: legsFromTransitDetail(nextItem.transitDetail, legFrom, legTo) ?? [
+              {
+                type: transportType,
+                routeName: nextItem.routeNo || transportType,
+                from: legFrom,
+                to: legTo,
+              },
+            ],
+            toStopId: nextStopId,
+          }
+        : undefined;
+
+    return {
+      id: item.id ?? `${dayId}-${idx}`,
+      spotId: item.spot?.id,
+      time: minutesToTime(dayMinutes[idx]),
+      placeName,
+      imageUrl: item.spot?.thumbnailUrl || getFallbackImage(item.spot?.id),
+      category: getCategoryFromKo(item.spot?.collectionCategory ?? "", placeName),
+      // item.spot.visited는 "나(현재 로그인한 사용자)"의 방문인증 여부다(백엔드가
+      // userId 기준으로 계산해서 내려줌) — 그룹 일정이어도 다른 멤버의 인증 여부가
+      // 섞이지 않는다.
+      status: item.spot?.visited ? "completed" : "verify",
+      // 여행 메모(실데이터)만 우선 보여준다 — 없으면 TimelinePlaceDetailPopup이
+      // spotId로 실제 관광지 소개글을 조회해서 보여준다(useSpotDetail).
+      description: item.memo,
+      address: item.spot?.address,
+      mapUrl: item.spot
+        ? `https://map.kakao.com/link/map/${encodeURIComponent(placeName)},${item.spot.lat},${item.spot.lng}`
+        : `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,
+      isBookmarked: item.spot?.collected,
+      transport: recommendedTransport,
+      recommendedTransport,
+    };
+  });
+}
+
 export function mapItineraryDetailToDays(
   detail: ItineraryDetailResponse,
   timeBounds?: TripTimeBoundsLike | null,
@@ -557,76 +632,16 @@ export function mapItineraryDetailToDays(
   days: BaseStop[][];
   dates: string[];
   dayIds: string[];
+  versions: (number | undefined)[];
 } {
   const sortedDays = [...(detail.days ?? [])].sort(
     (a, b) => (a.dayNumber ?? 0) - (b.dayNumber ?? 0),
   );
   const totalDays = sortedDays.length;
 
-  const days = sortedDays.map((day, dayIdx) => {
-    const items = [...(day.items ?? [])].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
-
-    // 시각은 항목마다 따로 맞추지 않고 하루치를 한 번에 정한다(resolveDayTimes 주석 참고).
-    const dayMinutes = resolveDayTimes(items, dayIdx, totalDays, timeBounds);
-
-    return items.map((item, idx): BaseStop => {
-      const nextItem = items[idx + 1];
-      const placeName = item.spot?.name ?? "장소 미정";
-      const nextPlaceName = nextItem?.spot?.name ?? "";
-      const nextStopId = nextItem?.id ?? `${day.id}-${idx + 1}`;
-      // travelMode/routeType은 최적화가 실행된 뒤에만 채워진다 — 값이 없으면(방금 추가한
-      // 스팟 등) "버스"로 임의 확정하지 않고 transport 자체를 비워서 아직 계산 전임을
-      // 그대로 반영한다.
-      const transportType = resolveTransportType(nextItem?.routeType, nextItem?.travelMode);
-      const legFrom = nextItem?.startStationName ?? placeName;
-      const legTo = nextItem?.endStationName ?? nextPlaceName;
-      const recommendedTransport =
-        nextItem &&
-        transportType &&
-        hasDisplayableTransport(transportType, nextItem.startStationName, nextItem.endStationName)
-          ? {
-              from: placeName,
-              to: nextPlaceName,
-              durationMin: nextItem.travelTimeMin ?? 30,
-              baseDurationMin: nextItem.travelTimeMin ?? 30,
-              // transitDetail이 있으면(버스+지하철 조합 등 환승 포함) 실제 다구간으로,
-              // 없으면 대표값 1구간(routeNo가 있으면 실제 값, 없으면(도보/택시 등) 타입 이름)으로 표시한다.
-              legs: legsFromTransitDetail(nextItem.transitDetail, legFrom, legTo) ?? [
-                {
-                  type: transportType,
-                  routeName: nextItem.routeNo || transportType,
-                  from: legFrom,
-                  to: legTo,
-                },
-              ],
-              toStopId: nextStopId,
-            }
-          : undefined;
-
-      return {
-        id: item.id ?? `${day.id}-${idx}`,
-        spotId: item.spot?.id,
-        time: minutesToTime(dayMinutes[idx]),
-        placeName,
-        imageUrl: item.spot?.thumbnailUrl || getFallbackImage(item.spot?.id),
-        category: getCategoryFromKo(item.spot?.collectionCategory ?? "", placeName),
-        // item.spot.visited는 "나(현재 로그인한 사용자)"의 방문인증 여부다(백엔드가
-        // userId 기준으로 계산해서 내려줌) — 그룹 일정이어도 다른 멤버의 인증 여부가
-        // 섞이지 않는다.
-        status: item.spot?.visited ? "completed" : "verify",
-        // 여행 메모(실데이터)만 우선 보여준다 — 없으면 TimelinePlaceDetailPopup이
-        // spotId로 실제 관광지 소개글을 조회해서 보여준다(useSpotDetail).
-        description: item.memo,
-        address: item.spot?.address,
-        mapUrl: item.spot
-          ? `https://map.kakao.com/link/map/${encodeURIComponent(placeName)},${item.spot.lat},${item.spot.lng}`
-          : `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,
-        isBookmarked: item.spot?.collected,
-        transport: recommendedTransport,
-        recommendedTransport,
-      };
-    });
-  });
+  const days = sortedDays.map((day, dayIdx) =>
+    mapDayItemsToStops(day.id ?? "", day.items, dayIdx, totalDays, timeBounds),
+  );
 
   const dates = sortedDays.map((day, dayIdx) => {
     const date = resolveDayDate(day.date, dayIdx, detail.startAt);
@@ -636,8 +651,12 @@ export function mapItineraryDetailToDays(
   });
 
   const dayIds = sortedDays.map((day) => day.id ?? "");
+  // 낙관적 락(version) — 프론트가 보관해뒀다가 replaceDayItems/reorderItems 호출 시
+  // expectedVersion으로 실어 보낸다. 서버가 아직 안 내려주면(과거 응답 캐시 등) undefined로
+  // 두고, 호출부는 undefined면 버전 체크를 건너뛰는 걸로 취급한다(구버전 호환과 동일 규칙).
+  const versions = sortedDays.map((day) => day.version);
 
-  return { days, dates, dayIds };
+  return { days, dates, dayIds, versions };
 }
 
 export function rebuildTransport(stops: BaseStop[]): BaseStop[] {

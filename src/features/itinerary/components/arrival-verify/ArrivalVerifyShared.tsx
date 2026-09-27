@@ -19,7 +19,7 @@ export function Notice({ children, icon }: { children: ReactNode; icon?: ReactNo
   return (
     <Card
       variant="glass-sm"
-      className="flex h-[34px] w-full items-center justify-center gap-2 rounded-xl border-[0.5px] border-system-scroll px-3 py-0 text-center"
+      className="flex min-h-[34px] w-full items-center justify-center gap-2 rounded-xl border-[0.5px] border-system-scroll px-3 py-2 text-center"
     >
       {icon}
       <span className="text-sm font-medium text-sub-darkgray">{children}</span>
