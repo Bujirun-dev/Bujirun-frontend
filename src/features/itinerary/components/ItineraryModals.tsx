@@ -189,6 +189,7 @@ export function ItineraryModals({
               routeNo: leg.routeNo,
               stationId: leg.stationId,
               wayCode: leg.wayCode,
+              walkAfterMin: leg.walkAfterMin,
             })),
           })),
         };

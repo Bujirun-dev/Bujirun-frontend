@@ -19,6 +19,8 @@ export interface TransportLeg {
   // 지하철 도착정보(GET /api/transit/arrival/subway) 폴링용 — 둘 다 있을 때만 조회
   stationId?: number;
   wayCode?: number;
+  // 이 구간에서 내린 뒤 걷는 시간(분) — 다음 구간 또는 목적지까지
+  walkAfterMin?: number;
 }
 
 interface TransportCardProps {
@@ -98,6 +100,11 @@ function TransportLegRow({ leg, metaText }: { leg: TransportLeg; metaText?: stri
           <span className="font-normal text-xs text-sub-darkgray truncate">
             {leg.from} → {leg.to}
           </span>
+          {leg.walkAfterMin ? (
+            <span className="font-normal text-xs text-sub-darkgray truncate">
+              {leg.to} 하차 · 도보 {leg.walkAfterMin}분
+            </span>
+          ) : null}
 
           {showArrival && (
             <div

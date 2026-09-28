@@ -287,6 +287,15 @@ interface TravelModeItemLike {
   transitDetail?: components["schemas"]["TransitDetail"];
 }
 
+// 대중교통 구간 바로 다음이 도보 구간이면 그 소요시간(분)을, 아니면(또는 0분이면) undefined를 돌려준다.
+// TransitDetailSegment(trafficType)와 SubPath(type)의 필드명 차이를 둘 다 받는다.
+function walkMinAfter(
+  next: { type?: string; trafficType?: string; sectionTime?: number } | undefined,
+): number | undefined {
+  const isWalk = (next?.trafficType ?? next?.type) === "도보";
+  return isWalk && next?.sectionTime ? next.sectionTime : undefined;
+}
+
 // transitDetail(subPath 배열 전체)이 있으면 실제 다구간(버스+지하철 조합 등 환승 포함)으로,
 // 없으면(레거시 데이터·계산 실패 등) undefined를 돌려줘서 호출부가 대표값 1구간으로 폴백하게 한다.
 function legsFromTransitDetail(
@@ -303,9 +312,12 @@ function legsFromTransitDetail(
       routeNo?: string;
       stationId?: number;
       wayCode?: number;
+      walkAfterMin?: number;
     }[]
   | undefined {
-  const segments = (transitDetail?.segments ?? []).filter(
+  const allSegments = transitDetail?.segments ?? []; // 추가: 도보 구간 조회용 원본 배열
+  // 원본 배열에서 도보 구간 제외
+  const segments = allSegments.filter(
     (s): s is typeof s & { trafficType: TransportType } =>
       !!s.trafficType &&
       s.trafficType !== "도보" &&
@@ -325,6 +337,9 @@ function legsFromTransitDetail(
     // 역코드를 못 찾은 경우(stationId=0)엔 상수 스캔에서 걸러지도록 undefined로 비워둔다.
     stationId: s.subwaySchedule?.stationId || undefined,
     wayCode: s.subwaySchedule?.wayCode,
+    // 하차 후 바로 이어지는 도보 구간의 소요시간(분) — "○○역 하차 · 도보 N분" 표시용.
+    // 도보 구간 자체는 legs에서 빠지므로(combo 판정·legs[0] 타입이 틀어지지 않게) 여기에만 붙인다.
+    walkAfterMin: walkMinAfter(allSegments[allSegments.indexOf(s) + 1]),
   }));
 }
 
@@ -344,9 +359,12 @@ function legsFromSubPaths(
       routeNo?: string;
       stationId?: number;
       wayCode?: number;
+      walkAfterMin?: number;
     }[]
   | undefined {
-  const nonWalk = (subPaths ?? []).filter(
+  const allSubPaths = subPaths ?? []; // 도보 구간 조회용 원본 배열
+  // 원본 배열에서 도보 구간 제외
+  const nonWalk = allSubPaths.filter(
     (sp): sp is typeof sp & { type: TransportType } =>
       !!sp.type && sp.type !== "도보" && TRANSPORT_TYPES.includes(sp.type as TransportType),
   );
@@ -365,6 +383,8 @@ function legsFromSubPaths(
     // legsFromTransitDetail과 동일하게 undefined로 비워둔다.
     stationId: sp.startId || undefined,
     wayCode: sp.wayCode,
+    // 하차 후 바로 이어지는 도보 구간의 소요시간(분) — legsFromTransitDetail과 동일
+    walkAfterMin: walkMinAfter(allSubPaths[allSubPaths.indexOf(sp) + 1]),
   }));
 }
 
