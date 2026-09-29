@@ -45,6 +45,7 @@ export type ModalType =
 interface ItineraryModalsProps {
   modal: ModalType | null;
   activeStop: BaseStop | undefined;
+  activeNextStop?: BaseStop;
   itineraryId: string;
   groupId?: string;
   // GET .../travel-mode/options 조회 결과 — 지하철 전용/버스 전용/버스+지하철 조합/도보/택시
@@ -68,6 +69,7 @@ interface ItineraryModalsProps {
 export function ItineraryModals({
   modal,
   activeStop,
+  activeNextStop,
   itineraryId,
   groupId,
   travelModeOptions,
@@ -211,7 +213,10 @@ export function ItineraryModals({
             onClose={onClose}
             onChange={handleChange}
             onKakaoMapClick={() =>
-              openKakaoMapRoute(transportGroup.fromPlace, transportGroup.toPlace)
+              openKakaoMapRoute(
+                { name: fromPlace, lat: activeStop?.lat, lng: activeStop?.lng },
+                { name: toPlace, lat: activeNextStop?.lat, lng: activeNextStop?.lng },
+              )
             }
           />
         ) : null;

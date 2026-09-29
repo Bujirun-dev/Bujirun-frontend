@@ -26,6 +26,9 @@ export interface TransportOption {
 export interface TransportGroup {
   fromPlace: string;
   toPlace: string;
+  // 카카오맵 길찾기 좌표 — 없으면 장소 이름으로 키워드 검색한다.
+  fromLocation?: { lat?: number; lng?: number };
+  toLocation?: { lat?: number; lng?: number };
   selectedOptionId: string;
   options: TransportOption[];
 }

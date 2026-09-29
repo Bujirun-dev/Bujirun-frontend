@@ -342,7 +342,11 @@ export function ItineraryMain({
     showToast,
   });
 
-  const activeStop = stopsPerDay[activeDayIdx]?.find((s) => s.id === activeStopId);
+  const activeDayStops = stopsPerDay[activeDayIdx] ?? [];
+  const activeStopIdx = activeDayStops.findIndex((s) => s.id === activeStopId);
+  const activeStop = activeStopIdx >= 0 ? activeDayStops[activeStopIdx] : undefined;
+  // 이동수단 모달의 도착지(카카오맵 길찾기 좌표용) — transport는 "이 스팟 → 다음 스팟" 구간이다.
+  const activeNextStop = activeStopIdx >= 0 ? activeDayStops[activeStopIdx + 1] : undefined;
   const selectedRouteOptionId = getActiveTransportOptionId(activeStop);
 
   const closeModal = () => setModal(null);
@@ -581,6 +585,7 @@ export function ItineraryMain({
       <ItineraryModals
         modal={modal}
         activeStop={activeStop}
+        activeNextStop={activeNextStop}
         itineraryId={itineraryId}
         groupId={groupId}
         travelModeOptions={travelModeOptions}
