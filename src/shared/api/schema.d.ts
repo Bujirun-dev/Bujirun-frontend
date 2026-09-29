@@ -1977,6 +1977,8 @@ export interface components {
         };
         CreateGroupRequest: {
             name?: string;
+            /** Format: int32 */
+            maxMembers?: number;
         };
         ApiResponseGroupResponse: {
             success?: boolean;
@@ -1990,6 +1992,8 @@ export interface components {
             inviteCode?: string;
             /** Format: uuid */
             createdBy?: string;
+            /** Format: int32 */
+            maxMembers?: number;
             /** Format: date-time */
             createdAt?: string;
         };
@@ -2314,6 +2318,8 @@ export interface components {
             inviterNickname?: string;
             /** Format: int64 */
             memberCount?: number;
+            /** Format: int32 */
+            maxMembers?: number;
             completed?: boolean;
             /** Format: uuid */
             itineraryId?: string;
