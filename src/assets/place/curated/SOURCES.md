@@ -25,5 +25,11 @@ The originals above were supplied directly to the project owner on 2026-09-29.
 - `imrang-caravan-park.jpg` — 임랑카라반파크, Korea Tourism Organization GoCamping campsite `2597`.
 - `pretty-whale-shop.jpg` — 고래서이뻐, Busan Metropolitan City / Visit Busan content `2581`, image `44334`.
 - `hamjigol-youth-center.jpg` — 함지골청소년수련관, Busan City Tour attraction archive `idx=135`.
+- `yeongdo-shooting-range.jpg` — 영도관광실탄사격장, Korea Tourism Organization TourAPI image `2445446`, KOGL Type 1.
+- `busan-modern-history-annex.jpg` — 부산근현대역사관 별관, National Museum of Korean Contemporary History museum network.
+- `busan-modern-history-main.jpg` — 부산근현대역사관 본관, Korea Tourism Organization TourAPI image `3083763`, KOGL Type 1.
+- `flunitea.jpg` — 플루니티, Busan Metropolitan City / Visit Busan content `1737`, image `31360`.
+- `twenty-five-volunteer-corps.jpg` — 25의용단, Korea Tourism Organization TourAPI image `1561644`, KOGL Type 1.
+- `connect-hyundai-busan.jpg` — 커넥트현대 부산, Hyundai Department Store official blog (`CONNECTHYUNDAI`, 2024-09-20).
 
 Images are used as local fallbacks only when the production API has no thumbnail.
