@@ -160,10 +160,50 @@ export function TransportCard({
     selected === false ? "bg-main-white" : "bg-system-navbg",
     className,
   );
-  const metaText = `${formatTransportDuration(durationMin)}${cost !== undefined ? ` · ${cost.toLocaleString()}원` : ""}`;
+  // 도보는 요금이 없으니 "0원"을 붙이지 않는다 — 요금 0 전체를 숨기면 대중교통 요금 누락이 가려진다.
+  const isWalkOnly = legs.every((leg) => leg.type === "도보");
+  const metaText = `${formatTransportDuration(durationMin)}${cost !== undefined && !isWalkOnly ? ` · ${cost.toLocaleString()}원` : ""}`;
+  // 버스/지하철 구간이 없는(택시/도보) 카드는 펼쳐도 헤더와 같은 내용이라 접기/펼치기 없이 보여준다.
+  const isTransit = legs.some((leg) =>
+    ARRIVAL_VISIBLE_TYPES.includes(leg.type as (typeof ARRIVAL_VISIBLE_TYPES)[number]),
+  );
 
-  // 단일 leg (택시/도보/환승 없는 버스 등): 점 없이 심플 레이아웃
+  // 단일 leg (환승 없는 버스 등): 점 없이 심플 레이아웃
   const isSimple = legs.length === 1 && !legs[0].walkBefore && !legs[0].walkAfter;
+
+  const summary = (
+    <>
+      <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
+        {legs.map((leg, index) => (
+          <Fragment key={index}>
+            {index > 0 && <span className="shrink-0 text-sm text-sub-gray">›</span>}
+            <div className="flex min-w-0 items-center gap-1">
+              <TransportTypeIcon type={leg.type} small />
+              <span className="min-w-0 truncate font-semibold text-sm text-text-heading">
+                {leg.routeName}
+              </span>
+            </div>
+          </Fragment>
+        ))}
+      </div>
+      <span className="shrink-0 font-semibold text-xs text-sub-darkgray whitespace-nowrap">
+        {metaText}
+      </span>
+    </>
+  );
+
+  if (!isTransit) {
+    return (
+      <div className={cardBase}>
+        <button type="button" onClick={onLegsClick} className="block w-full min-w-0 text-left">
+          <div className="flex min-w-0 items-center gap-2">{summary}</div>
+          <span className="mt-1 block truncate font-normal text-xs text-sub-darkgray">
+            {from} → {to}
+          </span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={cardBase}>
@@ -173,22 +213,7 @@ export function TransportCard({
         onClick={() => setIsExpanded((prev) => !prev)}
         className="flex w-full min-w-0 items-center gap-2 text-left"
       >
-        <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
-          {legs.map((leg, index) => (
-            <Fragment key={index}>
-              {index > 0 && <span className="shrink-0 text-sm text-sub-gray">›</span>}
-              <div className="flex min-w-0 items-center gap-1">
-                <TransportTypeIcon type={leg.type} small />
-                <span className="min-w-0 truncate font-semibold text-sm text-text-heading">
-                  {leg.routeName}
-                </span>
-              </div>
-            </Fragment>
-          ))}
-        </div>
-        <span className="shrink-0 font-semibold text-xs text-sub-darkgray whitespace-nowrap">
-          {metaText}
-        </span>
+        {summary}
         <ChevronDown
           className={cn(
             "size-4 shrink-0 text-sub-gray transition-transform",
