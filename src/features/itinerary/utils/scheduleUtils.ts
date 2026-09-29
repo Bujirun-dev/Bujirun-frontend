@@ -11,6 +11,22 @@ import placeImage4 from "@/assets/place/place4.png";
 import placeImage5 from "@/assets/place/place5.png";
 import placeImage6 from "@/assets/place/place6.png";
 import placeImage7 from "@/assets/place/place7.png";
+import unSculptureParkImage from "@/assets/place/curated/un-sculpture-park.jpg";
+import gadeokdoYeondaebongImage from "@/assets/place/curated/gadeokdo-yeondaebong.jpg";
+import huinnyeoulCoastalTunnelImage from "@/assets/place/curated/huinnyeoul-coastal-tunnel.jpg";
+import oryukdoSunriseParkImage from "@/assets/place/curated/oryukdo-sunrise-park.jpg";
+import gukjeMarketImage from "@/assets/place/curated/gukje-market.jpg";
+import hwangnyeongsanObservatoryImage from "@/assets/place/curated/hwangnyeongsan-observatory.jpg";
+import yeongjuSkyEyeObservatoryImage from "@/assets/place/curated/yeongju-sky-eye-observatory.jpg";
+import cheonmasanSkyObservatoryImage from "@/assets/place/curated/cheonmasan-sky-observatory.jpg";
+import jeoryeongCoastalTrailImage from "@/assets/place/curated/jeoryeong-coastal-trail.jpg";
+import gamjiBeachImage from "@/assets/place/curated/gamji-beach.jpg";
+import sunriseObservatoryImage from "@/assets/place/curated/sunrise-observatory.jpg";
+import myeongjiMarketImage from "@/assets/place/curated/myeongji-market.jpg";
+import imrangCaravanParkImage from "@/assets/place/curated/imrang-caravan-park.jpg";
+import prettyWhaleShopImage from "@/assets/place/curated/pretty-whale-shop.jpg";
+import hamjigolYouthCenterImage from "@/assets/place/curated/hamjigol-youth-center.jpg";
+import gwangalliSupZoneImage from "@/assets/place/curated/gwangalli-sup-zone.jpg";
 
 type ItineraryDetailResponse = components["schemas"]["ItineraryDetailResponse"];
 type TravelLogDetailResponse = components["schemas"]["TravelLogDetailResponse"];
@@ -54,11 +70,67 @@ const FALLBACK_IMAGES = [
   placeImage7,
 ];
 
+// TourAPI에 대표 이미지가 없는 관광지는 실제 장소 사진을 이름으로 매칭한다. API 이미지가
+// 생기면 호출부의 thumbnailUrl이 항상 우선하므로 이 목록은 자동으로 폴백 역할만 한다.
+const CURATED_SPOT_IMAGES: Record<string, string> = {
+  "2945389": unSculptureParkImage.src,
+  un조각공원: unSculptureParkImage.src,
+  유엔조각공원: unSculptureParkImage.src,
+  "2726843": gadeokdoYeondaebongImage.src,
+  가덕도연대봉: gadeokdoYeondaebongImage.src,
+  "2606221": huinnyeoulCoastalTunnelImage.src,
+  흰여울해안터널: huinnyeoulCoastalTunnelImage.src,
+  영도흰여울해안터널: huinnyeoulCoastalTunnelImage.src,
+  "2870289": oryukdoSunriseParkImage.src,
+  오륙도해맞이공원: oryukdoSunriseParkImage.src,
+  "132191": gukjeMarketImage.src,
+  국제시장: gukjeMarketImage.src,
+  국제시장먹자골목: gukjeMarketImage.src,
+  "2733472": hwangnyeongsanObservatoryImage.src,
+  황령산전망대: hwangnyeongsanObservatoryImage.src,
+  "2721157": yeongjuSkyEyeObservatoryImage.src,
+  영주하늘눈전망대: yeongjuSkyEyeObservatoryImage.src,
+  "2721158": cheonmasanSkyObservatoryImage.src,
+  천마산하늘전망대: cheonmasanSkyObservatoryImage.src,
+  "252561": jeoryeongCoastalTrailImage.src,
+  절영해안산책로: jeoryeongCoastalTrailImage.src,
+  "2785289": gamjiBeachImage.src,
+  감지해변: gamjiBeachImage.src,
+  "3017347": sunriseObservatoryImage.src,
+  해돋이전망대: sunriseObservatoryImage.src,
+  "2742601": myeongjiMarketImage.src,
+  명지시장: myeongjiMarketImage.src,
+  "2741535": imrangCaravanParkImage.src,
+  임랑카라반파크: imrangCaravanParkImage.src,
+  부산카라반파크: imrangCaravanParkImage.src,
+  "3336600": prettyWhaleShopImage.src,
+  고래서이뻐: prettyWhaleShopImage.src,
+  고래서이뻐해리단길: prettyWhaleShopImage.src,
+  "131452": hamjigolYouthCenterImage.src,
+  함지골청소년수련관: hamjigolYouthCenterImage.src,
+  "2708019": gwangalliSupZoneImage.src,
+  "2814084": gwangalliSupZoneImage.src,
+  광안리supzone: gwangalliSupZoneImage.src,
+  광안리섭존: gwangalliSupZoneImage.src,
+};
+
+function normalizeSpotName(value?: string): string {
+  return (value ?? "")
+    .normalize("NFC")
+    .toLocaleLowerCase("ko-KR")
+    .replace(/[\s·()\-_]/g, "");
+}
+
 // 예전엔 picsum.photos(외부 랜덤 이미지)를 썼는데, 외부 서비스가 느리거나 죽으면
 // 대체 이미지마저 안 뜬다 — 관광공사 썸네일(tong.visitkorea.or.kr)이 503을 뱉는
 // 상황에서 폴백까지 외부에 의존할 이유가 없어서 로컬 에셋으로 바꿨다.
 // seed(보통 spotId)로 고르기 때문에 같은 관광지는 항상 같은 사진이 나가고 깜빡이지 않는다.
-export function getFallbackImage(seed?: string): string {
+export function getFallbackImage(seed?: string, spotName?: string): string {
+  const curatedImage =
+    CURATED_SPOT_IMAGES[normalizeSpotName(spotName)] ??
+    CURATED_SPOT_IMAGES[normalizeSpotName(seed)];
+  if (curatedImage) return curatedImage;
+
   const key = seed || "busan";
   let hash = 0;
   for (let i = 0; i < key.length; i += 1) {
@@ -156,7 +228,7 @@ export function buildDaysFromTravelLogDetail(
         imageUrl:
           item.spotThumbnailUrl ||
           (item.spotId ? spotThumbnails?.get(item.spotId) : undefined) ||
-          getFallbackImage(item.spotId),
+          getFallbackImage(item.spotId, placeName),
         category: getCategoryFromKo(item.spotCollectionCategory ?? "", placeName),
         status: "verify",
         // description/운영시간/문의처는 TimelinePlaceDetailPopup이 spotId로 실제 데이터를
@@ -654,7 +726,7 @@ export function mapDayItemsToStops(
       spotId: item.spot?.id,
       time: minutesToTime(dayMinutes[idx]),
       placeName,
-      imageUrl: item.spot?.thumbnailUrl || getFallbackImage(item.spot?.id),
+      imageUrl: item.spot?.thumbnailUrl || getFallbackImage(item.spot?.id, placeName),
       category: getCategoryFromKo(item.spot?.collectionCategory ?? "", placeName),
       // item.spot.visited는 "나(현재 로그인한 사용자)"의 방문인증 여부다(백엔드가
       // userId 기준으로 계산해서 내려줌) — 그룹 일정이어도 다른 멤버의 인증 여부가

@@ -1,0 +1,29 @@
+# Curated place image sources
+
+All application images in this directory are normalized to 1200×800 JPEG (3:2).
+
+## Provided project assets
+
+- `oryukdo-sunrise-park.jpg` — 오륙도해맞이공원
+- `hwangnyeongsan-observatory.jpg` — 황령산 전망대
+- `huinnyeoul-coastal-tunnel.jpg` — 영도 흰여울해안터널
+- `un-sculpture-park.jpg` — UN 조각공원
+- `gamji-beach.jpg` — 감지해변
+- `gukje-market.jpg` — 국제시장
+- `jeoryeong-coastal-trail.jpg` — 절영해안산책로
+- `sunrise-observatory.jpg` — 해돋이전망대
+- `yeongju-sky-eye-observatory.jpg` — 영주하늘눈전망대
+- `cheonmasan-sky-observatory.jpg` — 천마산하늘전망대
+- `gadeokdo-yeondaebong.jpg` — 가덕도 연대봉
+
+The originals above were supplied directly to the project owner on 2026-09-29.
+
+## Public/official sources
+
+- `myeongji-market.jpg` — 명지시장, Korea Tourism Organization TourAPI image `2742575`, KOGL Type 1.
+- `gwangalli-sup-zone.jpg` — 광안리 SUP Zone, Korea Tourism Organization TourAPI image `2708007`, KOGL Type 1.
+- `imrang-caravan-park.jpg` — 임랑카라반파크, Korea Tourism Organization GoCamping campsite `2597`.
+- `pretty-whale-shop.jpg` — 고래서이뻐, Busan Metropolitan City / Visit Busan content `2581`, image `44334`.
+- `hamjigol-youth-center.jpg` — 함지골청소년수련관, Busan City Tour attraction archive `idx=135`.
+
+Images are used as local fallbacks only when the production API has no thumbnail.
