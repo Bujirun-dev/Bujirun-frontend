@@ -15,9 +15,12 @@ import {
   deleteStop as yDeleteStop,
   logActivity as yLogActivity,
   observeActivityLog,
+  observeSharedAccommodation,
   observeYjsDays,
   pushOptimizedOrder as yPushOptimizedOrder,
   readActivityLog,
+  setSharedAccommodation,
+  type SharedAccommodation,
   readStopsFromYjs,
   reconcileDayWithServer,
   reconcileTransportFromRest,
@@ -123,6 +126,8 @@ export function useCollaborativeItinerary(
   // 캐시에 옛 응답이 남아 있으면, 앱 안에서 이 화면에 다시 들어올 때 그 옛 응답으로 문서가
   // 시딩돼 "바꾼 시간이 저장되지 않은 것처럼" 보였다(새로고침하면 캐시가 없어 정상).
   onFlushed?: () => void,
+  // 다른 참여자가 숙소를 바꿨을 때(저장 성공 후 공유된 값). null이면 숙소를 지운 것.
+  onRemoteAccommodation?: (place: SharedAccommodation | null) => void,
 ) {
   // 문서는 빈 채로 만든다. 시딩은 아래 useEffect에서, WS 동기화가 끝나 원격(Redis)에
   // 이미 있던 days가 doc에 먼저 반영된 뒤에 한다 — 그래야 seedYjsDays의 "로컬 문서가
@@ -632,6 +637,29 @@ export function useCollaborativeItinerary(
     };
   }, [doc, synced]);
 
+  const onRemoteAccommodationRef = useRef(onRemoteAccommodation);
+  useEffect(() => {
+    onRemoteAccommodationRef.current = onRemoteAccommodation;
+  });
+
+  // 활동 로그와 같은 이유로 WS 동기화가 끝난 뒤부터만 반응한다 — 동기화 중에 들어오는
+  // Redis의 옛 숙소 값까지 "원격 변경"으로 받아 방금 불러온 DB 값을 덮어쓰면 안 된다.
+  useEffect(() => {
+    let started = false;
+    const start = () => {
+      started = true;
+    };
+    if (synced) start();
+    const timer = window.setTimeout(start, SEED_FALLBACK_MS);
+    const unobserve = observeSharedAccommodation(doc, (place) => {
+      if (started) onRemoteAccommodationRef.current?.(place);
+    });
+    return () => {
+      window.clearTimeout(timer);
+      unobserve();
+    };
+  }, [doc, synced]);
+
   const logActivity = (action: ActivityAction, placeName: string) => {
     yLogActivity(doc, currentUser?.nickname ?? "누군가", action, placeName);
   };
@@ -656,6 +684,12 @@ export function useCollaborativeItinerary(
     collaboratorsByStop,
     setFocusedStop,
     logActivity,
+    // 숙소 저장이 성공한 뒤 호출한다 — 저장 전에 공유하면 실패했을 때 다른 사람 화면에만
+    // 바뀐 값이 남는다.
+    publishAccommodation: (place: SharedAccommodation | null) => {
+      setSharedAccommodation(doc, place);
+      yLogActivity(doc, currentUser?.nickname ?? "누군가", "accommodation", place?.name ?? "");
+    },
     // 로그 불러오기처럼 "한 번에 크게 바뀌는" 확정적인 액션 직후엔, 2초 디바운스를
     // 기다리지 않고 바로 저장한다 — 사용자가 결과를 보자마자 새로고침해보면 디바운스
     // 타이머가 끝나기 전에 페이지가 죽어서 저장 기회를 잃을 수 있다.
