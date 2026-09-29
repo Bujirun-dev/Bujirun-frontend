@@ -27,6 +27,17 @@ export function selectItinerary<T extends ItinerarySummaryForSelection>(
   const requested = itineraries.find((trip) => trip.id === requestedTripId);
   if (requested) return requested;
 
+  // 일정 탭을 처음 열었을 때만 아래의 진행 중/가장 가까운 예정 일정을 기본으로 고른다.
+  // 이후에는 사용자가 실제로 열어본 일정을 먼저 복원해야 다른 탭에 다녀왔을 때 편집하던
+  // 일정이 갑자기 가장 가까운 일정으로 바뀌지 않는다. 종료됐거나 삭제된 일정은 복원하지
+  // 않고 다시 기본 선택으로 내려보낸다.
+  const lastViewed = itineraries.find(
+    (trip) =>
+      trip.id === lastViewedItineraryId &&
+      (!trip.endAt || trip.endAt.slice(0, 10) >= today),
+  );
+  if (lastViewed) return lastViewed;
+
   const ongoing = itineraries.filter(
     (trip) =>
       trip.startAt &&
@@ -34,9 +45,6 @@ export function selectItinerary<T extends ItinerarySummaryForSelection>(
       trip.startAt.slice(0, 10) <= today &&
       trip.endAt.slice(0, 10) >= today,
   );
-  const lastViewed = ongoing.find((trip) => trip.id === lastViewedItineraryId);
-  if (lastViewed) return lastViewed;
-
   const upcoming = itineraries.filter((trip) => trip.startAt && trip.startAt.slice(0, 10) > today);
   // 종료된 여행은 자동 선택에서 제외하고, 날짜 없는 기존 일정은 마지막 후보로 남긴다.
   const candidates = ongoing.length
