@@ -27,6 +27,9 @@ import imrangCaravanParkImage from "@/assets/place/curated/imrang-caravan-park.j
 import prettyWhaleShopImage from "@/assets/place/curated/pretty-whale-shop.jpg";
 import hamjigolYouthCenterImage from "@/assets/place/curated/hamjigol-youth-center.jpg";
 import gwangalliSupZoneImage from "@/assets/place/curated/gwangalli-sup-zone.jpg";
+import yeongdoShootingRangeImage from "@/assets/place/curated/yeongdo-shooting-range.jpg";
+import busanModernHistoryAnnexImage from "@/assets/place/curated/busan-modern-history-annex.jpg";
+import busanModernHistoryMainImage from "@/assets/place/curated/busan-modern-history-main.jpg";
 
 type ItineraryDetailResponse = components["schemas"]["ItineraryDetailResponse"];
 type TravelLogDetailResponse = components["schemas"]["TravelLogDetailResponse"];
@@ -112,6 +115,15 @@ const CURATED_SPOT_IMAGES: Record<string, string> = {
   "2814084": gwangalliSupZoneImage.src,
   광안리supzone: gwangalliSupZoneImage.src,
   광안리섭존: gwangalliSupZoneImage.src,
+  "131943": yeongdoShootingRangeImage.src,
+  영도관광실탄사격장: yeongdoShootingRangeImage.src,
+  영도관광사격장: yeongdoShootingRangeImage.src,
+  "2784363": busanModernHistoryAnnexImage.src,
+  부산근현대역사관별관: busanModernHistoryAnnexImage.src,
+  부산근대역사관: busanModernHistoryAnnexImage.src,
+  "3083767": busanModernHistoryMainImage.src,
+  부산근현대역사관: busanModernHistoryMainImage.src,
+  부산근현대역사관본관: busanModernHistoryMainImage.src,
 };
 
 function normalizeSpotName(value?: string): string {
