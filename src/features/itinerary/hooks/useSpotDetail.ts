@@ -59,7 +59,8 @@ export function useSpotDetail(spotId: string | undefined, fallback: UseSpotDetai
 
   const name = spot?.name || fallback.name || "";
   const place: PlaceDetailData = {
-    imageUrl: spot?.thumbnailUrl || fallback.imageUrl || getFallbackImage(spot?.spotId ?? spotId),
+    imageUrl:
+      spot?.thumbnailUrl || fallback.imageUrl || getFallbackImage(spot?.spotId ?? spotId, name),
     name,
     category: fallback.category ?? getCategoryFromKo(spot?.collectionCategory ?? ""),
     description: spot?.overview || fallback.description || "",
