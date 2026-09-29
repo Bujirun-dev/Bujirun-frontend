@@ -63,17 +63,16 @@ function pickBackfillOption(options: RouteOption[]): RouteOption | undefined {
   return usable[0];
 }
 
-// 옵션(RouteOption)을 타임라인이 쓰는 transport 형태로 옮긴다. from/to는 응답에 들어있는
-// 실제 정류장·역명(legs)을 그대로 쓰고, 그게 없을 때만 장소 이름으로 떨어진다 —
-// buildTransportFromItem(startStationName ?? placeName)과 같은 기준이다. 여기서 새로
-// 지어내는 값은 없다.
+// 옵션(RouteOption)을 타임라인이 쓰는 transport 형태로 옮긴다. from/to는 경로 카드의
+// 양 끝(출발·도착) 노드라 이전/다음 장소 이름을 쓴다 — buildTransportFromItem과 같은 기준이다.
+// 정류장·역명은 legs 안에 그대로 있다.
 function toTransport(
   option: RouteOption,
   target: BackfillTarget,
 ): NonNullable<BaseStop["transport"]> {
   return {
-    from: option.legs[0]?.from || target.fromPlaceName,
-    to: option.legs[option.legs.length - 1]?.to || target.toPlaceName,
+    from: target.fromPlaceName,
+    to: target.toPlaceName,
     durationMin: option.durationMin,
     baseDurationMin: option.durationMin,
     cost: option.cost,

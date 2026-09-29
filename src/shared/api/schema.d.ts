@@ -1533,6 +1533,8 @@ export interface components {
             routeNo?: string;
             /** Format: int32 */
             sectionTime?: number;
+            /** Format: int32 */
+            distance?: number;
             startArsId?: string;
             subwaySchedule?: components["schemas"]["SubwaySegmentTimetable"];
         };
@@ -1939,6 +1941,8 @@ export interface components {
             wayCode?: number;
             /** Format: int32 */
             remainMinutes?: number;
+            /** Format: int32 */
+            distance?: number;
         };
         TransitOption: {
             type?: string;
