@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { formatTransportDuration } from "@/shared/utils/formatTransportDuration";
 import Image from "next/image";
 import busIcon from "@/assets/icons/itinerary/bus.svg?url";
@@ -7,6 +8,12 @@ import taxiIcon from "@/assets/icons/itinerary/taxi.svg?url";
 import { cn } from "@/shared/utils";
 import { useLiveArrivalText } from "@/shared/hooks/useLiveArrivalText";
 import type { TransportType } from "@/features/home/types/transport";
+
+// 경로 카드에 그리는 도보 구간 — distanceM이 없으면(도보 거리 저장 전 데이터) min으로 표시
+export interface TransportWalk {
+  distanceM?: number;
+  min?: number;
+}
 
 export interface TransportLeg {
   type: TransportType;
@@ -21,6 +28,10 @@ export interface TransportLeg {
   wayCode?: number;
   // 이 구간에서 내린 뒤 걷는 시간(분) — 다음 구간 또는 목적지까지
   walkAfterMin?: number;
+  // 출발지 → 이 구간 탑승 전 도보 (첫 구간에만)
+  walkBefore?: TransportWalk;
+  // 이 구간 하차 → 다음 구간 탑승(환승) 또는 도착지까지 도보
+  walkAfter?: TransportWalk;
 }
 
 interface TransportCardProps {
@@ -100,12 +111,6 @@ function TransportLegRow({ leg, metaText }: { leg: TransportLeg; metaText?: stri
           <span className="font-normal text-xs text-sub-darkgray truncate">
             {leg.from} → {leg.to}
           </span>
-          {leg.walkAfterMin ? (
-            <span className="font-normal text-xs text-sub-darkgray truncate">
-              {leg.to} 하차 · 도보 {leg.walkAfterMin}분
-            </span>
-          ) : null}
-
           {showArrival && (
             <div
               onClick={handleArrivalClick}
@@ -131,6 +136,21 @@ function TransportLegRow({ leg, metaText }: { leg: TransportLeg; metaText?: stri
   );
 }
 
+// 도보 구간 한 줄 — 아이콘 칸은 비워서 카드의 세로 점선이 그대로 지나가게 한다.
+function TransportWalkRow({ walk, isTransfer }: { walk: TransportWalk; isTransfer?: boolean }) {
+  const amount =
+    walk.distanceM !== undefined ? `${walk.distanceM.toLocaleString()}m` : `${walk.min}분`;
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-6 shrink-0" />
+      <span className="truncate font-normal text-xs text-sub-darkgray">
+        도보 {amount}
+        {isTransfer && " · 환승"}
+      </span>
+    </div>
+  );
+}
+
 export function TransportCard({
   from,
   to,
@@ -150,7 +170,7 @@ export function TransportCard({
   const metaText = `${formatTransportDuration(durationMin)}${cost !== undefined ? ` · ${cost.toLocaleString()}원` : ""}`;
 
   // 단일 leg (택시/도보/환승 없는 버스 등): 점 없이 심플 레이아웃
-  if (legs.length === 1) {
+  if (legs.length === 1 && !legs[0].walkBefore && !legs[0].walkAfter) {
     return (
       <div className={cardBase}>
         <div className="flex min-w-0 items-center gap-3">
@@ -198,9 +218,15 @@ export function TransportCard({
         </div>
 
         {legs.map((leg, index) => (
-          <div key={index} className="flex items-center gap-3">
-            <TransportLegRow leg={leg} metaText={index === 0 ? metaText : undefined} />
-          </div>
+          <Fragment key={index}>
+            {leg.walkBefore && <TransportWalkRow walk={leg.walkBefore} />}
+            <div className="flex items-center gap-3">
+              <TransportLegRow leg={leg} metaText={index === 0 ? metaText : undefined} />
+            </div>
+            {leg.walkAfter && (
+              <TransportWalkRow walk={leg.walkAfter} isTransfer={index < legs.length - 1} />
+            )}
+          </Fragment>
         ))}
 
         {/* 도착 */}

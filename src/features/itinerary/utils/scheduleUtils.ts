@@ -1,4 +1,5 @@
 import type { ItineraryStop, RouteOption } from "../components";
+import type { TransportWalk } from "../components/TransportCard";
 import type { TransportType } from "@/features/home/types/transport";
 import { getCategoryFromKo } from "@/shared/constants/category";
 import { resolveDayDate } from "@/shared/utils/resolveDayDate";
@@ -296,6 +297,20 @@ function walkMinAfter(
   return isWalk && next?.sectionTime ? next.sectionTime : undefined;
 }
 
+// 도보 구간이면 경로 카드에 그릴 거리(m)·소요시간(분)을, 아니면 undefined를 돌려준다.
+// ODsay가 환승 사이에 넣는 10m 미만 도보는 숨기고, distance가 없는 기존 저장 데이터는
+// 소요시간만으로 표시한다(그마저 0분이면 숨김).
+function toWalk(
+  segment:
+    | { type?: string; trafficType?: string; sectionTime?: number; distance?: number }
+    | undefined,
+): TransportWalk | undefined {
+  if ((segment?.trafficType ?? segment?.type) !== "도보") return undefined;
+  const { distance, sectionTime } = segment ?? {};
+  if (distance != null ? distance < 10 : !sectionTime) return undefined;
+  return { distanceM: distance ?? undefined, min: sectionTime || undefined };
+}
+
 // transitDetail(subPath 배열 전체)이 있으면 실제 다구간(버스+지하철 조합 등 환승 포함)으로,
 // 없으면(레거시 데이터·계산 실패 등) undefined를 돌려줘서 호출부가 대표값 1구간으로 폴백하게 한다.
 function legsFromTransitDetail(
@@ -312,7 +327,8 @@ function legsFromTransitDetail(
       routeNo?: string;
       stationId?: number;
       wayCode?: number;
-      walkAfterMin?: number;
+      walkBefore?: TransportWalk;
+      walkAfter?: TransportWalk;
     }[]
   | undefined {
   const allSegments = transitDetail?.segments ?? []; // 추가: 도보 구간 조회용 원본 배열
@@ -337,9 +353,10 @@ function legsFromTransitDetail(
     // 역코드를 못 찾은 경우(stationId=0)엔 상수 스캔에서 걸러지도록 undefined로 비워둔다.
     stationId: s.subwaySchedule?.stationId || undefined,
     wayCode: s.subwaySchedule?.wayCode,
-    // 하차 후 바로 이어지는 도보 구간의 소요시간(분) — "○○역 하차 · 도보 N분" 표시용.
-    // 도보 구간 자체는 legs에서 빠지므로(combo 판정·legs[0] 타입이 틀어지지 않게) 여기에만 붙인다.
-    walkAfterMin: walkMinAfter(allSegments[allSegments.indexOf(s) + 1]),
+    // 도보 구간 자체는 legs에서 빠지므로(combo 판정·legs[0] 타입이 틀어지지 않게) 앞뒤 leg에 붙인다.
+    // walkBefore는 출발지 → 첫 탑승 구간이라 첫 leg에만 둔다.
+    walkBefore: allSegments.indexOf(s) === 1 ? toWalk(allSegments[0]) : undefined,
+    walkAfter: toWalk(allSegments[allSegments.indexOf(s) + 1]),
   }));
 }
 
@@ -360,6 +377,8 @@ function legsFromSubPaths(
       stationId?: number;
       wayCode?: number;
       walkAfterMin?: number;
+      walkBefore?: TransportWalk;
+      walkAfter?: TransportWalk;
     }[]
   | undefined {
   const allSubPaths = subPaths ?? []; // 도보 구간 조회용 원본 배열
@@ -385,6 +404,8 @@ function legsFromSubPaths(
     wayCode: sp.wayCode,
     // 하차 후 바로 이어지는 도보 구간의 소요시간(분) — legsFromTransitDetail과 동일
     walkAfterMin: walkMinAfter(allSubPaths[allSubPaths.indexOf(sp) + 1]),
+    walkBefore: allSubPaths.indexOf(sp) === 1 ? toWalk(allSubPaths[0]) : undefined,
+    walkAfter: toWalk(allSubPaths[allSubPaths.indexOf(sp) + 1]),
   }));
 }
 
@@ -414,8 +435,8 @@ export function buildTransportFromItem(
   ];
 
   return {
-    from,
-    to,
+    from: fromPlaceName,
+    to: toPlaceName,
     durationMin,
     baseDurationMin: durationMin,
     cost,
