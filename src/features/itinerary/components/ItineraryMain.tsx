@@ -50,6 +50,10 @@ const ACTIVITY_MESSAGES: Record<ActivityAction, (entry: ActivityLogEntry) => str
   replace: (e) => `${e.actorName}님이 장소를 ${e.placeName}(으)로 바꿨어요.`,
   optimize: (e) => `${e.actorName}님이 일정을 최적화했어요.`,
   import: (e) => `${e.actorName}님이 다른 여행 기록을 불러왔어요.`,
+  accommodation: (e) =>
+    e.placeName
+      ? `${e.actorName}님이 숙소를 ${e.placeName}(으)로 변경했어요.`
+      : `${e.actorName}님이 숙소를 삭제했어요.`,
 };
 
 // 상세 조회 응답 타입 — 스키마가 바뀌어도 따라가도록 API 함수 반환 타입에서 뽑는다.
@@ -142,13 +146,10 @@ export function ItineraryMain({
   // TODO(백엔드 연동 예정): 숙소는 저장되지만 동선/시간 AI 최적화(onOptimizeClick,
   // ItineraryOptimizeRequest)엔 아직 반영 안 된다. 최적화 요청에 숙소 좌표를 출발/도착
   // 기준점으로 넘기려면 최적화 API에 좌표 필드 추가가 먼저 필요함.
-  const handleAccommodationChange = (place: AccommodationPlace | null) => {
-    const previous = accommodation;
-    setAccommodation(place);
-
-    // 화면의 숙소는 마운트 시점 상세 응답으로 초기화된다. 저장만 하고 상세 캐시를
-    // 그대로 두면, 다른 화면에 갔다가 staleTime(60초) 안에 돌아왔을 때 옛 응답으로
-    // 다시 초기화돼 방금 저장한 숙소가 사라진 것처럼 보였다.
+  // 화면의 숙소는 마운트 시점 상세 응답으로 초기화된다. 숙소가 바뀌었는데 상세 캐시를
+  // 그대로 두면, 다른 화면에 갔다가 staleTime(60초) 안에 돌아왔을 때 옛 응답으로
+  // 다시 초기화돼 방금 바뀐 숙소가 사라진 것처럼 보였다.
+  const syncAccommodationCache = (place: AccommodationPlace | null) => {
     queryClient.setQueryData<ItineraryDetailData>(itineraryApi.keys.detail(itineraryId), (prev) =>
       prev
         ? {
@@ -160,6 +161,12 @@ export function ItineraryMain({
           }
         : prev,
     );
+  };
+
+  const handleAccommodationChange = (place: AccommodationPlace | null) => {
+    const previous = accommodation;
+    setAccommodation(place);
+    syncAccommodationCache(place);
 
     itineraryApi
       .updateItinerary(itineraryId, {
@@ -172,6 +179,8 @@ export function ItineraryMain({
         accommodationLng: place?.lng,
       })
       .then(() => {
+        // 저장이 끝난 값만 같이 보고 있는 참여자에게 공유한다(실시간 반영).
+        publishAccommodation(place);
         // 서버가 정규화한 값으로 최종 동기화.
         queryClient.invalidateQueries({ queryKey: itineraryApi.keys.detail(itineraryId) });
       })
@@ -259,6 +268,7 @@ export function ItineraryMain({
     pushOptimizedOrder: pushYjsOptimizedOrder,
     replaceStopsWithImportedLog: replaceYjsStopsWithImportedLog,
     shiftFollowingStopTimes: shiftYjsFollowingStopTimes,
+    publishAccommodation,
   } = useCollaborativeItinerary(
     itineraryId,
     dayIdsSliced,
@@ -283,6 +293,11 @@ export function ItineraryMain({
     () => {
       queryClient.invalidateQueries({ queryKey: itineraryApi.keys.detail(itineraryId) });
       setTransportSyncTick((tick) => tick + 1);
+    },
+    // 다른 참여자가 숙소를 바꾸면 내 화면과 상세 캐시에도 바로 반영한다.
+    (place) => {
+      setAccommodation(place);
+      syncAccommodationCache(place);
     },
   );
 

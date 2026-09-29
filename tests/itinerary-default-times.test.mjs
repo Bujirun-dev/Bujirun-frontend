@@ -15,7 +15,7 @@ function load(relativePath) {
   }).outputText;
   const exports = {};
   const resolve = (name) => {
-    if (name.endsWith(".png")) return { default: { src: name } };
+    if (/\.(png|jpe?g|webp|gif|svg)$/.test(name)) return { default: { src: name } };
     if (name.startsWith("@/") || name.startsWith(".")) {
       const target = name.startsWith("@/")
         ? path.join(root, "src", name.slice(2))
