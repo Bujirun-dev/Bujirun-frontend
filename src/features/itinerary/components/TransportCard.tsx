@@ -91,7 +91,7 @@ function TransportTypeIcon({ type, small }: { type: TransportType; small?: boole
 // leg 하나(아이콘 + 노선명/구간 + 실시간 도착 배지)를 그린다. 단일 leg 카드와 다구간
 // 카드가 레이아웃만 다르고 내용은 동일해서 공통 컴포넌트로 뺐다 — arsId가 있는 버스,
 // stationId가 있는 지하철 leg는 useLiveArrivalText로 30초마다 폴링해 배지에 남은 시간을 보여준다.
-function TransportLegRow({ leg }: { leg: TransportLeg }) {
+function TransportLegRow({ leg, metaText }: { leg: TransportLeg; metaText?: string }) {
   const { text: arrivalText, refetch, isFetching } = useLiveArrivalText(leg);
   const showArrival =
     !!arrivalText &&
@@ -109,10 +109,21 @@ function TransportLegRow({ leg }: { leg: TransportLeg }) {
       <TransportTypeIcon type={leg.type} />
       <div className="flex flex-1 items-center justify-between min-w-0 gap-2">
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <div className="flex min-h-6 min-w-0 items-center">
+          {/* metaText가 있는 택시/도보 카드는 아이콘을 두 줄 가운데에 두는 기존 레이아웃이라 노선명 줄 높이를 맞추지 않는다. */}
+          <div
+            className={cn(
+              "flex min-w-0 items-center justify-between gap-2",
+              metaText === undefined && "min-h-6",
+            )}
+          >
             <span className="min-w-0 truncate font-semibold text-md text-text-heading leading-none">
               {leg.routeName}
             </span>
+            {metaText && (
+              <span className="shrink-0 font-semibold text-xs text-sub-darkgray whitespace-nowrap">
+                {metaText}
+              </span>
+            )}
           </div>
           <span className="font-normal text-xs text-sub-darkgray truncate">
             {leg.from} → {leg.to}
@@ -195,11 +206,12 @@ export function TransportCard({
   if (!isTransit) {
     return (
       <div className={cardBase}>
-        <button type="button" onClick={onLegsClick} className="block w-full min-w-0 text-left">
-          <div className="flex min-w-0 items-center gap-2">{summary}</div>
-          <span className="mt-1 block truncate font-normal text-xs text-sub-darkgray">
-            {from} → {to}
-          </span>
+        <button
+          type="button"
+          onClick={onLegsClick}
+          className="flex w-full min-w-0 items-center gap-3 text-left"
+        >
+          <TransportLegRow leg={legs[0]} metaText={metaText} />
         </button>
       </div>
     );
