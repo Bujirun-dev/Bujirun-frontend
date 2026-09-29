@@ -12,6 +12,7 @@ export interface TransportLegItemData {
   routeNo?: string;
   stationId?: number;
   wayCode?: number;
+  walkAfterMin?: number;
 }
 
 interface TransportLegItemProps {
@@ -58,6 +59,12 @@ export function TransportLegItem({ leg, metaText, className }: TransportLegItemP
         </svg>
         <span className="break-words">{leg.to}</span>
       </div>
+
+      {leg.walkAfterMin ? (
+        <div className="text-sm text-sub-darkgray leading-snug">
+          {leg.to} 하차 · 도보 {leg.walkAfterMin}분
+        </div>
+      ) : null}
 
       {arrivalText && shouldShowArrival ? (
         <div

@@ -12,6 +12,7 @@ export interface TransportStep {
   // 지하철 도착정보(GET /api/transit/arrival/subway) 폴링용 — 둘 다 있을 때만 조회
   stationId?: number;
   wayCode?: number;
+  walkAfterMin?: number;
 }
 
 export interface TransportOption {
