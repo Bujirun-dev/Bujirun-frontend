@@ -5,6 +5,7 @@ import {
   rebuildTransport,
   roundToNearest10,
   timeToMinutes,
+  toHourMinute,
 } from "@/features/itinerary/utils/scheduleUtils";
 
 const DAYS_KEY = "days";
@@ -57,6 +58,9 @@ function fromItemMap(map: Y.Map<unknown>): BaseStop {
   // 예전 버전이 만들어둔 room엔 아직 "status":"completed" 같은 값이 남아있을 수 있는데,
   // 그걸 그대로 읽어버리면 옛날 버그(팀 전체 공유)가 재발한다.
   delete stop.status;
+  // room에는 백엔드 LocalTime 그대로("15:30:00") 들어간 값이 남아있을 수 있다 — 표시(고정 폭
+  // 시간 버튼)와 같은 시각 비교(findStopAtTime)가 둘 다 "HH:mm"에 의존하므로 읽을 때 맞춘다.
+  if (typeof stop.time === "string") stop.time = toHourMinute(stop.time) ?? stop.time;
   return stop as BaseStop;
 }
 
