@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Bujirun frontend application",
     start_url: "/",
     display: "standalone",
-    background_color: "#ecf5ff",
-    theme_color: "#ecf5ff",
+    background_color: "#97c1ff",
+    theme_color: "#97c1ff",
     icons: [
       {
         src: "/icons/icon-192.png",

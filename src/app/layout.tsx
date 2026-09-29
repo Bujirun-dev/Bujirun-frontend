@@ -15,7 +15,11 @@ export const metadata: Metadata = {
     title: "Bujirun",
   },
   icons: {
-    icon: "/images/invite-character.png",
+    icon: [
+      { url: "/icons/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico" },
+    ],
     apple: "/icons/apple-touch-icon.png",
   },
 };
@@ -25,7 +29,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#ecf5ff",
+  themeColor: "#97c1ff",
   interactiveWidget: "resizes-content",
 };
 
