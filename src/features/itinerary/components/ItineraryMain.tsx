@@ -391,6 +391,7 @@ export function ItineraryMain({
     stopsPerDay,
     tripTimeBounds,
     modal,
+    closeModal,
     updateYjsStopTransport,
     shiftYjsFollowingStopTimes,
     showToast,

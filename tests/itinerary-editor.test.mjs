@@ -62,14 +62,22 @@ test("최적화 시각을 종료 시간 안에서 중복 없이 배치한다", (
   }
 });
 
-function transportFixture({ fail = false, capped = false, empty = false } = {}) {
+function transportFixture({
+  fail = false,
+  capped = false,
+  empty = false,
+  optionsError = false,
+} = {}) {
   const calls = [];
   const first = { id: "first", placeName: "출발", time: "10:00", transport: { toStopId: "next" } };
   const next = { id: "next", placeName: "도착", time: "10:30" };
   const { useItineraryTransport: createTransportActions } = load(
     "src/features/itinerary/hooks/useItineraryTransport.ts",
     {
-      "@tanstack/react-query": { useQuery: () => ({ data: [] }) },
+      react: { useEffect: (effect) => effect() },
+      "@tanstack/react-query": {
+        useQuery: () => (optionsError ? { data: undefined, isError: true } : { data: [] }),
+      },
       "@/shared/api/domains": {
         itineraryApi: {
           keys: { travelModeOptions: (...args) => args },
@@ -93,6 +101,7 @@ function transportFixture({ fail = false, capped = false, empty = false } = {}) 
       stopsPerDay: [empty ? [first] : [first, next]],
       tripTimeBounds: { startTime: "09:00", endTime: "18:00" },
       modal: "transport",
+      closeModal: () => calls.push(["close"]),
       updateYjsStopTransport: (...args) => calls.push(["transport", ...args]),
       shiftYjsFollowingStopTimes: (...args) => {
         calls.push(["shift", ...args]);
@@ -102,6 +111,13 @@ function transportFixture({ fail = false, capped = false, empty = false } = {}) 
     }),
   };
 }
+
+test("교통 옵션 조회가 실패하면 안내 후 모달을 닫는다", () => {
+  const { calls } = transportFixture({ optionsError: true });
+  assert.equal(calls[0][0], "toast");
+  assert.equal(calls[0][2], "error");
+  assert.deepEqual(calls[1], ["close"]);
+});
 
 test("교통 API는 도착 항목을 갱신하고 Yjs 변경 후 다음 시간을 조정한다", async () => {
   const { confirmTransport, calls } = transportFixture();
