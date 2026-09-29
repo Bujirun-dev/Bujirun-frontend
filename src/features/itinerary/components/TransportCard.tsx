@@ -138,7 +138,8 @@ function TransportLegRow({ leg, metaText }: { leg: TransportLeg; metaText?: stri
 
 // 도보 구간 한 줄 — 아이콘 칸은 비워서 카드의 세로 점선이 그대로 지나가게 한다.
 function TransportWalkRow({ walk, isTransfer }: { walk: TransportWalk; isTransfer?: boolean }) {
-  const amount = walk.distanceM !== undefined ? `${walk.distanceM.toLocaleString()}m` : `${walk.min}분`;
+  const amount =
+    walk.distanceM !== undefined ? `${walk.distanceM.toLocaleString()}m` : `${walk.min}분`;
   return (
     <div className="flex items-center gap-3">
       <div className="w-6 shrink-0" />
