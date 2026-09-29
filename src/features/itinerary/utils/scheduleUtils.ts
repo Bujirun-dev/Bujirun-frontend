@@ -258,6 +258,8 @@ export function buildDaysFromTravelLogDetail(
         // description/운영시간/문의처는 TimelinePlaceDetailPopup이 spotId로 실제 데이터를
         // 조회해서 보여준다(useSpotDetail) — 여기서 가짜 문구로 채우지 않는다.
         address: item.spotAddress ?? "부산광역시",
+        lat: item.spotLat,
+        lng: item.spotLng,
         mapUrl: `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,
         isBookmarked: undefined,
         // 여행 로그엔 실제 이동수단/경로 데이터가 없어서(스팟 이름·시간만 내려옴) "버스"로
@@ -760,6 +762,8 @@ export function mapDayItemsToStops(
       // spotId로 실제 관광지 소개글을 조회해서 보여준다(useSpotDetail).
       description: item.memo,
       address: item.spot?.address,
+      lat: item.spot?.lat,
+      lng: item.spot?.lng,
       mapUrl: item.spot
         ? `https://map.kakao.com/link/map/${encodeURIComponent(placeName)},${item.spot.lat},${item.spot.lng}`
         : `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,

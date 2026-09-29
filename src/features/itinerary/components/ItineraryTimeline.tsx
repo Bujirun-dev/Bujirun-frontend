@@ -41,6 +41,10 @@ export interface ItineraryStop {
   status: PlaceStatus;
   description?: string;
   address?: string;
+  // 카카오맵 길찾기 좌표 — 없으면(좌표 추가 전 공동편집 문서, 검색으로 막 추가한 장소)
+  // 길찾기가 장소 이름으로 키워드 검색한다.
+  lat?: number;
+  lng?: number;
   mapUrl?: string;
   isBookmarked?: boolean;
   relatedLogs?: { id: string; imageUrl: string; userName: string }[];

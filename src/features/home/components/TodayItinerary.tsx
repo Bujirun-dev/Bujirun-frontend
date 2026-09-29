@@ -89,6 +89,8 @@ function buildTransportGroup(
   fromPlace: string,
   toPlace: string,
   leg?: TransitLegSource,
+  fromLocation?: TransportGroup["fromLocation"],
+  toLocation?: TransportGroup["toLocation"],
 ): TransportGroup | null {
   const type = resolveTransportType(leg);
   if (!type) return null;
@@ -115,6 +117,8 @@ function buildTransportGroup(
   return {
     fromPlace,
     toPlace,
+    fromLocation,
+    toLocation,
     selectedOptionId: "actual",
     options: [option],
   };
@@ -334,7 +338,7 @@ export function TodayItinerary() {
             const nextPlaceName = nextPlan?.spot?.name;
             // 이동 정보는 도착 스팟(nextPlan)에 저장된 실제 값을 그대로 쓴다.
             const transportGroup = nextPlaceName
-              ? buildTransportGroup(placeName, nextPlaceName, nextPlan)
+              ? buildTransportGroup(placeName, nextPlaceName, nextPlan, plan.spot, nextPlan.spot)
               : null;
             const selectedOptionId = transportGroup
               ? (selectedOptionIdByRoute[getTransportRouteKey(transportGroup)] ??
@@ -444,7 +448,10 @@ export function TodayItinerary() {
             onChange={handleChangeTransportOption}
             onKakaoMapClick={() =>
               selectedTransportGroup &&
-              openKakaoMapRoute(selectedTransportGroup.fromPlace, selectedTransportGroup.toPlace)
+              openKakaoMapRoute(
+                { name: selectedTransportGroup.fromPlace, ...selectedTransportGroup.fromLocation },
+                { name: selectedTransportGroup.toPlace, ...selectedTransportGroup.toLocation },
+              )
             }
           />
         )}

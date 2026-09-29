@@ -402,8 +402,13 @@ export function reconcileTransportFromRest(
       const items = getItemsArray(doc, dayIdx);
       if (!items) return;
       items.toArray().forEach((map) => {
-        if (map.get("transport") !== undefined) return;
         const restStop = restStopsById.get(map.get("id") as string);
+        // 좌표(카카오맵 길찾기용) 필드가 생기기 전에 시딩된 방도 같은 방식으로 채워 넣는다.
+        if (map.get("lat") === undefined && restStop?.lat != null && restStop.lng != null) {
+          map.set("lat", restStop.lat);
+          map.set("lng", restStop.lng);
+        }
+        if (map.get("transport") !== undefined) return;
         if (!restStop?.transport) return;
         map.set("transport", restStop.transport);
         if (restStop.recommendedTransport !== undefined) {
