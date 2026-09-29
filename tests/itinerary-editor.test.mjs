@@ -17,7 +17,7 @@ function load(relativePath, mocks = {}) {
   const exports = {};
   const resolve = (name) => {
     if (name in mocks) return mocks[name];
-    if (name.endsWith(".png")) return { default: { src: name } };
+    if (/\.(png|jpe?g|webp|gif|svg)$/.test(name)) return { default: { src: name } };
     if (name.startsWith("@/") || name.startsWith(".")) {
       const target = name.startsWith("@/")
         ? path.join(root, "src", name.slice(2))
@@ -69,6 +69,7 @@ function transportFixture({
   optionsError = false,
 } = {}) {
   const calls = [];
+  const invalidated = [];
   const first = { id: "first", placeName: "출발", time: "10:00", transport: { toStopId: "next" } };
   const next = { id: "next", placeName: "도착", time: "10:30" };
   const { useItineraryTransport: createTransportActions } = load(
@@ -77,10 +78,11 @@ function transportFixture({
       react: { useEffect: (effect) => effect() },
       "@tanstack/react-query": {
         useQuery: () => (optionsError ? { data: undefined, isError: true } : { data: [] }),
+        useQueryClient: () => ({ invalidateQueries: (arg) => invalidated.push(arg) }),
       },
       "@/shared/api/domains": {
         itineraryApi: {
-          keys: { travelModeOptions: (...args) => args },
+          keys: { travelModeOptions: (...args) => args, detail: (id) => ["detail", id] },
           updateTravelMode: async (...args) => {
             calls.push(["api", ...args]);
             if (fail) throw Error("network");
@@ -92,6 +94,7 @@ function transportFixture({
   );
   return {
     calls,
+    invalidated,
     ...createTransportActions({
       itineraryId: "trip",
       dayIdsSliced: ["day"],
@@ -120,8 +123,9 @@ test("교통 옵션 조회가 실패하면 안내 후 모달을 닫는다", () =
 });
 
 test("교통 API는 도착 항목을 갱신하고 Yjs 변경 후 다음 시간을 조정한다", async () => {
-  const { confirmTransport, calls } = transportFixture();
+  const { confirmTransport, calls, invalidated } = transportFixture();
   assert.equal(await confirmTransport({ id: "walk", durationMin: 60, cost: 0 }), true);
+  assert.deepEqual(invalidated, [{ queryKey: ["detail", "trip"] }]);
   assert.deepEqual(calls[0], ["api", "trip", "day", "next", { travelMode: "walk" }]);
   assert.equal(calls[1][0], "transport");
   assert.deepEqual(calls[2], ["shift", 0, "first", 30, 1080]);

@@ -16,7 +16,14 @@ const ACTIVITY_LOG_KEY = "activityLog";
 const ACTIVITY_LOG_HARD_LIMIT = 2000;
 const ACTIVITY_LOG_TRIM_CHUNK = 500;
 
-export type ActivityAction = "add" | "delete" | "time" | "replace" | "optimize" | "import";
+export type ActivityAction =
+  | "add"
+  | "delete"
+  | "time"
+  | "replace"
+  | "optimize"
+  | "import"
+  | "accommodation";
 
 export interface ActivityLogEntry {
   id: string;
@@ -32,6 +39,41 @@ function getDaysArray(doc: Y.Doc): Y.Array<Y.Map<unknown>> {
 
 function getMeta(doc: Y.Doc): Y.Map<unknown> {
   return doc.getMap(META_KEY);
+}
+
+// 숙소는 일정 항목이 아니라 일정 자체의 값이라 DB(PATCH /itineraries/{id})가 기준이다.
+// 공동편집 문서엔 "누가 방금 저장한 최신 숙소"만 실어 다른 참여자 화면에 바로 반영되게 한다
+// — 예전엔 로컬 state로만 들고 있어서 다른 사람이 바꿔도 새로고침 전까지 안 보였다.
+// null이면 숙소를 지운 것이다.
+export interface SharedAccommodation {
+  name: string;
+  address: string;
+  lat?: number;
+  lng?: number;
+}
+
+const ACCOMMODATION_KEY = "accommodation";
+
+export function setSharedAccommodation(doc: Y.Doc, place: SharedAccommodation | null): void {
+  getMeta(doc).set(
+    ACCOMMODATION_KEY,
+    place ? { name: place.name, address: place.address, lat: place.lat, lng: place.lng } : null,
+  );
+}
+
+// 문서에 이미 있던 값은 알리지 않고, 이후 "다른 참여자가" 바꾼 값만 넘긴다. 입장할 때는
+// 방금 받은 DB 값이 더 정확하므로 Redis에 남아 있던 옛 값으로 덮어쓰지 않기 위함이다.
+export function observeSharedAccommodation(
+  doc: Y.Doc,
+  callback: (place: SharedAccommodation | null) => void,
+): () => void {
+  const meta = getMeta(doc);
+  const handler = (event: Y.YMapEvent<unknown>) => {
+    if (event.transaction.local || !event.keysChanged.has(ACCOMMODATION_KEY)) return;
+    callback((meta.get(ACCOMMODATION_KEY) as SharedAccommodation | null | undefined) ?? null);
+  };
+  meta.observe(handler);
+  return () => meta.unobserve(handler);
 }
 
 // status(방문인증 완료 여부)는 일부러 여기서 빼고 저장한다 — 이건 "나"의 인증 여부라
