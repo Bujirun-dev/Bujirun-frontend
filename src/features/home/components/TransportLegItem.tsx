@@ -60,12 +60,6 @@ export function TransportLegItem({ leg, metaText, className }: TransportLegItemP
         <span className="break-words">{leg.to}</span>
       </div>
 
-      {leg.walkAfterMin ? (
-        <div className="text-sm text-sub-darkgray leading-snug">
-          {leg.to} 하차 · 도보 {leg.walkAfterMin}분
-        </div>
-      ) : null}
-
       {arrivalText && shouldShowArrival ? (
         <div
           onClick={() => refetch()}
