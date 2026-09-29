@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { itineraryApi } from "@/shared/api/domains";
 import type { RouteOption, ModalType } from "@/features/itinerary";
@@ -23,6 +24,7 @@ interface TransportParams {
   stopsPerDay: BaseStop[][];
   tripTimeBounds: TripTimeBounds | null;
   modal: ModalType | null;
+  closeModal: () => void;
   updateYjsStopTransport: Collaboration["updateStopTransport"];
   shiftYjsFollowingStopTimes: Collaboration["shiftFollowingStopTimes"];
   showToast: ShowToast;
@@ -36,6 +38,7 @@ export function useItineraryTransport({
   stopsPerDay,
   tripTimeBounds,
   modal,
+  closeModal,
   updateYjsStopTransport,
   shiftYjsFollowingStopTimes,
   showToast,
@@ -50,7 +53,11 @@ export function useItineraryTransport({
   // "첫 번째 방문 항목은 이동수단 옵션이 없습니다"를 잘못 던진다(2026-08-19 버그 리포트).
   const travelModeOptionsDayId = dayIdsSliced[activeDayIdx];
   const travelModeTargetItemId = activeStop?.transport?.toStopId;
-  const { data: travelModeOptions } = useQuery({
+  const {
+    data: travelModeOptions,
+    isError: isTravelModeOptionsError,
+    isSuccess: isTravelModeOptionsLoaded,
+  } = useQuery({
     queryKey: itineraryApi.keys.travelModeOptions(
       itineraryId ?? "",
       travelModeOptionsDayId ?? "",
@@ -67,7 +74,23 @@ export function useItineraryTransport({
       !!itineraryId &&
       !!travelModeOptionsDayId &&
       !!travelModeTargetItemId,
+    // 400/404(구간이 아직 저장 전이거나 순서가 바뀐 직후)는 다시 물어봐도 같은 결과라,
+    // 기본 3회 재시도(약 7초)를 기다리는 동안 배너를 눌러도 아무 반응이 없어 보였다.
+    retry: 1,
   });
+
+  // 이동수단 모달은 옵션이 1개 이상 와야 열린다(ItineraryModals). 조회가 실패하거나 비어
+  // 있으면 모달 상태만 "transport"로 남은 채 아무것도 안 떠서 "배너가 안 눌린다"로 보였다
+  // (2026-09-29 운영). 이유를 알리고 모달 상태를 닫는다.
+  const travelModeOptionsEmpty =
+    isTravelModeOptionsLoaded && (travelModeOptions?.length ?? 0) === 0;
+  useEffect(() => {
+    if (modal !== "transport") return;
+    if (!isTravelModeOptionsError && !travelModeOptionsEmpty) return;
+    showToast("이동 경로를 불러오지 못했어요. 잠시 후 다시 시도해주세요.", "error");
+    closeModal();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modal, isTravelModeOptionsError, travelModeOptionsEmpty]);
   // 이동수단 변경은 프론트에서 소요시간/역명을 추정하지 않고, 백엔드가 ODsay로 실제
   // 재계산한 경로(진짜 역명·노선번호)를 받아와 반영한다 — 예전엔 로컬에서 "장소명역" 같은
   // 이름을 지어내서 실제로 존재하지 않는 역이 표시되는 문제가 있었다.

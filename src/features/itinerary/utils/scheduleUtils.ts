@@ -23,12 +23,18 @@ export type SpotSearchResponse = components["schemas"]["SpotSearchResponse"];
 // of truth)은 항상 백엔드다.
 export const MAX_STOPS_PER_DAY = 10;
 
-// 서버 응답을 받기 전까지 로컬 state에서 새 항목을 식별하기 위한 임시 id (Date.now/crypto 같은
-// impure 호출을 렌더 함수 안에서 쓰지 않도록 모듈 스코프 카운터로 대체).
-let tempStopIdCounter = 0;
-export function nextTempStopId(): string {
-  tempStopIdCounter += 1;
-  return `temp-${tempStopIdCounter}`;
+// 로그 불러오기로 만든 항목의 임시 id. 로그 항목 기준으로 "정해진" 값을 쓴다 — 예전엔
+// 브라우저마다 temp-1부터 세는 카운터라, 두 사람이 같은 로그를 동시에 불러오면 서로 다른
+// 항목이 같은 id로 섞이고(엉뚱한 항목에 실제 id가 붙음) 관광지가 두 배로 들어가 같은 시각이
+// 겹쳐 저장이 거부됐다(2026-09-29 운영). 정해진 id면 동시에 불러와도 두 사람의 항목 id가
+// 같아서, node-yjs가 같은 id 중복을 하나로 정리한다(roomFlushManager.dedupeDayItems).
+function importedLogStopId(
+  logId: string | undefined,
+  dayNumber: number,
+  index: number,
+  itemId?: string,
+) {
+  return itemId ? `temp-log-${itemId}` : `temp-log-${logId ?? "unknown"}-${dayNumber}-${index}`;
 }
 
 // 관광지 썸네일이 없을 때 쓰는 대체 이미지. seed를 안 주면(레거시 호출부 호환용) 항상 같은
@@ -128,8 +134,10 @@ export function buildDaysFromTravelLogDetail(
   const days = sortedDays.map((day) => {
     const items = [...(day.items ?? [])].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
     // toStopId(다음 스팟 id)를 rebuildTransport()가 참조하려면 순서대로 미리 확정돼있어야
-    // 해서, map 안에서 그때그때 nextTempStopId()를 부르는 대신 배열로 먼저 뽑아둔다.
-    const ids = items.map(() => nextTempStopId());
+    // 해서, map 안에서 그때그때 만드는 대신 배열로 먼저 뽑아둔다.
+    const ids = items.map((item, idx) =>
+      importedLogStopId(log.id, day.dayNumber ?? 0, idx, item.id),
+    );
     // 시각은 항목마다 따로 채우지 않고 하루치를 한 번에 정한다(resolveImportedLogTimes 주석 참고).
     const dayMinutes = resolveImportedLogTimes(items.map((item) => item.arrivalTime));
 
