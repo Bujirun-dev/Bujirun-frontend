@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { itineraryApi } from "@/shared/api/domains";
 import type { RouteOption, ModalType } from "@/features/itinerary";
 import type { TripTimeBounds } from "@/shared/utils/tripTimeBounds";
@@ -43,6 +43,7 @@ export function useItineraryTransport({
   shiftYjsFollowingStopTimes,
   showToast,
 }: TransportParams) {
+  const queryClient = useQueryClient();
   // 이동수단 변경 모달을 열 때만 후보(지하철 전용/버스 전용/버스+지하철 조합/도보/택시)와
   // 각각의 실제 요금·소요시간을 조회한다 — 확정 전 미리보기라 매번 새로 계산된 값이 필요하다.
   //
@@ -124,6 +125,10 @@ export function useItineraryTransport({
       showToast("교통수단 변경에 실패했어요.", "error");
       return false;
     }
+    // 교통수단 변경은 node-yjs 저장을 거치지 않고 DB에 바로 반영돼서, 저장 완료 신호로
+    // 상세 캐시가 무효화되지 않는다 — 홈("오늘의 일정")이 캐시(staleTime 60초)에 남은
+    // 옛 교통수단을 그대로 보여줬다(2026-09-29 운영). 성공하면 바로 무효화한다.
+    void queryClient.invalidateQueries({ queryKey: itineraryApi.keys.detail(itineraryId) });
 
     const transport = buildTransportFromItem(
       updatedItem,
