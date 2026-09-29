@@ -66,6 +66,19 @@ export default function TripsPage() {
 
   const trips: Trip[] = (summaries ?? [])
     .filter((summary) => !isPastTrip(summary.endAt))
+    // API 응답 순서에 의존하지 않고 여행 시작일이 빠른 순서로 고정한다.
+    // 날짜가 없는 구버전 데이터는 정상적인 일정 뒤로 보내고, 같은 날이면 시작 시간이
+    // 빠른 일정부터 보여준다. filter가 새 배열을 만들기 때문에 쿼리 캐시는 변경하지 않는다.
+    .sort((a, b) => {
+      if (!a.startAt) return b.startAt ? 1 : 0;
+      if (!b.startAt) return -1;
+
+      const dateOrder = a.startAt.localeCompare(b.startAt);
+      if (dateOrder !== 0) return dateOrder;
+      return (toHourMinute(a.startTime) ?? "00:00").localeCompare(
+        toHourMinute(b.startTime) ?? "00:00",
+      );
+    })
     .map((summary) => ({
       id: summary.id ?? "",
       name: summary.title ?? "제목 없음",
