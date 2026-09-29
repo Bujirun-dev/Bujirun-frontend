@@ -96,7 +96,7 @@ export function TripSetupForm() {
     }
     setIsCreating(true);
     try {
-      const group = await groupApi.createGroup({ name: tripName });
+      const group = await groupApi.createGroup({ name: tripName, maxMembers: friendCount });
       const startDT = parseTripDateTime(startDate);
       const endDT = parseTripDateTime(endDate);
       const pad2 = (n: number) => String(n).padStart(2, "0");

@@ -12,7 +12,14 @@ import { formatTripPeriod } from "@/shared/utils";
 import { KakaoLoginButton } from "@/components/ui/KakaoLoginButton";
 import { LoadingState } from "@/components";
 
-type JoinStatus = "checking" | "unauthenticated" | "joining" | "success" | "closed" | "error";
+type JoinStatus =
+  | "checking"
+  | "unauthenticated"
+  | "joining"
+  | "success"
+  | "full"
+  | "closed"
+  | "error";
 
 function PageLoadingFallback() {
   return <LoadingState />;
@@ -50,6 +57,8 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
     retry: false,
     staleTime: 60_000,
   });
+  // 정원이 찼더라도 기존 멤버의 재접속은 허용해야 하므로 공개 미리보기만 보고 막지 않는다.
+  // 실제 신규 참여 여부는 인증된 join API가 서버에서 판별한다.
   const displayedStatus: JoinStatus = invitePreview?.completed ? "closed" : status;
 
   useEffect(() => {
@@ -121,7 +130,8 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
         .catch((error) => {
           if (cancelled) return;
           if (axios.isAxiosError(error) && error.response?.status === 409) {
-            setStatus("closed");
+            const message = String(error.response.data?.message ?? "");
+            setStatus(message.includes("정원") ? "full" : "closed");
             return;
           }
           setStatus("error");
@@ -204,6 +214,23 @@ function JoinGroupContent({ params }: { params: Promise<{ code: string }> }) {
               ‘{groupName || invitePreview?.groupName || "여행"}’은(는) 이미 완성된 일정이에요.
               <br />
               초대 및 투표 참여가 종료됐어요.
+            </p>
+            {periodLine}
+            <button
+              type="button"
+              onClick={() => router.replace("/")}
+              className="mt-[27px] font-paperlogy font-normal text-sm text-text-primary underline decoration-solid underline-offset-2"
+            >
+              홈으로 돌아가기
+            </button>
+          </>
+        )}
+        {displayedStatus === "full" && (
+          <>
+            <p className="font-paperlogy font-medium text-xl text-text-heading text-center leading-[1.45] break-keep text-balance">
+              ‘{groupName || invitePreview?.groupName || "여행"}’은(는) 모집 인원이 모두 찼어요.
+              <br />
+              정원을 초과해 참여할 수 없어요.
             </p>
             {periodLine}
             <button
