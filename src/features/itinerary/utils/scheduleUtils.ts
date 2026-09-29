@@ -27,6 +27,12 @@ import imrangCaravanParkImage from "@/assets/place/curated/imrang-caravan-park.j
 import prettyWhaleShopImage from "@/assets/place/curated/pretty-whale-shop.jpg";
 import hamjigolYouthCenterImage from "@/assets/place/curated/hamjigol-youth-center.jpg";
 import gwangalliSupZoneImage from "@/assets/place/curated/gwangalli-sup-zone.jpg";
+import yeongdoShootingRangeImage from "@/assets/place/curated/yeongdo-shooting-range.jpg";
+import busanModernHistoryAnnexImage from "@/assets/place/curated/busan-modern-history-annex.jpg";
+import busanModernHistoryMainImage from "@/assets/place/curated/busan-modern-history-main.jpg";
+import fluniteaImage from "@/assets/place/curated/flunitea.jpg";
+import twentyFiveVolunteerCorpsImage from "@/assets/place/curated/twenty-five-volunteer-corps.jpg";
+import connectHyundaiBusanImage from "@/assets/place/curated/connect-hyundai-busan.jpg";
 
 type ItineraryDetailResponse = components["schemas"]["ItineraryDetailResponse"];
 type TravelLogDetailResponse = components["schemas"]["TravelLogDetailResponse"];
@@ -112,6 +118,24 @@ const CURATED_SPOT_IMAGES: Record<string, string> = {
   "2814084": gwangalliSupZoneImage.src,
   광안리supzone: gwangalliSupZoneImage.src,
   광안리섭존: gwangalliSupZoneImage.src,
+  "131943": yeongdoShootingRangeImage.src,
+  영도관광실탄사격장: yeongdoShootingRangeImage.src,
+  영도관광사격장: yeongdoShootingRangeImage.src,
+  "2784363": busanModernHistoryAnnexImage.src,
+  부산근현대역사관별관: busanModernHistoryAnnexImage.src,
+  부산근대역사관: busanModernHistoryAnnexImage.src,
+  "3083767": busanModernHistoryMainImage.src,
+  부산근현대역사관: busanModernHistoryMainImage.src,
+  부산근현대역사관본관: busanModernHistoryMainImage.src,
+  "2999905": fluniteaImage.src,
+  플루니티: fluniteaImage.src,
+  "126814": twentyFiveVolunteerCorpsImage.src,
+  "25의용단": twentyFiveVolunteerCorpsImage.src,
+  이십오의용단: twentyFiveVolunteerCorpsImage.src,
+  "3452166": connectHyundaiBusanImage.src,
+  커넥트현대: connectHyundaiBusanImage.src,
+  커넥트현대부산: connectHyundaiBusanImage.src,
+  현대백화점부산점: connectHyundaiBusanImage.src,
 };
 
 function normalizeSpotName(value?: string): string {
