@@ -33,8 +33,7 @@ export function selectItinerary<T extends ItinerarySummaryForSelection>(
   // 않고 다시 기본 선택으로 내려보낸다.
   const lastViewed = itineraries.find(
     (trip) =>
-      trip.id === lastViewedItineraryId &&
-      (!trip.endAt || trip.endAt.slice(0, 10) >= today),
+      trip.id === lastViewedItineraryId && (!trip.endAt || trip.endAt.slice(0, 10) >= today),
   );
   if (lastViewed) return lastViewed;
 
