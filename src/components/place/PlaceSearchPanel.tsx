@@ -169,7 +169,7 @@ export function PlaceSearchPanel({
     collectionCategory: getCategoryFromKo(spot.collectionCategory ?? "", spot.name),
     // 도감에 없는 관광지(isCollection: false)는 수집 여부 배지를 아예 안 보여준다.
     status: getPlaceCollectionStatus(spot),
-    imageUrl: spot.thumbnailUrl || getFallbackImage(spot.spotId ?? spot.name),
+    imageUrl: spot.thumbnailUrl || getFallbackImage(spot.spotId, spot.name),
   }));
 
   const filtered: SearchPlace[] =

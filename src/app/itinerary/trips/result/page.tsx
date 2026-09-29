@@ -72,7 +72,7 @@ function mapPlanOption(planId: string, plan?: PlanOption): Plan {
       places: (d.spots ?? []).map((s, j) => ({
         id: s.contentId ?? `${planId}-${i}-${j}`,
         name: s.name ?? "",
-        image: s.thumbnailUrl || getFallbackImage(s.contentId),
+        image: s.thumbnailUrl || getFallbackImage(s.contentId, s.name),
         category: s.category,
       })),
     })),
