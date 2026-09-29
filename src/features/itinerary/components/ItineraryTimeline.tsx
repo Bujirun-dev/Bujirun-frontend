@@ -420,9 +420,9 @@ export function ItineraryTimeline({
                 {stop.transport && (
                   <div className="mt-5 flex min-w-0">
                     <div className="w-16 shrink-0" />
-                    <button className="min-w-0 flex-1 text-left" onClick={stop.onTransportClick}>
-                      <TransportCard {...stop.transport} />
-                    </button>
+                    <div className="min-w-0 flex-1">
+                      <TransportCard {...stop.transport} onLegsClick={stop.onTransportClick} />
+                    </div>
                   </div>
                 )}
               </div>
