@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { AppShell } from "@/components";
+import { HostWaitingTimeoutModal } from "@/features/itinerary/components/HostWaitingTimeoutModal";
 import "@/styles/globals.css";
 import { fontVariables } from "@/styles/fonts";
 import { Providers } from "./providers";
@@ -50,6 +51,8 @@ export default function RootLayout({
         />
         <Providers>
           <AppShell>{children}</AppShell>
+          {/* 방장이 어느 화면에 있든 취향분석 대기 타임아웃을 알린다 */}
+          <HostWaitingTimeoutModal />
         </Providers>
       </body>
     </html>

@@ -30,5 +30,6 @@ export { TripMembersModal } from "./TripMembersModal";
 export { AccommodationSearchField } from "./AccommodationSearchField";
 export type { AccommodationPlace } from "./AccommodationSearchField";
 export { ItineraryFlowResumeBanner } from "./ItineraryFlowResumeBanner";
+export { HostWaitingTimeoutModal } from "./HostWaitingTimeoutModal";
 export { TripListSkeleton, LogListSkeleton, ItineraryTimelineSkeleton } from "./ItinerarySkeletons";
 export { ReportLogModal } from "./ReportLogModal";
