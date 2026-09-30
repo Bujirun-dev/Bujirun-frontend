@@ -165,7 +165,7 @@ export function TransportCard({
   );
   // 도보는 요금이 없으니 "0원"을 붙이지 않는다 — 요금 0 전체를 숨기면 대중교통 요금 누락이 가려진다.
   const isWalkOnly = legs.every((leg) => leg.type === "도보");
-  const metaText = `${formatTransportDuration(durationMin)}${cost !== undefined && !isWalkOnly ? ` · ${cost.toLocaleString()}원` : ""}`;
+  const metaText = `${formatTransportDuration(durationMin)}${cost != null && !isWalkOnly ? ` · ${cost.toLocaleString()}원` : ""}`;
   // 버스/지하철 구간이 없는(택시/도보) 카드는 펼쳐도 헤더와 같은 내용이라 셰브론 없이 접힌 헤더 한 줄만 보여준다.
   const isTransit = legs.some((leg) =>
     ARRIVAL_VISIBLE_TYPES.includes(leg.type as (typeof ARRIVAL_VISIBLE_TYPES)[number]),
