@@ -25,6 +25,11 @@ import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useVoteSessionPolling } from "@/features/itinerary/hooks/useVoteSessionPolling";
 import type { components } from "@/shared/api/schema";
 import { RecommendationReasonCard } from "@/features/itinerary/components/RecommendationReasonCard";
+import {
+  VoteConfirmedModal,
+  getVoteConfirmedReason,
+  type VoteConfirmedNotice,
+} from "@/features/itinerary/components/VoteConfirmedModal";
 
 const PLAN_LABELS: Record<string, string> = {
   A: "취향 집중형",
@@ -219,15 +224,21 @@ function TripResultContent() {
     }
   };
 
+  // 확정되면 바로 넘기지 않고, 어떤 안으로 왜 정해졌는지 먼저 알린 뒤 넘어간다.
+  const [confirmedNotice, setConfirmedNotice] = useState<VoteConfirmedNotice | null>(null);
+  const showConfirmedNotice = (notice: VoteConfirmedNotice) =>
+    setConfirmedNotice((prev) => prev ?? notice);
+
   // 다른 참여자가 투표한 결과를 A/B/C 탭에 반영하기 위해 투표 현황을 폴링한다.
   // 다른 클라이언트가 먼저 프리패스 등으로 이미 확정해버린 경우, 더 투표할 필요가
   // 없으므로 일정 화면으로 보낸다.
   const { voteStatus } = useVoteSessionPolling(sessionId, {
-    onConfirmed: (_sessionId, itineraryId) => {
-      setToastVariant("itinerary");
-      setToastMessage("이미 일정이 확정됐어요. 일정 화면으로 이동할게요.");
-      window.setTimeout(() => goToNewItinerary(itineraryId), 1500);
-    },
+    onConfirmed: (_sessionId, itineraryId, status) =>
+      showConfirmedNotice({
+        plan: status?.confirmedPlan,
+        reason: getVoteConfirmedReason(status, Math.min(6, Math.max(2, Number(count) || 6))),
+        itineraryId,
+      }),
     onError: () => {
       setToastVariant("error");
       setToastMessage("투표 현황을 불러오지 못했어요.");
@@ -352,9 +363,7 @@ function TripResultContent() {
             }
           : {}),
       });
-      setToastVariant("success");
-      setToastMessage(`방장이 ${activePlan}안을 선택했어요! 🎉`);
-      window.setTimeout(() => goToNewItinerary(newItineraryId), 1800);
+      showConfirmedNotice({ plan: activePlan, reason: "host", itineraryId: newItineraryId });
     } catch {
       setToastVariant("error");
       setToastMessage("일정을 확정하지 못했어요. 다시 시도해주세요.");
@@ -672,6 +681,8 @@ function TripResultContent() {
           * 다른 사람의 일정을 불러오면 현재 일정은 사라져요.
         </p>
       </Modal>
+
+      <VoteConfirmedModal notice={confirmedNotice} onGo={goToNewItinerary} />
 
       <Toast
         isVisible={toastMessage !== null}

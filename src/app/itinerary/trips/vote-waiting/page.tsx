@@ -13,6 +13,11 @@ import { useItineraryGenerationLockStore, useItineraryFlowStore } from "@/shared
 import { useItineraryFlowProgress } from "@/features/itinerary/hooks/useItineraryFlowProgress";
 import { useItineraryFlowTimer } from "@/features/itinerary/hooks/useItineraryFlowTimer";
 import { ItineraryFlowCountdown } from "@/features/itinerary/components/ItineraryFlowCountdown";
+import {
+  VoteConfirmedModal,
+  getVoteConfirmedReason,
+  type VoteConfirmedNotice,
+} from "@/features/itinerary/components/VoteConfirmedModal";
 
 function getWinnerPlan(votes: Record<string, number>): string | null {
   const sorted = Object.entries(votes).sort((a, b) => b[1] - a[1]);
@@ -116,12 +121,22 @@ function VoteWaitingContent() {
     }
   };
 
+  // 확정되면 바로 넘기지 않고, 어떤 안으로 왜 정해졌는지 먼저 알린 뒤 넘어간다.
+  const [confirmedNotice, setConfirmedNotice] = useState<VoteConfirmedNotice | null>(null);
+  const showConfirmedNotice = (notice: VoteConfirmedNotice) =>
+    setConfirmedNotice((prev) => prev ?? notice);
+
   // 방장이 finalize를 호출하면 status가 "confirmed"로 바뀐다. 이는 클라이언트가
   // voteCounts로 계산한 winnerPlan/동률 로직과 별개로 백엔드가 실제로 확정했음을
   // 보장하는 신호라서, 동률이라 방장 선택을 기다리던 참여자를 포함해 전원을
-  // 확실하게 일정 화면으로 보낸다.
+  // 확실하게 일정 화면으로 보낸다(어떤 안으로 정해졌는지 안내한 뒤).
   const { voteStatus } = useVoteSessionPolling(sessionId, {
-    onConfirmed: (_sessionId, itineraryId) => goToNewItinerary(itineraryId),
+    onConfirmed: (_sessionId, itineraryId, status) =>
+      showConfirmedNotice({
+        plan: status?.confirmedPlan,
+        reason: getVoteConfirmedReason(status, totalSlots),
+        itineraryId,
+      }),
     onError: () => {
       setToastVariant("error");
       setToastMessage("투표 현황을 불러오지 못했어요.");
@@ -143,7 +158,8 @@ function VoteWaitingContent() {
     !winnerPlan &&
     !selectedTiePlan &&
     (doneCount >= totalSlots || isHostSkipping);
-  const showTieModal = isTieUnresolved && !isTieDismissed;
+  // 확정 안내가 뜨면 동률 모달은 닫는다(참여자는 방장이 고른 결과를 확정 안내로 본다).
+  const showTieModal = isTieUnresolved && !isTieDismissed && !confirmedNotice;
 
   // 제한 시간이 지나면 방장은 아직 투표 안 한 사람을 기다리지 않고 현재 표로 확정할 수 있다.
   const handleHostSkip = () => {
@@ -217,7 +233,11 @@ function VoteWaitingContent() {
             }
           : {}),
       });
-      goToNewItinerary(newItineraryId);
+      showConfirmedNotice({
+        plan: planType,
+        reason: getVoteConfirmedReason(voteStatus, totalSlots, planType),
+        itineraryId: newItineraryId,
+      });
     } catch {
       setToastVariant("error");
       setToastMessage("일정을 확정하지 못했어요. 다시 시도해주세요.");
@@ -405,6 +425,8 @@ function VoteWaitingContent() {
           ))}
         </div>
       </Modal>
+
+      <VoteConfirmedModal notice={confirmedNotice} onGo={goToNewItinerary} />
 
       <Toast
         isVisible={toastMessage !== null}

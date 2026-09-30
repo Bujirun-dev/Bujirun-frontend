@@ -11,7 +11,13 @@ interface UseVoteSessionPollingOptions {
   // status가 "confirmed"로 바뀌는 시점에 한 번만 호출된다 (세션당 1회, 재폴링돼도 중복 호출 안 됨).
   // itineraryId는 확정으로 새로 만들어진 일정의 id — 이걸 넘겨야 참여자도
   // 목록 캐시와 무관하게 방금 만들어진 일정으로 바로 들어갈 수 있다.
-  onConfirmed?: (sessionId: string, itineraryId?: string) => void;
+  // status는 확정 시점의 투표 현황(확정안 confirmedPlan, 안별 득표 포함) — 어떤 안으로 왜
+  // 정해졌는지 안내하는 데 쓴다.
+  onConfirmed?: (
+    sessionId: string,
+    itineraryId?: string,
+    status?: Awaited<ReturnType<typeof itineraryApi.getVoteStatus>>,
+  ) => void;
   // 폴링 중 에러(세션 만료/404 등)가 나서 폴링이 멈추는 시점에 한 번만 호출된다.
   onError?: (error: unknown, sessionId: string) => void;
 }
@@ -49,7 +55,9 @@ export function useVoteSessionPolling(sessionId: string, options?: UseVoteSessio
     if (!isConfirmed || !sessionId) return;
     if (notifiedSessionIdRef.current === sessionId) return;
     notifiedSessionIdRef.current = sessionId;
-    onConfirmed?.(sessionId, voteStatus?.itineraryId);
+    onConfirmed?.(sessionId, voteStatus?.itineraryId, voteStatus);
+    // voteStatus는 확정 순간의 값만 넘기면 된다(확정 뒤엔 폴링이 멈춘다).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConfirmed, sessionId, voteStatus?.itineraryId, onConfirmed]);
 
   const notifiedErrorSessionIdRef = useRef<string | null>(null);
