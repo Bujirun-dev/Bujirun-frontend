@@ -174,6 +174,9 @@ export function TransportCard({
   // 단일 leg (환승 없는 버스 등): 점 없이 심플 레이아웃
   const isSimple = legs.length === 1 && !legs[0].walkBefore && !legs[0].walkAfter;
 
+  // 구간이 2개 이상이면 헤더에는 아이콘만 이어 보여주고, 노선명은 스크린리더용으로만 남긴다.
+  const showRouteNames = legs.length === 1;
+
   const summary = (
     <>
       <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
@@ -182,7 +185,12 @@ export function TransportCard({
             {index > 0 && <span className="shrink-0 text-sm text-sub-gray">›</span>}
             <div className="flex min-w-0 items-center gap-1">
               <TransportTypeIcon type={leg.type} small />
-              <span className="min-w-0 truncate font-semibold text-sm text-text-heading">
+              <span
+                className={cn(
+                  "min-w-0 truncate font-semibold text-sm text-text-heading",
+                  !showRouteNames && "sr-only",
+                )}
+              >
                 {leg.routeName}
               </span>
             </div>
