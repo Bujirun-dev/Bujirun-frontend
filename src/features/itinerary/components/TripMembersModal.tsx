@@ -37,6 +37,11 @@ export function TripMembersModal({ isOpen, groupId, onClose }: TripMembersModalP
     queryKey: groupApi.keys.members(groupId),
     queryFn: () => groupApi.getGroupMembers(groupId),
     enabled: isOpen && !!groupId,
+    // 누가 여행에서 나가도 다른 멤버 화면엔 알림이 오지 않는다. 전역 캐시(60초)를 그대로
+    // 보여주면 새로고침 전까지 나간 사람이 남아 있으므로, 열 때 새로 받고 열려 있는 동안은
+    // 초대 화면과 같은 간격(3초)으로 다시 받아온다.
+    refetchOnMount: "always",
+    refetchInterval: 3000,
   });
 
   return (

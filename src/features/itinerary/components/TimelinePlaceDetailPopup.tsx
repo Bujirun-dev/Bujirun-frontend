@@ -57,6 +57,8 @@ export const TimelinePlaceDetailPopup = forwardRef<HTMLDivElement, TimelinePlace
               }
               onBookmark={spotId ? toggleBookmark : undefined}
               relatedLogs={spotId ? relatedLogs : undefined}
+              // 다른 탭의 관광지 상세와 같이 관련 로그 전체 목록으로 가는 "더보기"를 단다.
+              relatedLogsHref={spotId ? `/itinerary/place/${spotId}/related-logs` : undefined}
               getRelatedLogHref={(logId) => `/itinerary/logs/${logId}`}
               size="compact"
             />

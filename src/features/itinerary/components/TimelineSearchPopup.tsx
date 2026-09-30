@@ -90,6 +90,9 @@ function SelectedPlacePreview({
         }
         onBookmark={toggleBookmark}
         relatedLogs={relatedLogs}
+        // 타임라인 관광지 상세 팝업과 같이 로그 상세와 관련 로그 전체 목록으로 연결한다.
+        relatedLogsHref={`/itinerary/place/${selectedPlace.id}/related-logs`}
+        getRelatedLogHref={(logId) => `/itinerary/logs/${logId}`}
         size="compact"
       />
     </>
