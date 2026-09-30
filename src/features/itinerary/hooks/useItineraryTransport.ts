@@ -136,7 +136,6 @@ export function useItineraryTransport({
       nextStop.placeName,
       nextStop.id,
       option.durationMin,
-      option.cost,
     );
     if (!transport) {
       showToast("교통수단 변경에 실패했어요.", "error");
