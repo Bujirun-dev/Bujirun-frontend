@@ -70,19 +70,22 @@ function TripWaitingContent() {
   });
   const doneCount = Math.min(totalSlots, swipeStatus?.doneCount ?? 0);
   const allDone = swipeStatus?.allDone ?? doneCount >= totalSlots;
+  // 방장이 "기다리지 않고 진행하기"로 먼저 넘어가면 allDone은 끝까지 false라서, 서버에 일정
+  // 생성이 시작됐는지(generationStarted)를 보고 팀원도 결과 화면으로 따라간다.
+  const isMovingOn = allDone || !!swipeStatus?.generationStarted;
 
   const goToResult = () => {
     router.push(`/itinerary/trips/result?${forwardParams}`);
   };
 
-  // 전원 완료 시 결과 페이지로 이동
+  // 전원 완료(또는 방장이 먼저 진행) 시 결과 페이지로 이동
   useEffect(() => {
-    if (!allDone) return;
+    if (!isMovingOn) return;
     const timer = window.setTimeout(() => {
       router.push(`/itinerary/trips/result?${forwardParams}`);
     }, 1500);
     return () => window.clearTimeout(timer);
-  }, [allDone, router, forwardParams]);
+  }, [isMovingOn, router, forwardParams]);
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-4 pb-16">
@@ -92,7 +95,13 @@ function TripWaitingContent() {
           className="font-paperlogy font-medium text-xl text-text-heading text-center"
           style={{ lineHeight: "23px" }}
         >
-          {allDone ? (
+          {isMovingOn && !allDone ? (
+            <>
+              방장이 다음 단계로 넘어갔어요
+              <br />
+              결과를 불러오고 있어요...
+            </>
+          ) : allDone ? (
             <>
               모두 완료됐어요! 🎉
               <br />
@@ -117,7 +126,7 @@ function TripWaitingContent() {
 
         {/* 3분 제한 — 중간에 튕겨서 안 돌아오는 사람 한 명 때문에 그룹 전체가
             영구히 갇히지 않도록, 제한이 지나면 방장이 먼저 진행할 수 있다. */}
-        {!allDone && (
+        {!isMovingOn && (
           <div className="mt-5 flex w-full flex-col items-center gap-2">
             {!isSynced ? (
               <p className="text-center font-paperlogy text-sm text-sub-darkgray">

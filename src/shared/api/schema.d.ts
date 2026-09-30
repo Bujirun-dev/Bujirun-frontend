@@ -2185,6 +2185,7 @@ export interface components {
             /** Format: int64 */
             totalCount?: number;
             allDone?: boolean;
+            generationStarted?: boolean;
         };
         SpotDetailResponse: {
             spotId?: string;
