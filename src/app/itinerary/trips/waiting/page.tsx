@@ -11,6 +11,7 @@ import { useIsGroupHost } from "@/features/itinerary/hooks/useIsGroupHost";
 import { useItineraryFlowProgress } from "@/features/itinerary/hooks/useItineraryFlowProgress";
 import { useItineraryFlowTimer } from "@/features/itinerary/hooks/useItineraryFlowTimer";
 import { ItineraryFlowCountdown } from "@/features/itinerary/components/ItineraryFlowCountdown";
+import { buildTripResultQuery } from "@/features/itinerary/utils/tripFlowParams";
 
 function PageLoadingFallback() {
   return <LoadingState />;
@@ -28,26 +29,8 @@ function TripWaitingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const totalSlots = Math.min(6, Math.max(2, Number(searchParams.get("count")) || 6));
-  const days = searchParams.get("days") ?? "1";
   const groupId = searchParams.get("groupId") ?? "";
-  const accommodation = searchParams.get("accommodation") ?? "";
-  const accommodationAddress = searchParams.get("accommodationAddress") ?? "";
-  const accommodationLat = searchParams.get("accommodationLat") ?? "";
-  const accommodationLng = searchParams.get("accommodationLng") ?? "";
-  const forwardParams = new URLSearchParams({
-    count: String(totalSlots),
-    days,
-    groupId,
-    name: searchParams.get("name") ?? "",
-    startDate: searchParams.get("startDate") ?? "",
-    endDate: searchParams.get("endDate") ?? "",
-    startTime: searchParams.get("startTime") ?? "",
-    endTime: searchParams.get("endTime") ?? "",
-    ...(accommodation ? { accommodation } : {}),
-    ...(accommodationAddress ? { accommodationAddress } : {}),
-    ...(accommodationLat ? { accommodationLat } : {}),
-    ...(accommodationLng ? { accommodationLng } : {}),
-  }).toString();
+  const forwardParams = buildTripResultQuery(searchParams);
 
   useItineraryFlowProgress("waiting", searchParams.toString(), groupId, {
     tripName: searchParams.get("name") ?? undefined,
