@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Modal } from "@/components";
+import { Button, Modal } from "@/components";
 import EmergencyIcon from "@/assets/icons/itinerary/emergency-on.svg?svgr";
 import { swipeApi } from "@/shared/api/domains";
 import {
@@ -59,23 +59,28 @@ function HostWaitingTimeoutWatcher({ flow }: { flow: ItineraryFlowProgress }) {
   const isOnWaitingPage = pathname.startsWith("/itinerary/trips/waiting");
   const isOpen = isTimerRunning && isOver && !isOnWaitingPage && !isDismissed;
 
+  const goToResult = () => {
+    setIsDismissed(true);
+    router.push(`/itinerary/trips/result?${buildTripResultQuery(new URLSearchParams(flow.query))}`);
+  };
+
+  // 팀원들이 방장만 기다리고 있으므로 "더 기다리기"는 두지 않는다. 닫기(X/바깥 클릭/ESC)로도
+  // 닫히지 않게 해서, 방장이 진행하기로 넘겨주도록 한다.
   return (
     <Modal
       isOpen={isOpen}
-      onClose={() => setIsDismissed(true)}
+      onClose={() => {}}
+      hideCloseButton
+      hideActions
       confirmVariant="warning"
       icon={<EmergencyIcon width={25} height={25} className="text-sub-coral" aria-hidden />}
       title="취향분석 시간이 끝났어요"
       description={`${totalCount}명 중 ${doneCount}명이 취향분석을 마치고 기다리고 있어요.\n아직 안 한 친구는 이번 추천에 취향이 반영되지 않아요.\n(일정에서 빠지는 건 아니에요)`}
-      cancelText="더 기다리기"
-      confirmText="진행하기"
-      onCancel={() => setIsDismissed(true)}
-      onConfirm={() => {
-        setIsDismissed(true);
-        router.push(
-          `/itinerary/trips/result?${buildTripResultQuery(new URLSearchParams(flow.query))}`,
-        );
-      }}
+      footer={
+        <Button variant="warning" onClick={goToResult}>
+          진행하기
+        </Button>
+      }
     />
   );
 }
