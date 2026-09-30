@@ -51,11 +51,7 @@ export default function BookmarkSpotDetailPage({ params }: { params: Promise<{ i
               onBack={() => router.back()}
               onBookmark={handleBookmark}
               relatedLogs={relatedLogs}
-              onViewMoreLogs={() =>
-                router.push(
-                  `/mypage/bookmarks/spot/${id}/related-logs?placeName=${encodeURIComponent(place.name)}&category=${place.category}`,
-                )
-              }
+              onViewMoreLogs={() => router.push(`/mypage/bookmarks/${id}/related-logs`)}
               getRelatedLogHref={(logId) => `/mypage/logs/${logId}`}
               onLogClick={(logId) => router.push(`/mypage/logs/${logId}`)}
             />
