@@ -1461,6 +1461,8 @@ export interface components {
             travelMode?: string;
             /** Format: int32 */
             travelTimeMin?: number;
+            /** Format: int32 */
+            travelFare?: number;
             routeType?: string;
             routeNo?: string;
             startStationName?: string;
@@ -2123,6 +2125,8 @@ export interface components {
             travelMode?: string;
             /** Format: int32 */
             travelTimeMin?: number;
+            /** Format: int32 */
+            travelFare?: number;
             routeType?: string;
             routeNo?: string;
             startStationName?: string;
