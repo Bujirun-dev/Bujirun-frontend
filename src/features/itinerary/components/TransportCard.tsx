@@ -1,4 +1,7 @@
-import { Fragment } from "react";
+"use client";
+
+import { Fragment, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { formatTransportDuration } from "@/shared/utils/formatTransportDuration";
 import Image from "next/image";
 import busIcon from "@/assets/icons/itinerary/bus.svg?url";
@@ -44,6 +47,8 @@ interface TransportCardProps {
   selected?: boolean;
   disableShadow?: boolean;
   className?: string;
+  // 펼친 상태에서 구간 영역(출발 → 구간 → 도착)을 눌렀을 때 — 이동수단 모달 열기
+  onLegsClick?: () => void;
 }
 
 const TRANSPORT_ICONS: Record<TransportType, string> = {
@@ -62,11 +67,31 @@ const TRANSPORT_COLORS: Record<TransportType, string> = {
 
 const ARRIVAL_VISIBLE_TYPES = ["버스", "지하철"] as const;
 
+function TransportTypeIcon({ type, small }: { type: TransportType; small?: boolean }) {
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-center shrink-0 relative z-10",
+        small ? "w-5 h-5 rounded-md" : "w-6 h-6 rounded-lg",
+        TRANSPORT_COLORS[type],
+      )}
+    >
+      <Image
+        src={TRANSPORT_ICONS[type]}
+        alt=""
+        width={small ? 12 : 14}
+        height={small ? 12 : 14}
+        className="brightness-0 invert"
+        aria-hidden
+      />
+    </div>
+  );
+}
+
 // leg 하나(아이콘 + 노선명/구간 + 실시간 도착 배지)를 그린다. 단일 leg 카드와 다구간
 // 카드가 레이아웃만 다르고 내용은 동일해서 공통 컴포넌트로 뺐다 — arsId가 있는 버스,
 // stationId가 있는 지하철 leg는 useLiveArrivalText로 30초마다 폴링해 배지에 남은 시간을 보여준다.
-function TransportLegRow({ leg, metaText }: { leg: TransportLeg; metaText?: string }) {
-  const legIcon = TRANSPORT_ICONS[leg.type];
+function TransportLegRow({ leg }: { leg: TransportLeg }) {
   const { text: arrivalText, refetch, isFetching } = useLiveArrivalText(leg);
   const showArrival =
     !!arrivalText &&
@@ -81,32 +106,16 @@ function TransportLegRow({ leg, metaText }: { leg: TransportLeg; metaText?: stri
 
   return (
     <>
-      <div
-        className={cn(
-          "w-6 h-6 rounded-lg flex items-center justify-center shrink-0 relative z-10",
-          TRANSPORT_COLORS[leg.type],
-        )}
-      >
-        <Image
-          src={legIcon}
-          alt=""
-          width={14}
-          height={14}
-          className="brightness-0 invert"
-          aria-hidden
-        />
+      <div className="mt-2.5 shrink-0">
+        <TransportTypeIcon type={leg.type} />
       </div>
+
       <div className="flex flex-1 items-center justify-between min-w-0 gap-2">
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <div className="flex min-w-0 items-center justify-between gap-2">
+          <div className="flex min-h-6 min-w-0 items-center">
             <span className="min-w-0 truncate font-semibold text-md text-text-heading leading-none">
               {leg.routeName}
             </span>
-            {metaText && (
-              <span className="shrink-0 font-semibold text-xs text-sub-darkgray whitespace-nowrap">
-                {metaText}
-              </span>
-            )}
           </div>
           <span className="font-normal text-xs text-sub-darkgray truncate">
             {leg.from} → {leg.to}
@@ -136,21 +145,6 @@ function TransportLegRow({ leg, metaText }: { leg: TransportLeg; metaText?: stri
   );
 }
 
-// 도보 구간 한 줄 — 아이콘 칸은 비워서 카드의 세로 점선이 그대로 지나가게 한다.
-function TransportWalkRow({ walk, isTransfer }: { walk: TransportWalk; isTransfer?: boolean }) {
-  const amount =
-    walk.distanceM !== undefined ? `${walk.distanceM.toLocaleString()}m` : `${walk.min}분`;
-  return (
-    <div className="flex items-center gap-3">
-      <div className="w-6 shrink-0" />
-      <span className="truncate font-normal text-xs text-sub-darkgray">
-        도보 {amount}
-        {isTransfer && " · 환승"}
-      </span>
-    </div>
-  );
-}
-
 export function TransportCard({
   from,
   to,
@@ -160,90 +154,170 @@ export function TransportCard({
   selected,
   disableShadow,
   className,
+  onLegsClick,
 }: TransportCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const cardBase = cn(
     "w-full min-w-0 overflow-hidden rounded-2xl border-[0.5px] border-system-glassborder py-3.5 px-2.5",
     !disableShadow && "shadow-[2px_2px_10px_0px_var(--color-system-glassborder)]",
     selected === false ? "bg-main-white" : "bg-system-navbg",
     className,
   );
-  const metaText = `${formatTransportDuration(durationMin)}${cost !== undefined ? ` · ${cost.toLocaleString()}원` : ""}`;
+  // 도보는 요금이 없으니 "0원"을 붙이지 않는다 — 요금 0 전체를 숨기면 대중교통 요금 누락이 가려진다.
+  const isWalkOnly = legs.every((leg) => leg.type === "도보");
+  const metaText = `${formatTransportDuration(durationMin)}${cost !== undefined && !isWalkOnly ? ` · ${cost.toLocaleString()}원` : ""}`;
+  // 버스/지하철 구간이 없는(택시/도보) 카드는 펼쳐도 헤더와 같은 내용이라 셰브론 없이 접힌 헤더 한 줄만 보여준다.
+  const isTransit = legs.some((leg) =>
+    ARRIVAL_VISIBLE_TYPES.includes(leg.type as (typeof ARRIVAL_VISIBLE_TYPES)[number]),
+  );
 
-  // 단일 leg (택시/도보/환승 없는 버스 등): 점 없이 심플 레이아웃
-  if (legs.length === 1 && !legs[0].walkBefore && !legs[0].walkAfter) {
+  // 단일 leg (환승 없는 버스 등): 점 없이 심플 레이아웃
+  const isSimple = legs.length === 1 && !legs[0].walkBefore && !legs[0].walkAfter;
+
+  // 구간이 2개 이상이면 헤더에는 아이콘만 이어 보여주고, 노선명은 스크린리더용으로만 남긴다.
+  const showRouteNames = legs.length === 1;
+
+  const summary = (
+    <>
+      <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
+        {legs.map((leg, index) => (
+          <Fragment key={index}>
+            {index > 0 && <span className="shrink-0 text-sm text-sub-gray">›</span>}
+            <div className="flex min-w-0 items-center gap-1">
+              <TransportTypeIcon type={leg.type} small />
+              <span
+                className={cn(
+                  "min-w-0 truncate font-semibold text-sm text-text-heading",
+                  !showRouteNames && "sr-only",
+                )}
+              >
+                {leg.routeName}
+              </span>
+            </div>
+          </Fragment>
+        ))}
+      </div>
+      <span className="shrink-0 font-semibold text-xs text-sub-darkgray whitespace-nowrap">
+        {metaText}
+      </span>
+    </>
+  );
+
+  if (!isTransit) {
     return (
       <div className={cardBase}>
-        <div className="flex min-w-0 items-center gap-3">
-          <TransportLegRow leg={legs[0]} metaText={metaText} />
-        </div>
+        <button
+          type="button"
+          onClick={onLegsClick}
+          className="flex w-full min-w-0 items-center gap-2 text-left"
+        >
+          {summary}
+        </button>
       </div>
     );
   }
 
-  // 복수 leg (대중교통): 출발·도착 점 + 점선 풀 레이아웃
   return (
     <div className={cardBase}>
-      <div className="relative flex min-w-0 flex-col gap-3">
-        <svg
-          className="absolute top-[10px] overflow-visible"
-          style={{ left: "10.4px", height: "calc(100% - 20px)" }}
-          width="1.6"
+      <button
+        type="button"
+        aria-expanded={isExpanded}
+        onClick={() => setIsExpanded((prev) => !prev)}
+        className="flex w-full min-w-0 items-center gap-2 text-left"
+      >
+        {summary}
+        <ChevronDown
+          className={cn(
+            "size-4.5 shrink-0 text-sub-gray transition-transform",
+            isExpanded && "rotate-180",
+          )}
+          strokeWidth={1.5}
+          aria-hidden
+        />
+      </button>
+
+      {/* 접힌 상태에선 구간 줄을 아예 그리지 않는다 — 실시간 도착정보 폴링(useLiveArrivalText)도 펼쳤을 때만 돈다. */}
+      {isExpanded && (
+        <button
+          type="button"
+          onClick={onLegsClick}
+          className="mt-3 block w-full min-w-0 text-left animate-fade-in"
         >
-          <line
-            x1="0.8"
-            y1="0"
-            x2="0.8"
-            y2="100%"
-            stroke="var(--color-sub-gray)"
-            strokeWidth="1.6"
-            strokeDasharray="4 4"
-            strokeLinecap="round"
-          />
-        </svg>
-
-        {/* 출발 */}
-        <div className="flex items-center gap-3">
-          <div className="w-6 flex justify-center shrink-0 relative z-10">
-            <div
-              className="w-3 h-3 rounded-full bg-sub-gray"
-              style={{
-                boxShadow:
-                  selected === false
-                    ? "0 0 0 3px var(--color-main-white)"
-                    : "0 0 0 3px var(--color-system-navbg)",
-              }}
-            />
-          </div>
-          <span className="truncate font-semibold text-md text-text-heading">{from}</span>
-        </div>
-
-        {legs.map((leg, index) => (
-          <Fragment key={index}>
-            {leg.walkBefore && <TransportWalkRow walk={leg.walkBefore} />}
-            <div className="flex items-center gap-3">
-              <TransportLegRow leg={leg} metaText={index === 0 ? metaText : undefined} />
+          {isSimple ? (
+            <div className="flex min-w-0 items-start gap-3">
+              <TransportLegRow leg={legs[0]} />
             </div>
-            {leg.walkAfter && (
-              <TransportWalkRow walk={leg.walkAfter} isTransfer={index < legs.length - 1} />
-            )}
-          </Fragment>
-        ))}
+          ) : (
+            <TransportRouteLegs from={from} to={to} legs={legs} selected={selected} />
+          )}
+        </button>
+      )}
+    </div>
+  );
+}
 
-        {/* 도착 */}
-        <div className="flex items-center gap-3">
-          <div className="w-6 flex justify-center shrink-0 relative z-10">
-            <div
-              className="w-3 h-3 rounded-full bg-sub-gray"
-              style={{
-                boxShadow:
-                  selected === false
-                    ? "0 0 0 3px var(--color-main-white)"
-                    : "0 0 0 3px var(--color-system-navbg)",
-              }}
-            />
-          </div>
-          <span className="truncate font-semibold text-md text-text-heading">{to}</span>
+// 복수 leg (대중교통): 출발·도착 점 + 점선 풀 레이아웃
+function TransportRouteLegs({
+  from,
+  to,
+  legs,
+  selected,
+}: Pick<TransportCardProps, "from" | "to" | "legs" | "selected">) {
+  return (
+    <div className="relative flex min-w-0 flex-col gap-3">
+      <svg
+        className="absolute top-[10px] overflow-visible"
+        style={{ left: "10.4px", height: "calc(100% - 20px)" }}
+        width="1.6"
+      >
+        <line
+          x1="0.8"
+          y1="0"
+          x2="0.8"
+          y2="100%"
+          stroke="var(--color-sub-gray)"
+          strokeWidth="1.6"
+          strokeDasharray="4 4"
+          strokeLinecap="round"
+        />
+      </svg>
+
+      {/* 출발 */}
+      <div className="flex items-center gap-3">
+        <div className="w-6 flex justify-center shrink-0 relative z-10">
+          <div
+            className="w-3 h-3 rounded-full bg-sub-gray"
+            style={{
+              boxShadow:
+                selected === false
+                  ? "0 0 0 3px var(--color-main-white)"
+                  : "0 0 0 3px var(--color-system-navbg)",
+            }}
+          />
         </div>
+        <span className="truncate font-semibold text-md text-text-heading">{from}</span>
+      </div>
+
+      {legs.map((leg, index) => (
+        <div key={index} className="flex items-start gap-3">
+          <TransportLegRow leg={leg} />
+        </div>
+      ))}
+
+      {/* 도착 */}
+      <div className="flex items-center gap-3">
+        <div className="w-6 flex justify-center shrink-0 relative z-10">
+          <div
+            className="w-3 h-3 rounded-full bg-sub-gray"
+            style={{
+              boxShadow:
+                selected === false
+                  ? "0 0 0 3px var(--color-main-white)"
+                  : "0 0 0 3px var(--color-system-navbg)",
+            }}
+          />
+        </div>
+        <span className="truncate font-semibold text-md text-text-heading">{to}</span>
       </div>
     </div>
   );

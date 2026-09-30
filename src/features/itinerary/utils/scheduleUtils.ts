@@ -258,6 +258,8 @@ export function buildDaysFromTravelLogDetail(
         // description/운영시간/문의처는 TimelinePlaceDetailPopup이 spotId로 실제 데이터를
         // 조회해서 보여준다(useSpotDetail) — 여기서 가짜 문구로 채우지 않는다.
         address: item.spotAddress ?? "부산광역시",
+        lat: item.spotLat,
+        lng: item.spotLng,
         mapUrl: `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,
         isBookmarked: undefined,
         // 여행 로그엔 실제 이동수단/경로 데이터가 없어서(스팟 이름·시간만 내려옴) "버스"로
@@ -385,6 +387,8 @@ function hasDisplayableTransport(
 interface TravelModeItemLike {
   travelMode?: string;
   travelTimeMin?: number;
+  // 백엔드가 저장한 구간 요금. 요금을 모르는 구간(컬럼 추가 전 저장된 항목 등)은 비어 있다.
+  travelFare?: number;
   routeType?: string;
   routeNo?: string;
   startStationName?: string;
@@ -516,13 +520,13 @@ function legsFromSubPaths(
 // PATCH .../travel-mode 응답(ItineraryItemResponse)을 화면이 쓰는 TransportInfo로 변환한다.
 // buildTransportOptionsFromApi()가 만드는 카드 미리보기와 달리 이건 백엔드가 ODsay로 실제
 // 재계산한 값이라 역명/노선번호가 진짜다 — 사용자가 이동수단을 확정한 뒤에만 쓴다.
+// 요금도 옵션 카드 값이 아니라 백엔드가 항목에 저장한 travelFare를 쓴다 — 일정 조회로 그린 카드와 기준이 같다.
 export function buildTransportFromItem(
   item: TravelModeItemLike,
   fromPlaceName: string,
   toPlaceName: string,
   toStopId: string,
   fallbackDurationMin: number,
-  cost?: number,
 ): BaseStop["transport"] {
   const transportType = resolveTransportType(item.routeType, item.travelMode);
   if (!transportType) return undefined;
@@ -543,7 +547,7 @@ export function buildTransportFromItem(
     to: toPlaceName,
     durationMin,
     baseDurationMin: durationMin,
-    cost,
+    cost: item.travelFare,
     legs,
     toStopId,
   };
@@ -731,6 +735,7 @@ export function mapDayItemsToStops(
             to: nextPlaceName,
             durationMin: nextItem.travelTimeMin ?? 30,
             baseDurationMin: nextItem.travelTimeMin ?? 30,
+            cost: nextItem.travelFare,
             // transitDetail이 있으면(버스+지하철 조합 등 환승 포함) 실제 다구간으로,
             // 없으면 대표값 1구간(routeNo가 있으면 실제 값, 없으면(도보/택시 등) 타입 이름)으로 표시한다.
             legs: legsFromTransitDetail(nextItem.transitDetail, legFrom, legTo) ?? [
@@ -760,6 +765,8 @@ export function mapDayItemsToStops(
       // spotId로 실제 관광지 소개글을 조회해서 보여준다(useSpotDetail).
       description: item.memo,
       address: item.spot?.address,
+      lat: item.spot?.lat,
+      lng: item.spot?.lng,
       mapUrl: item.spot
         ? `https://map.kakao.com/link/map/${encodeURIComponent(placeName)},${item.spot.lat},${item.spot.lng}`
         : `https://map.kakao.com/link/search/${encodeURIComponent(placeName)}`,

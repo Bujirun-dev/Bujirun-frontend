@@ -6,6 +6,7 @@ import type {
 import { cn } from "@/shared/utils";
 import { TransportIcon } from "@/features/home/components/TransportIcons";
 import { TransportLegItem } from "@/features/home/components/TransportLegItem";
+import { formatTransportMeta } from "@/features/home/utils/formatTransportMeta";
 import Image from "next/image";
 import kakaoMapLogo from "@/assets/icons/home/kakaomap_horizontal_ko.png";
 
@@ -28,8 +29,8 @@ export function TransportDetail({
   onKakaoMapClick,
 }: TransportDetailProps) {
   const { fromPlace, toPlace } = transportGroup;
-  const { durationText, costText, steps } = selectedOption;
-  const metaText = `${durationText ?? "-"} · ${costText ?? "-"}`;
+  const { steps } = selectedOption;
+  const metaText = formatTransportMeta(selectedOption);
   return (
     <div className="relative flex w-full min-w-0 flex-col gap-3 py-4">
       <div className="mb-1 flex min-w-0 items-center justify-between gap-3">

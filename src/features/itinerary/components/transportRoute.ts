@@ -10,7 +10,25 @@ export interface RouteOption {
   isRecommended?: boolean;
 }
 
-export function openKakaoMapRoute(from: string, to: string) {
+// 길찾기 출발지/도착지. 좌표가 있으면 그대로 쓰고, 없을 때만 이름으로 키워드 검색한다
+// (키워드 검색은 전국 대상이라 동명의 다른 지역 장소가 잡힐 수 있다 — 송정해수욕장 → 강릉 등).
+export interface RoutePoint {
+  name: string;
+  lat?: number;
+  lng?: number;
+}
+
+type Coords = { x: string; y: string };
+
+function toCoords(point: RoutePoint): Coords | null {
+  return point.lat != null && point.lng != null
+    ? { x: String(point.lng), y: String(point.lat) }
+    : null;
+}
+
+export function openKakaoMapRoute(fromPoint: RoutePoint, toPoint: RoutePoint) {
+  const from = fromPoint.name;
+  const to = toPoint.name;
   const openWithCoords = (fx: string, fy: string, tx: string, ty: string) => {
     // 앱 딥링크 (sp/ep = 위도,경도 순)
     window.location.href = `kakaomap://route?sp=${fy},${fx}&ep=${ty},${tx}&by=PUBLICTRANSIT`; // 대중교통 값은 PUBLICTRANSIT
@@ -36,7 +54,7 @@ export function openKakaoMapRoute(from: string, to: string) {
     const kakao = window.kakao!;
     kakao.maps.load(() => {
       const ps = new kakao.maps.services.Places();
-      const coords: ({ x: string; y: string } | null)[] = [null, null];
+      const coords: (Coords | null)[] = [toCoords(fromPoint), toCoords(toPoint)];
       let done = 0;
 
       const tryOpen = () => {
@@ -52,16 +70,26 @@ export function openKakaoMapRoute(from: string, to: string) {
         }
       };
 
-      ps.keywordSearch(from, (res, status) => {
-        if (status === kakao.maps.services.Status.OK) coords[0] = res[0];
-        tryOpen();
-      });
-      ps.keywordSearch(to, (res, status) => {
-        if (status === kakao.maps.services.Status.OK) coords[1] = res[0];
-        tryOpen();
+      [from, to].forEach((name, idx) => {
+        if (coords[idx]) {
+          tryOpen();
+          return;
+        }
+        ps.keywordSearch(name, (res, status) => {
+          if (status === kakao.maps.services.Status.OK) coords[idx] = res[0];
+          tryOpen();
+        });
       });
     });
   };
+
+  // 둘 다 좌표가 있으면 SDK(키워드 검색) 없이 바로 연다.
+  const fromCoords = toCoords(fromPoint);
+  const toCoordsValue = toCoords(toPoint);
+  if (fromCoords && toCoordsValue) {
+    openWithCoords(fromCoords.x, fromCoords.y, toCoordsValue.x, toCoordsValue.y);
+    return;
+  }
 
   if (window.kakao?.maps) {
     geocodeAndOpen();

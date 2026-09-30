@@ -41,6 +41,10 @@ export interface ItineraryStop {
   status: PlaceStatus;
   description?: string;
   address?: string;
+  // 카카오맵 길찾기 좌표 — 없으면(좌표 추가 전 공동편집 문서, 검색으로 막 추가한 장소)
+  // 길찾기가 장소 이름으로 키워드 검색한다.
+  lat?: number;
+  lng?: number;
   mapUrl?: string;
   isBookmarked?: boolean;
   relatedLogs?: { id: string; imageUrl: string; userName: string }[];
@@ -416,9 +420,9 @@ export function ItineraryTimeline({
                 {stop.transport && (
                   <div className="mt-5 flex min-w-0">
                     <div className="w-16 shrink-0" />
-                    <button className="min-w-0 flex-1 text-left" onClick={stop.onTransportClick}>
-                      <TransportCard {...stop.transport} />
-                    </button>
+                    <div className="min-w-0 flex-1">
+                      <TransportCard {...stop.transport} onLegsClick={stop.onTransportClick} />
+                    </div>
                   </div>
                 )}
               </div>
