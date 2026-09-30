@@ -1,35 +1,16 @@
 "use client";
 
-import { use, useState } from "react";
+import { use } from "react";
 import { useRouter } from "next/navigation";
-import { PageCard, ErrorState, Toast, LoadingBoundary } from "@/components";
+import { PageCard, ErrorState, LoadingBoundary } from "@/components";
 import { PlaceDetailContent } from "@/components/place/PlaceDetailContent";
 import { useSpotDetail } from "@/features/itinerary/hooks/useSpotDetail";
-import { BOOKMARK_TOAST_MESSAGE } from "@/shared/constants/bookmark";
 
 export default function BookmarkSpotDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { spot, place, isLoading, isError, isBookmarked, toggleBookmark, relatedLogs } =
-    useSpotDetail(id);
-
-  const [toastVariant, setToastVariant] = useState<"success" | "error">("success");
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-
-  const handleBookmark = async () => {
-    try {
-      await toggleBookmark();
-
-      setToastVariant("success");
-      setToastMessage(isBookmarked ? BOOKMARK_TOAST_MESSAGE.removed : BOOKMARK_TOAST_MESSAGE.added);
-      setToastVisible(true);
-    } catch {
-      setToastVariant("error");
-      setToastMessage(BOOKMARK_TOAST_MESSAGE.error);
-      setToastVisible(true);
-    }
-  };
+  // 토글 결과 토스트는 PlaceDetailContent가 띄운다.
+  const { spot, place, isLoading, isError, toggleBookmark, relatedLogs } = useSpotDetail(id);
 
   return (
     <PageCard>
@@ -45,24 +26,15 @@ export default function BookmarkSpotDetailPage({ params }: { params: Promise<{ i
             }}
           />
         ) : (
-          <>
-            <PlaceDetailContent
-              place={place}
-              onBack={() => router.back()}
-              onBookmark={handleBookmark}
-              relatedLogs={relatedLogs}
-              onViewMoreLogs={() => router.push(`/mypage/bookmarks/${id}/related-logs`)}
-              getRelatedLogHref={(logId) => `/mypage/logs/${logId}`}
-              onLogClick={(logId) => router.push(`/mypage/logs/${logId}`)}
-            />
-
-            <Toast
-              isVisible={toastVisible}
-              message={toastMessage}
-              onHide={() => setToastVisible(false)}
-              variant={toastVariant}
-            />
-          </>
+          <PlaceDetailContent
+            place={place}
+            onBack={() => router.back()}
+            onBookmark={toggleBookmark}
+            relatedLogs={relatedLogs}
+            onViewMoreLogs={() => router.push(`/mypage/bookmarks/${id}/related-logs`)}
+            getRelatedLogHref={(logId) => `/mypage/logs/${logId}`}
+            onLogClick={(logId) => router.push(`/mypage/logs/${logId}`)}
+          />
         )}
       </LoadingBoundary>
     </PageCard>
