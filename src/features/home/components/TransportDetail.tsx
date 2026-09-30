@@ -6,6 +6,7 @@ import type {
 import { cn } from "@/shared/utils";
 import { TransportIcon } from "@/features/home/components/TransportIcons";
 import { TransportLegItem } from "@/features/home/components/TransportLegItem";
+import { formatTransportMeta } from "@/features/home/utils/formatTransportMeta";
 import Image from "next/image";
 import kakaoMapLogo from "@/assets/icons/home/kakaomap_horizontal_ko.png";
 
@@ -28,12 +29,8 @@ export function TransportDetail({
   onKakaoMapClick,
 }: TransportDetailProps) {
   const { fromPlace, toPlace } = transportGroup;
-  const { durationText, costText, steps } = selectedOption;
-  // 도보는 요금이 없으니 "0원"을 붙이지 않는다(요금 0 전체가 아니라 도보만 — 대중교통 요금 누락이 가려지지 않게).
-  const isWalkOnly = steps.every((step) => step.type === "도보");
-  const metaText = isWalkOnly
-    ? (durationText ?? "-")
-    : `${durationText ?? "-"} · ${costText ?? "-"}`;
+  const { steps } = selectedOption;
+  const metaText = formatTransportMeta(selectedOption);
   return (
     <div className="relative flex w-full min-w-0 flex-col gap-3 py-4">
       <div className="mb-1 flex min-w-0 items-center justify-between gap-3">

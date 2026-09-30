@@ -1,6 +1,7 @@
 import { cn } from "@/shared/utils";
 import { TransportIcon } from "@/features/home/components/TransportIcons";
 import type { TransportOption } from "@/features/home/types/transport";
+import { formatTransportMeta } from "@/features/home/utils/formatTransportMeta";
 
 const TRANSPORT_COLORS = {
   버스: "bg-main-blue",
@@ -20,7 +21,7 @@ export function TransportOptionCard({
   selected = false,
   className,
 }: TransportOptionCardProps) {
-  const metaText = `${option.durationText} · ${option.costText}`;
+  const metaText = formatTransportMeta(option);
 
   return (
     <div
