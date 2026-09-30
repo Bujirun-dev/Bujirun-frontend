@@ -128,16 +128,20 @@ function TripWaitingContent() {
             ) : isOver ? (
               isHost ? (
                 <>
-                  <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
-                    시간이 끝났어요. 다음 단계로 넘어가 주세요
+                  <p className="text-center font-paperlogy text-sm font-normal text-text-primary break-keep">
+                    시간이 끝났어요.
+                    <br />
+                    다음 단계로 넘어가 주세요
                   </p>
                   <Button variant="primary" onClick={() => setShowSkipConfirm(true)}>
                     기다리지 않고 진행하기
                   </Button>
                 </>
               ) : (
-                <p className="text-center font-paperlogy text-sm font-normal text-text-primary">
-                  시간이 끝났어요. 방장이 다음 단계로 넘어가기를 기다리고 있어요
+                <p className="text-center font-paperlogy text-sm font-normal text-text-primary break-keep">
+                  시간이 끝났어요.
+                  <br />
+                  방장이 다음 단계로 넘어가기를 기다리고 있어요
                 </p>
               )
             ) : (
