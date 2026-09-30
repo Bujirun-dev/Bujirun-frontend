@@ -28,14 +28,17 @@ export function TransportSummaryCard({
     >
       <div className="flex shrink-0 items-center gap-1.5">
         {visibleSteps.map((step, index) => (
-          <TransportIcon
-            key={`${step.type}-${index}`}
-            type={step.type}
-            className={cn(
-              "size-3.5 fill-sub-darkgray",
-              step.type === "버스" && "-translate-y-[1px]",
-            )}
-          />
+          <div key={`${step.type}-${index}`} className="flex items-center gap-1.5">
+            {index > 0 && <span className="text-xs text-sub-darkgray">·</span>}
+
+            <TransportIcon
+              type={step.type}
+              className={cn(
+                "size-3.5 fill-sub-darkgray",
+                step.type === "버스" && "-translate-y-[1px]",
+              )}
+            />
+          </div>
         ))}
       </div>
 

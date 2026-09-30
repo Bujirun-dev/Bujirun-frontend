@@ -82,9 +82,83 @@ function resolveTravelModeOptionType(travelMode?: string, routeType?: string) {
   return null;
 }
 
-// 두 스팟 사이의 실제 이동 정보(백엔드가 ODsay로 계산해 저장한 값)로 TransportGroup을 만든다.
-// 도착 스팟(nextPlan) 쪽에 이전 스팟까지의 구간 정보가 저장되어 있다.
-// 저장된 값이 없으면 null을 반환해 "교통정보 없음"으로 표시하고, 가짜 역명을 보여주지 않는다.
+function findMatchedTransportOption(
+  options: Awaited<ReturnType<typeof getTravelModeOptions>> | undefined,
+  travelMode?: string,
+  routeType?: string,
+  travelTimeMin?: number,
+) {
+  if (!options) return undefined;
+
+  if (travelMode === "transit") {
+    const transitOptions = options.filter(
+      (option) =>
+        option.type === "버스" || option.type === "지하철" || option.type === "버스+지하철",
+    );
+
+    return (
+      transitOptions.find((option) => option.totalTime === travelTimeMin) ??
+      transitOptions.find((option) => option.type === routeType) ??
+      transitOptions[0]
+    );
+  }
+
+  const optionType = resolveTravelModeOptionType(travelMode, routeType);
+
+  return optionType ? options.find((option) => option.type === optionType) : undefined;
+}
+
+function buildTransportStepsFromOption(
+  option: Awaited<ReturnType<typeof getTravelModeOptions>>[number] | undefined,
+  fallbackSteps: TransportStep[],
+): TransportStep[] {
+  if (!option?.subPaths?.length) return fallbackSteps;
+
+  const transitSteps = option.subPaths
+    .filter((subPath) => subPath.type === "지하철" || subPath.type === "버스")
+    .map((subPath) => ({
+      type: subPath.type as TransportType,
+      routeName: subPath.routeNo ?? subPath.type ?? "",
+      from: subPath.startName ?? "",
+      to: subPath.endName ?? "",
+      arsId: subPath.startArsId,
+      routeNo: subPath.routeNo,
+    }));
+
+  return transitSteps.length > 0 ? transitSteps : fallbackSteps;
+}
+
+function buildTransportOptionFromApi(
+  option: Awaited<ReturnType<typeof getTravelModeOptions>>[number],
+  index: number,
+  fromPlace: string,
+  toPlace: string,
+): TransportOption {
+  const fallbackType: TransportType =
+    option.type === "택시" ? "택시" : option.type === "도보" ? "도보" : "버스";
+
+  const fallbackSteps: TransportStep[] = [
+    {
+      type: fallbackType,
+      routeName: option.type ?? "",
+      from: fromPlace,
+      to: toPlace,
+    },
+  ];
+
+  return {
+    id: `${option.type ?? "transport"}-${index}`,
+
+    durationText: option.totalTime != null ? formatTransportDuration(option.totalTime) : "-",
+
+    costText: option.totalFare != null ? `${option.totalFare.toLocaleString()}원` : "-",
+
+    isRecommended: index === 0,
+
+    steps: buildTransportStepsFromOption(option, fallbackSteps),
+  };
+}
+
 function buildTransportGroup(
   fromPlace: string,
   toPlace: string,
@@ -198,11 +272,19 @@ export function TodayItinerary() {
         staleTime: 60_000,
       });
 
-      const optionType = resolveTravelModeOptionType(travelMode, routeType);
-
-      const matchedOption = optionType
-        ? travelModeOptions.find((option) => option.type === optionType)
-        : undefined;
+      const matchedOption = findMatchedTransportOption(
+        travelModeOptions,
+        travelMode,
+        routeType,
+        transportGroup.options[0]?.durationText === "-"
+          ? undefined
+          : travelModeOptions.find(
+              (option) =>
+                option.totalTime != null &&
+                formatTransportDuration(option.totalTime) ===
+                  transportGroup.options[0]?.durationText,
+            )?.totalTime,
+      );
 
       if (!matchedOption) {
         setSelectedTransportGroup(transportGroup);
@@ -211,21 +293,24 @@ export function TodayItinerary() {
 
       const currentOption = transportGroup.options[0];
 
+      const modalOptions = travelModeOptions.map((option, index) =>
+        buildTransportOptionFromApi(
+          option,
+          index,
+          transportGroup.fromPlace,
+          transportGroup.toPlace,
+        ),
+      );
+
+      const matchedOptionIndex = travelModeOptions.findIndex((option) => option === matchedOption);
+
+      const selectedModalOption =
+        matchedOptionIndex >= 0 ? modalOptions[matchedOptionIndex] : modalOptions[0];
+
       setSelectedTransportGroup({
         ...transportGroup,
-        options: [
-          {
-            ...currentOption,
-            durationText:
-              matchedOption.totalTime != null
-                ? formatTransportDuration(matchedOption.totalTime)
-                : currentOption.durationText,
-            costText:
-              matchedOption.totalFare != null
-                ? `${matchedOption.totalFare.toLocaleString()}원`
-                : currentOption.costText,
-          },
-        ],
+        selectedOptionId: selectedModalOption?.id ?? currentOption.id,
+        options: modalOptions,
       });
     } catch (error) {
       console.error("이동수단 상세 조회 실패:", error);
@@ -349,17 +434,22 @@ export function TodayItinerary() {
               : null;
             const transportOptionQuery = transportOptionQueries[index];
 
-            const optionType = nextPlan
-              ? resolveTravelModeOptionType(nextPlan.travelMode, nextPlan.routeType)
-              : null;
-
-            const matchedTransportOption = optionType
-              ? transportOptionQuery?.data?.find((option) => option.type === optionType)
+            const matchedTransportOption = nextPlan
+              ? findMatchedTransportOption(
+                  transportOptionQuery?.data,
+                  nextPlan.travelMode,
+                  nextPlan.routeType,
+                  nextPlan.travelTimeMin,
+                )
               : undefined;
 
             const summaryOption = selectedOption
               ? {
                   ...selectedOption,
+                  steps: buildTransportStepsFromOption(
+                    matchedTransportOption,
+                    selectedOption.steps,
+                  ),
                   durationText:
                     matchedTransportOption?.totalTime != null
                       ? formatTransportDuration(matchedTransportOption.totalTime)
@@ -370,6 +460,7 @@ export function TodayItinerary() {
                       : selectedOption.costText,
                 }
               : null;
+
             return (
               <li
                 key={plan.id ?? `${placeName}-${index}`}
