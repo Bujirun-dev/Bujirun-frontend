@@ -106,7 +106,10 @@ function TransportLegRow({ leg, metaText }: { leg: TransportLeg; metaText?: stri
 
   return (
     <>
-      <TransportTypeIcon type={leg.type} />
+      <div className="mt-2.5 shrink-0">
+        <TransportTypeIcon type={leg.type} />
+      </div>
+
       <div className="flex flex-1 items-center justify-between min-w-0 gap-2">
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           {/* metaText가 있는 택시/도보 카드는 아이콘을 두 줄 가운데에 두는 기존 레이아웃이라 노선명 줄 높이를 맞추지 않는다. */}
@@ -228,7 +231,7 @@ export function TransportCard({
         {summary}
         <ChevronDown
           className={cn(
-            "size-4 shrink-0 text-sub-gray transition-transform",
+            "size-4.5 shrink-0 text-sub-gray transition-transform",
             isExpanded && "rotate-180",
           )}
           strokeWidth={1.5}

@@ -48,7 +48,7 @@ export function TransportLegItem({ leg, metaText, className }: TransportLegItemP
         )}
       </div>
 
-      <div className="text-sm text-sub-darkgray leading-snug">
+      <div className="text-sm text-sub-deepgray leading-snug mt-0.5">
         <span className="break-words">{leg.from}</span>
         <svg
           viewBox="0 0 24 24"
