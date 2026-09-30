@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/shared/utils";
-import { Card, Modal, SpeechBubble, Toast, LoadingState, ErrorState } from "@/components";
+import { Card, Modal, SpeechBubble, Toast, LoadingState, ErrorState, PageCard } from "@/components";
 import VoteIcon from "@/assets/icons/itinerary/vote-yea.svg?svgr";
 import checkIconWhite from "@/assets/icons/itinerary/check_white.png";
 import infoIcon from "@/assets/icons/itinerary/info.png";
@@ -373,7 +373,8 @@ function TripResultContent() {
 
   if (isGenerateError) {
     return (
-      <div className="absolute inset-0 z-10 bg-main-white">
+      // 흰 화면으로 전체를 덮지 않고, 일정 탭의 다른 오류 화면처럼 배경 위 카드 안에 보여준다.
+      <PageCard>
         <ErrorState
           code={503}
           title="일정 생성에 실패했어요"
@@ -386,9 +387,8 @@ function TripResultContent() {
             label: "홈으로 돌아가기",
             onClick: () => router.push("/home"),
           }}
-          className="h-full"
         />
-      </div>
+      </PageCard>
     );
   }
 
